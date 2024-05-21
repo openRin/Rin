@@ -1,0 +1,35 @@
+{
+  "name": "xeulife",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "dotenvx run -f .env -- bun --watch src/server.ts",
+    "migration": "bun drizzle-kit generate",
+    "client": "bun --watch src/client.ts",
+    "build": "bun build src/server.ts",
+    "start": "NODE_ENV=production bun src/server.ts",
+    "t": "dotenvx run -f .env.test -- rm -f test.db && bun test"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^0.43.0",
+    "@types/bun": "^1.1.2",
+    "drizzle-kit": "^0.21.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.0.2",
+    "@elysiajs/eden": "^1.0.13",
+    "@elysiajs/jwt": "^1.0.2",
+    "arctic": "^1.8.1",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.10",
+    "elysia": "^1.0.20",
+    "elysia-oauth2": "^1.2.0",
+    "logestic": "^1.1.1"
+  },
+  "trustedDependencies": [
+    "es5-ext"
+  ]
+}
