@@ -1,6 +1,7 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
+import { logger} from '../utils/logger'
 
 export async function migration() {
     const start = new Date().getTime();
@@ -11,5 +12,5 @@ export async function migration() {
     await connection.close();
 
     const end = new Date().getTime();
-    console.log(`Migration to ${db_path} took ${end - start}ms`);
+    logger.debug(`Migration to ${db_path} took ${end - start}ms`);
 }
