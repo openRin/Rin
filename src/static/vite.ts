@@ -39,7 +39,7 @@ export const elysiaVite = <C extends ViteConfig>(options?: C) => {
                     const viteUrl = `http://${viteHost}:${vitePort}`;
                     const entryClientFile =
                         options?.entryClientFile || "entry-client.tsx";
-                    console.log(options?.entryHtmlFile)
+                    logger.log(options?.entryHtmlFile)
                     const entryHtmlFile =
                         options?.entryHtmlFile ||
                         path.resolve(

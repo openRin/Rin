@@ -7,7 +7,6 @@ let dbInstance: BunSQLiteDatabase<typeof schema>;
 
 const getDbInstance = () => {
     if (!dbInstance) {
-        logger.debug(`Connect to ${process.env.DB_PATH}`);
         const connection = new Database(process.env.DB_PATH ?? 'sqlite.db', { create: true });
         dbInstance = drizzle(connection, { schema: schema });
     }
