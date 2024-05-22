@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'bun:test'
-import { app } from '../src/server';
 import { treaty } from '@elysiajs/eden';
 import jwt from '@elysiajs/jwt';
+import { describe, expect, it } from 'bun:test';
 import { t } from 'elysia';
 import db from '../src/db/db';
 import { users } from '../src/db/schema';
+import { app } from '../src/server';
 
 const client = treaty(app)
 describe('UserService', () => {
@@ -15,7 +15,6 @@ describe('UserService', () => {
             headers.forEach((value, key) => {
                 if (key !== 'location') return
                 expect(value).toStartWith('https://github.com/login/oauth/authorize')
-                console.log(value)
             })
         }
     })
@@ -33,10 +32,11 @@ describe('UserService', () => {
             uid: 1,
             admin: true
         }
-        const { data, error } = await client.feed.index.post({
+        const { error } = await client.feed.index.post({
             title: 'hi',
             content: 'hi',
-            draft: false
+            draft: false,
+            tags: ['test', 'test2']
         }, {
             headers: {
                 Cookie: `token=${JSON.stringify(admin)}`
@@ -57,7 +57,8 @@ describe('UserService', () => {
         const { error } = await client.feed.index.post({
             title: 'hi',
             content: 'hi',
-            draft: false
+            draft: false,
+            tags: ['test', 'test2']
         }, {
             headers: {
                 Cookie: `token=${token}`
@@ -76,7 +77,8 @@ describe('UserService', () => {
             const { error } = await client.feed.index.post({
                 title: 'hi',
                 content: 'hi',
-                draft: false
+                draft: false,
+                tags: ['test', 'test3']
             }, {
                 headers: {
                     Cookie: `token=${token}`

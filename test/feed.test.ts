@@ -17,7 +17,8 @@ describe('feed', () => {
         const { data, error } = await client.feed.index.post({
             title: 'hi',
             content: 'hi',
-            draft: false
+            draft: false,
+            tags: ['test', 'test2']
         }, {
             headers: {
                 Cookie: `token=${JSON.stringify(admin)}`
@@ -34,7 +35,8 @@ describe('feed', () => {
         const { data, error } = await client.feed.index.post({
             title: 'hi',
             content: 'hi',
-            draft: false
+            draft: false,
+            tags: ['test', 'test2']
         }, {
             headers: {
                 Cookie: `token=${JSON.stringify(user)}`

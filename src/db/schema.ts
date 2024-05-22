@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
@@ -9,6 +9,7 @@ export const feeds = sqliteTable("feeds", {
     title: text("title"),
     content: text("content").notNull(),
     draft: integer("draft").default(1),
+    uid: integer("uid").references(() => users.id).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
 });
@@ -45,3 +46,38 @@ export const feedHashtags = sqliteTable("feed_hashtags", {
     createdAt: created_at,
     updatedAt: updated_at,
 });
+
+export const feedsRelations = relations(feeds, ({ many, one }) => ({
+    hashtags: many(feedHashtags),
+    user: one(users, {
+        fields: [feeds.uid],
+        references: [users.id],
+    }),
+    comments: many(comments),
+}));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+    feed: one(feeds, {
+        fields: [comments.feedId],
+        references: [feeds.id],
+    }),
+    user: one(users, {
+        fields: [comments.userId],
+        references: [users.id],
+    }),
+}));
+
+export const hashtagsRelations = relations(hashtags, ({ many }) => ({
+    hashtags: many(feedHashtags),
+}));
+
+export const feedHashtagsRelations = relations(feedHashtags, ({ one }) => ({
+    feed: one(feeds, {
+        fields: [feedHashtags.feedId],
+        references: [feeds.id],
+    }),
+    hashtag: one(hashtags, {
+        fields: [feedHashtags.hashtagId],
+        references: [hashtags.id],
+    }),
+}));
