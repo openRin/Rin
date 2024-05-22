@@ -4,6 +4,7 @@
 drizzle
 bun.lockb
 test.ts
+*.log
 
 # Logs
 
