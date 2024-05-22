@@ -4,6 +4,7 @@ import Elysia, { t } from "elysia";
 import { oauth2 } from "elysia-oauth2";
 import { users } from "./db/schema";
 import db from "./db/db";
+import { logger } from "./utils";
 const gh_client_id = process.env.GITHUB_CLIENT_ID;
 const gh_client_secret = process.env.GITHUB_CLIENT_SECRET;
 const jwt_secret = process.env.JWT_SECRET;
@@ -33,14 +34,10 @@ export const setup = new Elysia({ name: 'setup' })
     )
     .derive({ as: 'global' }, async ({ jwt, cookie: { token } }) => {
         if (process.env.NODE_ENV?.toLowerCase() === 'test') {
-            console.log('Test mode')
-            return {
-                uid: 1,
-                admin: true,
-            }
+            logger.warn('Now in test mode, skip jwt verification.')
+            return token.value;
         }
         const profile = await jwt.verify(token.value)
-        console.log(profile)
 
         if (!profile) {
             return {};
