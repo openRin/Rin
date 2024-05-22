@@ -7,14 +7,15 @@ import { setup } from "../setup";
 export const PostService = new Elysia()
     .use(setup)
     .group('/post', (group) =>
-        group.get('/', async () => {
-            const post_list = (await db.query.posts.findMany({
-                where: eq(posts.draft, 0)
-            })).map(({ draft, ...other }) => {
-                return other;
-            });
-            return post_list;
-        })
+        group
+            .get('/', async () => {
+                const post_list = (await db.query.posts.findMany({
+                    where: eq(posts.draft, 0)
+                })).map(({ draft, ...other }) => {
+                    return other;
+                });
+                return post_list;
+            })
             .post('/', async ({ admin, set, body: { title, content, draft } }) => {
                 if (!admin) {
                     set.status = 403;
@@ -37,6 +38,17 @@ export const PostService = new Elysia()
                     content: t.String(),
                     draft: t.Boolean()
                 })
+            })
+            .get('/:id', async ({ set, params: { id } }) => {
+                const id_num = parseInt(id);
+                const post = await db.query.posts.findFirst({
+                    where: eq(posts.id, id_num)
+                });
+                if (!post) {
+                    set.status = 404;
+                    return 'Not found';
+                }
+                return post;
             })
     );
 
