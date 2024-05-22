@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { type UserConfig } from "vite";
 import * as path from "path";
+import { logger } from "../utils";
 
 export type ViteConfig = UserConfig & {
     appRootPath?: string;
@@ -49,7 +50,7 @@ export const elysiaVite = <C extends ViteConfig>(options?: C) => {
                         );
                     const htmlFile = Bun.file(entryHtmlFile);
                     if (!(await htmlFile.exists())) {
-                        console.error(
+                        logger.error(
                             `[elysia-vite] not found! entryHtmlFile=${entryHtmlFile} root=${viteConfig.root}`
                         );
                         context.set.status = 404;

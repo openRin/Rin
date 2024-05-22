@@ -7,19 +7,8 @@ export const UserService = new Elysia()
     .use(setup)
     .group('/user', (group) =>
         group
-            .get('/', ({ cookie: { token } }) => {
-                // Get
-                console.log(token.value)
-
-                // Set
-                token.value = "New Value"
-                token.value = {
-                    hello: 'world'
-                }
-                return "OK"
-            })
             .get("/github", ({ oauth2 }) => oauth2.redirect("GitHub", { scopes: ["read:user"] }))
-            .get("/github/callback", async ({ jwt, oauth2, redirect, set, cookie: { token } }) => {
+            .get("/github/callback", async ({ jwt, oauth2, redirect, cookie: { token } }) => {
                 const gh_token = await oauth2.authorize("GitHub");
                 // request https://api.github.com/user for user info
                 const response = await fetch("https://api.github.com/user", {
