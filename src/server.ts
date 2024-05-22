@@ -15,7 +15,7 @@ const webui = elysiaVite({
     isReact: true,
     placeHolderDevScripts: '<!--vite-dev-scripts-->',
     server: {
-        host: '10.0.0.10',
+        host: process.env.VITE_HOST,
     },
 })
 export const app = new Elysia()
