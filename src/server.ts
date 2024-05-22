@@ -1,6 +1,6 @@
 import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
-import { PostService } from './action/post';
+import { FeedService } from './action/feed';
 import { UserService } from './action/user';
 import { migration } from './db/migrate';
 import { elysiaVite } from './static/vite';
@@ -22,12 +22,12 @@ export const app = new Elysia()
     .use(cors())
     .use(logPlugin)
     .use(UserService)
-    .use(PostService)
+    .use(FeedService)
     .get('/', ({ uid }) => `Hi ${uid}`)
     .use(webui)
-    .onError(({ code }) => {
+    .onError(({ path,params,code }) => {
         if (code === 'NOT_FOUND')
-            return ':('
+            return `${path} ${JSON.stringify(params)} not found`
     })
     .listen(process.env.PORT ?? 3001, () => {
         logger.info(`[Rim] Server is running: http://localhost:${process.env.PORT ?? 3001}`)

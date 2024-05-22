@@ -1,31 +1,31 @@
 import { eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import db from "../db/db";
-import { posts } from "../db/schema";
+import { feeds } from "../db/schema";
 import { setup } from "../setup";
 
-export const PostService = new Elysia()
+export const FeedService = new Elysia()
     .use(setup)
-    .group('/post', (group) =>
+    .group('/feed', (group) =>
         group
             .get('/', async () => {
-                const post_list = (await db.query.posts.findMany({
-                    where: eq(posts.draft, 0)
+                const feed_list = (await db.query.feeds.findMany({
+                    where: eq(feeds.draft, 0)
                 })).map(({ draft, ...other }) => {
                     return other;
                 });
-                return post_list;
+                return feed_list;
             })
             .post('/', async ({ admin, set, body: { title, content, draft } }) => {
                 if (!admin) {
                     set.status = 403;
                     return 'Permission denied';
                 }
-                const result = await db.insert(posts).values({
+                const result = await db.insert(feeds).values({
                     title,
                     content,
                     draft: draft ? 1 : 0
-                }).returning({ insertedId: posts.id });
+                }).returning({ insertedId: feeds.id });
                 if (result.length === 0) {
                     set.status = 500;
                     return 'Failed to insert';
@@ -41,14 +41,14 @@ export const PostService = new Elysia()
             })
             .get('/:id', async ({ set, params: { id } }) => {
                 const id_num = parseInt(id);
-                const post = await db.query.posts.findFirst({
-                    where: eq(posts.id, id_num)
+                const feed = await db.query.feeds.findFirst({
+                    where: eq(feeds.id, id_num)
                 });
-                if (!post) {
+                if (!feed) {
                     set.status = 404;
                     return 'Not found';
                 }
-                return post;
+                return feed;
             })
-    );
 
+    )

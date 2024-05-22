@@ -6,7 +6,7 @@ function created_at() {
 function updated_at() {
     return integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
 }
-export const posts = sqliteTable("posts", {
+export const feeds = sqliteTable("feeds", {
     id: integer("id").primaryKey(),
     title: text("title"),
     content: text("content").notNull(),
@@ -27,7 +27,7 @@ export const users = sqliteTable("users", {
 
 export const comments = sqliteTable("comments", {
     id: integer("id").primaryKey(),
-    postId: integer("post_id").references(()=> posts.id, { onDelete: 'cascade' }).notNull(),
+    feedId: integer("feed_id").references(()=> feeds.id, { onDelete: 'cascade' }).notNull(),
     userId: integer("user_id").references(()=> users.id, { onDelete: 'cascade' }).notNull(),
     content: text("content").notNull(),
     createdAt: created_at(),
@@ -41,8 +41,8 @@ export const hashtags = sqliteTable("hashtags", {
     updatedAt: updated_at(),
 });
 
-export const postHashtags = sqliteTable("post_hashtags", {
-    postId: integer("post_id").references(()=> posts.id, { onDelete: 'cascade' }).notNull(),
+export const feedHashtags = sqliteTable("feed_hashtags", {
+    feedId: integer("feed_id").references(()=> feeds.id, { onDelete: 'cascade' }).notNull(),
     hashtagId: integer("hashtag_id").references(()=> hashtags.id, { onDelete: 'cascade' }).notNull(),
     createdAt: created_at(),
     updatedAt: updated_at(),
