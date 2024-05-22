@@ -48,7 +48,7 @@ export const UserService = new Elysia()
                 return redirect('/user/profile');
             })
             .get('/profile', async ({ jwt, set, cookie: { token } }) => {
-                console.log(token.value)
+                logger.log(token.value)
                 const profile = await jwt.verify(token.value)
 
                 if (!profile) {
