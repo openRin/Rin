@@ -1,18 +1,16 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
-function created_at() {
-    return integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
-}
-function updated_at() {
-    return integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
-}
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
+const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
+
 export const feeds = sqliteTable("feeds", {
     id: integer("id").primaryKey(),
     title: text("title"),
     content: text("content").notNull(),
     draft: integer("draft").default(1),
-    createdAt: created_at(),
-    updatedAt: updated_at(),
+    createdAt: created_at,
+    updatedAt: updated_at,
 });
 
 export const users = sqliteTable("users", {
@@ -21,29 +19,29 @@ export const users = sqliteTable("users", {
     openid: text("openid").notNull(),
     avatar: text("avatar"),
     permission: integer("permission").default(0),
-    createdAt: created_at(),
-    updatedAt: updated_at(),
+    createdAt: created_at,
+    updatedAt: updated_at,
 });
 
 export const comments = sqliteTable("comments", {
     id: integer("id").primaryKey(),
-    feedId: integer("feed_id").references(()=> feeds.id, { onDelete: 'cascade' }).notNull(),
-    userId: integer("user_id").references(()=> users.id, { onDelete: 'cascade' }).notNull(),
+    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
+    userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
     content: text("content").notNull(),
-    createdAt: created_at(),
-    updatedAt: updated_at(),
+    createdAt: created_at,
+    updatedAt: updated_at,
 });
 
 export const hashtags = sqliteTable("hashtags", {
     id: integer("id").primaryKey(),
     name: text("name").notNull(),
-    createdAt: created_at(),
-    updatedAt: updated_at(),
+    createdAt: created_at,
+    updatedAt: updated_at,
 });
 
 export const feedHashtags = sqliteTable("feed_hashtags", {
-    feedId: integer("feed_id").references(()=> feeds.id, { onDelete: 'cascade' }).notNull(),
-    hashtagId: integer("hashtag_id").references(()=> hashtags.id, { onDelete: 'cascade' }).notNull(),
-    createdAt: created_at(),
-    updatedAt: updated_at(),
+    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
+    hashtagId: integer("hashtag_id").references(() => hashtags.id, { onDelete: 'cascade' }).notNull(),
+    createdAt: created_at,
+    updatedAt: updated_at,
 });
