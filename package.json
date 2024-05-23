@@ -19,5 +19,8 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "turbo": "^1.13.3"
+  },
+  "dependencies": {
+    "remixicon": "^4.2.0"
   }
 }
