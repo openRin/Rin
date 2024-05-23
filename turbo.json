@@ -11,7 +11,7 @@
     },
     "t": {
       "cache": false,
-      "dependsOn": ["^test", "^generate"]
+      "dependsOn": ["^db:gen"]
     },
     "db:gen": {
         "cache": false,

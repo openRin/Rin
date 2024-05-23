@@ -5,7 +5,7 @@
  */
 import { Logestic } from 'logestic';
 const config = {
-    dest: process.env.NODE_ENV === 'test' ? Bun.file('/dev/null') : undefined,
+    dest: process.env.NODE_ENV === 'test' ? Bun.file('test.log') : undefined,
 }
 const logPlugin = Logestic.preset('fancy', config)
 const { logestic: logger } = logPlugin.decorator;

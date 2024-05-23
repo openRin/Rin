@@ -2,8 +2,7 @@ import { eq } from "drizzle-orm";
 import Elysia from "elysia";
 import db from "../db/db";
 import { users } from "../db/schema";
-import { setup } from "../setup";
-import { logger } from "../utils";
+import { frontend_url, setup } from "../setup";
 export const UserService = new Elysia()
     .use(setup)
     .group('/user', (group) =>
@@ -46,17 +45,15 @@ export const UserService = new Elysia()
                             }
                         }
                     });
-                return redirect('/user/profile');
+                return redirect(`${frontend_url}/callback?token=${token.value}`);
             })
-            .get('/profile', async ({ jwt, set, cookie: { token } }) => {
-                const profile = await jwt.verify(token.value)
-
-                if (!profile) {
-                    set.status = 401
-                    return 'Unauthorized'
+            .get('/profile', async ({ jwt, set, uid }) => {
+                if (!uid) {
+                    set.status = 403
+                    return 'Permission denied'
                 }
-
-                const user = await db.query.users.findFirst({ where: eq(users.id, profile.id) })
+                const uid_num = parseInt(uid)
+                const user = await db.query.users.findFirst({ where: eq(users.id, uid_num) })
                 if (!user) {
                     set.status = 404
                     return 'User not found'

@@ -21,7 +21,7 @@ describe('🐙 Feed', () => {
             tags: ['test', 'test2']
         }, {
             headers: {
-                Cookie: `token=${JSON.stringify(admin)}`
+                Authorization: `Bearer ${JSON.stringify(admin)}`
             }
         })
         expect(error).toBeNull()
@@ -39,7 +39,7 @@ describe('🐙 Feed', () => {
             tags: ['test', 'test2']
         }, {
             headers: {
-                Cookie: `token=${JSON.stringify(user)}`
+                Authorization: `Bearer ${JSON.stringify(user)}`
             }
         })
         expect(error?.status).toBe(403)

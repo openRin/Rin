@@ -39,7 +39,7 @@ describe('😋 UserService', () => {
             tags: ['test', 'test2']
         }, {
             headers: {
-                Cookie: `token=${JSON.stringify(admin)}`
+                Authorization: `Bearer ${JSON.stringify(admin)}`
             }
         })
         expect(error?.status).toBe(403)
@@ -61,7 +61,7 @@ describe('😋 UserService', () => {
             tags: ['test', 'test2']
         }, {
             headers: {
-                Cookie: `token=${token}`
+                Authorization: `Bearer ${token}`
             }
         })
         expect(error?.status).toBe(403)
@@ -81,7 +81,7 @@ describe('😋 UserService', () => {
                 tags: ['test', 'test3']
             }, {
                 headers: {
-                    Cookie: `token=${token}`
+                    Authorization: `Bearer ${token}`
                 }
             })
             expect(error).toBeNull()

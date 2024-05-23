@@ -18,7 +18,7 @@ export const FeedService = new Elysia()
                     with: { hashtags: true, user: true }
                 })).map(({ content, ...other }) => {
                     return {
-                        content: content.slice(0, 100),
+                        content: content.length > 100 ? content.slice(0, 100) : content,
                         ...other
                     }
                 });

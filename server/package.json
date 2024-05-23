@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development bun --watch src/server.ts",
+    "dev:test": "NODE_ENV=test bun --watch src/server.ts",
     "generate": "bun drizzle-kit generate",
     "client": "bun --watch src/client.ts",
     "build": "bun build src/server.ts",
