@@ -1,24 +1,13 @@
 import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
-import { FeedService } from './services/feed';
-import { UserService } from './services/user';
 import { migration } from './db/migrate';
-import { elysiaVite } from './static/vite';
-import { logPlugin, logger } from './utils/logger';
+import { FeedService } from './services/feed';
 import { TagService } from './services/tag';
+import { UserService } from './services/user';
+import { logPlugin, logger } from './utils/logger';
 
 migration()
-const webui = elysiaVite({
-    base: '/app',
-    viteConfigFile: `${import.meta.dir}/vite.config.ts`,
-    entryHtmlFile: `${import.meta.dir}/client/index.html`,
-    entryClientFile: `${import.meta.dir}/client/main.tsx`,
-    isReact: true,
-    placeHolderDevScripts: '<!--vite-dev-scripts-->',
-    server: {
-        host: process.env.VITE_HOST,
-    },
-})
+
 export const app = new Elysia()
     .use(cors())
     .use(logPlugin)
@@ -26,7 +15,6 @@ export const app = new Elysia()
     .use(FeedService)
     .use(TagService)
     .get('/', ({ uid }) => `Hi ${uid}`)
-    .use(webui)
     .onError(({ path, params, code }) => {
         if (code === 'NOT_FOUND')
             return `${path} ${JSON.stringify(params)} not found`
