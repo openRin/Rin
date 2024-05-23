@@ -41,7 +41,6 @@ export const setup = new Elysia({ name: 'setup' })
     )
     .derive({ as: 'global' }, async ({ headers, jwt }) => {
         const authorization = headers['authorization']
-        logger.info('Authorization:' + authorization)
         if (!authorization) {
             return {};
         }
@@ -55,7 +54,6 @@ export const setup = new Elysia({ name: 'setup' })
             }
         }
         const profile = await jwt.verify(token)
-        logger.info('Profile:' + JSON.stringify(profile))
         if (!profile) {
             return {};
         }
