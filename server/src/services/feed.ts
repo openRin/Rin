@@ -16,7 +16,12 @@ export const FeedService = new Elysia()
                         draft: false
                     },
                     with: { hashtags: true, user: true }
-                }));
+                })).map(({ content, ...other }) => {
+                    return {
+                        content: content.slice(0, 100),
+                        ...other
+                    }
+                });
                 return feed_list;
             })
             .post('/', async ({ admin, set, uid, body: { title, content, draft, tags } }) => {

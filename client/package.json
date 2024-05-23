@@ -13,7 +13,8 @@
     "@elysiajs/eden": "^1.0.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rin-server": "workspace:../server"
+    "rin-server": "workspace:../server",
+    "@astroimg/timeago": "^1.1.6"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
