@@ -68,7 +68,7 @@ export const commentsRelations = relations(comments, ({ one }) => ({
 }));
 
 export const hashtagsRelations = relations(hashtags, ({ many }) => ({
-    hashtags: many(feedHashtags),
+    feeds: many(feedHashtags),
 }));
 
 export const feedHashtagsRelations = relations(feedHashtags, ({ one }) => ({

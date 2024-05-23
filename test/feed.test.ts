@@ -64,3 +64,24 @@ describe('feed', () => {
         expect(data).toBeNull()
     })
 })
+
+describe('tag', () => {
+    it('List all tags', async () => {
+        const { data, error } = await client.tag.index.get()
+        expect(error).toBeNull()
+        expect(data?.length).toBe(2)
+    })
+
+    it('Get tag by name', async () => {
+        const { data, error } = await client.tag({ name: 'test' }).get()
+        expect(error).toBeNull()
+        expect(data).not.toBeString()
+        if (typeof data != 'string')
+            expect(data?.name).toBe('test')
+    })
+    it('Get tag by non-exist name', async () => {
+        const { data, error } = await client.tag({ name: 'nop' }).get()
+        expect(error?.status).toBe(404)
+        expect(data).toBeNull()
+    })
+})

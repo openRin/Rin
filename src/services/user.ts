@@ -3,6 +3,7 @@ import Elysia from "elysia";
 import db from "../db/db";
 import { users } from "../db/schema";
 import { setup } from "../setup";
+import { logger } from "../utils";
 export const UserService = new Elysia()
     .use(setup)
     .group('/user', (group) =>
@@ -48,7 +49,6 @@ export const UserService = new Elysia()
                 return redirect('/user/profile');
             })
             .get('/profile', async ({ jwt, set, cookie: { token } }) => {
-                logger.log(token.value)
                 const profile = await jwt.verify(token.value)
 
                 if (!profile) {

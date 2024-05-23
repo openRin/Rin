@@ -5,6 +5,7 @@ import { UserService } from './services/user';
 import { migration } from './db/migrate';
 import { elysiaVite } from './static/vite';
 import { logPlugin, logger } from './utils/logger';
+import { TagService } from './services/tag';
 
 migration()
 const webui = elysiaVite({
@@ -23,6 +24,7 @@ export const app = new Elysia()
     .use(logPlugin)
     .use(UserService)
     .use(FeedService)
+    .use(TagService)
     .get('/', ({ uid }) => `Hi ${uid}`)
     .use(webui)
     .onError(({ path, params, code }) => {
