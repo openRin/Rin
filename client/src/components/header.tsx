@@ -6,7 +6,7 @@ import { headersWithAuth } from "../utils/auth";
 export function Header() {
     const [location, setLocation] = useLocation();
     const [avatar, setAvatar] = useState<string>('')
-    const [name, setName] = useState<string>('')
+    const [permission, setPermission] = useState<boolean>(false)
     useEffect(() => {
         client.user.profile.get({
             headers: headersWithAuth()
@@ -14,7 +14,7 @@ export function Header() {
             if (data && typeof data != 'string') {
                 if (data.avatar)
                     setAvatar(data.avatar)
-                setName(data.username)
+                setPermission(data.permission)
             }
         })
     }, [])
@@ -38,6 +38,7 @@ export function Header() {
                             <div className="flex flex-row bg-white rounded-full px-2 shadow-xl shadow-neutral-200">
                                 <NavItem title="文章" selected={location === "/"} onClick={() => { setLocation("/") }} />
                                 <NavItem title="标签" selected={false} onClick={() => { }} />
+                                {permission && <NavItem title="写作" selected={location === "/writing"} onClick={() => { setLocation("/writing") }} />}
                                 <NavItem title="朋友们" selected={false} onClick={() => { }} />
                                 <NavItem title="关于" selected={location === "/about"} onClick={() => { setLocation("/about") }} />
                             </div>

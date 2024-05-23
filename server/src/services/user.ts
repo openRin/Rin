@@ -72,6 +72,7 @@ export const UserService = new Elysia()
                     id: user.id,
                     username: user.username,
                     avatar: user.avatar,
+                    permission: user.permission === 1,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt,
                 }

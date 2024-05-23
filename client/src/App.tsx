@@ -2,6 +2,7 @@ import { Route, Switch } from 'wouter'
 import { Header } from './components/header'
 import { Feeds } from './page/feeds'
 import { CallbackPage } from './page/callback'
+import { WritingPage } from './page/writing'
 
 function App() {
   return (
@@ -19,6 +20,13 @@ function App() {
             <Header />
             <div className="mx-32 mt-8">
               About
+            </div>
+          </Route>
+
+          <Route path="/writing">
+            <Header />
+            <div className="mx-32 mt-8">
+              <WritingPage />
             </div>
           </Route>
 

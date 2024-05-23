@@ -10,5 +10,5 @@ export const client = treaty<Server>(endpoint)
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 )
