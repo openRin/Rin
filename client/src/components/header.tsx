@@ -1,8 +1,23 @@
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { endpoint } from "../main"
+import { client, endpoint } from "../main";
+import { headersWithAuth } from "../utils/auth";
 
 export function Header() {
     const [location, setLocation] = useLocation();
+    const [avatar, setAvatar] = useState<string>('')
+    const [name, setName] = useState<string>('')
+    useEffect(() => {
+        client.user.profile.get({
+            headers: headersWithAuth()
+        }).then(({ data }) => {
+            if (data && typeof data != 'string') {
+                if (data.avatar)
+                    setAvatar(data.avatar)
+                setName(data.username)
+            }
+        })
+    }, [])
     return (
         <>
             <div className="fixed">
@@ -28,9 +43,11 @@ export function Header() {
                             </div>
                         </div>
                         <div className="ml-auto flex flex-row justify-end">
-                            <div onClick={() => window.location.href = `${endpoint}/user/github`} className="hover:bg-neutral-200 flex rounded-full border px-3 bg-white aspect-[1] items-center justify-center">
-                                <i className="ri-login-circle-line ri-xl"></i>
-                            </div>
+                            {avatar ? <img src={avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2" /> : <>
+                                <div onClick={() => window.location.href = `${endpoint}/user/github`} className="hover:bg-neutral-200 flex rounded-full border px-3 bg-white aspect-[1] items-center justify-center">
+                                    <i className="ri-login-circle-line ri-xl"></i>
+                                </div>
+                            </>}
                         </div>
                     </div>
                 </div>

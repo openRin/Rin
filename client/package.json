@@ -16,7 +16,8 @@
     "rin-server": "workspace:../server",
     "@astroimg/timeago": "^1.1.6",
     "remixicon": "^4.2.0",
-    "wouter": "^3.1.3"
+    "wouter": "^3.1.3",
+    "typescript-cookie": "^1.0.6"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

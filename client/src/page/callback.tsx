@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { setCookie } from "typescript-cookie";
 import { useLocation, useSearch } from "wouter";
 
 export function CallbackPage() {
@@ -7,7 +8,7 @@ export function CallbackPage() {
     useEffect(() => {
         const token = searchParams.get('token');
         if (token) {
-            document.cookie = `token=${token}; path=/; max-age=604800;`;
+            setCookie('token', token, { expires: 7, path: '/' })
             setLocation("/");
         }
     }, [searchParams]);
