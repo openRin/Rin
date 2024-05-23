@@ -1,4 +1,8 @@
+import { useLocation } from "wouter";
+import { endpoint } from "../main"
+
 export function Header() {
+    const [location, setLocation] = useLocation();
     return (
         <>
             <div className="fixed">
@@ -17,14 +21,14 @@ export function Header() {
                         </div>
                         <div className="absolute left-1/2 translate-x-[-50%] flex-row justify-center items-center">
                             <div className="flex flex-row bg-white rounded-full px-2 shadow-xl shadow-neutral-200">
-                                <NavItem title="文章" selected={true} onClick={() => { }} />
+                                <NavItem title="文章" selected={location === "/"} onClick={() => { setLocation("/") }} />
                                 <NavItem title="标签" selected={false} onClick={() => { }} />
                                 <NavItem title="朋友们" selected={false} onClick={() => { }} />
-                                <NavItem title="关于" selected={false} onClick={() => { }} />
+                                <NavItem title="关于" selected={location === "/about"} onClick={() => { setLocation("/about") }} />
                             </div>
                         </div>
                         <div className="ml-auto flex flex-row justify-end">
-                            <div className="hover:bg-neutral-200 flex rounded-full border px-3 bg-white aspect-[1] items-center justify-center">
+                            <div onClick={() => window.location.href = `${endpoint}/user/github`} className="hover:bg-neutral-200 flex rounded-full border px-3 bg-white aspect-[1] items-center justify-center">
                                 <i className="ri-login-circle-line ri-xl"></i>
                             </div>
                         </div>
@@ -38,7 +42,7 @@ export function Header() {
 
 function NavItem({ title, selected, onClick }: { title: string, selected: boolean, onClick: () => void }) {
     return (
-        <div onClick={onClick} className={"cursor-pointer hover:text-theme duration-300 p-4 text-lg " + (selected ? "text-theme" : "")} >
+        <div onClick={onClick} className={"cursor-pointer hover:text-theme duration-300 p-4 text-base " + (selected ? "text-theme" : "")} >
             {title}
         </div >
     )

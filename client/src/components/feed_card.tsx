@@ -4,7 +4,7 @@ export function FeedCard({ title, content, hashtags, createdAt, updatedAt }: { t
     return (
         <>
             <div className="w-1/2 rounded-2xl bg-white m-2 p-6 hover:bg-neutral-200 duration-300">
-                <h1 className="text-2xl font-bold text-gray-700">
+                <h1 className="text-xl font-bold text-gray-700">
                     {title}
                 </h1>
                 <div>
