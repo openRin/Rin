@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { elysiaVite } from '../src/static/vite';
 
-describe('vite', () => {
+describe('🎉 Vite', () => {
     it('Bad Vite Config', async () => {
         const viteApp = elysiaVite({
             base: '/app',

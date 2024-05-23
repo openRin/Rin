@@ -7,7 +7,7 @@ import { users } from '../src/db/schema';
 import { app } from '../src/server';
 
 const client = treaty(app)
-describe('UserService', () => {
+describe('😋 UserService', () => {
     it('OAuth', async () => {
         const { headers, error } = await client.user.github.get()
         expect(error?.status).toBe(302)

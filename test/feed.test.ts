@@ -3,7 +3,7 @@ import { describe, expect, it } from 'bun:test';
 import { app } from '../src/server';
 
 const client = treaty(app)
-describe('feed', () => {
+describe('🐙 Feed', () => {
     it('List all feeds', async () => {
         const { data, error } = await client.feed.index.get()
         expect(error).toBeNull()
@@ -65,7 +65,7 @@ describe('feed', () => {
     })
 })
 
-describe('tag', () => {
+describe('🧼 Tag', () => {
     it('List all tags', async () => {
         const { data, error } = await client.tag.index.get()
         expect(error).toBeNull()
