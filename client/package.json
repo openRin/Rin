@@ -14,7 +14,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rin-server": "workspace:../server",
-    "@astroimg/timeago": "^1.1.6"
+    "@astroimg/timeago": "^1.1.6",
+    "remixicon": "^4.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

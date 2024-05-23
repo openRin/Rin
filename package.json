@@ -21,6 +21,5 @@
     "turbo": "^1.13.3"
   },
   "dependencies": {
-    "remixicon": "^4.2.0"
   }
 }
