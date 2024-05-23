@@ -1,0 +1,39 @@
+{
+  "name": "xeulife",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development bun --watch src/server.ts",
+    "migration": "bun drizzle-kit generate",
+    "client": "bun --watch src/client.ts",
+    "build": "bun build src/server.ts",
+    "start": "NODE_ENV=production bun src/server.ts",
+    "t": "NODE_ENV=test rm -f test.db && bun test --coverage"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.2",
+    "@vitejs/plugin-react": "^4.2.1",
+    "drizzle-kit": "^0.21.2",
+    "vite": "^5.2.11",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.0.2",
+    "@elysiajs/eden": "^1.0.13",
+    "@elysiajs/jwt": "^1.0.2",
+    "arctic": "^1.8.1",
+    "drizzle-orm": "^0.30.10",
+    "elysia": "^1.0.21",
+    "elysia-oauth2": "^1.2.0",
+    "logestic": "^1.1.1",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "trustedDependencies": [
+    "es5-ext"
+  ]
+}
