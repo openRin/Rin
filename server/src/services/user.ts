@@ -8,7 +8,7 @@ export const UserService = new Elysia()
     .group('/user', (group) =>
         group
             .get("/github", ({ oauth2 }) => oauth2.redirect("GitHub", { scopes: ["read:user"] }))
-            .get("/github/callback", async ({ jwt, oauth2, redirect, cookie: { token } }) => {
+            .get("/github/callback", async ({ jwt, oauth2, redirect, store, cookie: { token } }) => {
                 const gh_token = await oauth2.authorize("GitHub");
                 // request https://api.github.com/user for user info
                 const response = await fetch("https://api.github.com/user", {
@@ -22,6 +22,7 @@ export const UserService = new Elysia()
                     openid: user.id,
                     username: user.name,
                     avatar: user.avatar_url,
+                    permission: 0,
                 };
                 await db.query.users.findFirst({ where: eq(users.openid, profile.openid) })
                     .then(async (user) => {
@@ -33,6 +34,15 @@ export const UserService = new Elysia()
                                 path: '/',
                             })
                         } else {
+                            // if no user exists, set permission to 1
+                            // store.anyUser is a global state to cache the existence of any user
+                            if (!store.anyUser) {
+                                const realTimeCheck = (await db.query.users.findMany())?.length > 0
+                                if (!realTimeCheck) {
+                                    profile.permission = 1
+                                    store.anyUser = true
+                                }
+                            }
                             const result = await db.insert(users).values(profile).returning({ insertedId: users.id });
                             if (!result || result.length === 0) {
                                 throw new Error('Failed to register');

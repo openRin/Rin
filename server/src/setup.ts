@@ -20,8 +20,9 @@ if (!jwt_secret) {
 if (!frontend_url) {
     throw new Error('Please set FRONTEND_URL');
 }
-
+const anyUser = (await db.query.users.findMany())?.length > 0
 export const setup = new Elysia({ name: 'setup' })
+    .state('anyUser', anyUser)
     .use(
         jwt({
             name: 'jwt',
