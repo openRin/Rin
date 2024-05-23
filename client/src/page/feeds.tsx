@@ -12,24 +12,21 @@ export function Feeds() {
     }, [])
     return (
         <>
-            <div className="px-32 pt-8">
-                <div>
-                    <img src={process.env.AVATAR} alt="Avatar" width={48} height={48} className="rounded-2xl border-2" />
-                </div>
                 <div className="w-full flex flex-col justify-center items-center">
                     <div className="w-1/2 text-start text-black p-4 text-4xl font-bold">
                         <p>
                             文章
                         </p>
-                        <p className="text-base">
+                        <p className="text-sm mt-4 text-neutral-500 font-normal">
                             共有 {feeds?.length} 篇文章
                         </p>
                     </div>
                     {feeds?.map((feed: any) => (
+                        <>
                         <FeedCard {...feed} />
+                        </>
                     ))}
                 </div>
-            </div>
         </>
     )
 }
