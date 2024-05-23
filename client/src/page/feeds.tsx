@@ -12,21 +12,19 @@ export function Feeds() {
     }, [])
     return (
         <>
-                <div className="w-full flex flex-col justify-center items-center">
-                    <div className="w-1/2 text-start text-black p-4 text-4xl font-bold">
-                        <p>
-                            文章
-                        </p>
-                        <p className="text-sm mt-4 text-neutral-500 font-normal">
-                            共有 {feeds?.length} 篇文章
-                        </p>
-                    </div>
-                    {feeds?.map((feed: any) => (
-                        <>
-                        <FeedCard {...feed} />
-                        </>
-                    ))}
+            <div className="w-full flex flex-col justify-center items-center">
+                <div className="w-1/2 text-start text-black p-4 text-4xl font-bold">
+                    <p>
+                        文章
+                    </p>
+                    <p className="text-sm mt-4 text-neutral-500 font-normal">
+                        共有 {feeds?.length} 篇文章
+                    </p>
                 </div>
+                {feeds?.map(({ id, ...feed }: any) => (
+                    <FeedCard key={id} {...feed} />
+                ))}
+            </div>
         </>
     )
 }
