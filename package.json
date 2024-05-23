@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "t": "turbo t",
+    "gen": "turbo db:gen",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write"
   },

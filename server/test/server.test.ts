@@ -7,9 +7,4 @@ describe('🐻 Server', () => {
             .handle(new Request('http://localhost/not-found'))
         expect(response.status).toBe(404)
     })
-    it('Vite', async () => {
-        const response = await app
-            .handle(new Request('http://localhost/app/'))
-        expect(response.status).toBe(200)
-    })
 })

@@ -1,19 +1,27 @@
 {
-    "$schema": "https://turbo.build/schema.json",
-    "pipeline": {
-      "build": {
-        "dependsOn": ["^build"],
-        "outputs": ["dist/**"]
-      },
-      "dev": {
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "t": {
+      "cache": false,
+      "dependsOn": ["^test", "^generate"]
+    },
+    "db:gen": {
         "cache": false,
-        "persistent": true
-      },
-      "format:check": {
-        "dependsOn": ["^format:check"]
-      },
-      "format:write": {
-        "dependsOn": ["^format:write"]
-      }
+        "dependsOn": ["^generate"]
+    },
+    "format:check": {
+      "dependsOn": ["^format:check"]
+    },
+    "format:write": {
+      "dependsOn": ["^format:write"]
     }
   }
+}

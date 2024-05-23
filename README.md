@@ -14,7 +14,7 @@ $ bun install
 
 Then create the database by:
 ```bash
-$ bun migration
+$ bun gen
 ```
 
 Copy the `.env.example` to `.env` and modify the configuration.

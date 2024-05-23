@@ -2,6 +2,12 @@ build/**
 dist/**
 .next/**
 .turbo
+*.db
+.env
+bun.lockb
+test.ts
+*.log
+
 
 # Logs
 logs
@@ -27,3 +33,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+bun.lockb

@@ -1,10 +1,10 @@
 {
-  "name": "xeulife",
+  "name": "rin-server",
   "module": "index.ts",
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development bun --watch src/server.ts",
-    "migration": "bun drizzle-kit generate",
+    "generate": "bun drizzle-kit generate",
     "client": "bun --watch src/client.ts",
     "build": "bun build src/server.ts",
     "start": "NODE_ENV=production bun src/server.ts",
