@@ -1,6 +1,6 @@
 import { format } from "@astroimg/timeago";
 
-export function FeedCard({ title, content, hashtags, createdAt, updatedAt }: { title: string, content: string, hashtags: string[], createdAt: Date, updatedAt: Date }) {
+export function FeedCard({ title, content, hashtags, createdAt, updatedAt }: { title: string, content: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
     return (
         <>
             <div className="w-1/2 rounded-2xl bg-white m-2 p-6 hover:bg-neutral-200 duration-300">
@@ -15,13 +15,15 @@ export function FeedCard({ title, content, hashtags, createdAt, updatedAt }: { t
                 <p>
                     {content}
                 </p>
-                <div>
-                    {hashtags.map((tag, index) => (
-                        <span key={index} className="bg-gray-200 p-1 m-1 rounded-lg">
-                            {tag}
-                        </span>
-                    ))}
-                </div>
+                {hashtags.length > 0 &&
+                    <div className="mt-2 flex flex-row">
+                        {hashtags.map(({ name }, index) => (
+                            <div key={index} className="bg-neutral-100 py-1 px-2 m-1 rounded-lg">
+                                {name}
+                            </div>
+                        ))}
+                    </div>
+                }
 
             </div>
         </>
