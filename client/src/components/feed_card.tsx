@@ -1,9 +1,11 @@
 import { format } from "@astroimg/timeago";
+import { useLocation } from "wouter";
 
-export function FeedCard({ title, content, hashtags, createdAt, updatedAt }: { title: string, content: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
+export function FeedCard({ id, title, content, hashtags, createdAt, updatedAt }: { id: string, title: string, content: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
+    const [_, setLocation] = useLocation();
     return (
         <>
-            <div className="w-1/2 rounded-2xl bg-white m-2 p-6 hover:bg-neutral-200 duration-300">
+            <div onClick={() => setLocation(`/feed/${id}`)} className="w-1/2 rounded-2xl bg-white m-2 p-6 hover:bg-neutral-200 duration-300">
                 <h1 className="text-xl font-bold text-gray-700">
                     {title}
                 </h1>

@@ -23,7 +23,9 @@ export const FeedService = new Elysia()
                                     columns: { id: true, name: true }
                                 }
                             }
-                        }, user: true
+                        }, user: {
+                            columns: { id: true, username: true, avatar: true }
+                        }
                     }
                 })).map(({ content, hashtags, ...other }) => {
                     return {
@@ -81,18 +83,34 @@ export const FeedService = new Elysia()
             })
             .get('/:id', async ({ set, params: { id } }) => {
                 const id_num = parseInt(id);
-                const feed = await db.query.feeds.findFirst({
+                const feed = (await db.query.feeds.findFirst({
                     where: eq(feeds.id, id_num),
                     columns: {
                         draft: false
                     },
-                    with: { hashtags: true, user: true }
-                });
+                    with: {
+                        hashtags: {
+                            columns: {},
+                            with: {
+                                hashtag: {
+                                    columns: { id: true, name: true }
+                                }
+                            }
+                        }, user: {
+                            columns: { id: true, username: true, avatar: true }
+                        }
+                    }
+                }));
                 if (!feed) {
                     set.status = 404;
                     return 'Not found';
                 }
-                return feed;
+                const { hashtags, ...other } = feed;
+                const hashtags_flatten = hashtags.map(({ hashtag }) => hashtag);
+                return {
+                    ...other,
+                    hashtags: hashtags_flatten
+                };
             })
 
     )

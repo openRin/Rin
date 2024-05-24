@@ -11,16 +11,20 @@ import 'katex/dist/katex.min.css';
 import { slash, SlashView } from './slash';
 import { rin } from './theme';
 import { tooltip, TooltipView } from './tooltip';
+import { editorViewOptionsCtx } from '@milkdown/core';
 
-const markdown = localStorage.getItem('markdown') || ''
-
-export function MilkdownEditor() {
+export function MilkdownEditor({ data, readonly = false }: { data?: string, readonly: boolean }) {
+    const markdown = data || localStorage.getItem('markdown') || '';
     const pluginViewFactory = usePluginViewFactory();
 
     useEditor((root) => {
         return Editor
             .make()
             .config(ctx => {
+                ctx.update(editorViewOptionsCtx, (prev) => ({
+                    ...prev,
+                    editable: () => !readonly,
+                }))
                 ctx.set(rootCtx, root)
                 ctx.set(defaultValueCtx, markdown)
                 ctx.set(slash.key, {
@@ -36,7 +40,7 @@ export function MilkdownEditor() {
                 const listener = ctx.get(listenerCtx);
 
                 listener.markdownUpdated((_, markdown, prevMarkdown) => {
-                    if (markdown !== prevMarkdown) {
+                    if (!readonly && markdown !== prevMarkdown) {
                         localStorage.setItem('markdown', markdown);
                     }
                 })

@@ -22,7 +22,7 @@ export function Feeds() {
                     </p>
                 </div>
                 {feeds?.map(({ id, ...feed }: any) => (
-                    <FeedCard key={id} {...feed} />
+                    <FeedCard key={id} id={id} {...feed} />
                 ))}
             </div>
         </>

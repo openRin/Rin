@@ -17,12 +17,13 @@ async function publish(title: string, content: string, tags: string[], draft: bo
   })
   if (error) {
     alert(error.value)
-  } else {
+  }
+  if (typeof data != 'string') {
     alert('发布成功')
     localStorage.removeItem('markdown')
     localStorage.removeItem('title')
     localStorage.removeItem('tags')
-    window.location.href = '/'
+    window.location.href = '/feed/' + data?.insertedId
   }
 }
 

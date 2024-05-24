@@ -3,6 +3,7 @@ import { Header } from './components/header'
 import { Feeds } from './page/feeds'
 import { CallbackPage } from './page/callback'
 import { WritingPage } from './page/writing'
+import { FeedPage } from './page/feed'
 
 function App() {
   return (
@@ -16,6 +17,17 @@ function App() {
             </div>
           </Route>
 
+          <Route path="/feed/:id">
+            {params =>
+              <>
+                <Header />
+                <div className="mx-32 mt-8">
+                  <FeedPage id={params.id} />
+                </div>
+              </>
+            }
+          </Route>
+
           <Route path="/about">
             <Header />
             <div className="mx-32 mt-8">
@@ -25,7 +37,7 @@ function App() {
 
           <Route path="/writing">
             <Header />
-              <WritingPage />
+            <WritingPage />
           </Route>
 
           <Route path="/callback" component={CallbackPage} />
