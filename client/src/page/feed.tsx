@@ -67,13 +67,11 @@ export function FeedPage({ id }: { id: string }) {
                                 </p>
                             }
                         </div>
-                        <div className='flex flex-row justify-start'>
-                            <MilkdownProvider>
-                                <ProsemirrorAdapterProvider>
-                                    <MilkdownEditor data={feed.content} readonly={true} />
-                                </ProsemirrorAdapterProvider>
-                            </MilkdownProvider>
-                        </div>
+                        <MilkdownProvider>
+                            <ProsemirrorAdapterProvider>
+                                <MilkdownEditor data={feed.content} readonly={true} />
+                            </ProsemirrorAdapterProvider>
+                        </MilkdownProvider>
                         {feed.hashtags.length > 0 &&
                             <div className="mt-2 flex flex-row space-x-2">
                                 {feed.hashtags.map(({ name }, index) => (

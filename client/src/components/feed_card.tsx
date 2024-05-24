@@ -9,10 +9,15 @@ export function FeedCard({ id, title, content, hashtags, createdAt, updatedAt }:
                 <h1 className="text-xl font-bold text-gray-700">
                     {title}
                 </h1>
-                <div>
+                <div className="space-x-2">
                     <span className="text-gray-400 text-sm" title={new Date(createdAt).toLocaleString()}>
-                        {format(createdAt) + (createdAt === updatedAt ? '' : '发布 ' + format(updatedAt) + "更新")}
+                        {format(createdAt) + (createdAt === updatedAt ? '' : '发布')}
                     </span>
+                    {createdAt !== updatedAt &&
+                        <span className="text-gray-400 text-sm" title={new Date(updatedAt).toLocaleString()}>
+                            {format(updatedAt) + '更新'}
+                        </span>
+                    }
                 </div>
                 <p>
                     {content}
