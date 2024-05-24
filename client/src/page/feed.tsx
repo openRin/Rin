@@ -5,6 +5,7 @@ import { ProsemirrorAdapterProvider } from "@prosemirror-adapter/react";
 import { MilkdownEditor } from "./editor/editor";
 import { headersWithAuth } from "../utils/auth";
 import { Icon } from "../components/icon";
+import { format } from "@astroimg/timeago";
 
 type Feed = {
     id: number;
@@ -58,9 +59,14 @@ export function FeedPage({ id }: { id: string }) {
                             </div>}
                         </div>
                         <div className="my-2">
-                            <span className="text-gray-400 text-sm" title={new Date(feed.createdAt).toLocaleString()}>
-                                {feed.createdAt === feed.updatedAt ? '发布于' : '更新于'} {new Date(feed.createdAt).toLocaleString()}
-                            </span>
+                            <p className="text-gray-400 text-sm" title={new Date(feed.createdAt).toLocaleString()}>
+                                发布于 {format(feed.createdAt)}
+                            </p>
+                            {feed.createdAt !== feed.updatedAt &&
+                                <p className="text-gray-400 text-sm" title={new Date(feed.updatedAt).toLocaleString()}>
+                                    更新于 {format(feed.updatedAt)}
+                                </p>
+                            }
                         </div>
                         <div className='flex flex-row justify-start'>
                             <MilkdownProvider>
