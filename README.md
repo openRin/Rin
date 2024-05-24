@@ -17,6 +17,12 @@ Then create the database by:
 $ bun gen
 ```
 
+Then run the database migration to create the database by:
+```bash
+$ bun mig
+```
+
+
 Copy the `.env.example` to `.env` and modify the configuration.
 
 Now you can run the server by:

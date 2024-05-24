@@ -84,7 +84,8 @@ describe('😋 UserService', () => {
                     Authorization: `Bearer ${token}`
                 }
             })
-            expect(error).toBeNull()
+            expect(error?.status).toBe(400)
+            expect(error?.value).toBe('Content already exists')
         }
     })
 });

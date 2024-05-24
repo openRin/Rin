@@ -1,12 +1,9 @@
 import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
-import { migration } from './db/migrate';
 import { FeedService } from './services/feed';
 import { TagService } from './services/tag';
 import { UserService } from './services/user';
 import { logPlugin, logger } from './utils/logger';
-
-migration()
 
 export const app = new Elysia()
     .use(cors())

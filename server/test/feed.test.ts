@@ -25,7 +25,7 @@ describe('🐙 Feed', () => {
             }
         })
         expect(error).toBeNull()
-        expect(data).toBe(1)
+        expect(data).toEqual({ insertedId: 1 })
     })
     it('Create new feed without admin', async () => {
         const user = {
@@ -42,6 +42,7 @@ describe('🐙 Feed', () => {
                 Authorization: `Bearer ${JSON.stringify(user)}`
             }
         })
+        expect(error?.value).toBe("Permission denied")
         expect(error?.status).toBe(403)
         expect(data).toBeNull()
     })

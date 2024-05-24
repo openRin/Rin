@@ -37,6 +37,10 @@ export const FeedService = new Elysia()
                 return feed_list;
             })
             .post('/', async ({ admin, set, uid, body: { title, content, draft, tags } }) => {
+                if (!admin) {
+                    set.status = 403;
+                    return 'Permission denied';
+                }
                 // input check
                 if (!title) {
                     set.status = 400;
@@ -56,10 +60,6 @@ export const FeedService = new Elysia()
                     return 'Content already exists';
                 }
 
-                if (!admin) {
-                    set.status = 403;
-                    return 'Permission denied';
-                }
                 const result = await db.insert(feeds).values({
                     title,
                     content,
