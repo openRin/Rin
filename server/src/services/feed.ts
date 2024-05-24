@@ -125,7 +125,8 @@ export const FeedService = new Elysia()
                 await db.update(feeds).set({
                     title,
                     content,
-                    draft: draft ? 1 : 0
+                    draft: draft ? 1 : 0,
+                    updatedAt: new Date()
                 }).where(eq(feeds.id, id_num));
                 if (tags) {
                     await bindTagToPost(id_num, tags);
