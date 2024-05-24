@@ -25,9 +25,7 @@ function App() {
 
           <Route path="/writing">
             <Header />
-            <div className="mx-32 mt-8">
               <WritingPage />
-            </div>
           </Route>
 
           <Route path="/callback" component={CallbackPage} />

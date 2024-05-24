@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import db from "../db/db";
 import { feeds } from "../db/schema";
@@ -15,16 +15,45 @@ export const FeedService = new Elysia()
                     columns: {
                         draft: false
                     },
-                    with: { hashtags: true, user: true }
-                })).map(({ content, ...other }) => {
+                    with: {
+                        hashtags: {
+                            columns: {},
+                            with: {
+                                hashtag: {
+                                    columns: { id: true, name: true }
+                                }
+                            }
+                        }, user: true
+                    }
+                })).map(({ content, hashtags, ...other }) => {
                     return {
                         content: content.length > 100 ? content.slice(0, 100) : content,
+                        hashtags: hashtags.map(({ hashtag }) => hashtag),
                         ...other
                     }
                 });
                 return feed_list;
             })
             .post('/', async ({ admin, set, uid, body: { title, content, draft, tags } }) => {
+                // input check
+                if (!title) {
+                    set.status = 400;
+                    return 'Title is required';
+                }
+                if (!content) {
+                    set.status = 400;
+                    return 'Content is required';
+                }
+
+                // check exist
+                const exist = await db.query.feeds.findFirst({
+                    where: or(eq(feeds.title, title), eq(feeds.content, content))
+                });
+                if (exist) {
+                    set.status = 400;
+                    return 'Content already exists';
+                }
+
                 if (!admin) {
                     set.status = 403;
                     return 'Permission denied';
@@ -40,7 +69,7 @@ export const FeedService = new Elysia()
                     set.status = 500;
                     return 'Failed to insert';
                 } else {
-                    return result[0].insertedId;
+                    return result[0];
                 }
             }, {
                 body: t.Object({

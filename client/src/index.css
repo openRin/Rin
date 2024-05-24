@@ -4,3 +4,16 @@
 body {
   background-color: #f5f5f5;
 }
+
+.editor {
+  @apply mx-auto;
+}
+
+.editor:focus {
+  outline: none;
+}
+
+.prose {
+  max-width: 100% !important;
+  width: 100%;
+}
