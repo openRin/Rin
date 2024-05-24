@@ -85,9 +85,6 @@ export const FeedService = new Elysia()
                 const id_num = parseInt(id);
                 const feed = (await db.query.feeds.findFirst({
                     where: eq(feeds.id, id_num),
-                    columns: {
-                        draft: false
-                    },
                     with: {
                         hashtags: {
                             columns: {},
@@ -111,6 +108,36 @@ export const FeedService = new Elysia()
                     ...other,
                     hashtags: hashtags_flatten
                 };
+            })
+            .post('/:id', async ({ admin, set, uid, params: { id }, body: { title, content, draft, tags } }) => {
+                const id_num = parseInt(id);
+                const feed = await db.query.feeds.findFirst({
+                    where: eq(feeds.id, id_num)
+                });
+                if (!feed) {
+                    set.status = 404;
+                    return 'Not found';
+                }
+                if (feed.uid !== uid && !admin) {
+                    set.status = 403;
+                    return 'Permission denied';
+                }
+                await db.update(feeds).set({
+                    title,
+                    content,
+                    draft: draft ? 1 : 0
+                }).where(eq(feeds.id, id_num));
+                if (tags) {
+                    await bindTagToPost(id_num, tags);
+                }
+                return 'Updated';
+            }, {
+                body: t.Object({
+                    title: t.Optional(t.String()),
+                    content: t.Optional(t.String()),
+                    draft: t.Optional(t.Boolean()),
+                    tags: t.Optional(t.Array(t.String()))
+                })
             })
 
     )

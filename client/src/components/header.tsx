@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { client, endpoint } from "../main";
 import { headersWithAuth } from "../utils/auth";
+import { Icon } from "./icon";
 
 export function Header() {
     const [location, setLocation] = useLocation();
@@ -20,7 +21,7 @@ export function Header() {
     }, [])
     return (
         <>
-            <div className="fixed">
+            <div className="fixed z-40">
                 <div className="w-screen px-32 mt-8">
                     <div className="w-full flex justify-between items-center">
                         <div className="mr-auto flex flex-row items-center">
@@ -35,19 +36,17 @@ export function Header() {
                             </div>
                         </div>
                         <div className="absolute left-1/2 translate-x-[-50%] flex-row justify-center items-center">
-                            <div className="flex flex-row bg-white rounded-full px-2 shadow-xl shadow-neutral-200">
+                            <div className="flex flex-row bg-white rounded-full px-2 shadow-xl shadow-neutral-200/30">
                                 <NavItem title="文章" selected={location === "/"} onClick={() => { setLocation("/") }} />
                                 <NavItem title="标签" selected={false} onClick={() => { }} />
-                                {permission && <NavItem title="写作" selected={location === "/writing"} onClick={() => { setLocation("/writing") }} />}
+                                {permission && <NavItem title="写作" selected={location.startsWith("/writing")} onClick={() => { setLocation("/writing") }} />}
                                 <NavItem title="朋友们" selected={false} onClick={() => { }} />
                                 <NavItem title="关于" selected={location === "/about"} onClick={() => { setLocation("/about") }} />
                             </div>
                         </div>
                         <div className="ml-auto flex flex-row justify-end">
                             {avatar ? <img src={avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2" /> : <>
-                                <div onClick={() => window.location.href = `${endpoint}/user/github`} className="hover:bg-neutral-200 flex rounded-full border px-3 bg-white aspect-[1] items-center justify-center">
-                                    <i className="ri-login-circle-line ri-xl"></i>
-                                </div>
+                                <Icon name="ri-login-circle-line ri-xl" onClick={() => window.location.href = `${endpoint}/user/github`} />
                             </>}
                         </div>
                     </div>

@@ -24,7 +24,9 @@ export const TagService = new Elysia()
     );
 
 
-export function bindTagToPost(feedId: number, tags: string[]) {
+export async function bindTagToPost(feedId: number, tags: string[]) {
+    await db.delete(feedHashtags).where(
+        eq(feedHashtags.feedId, feedId));
     tags.forEach(async (tag) => {
         const tagId = await getTagIdOrCreate(tag);
         await db.insert(feedHashtags).values({

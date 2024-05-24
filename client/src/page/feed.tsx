@@ -3,6 +3,8 @@ import { client } from "../main"
 import { MilkdownProvider } from "@milkdown/react";
 import { ProsemirrorAdapterProvider } from "@prosemirror-adapter/react";
 import { MilkdownEditor } from "./editor/editor";
+import { headersWithAuth } from "../utils/auth";
+import { Icon } from "../components/icon";
 
 type Feed = {
     id: number;
@@ -24,17 +26,20 @@ type Feed = {
 
 export function FeedPage({ id }: { id: string }) {
     const [feed, setFeed] = useState<Feed>()
+    const [permission, setPermission] = useState<boolean>(false)
     useEffect(() => {
-        // fetch feed detail
+        client.user.profile.get({
+            headers: headersWithAuth()
+        }).then(({ data }) => {
+            if (data && typeof data != 'string') {
+                setPermission(data.permission)
+            }
+        })
+    }, [])
+    useEffect(() => {
         client.feed({ id }).get().then(({ data }) => {
             console.log(data)
             if (data && typeof data !== 'string') {
-                if (data.createdAt) {
-                    data.createdAt = new Date(data.createdAt)
-                }
-                if (data.updatedAt) {
-                    data.updatedAt = new Date(data.updatedAt)
-                }
                 setFeed(data)
             }
         })
@@ -44,15 +49,20 @@ export function FeedPage({ id }: { id: string }) {
             <div className="w-full flex flex-col justify-center items-center">
                 {feed &&
                     <div className="w-1/2 rounded-2xl bg-white m-2 p-6">
-                        <h1 className="text-xl font-bold text-gray-700">
-                            {feed.title}
-                        </h1>
+                        <div className="flex flex-row items-center">
+                            <h1 className="text-xl font-bold text-gray-700">
+                                {feed.title}
+                            </h1>
+                            {permission && <div className="flex-1 flex flex-col items-end justify-center">
+                                <Icon name="ri-edit-2-line ri-lg" onClick={() => window.location.href = `/writing/${id}`} />
+                            </div>}
+                        </div>
                         <div className="my-2">
                             <span className="text-gray-400 text-sm" title={new Date(feed.createdAt).toLocaleString()}>
                                 {feed.createdAt === feed.updatedAt ? '发布于' : '更新于'} {new Date(feed.createdAt).toLocaleString()}
                             </span>
                         </div>
-                        <div className='flex flex-row justify-start mt-8'>
+                        <div className='flex flex-row justify-start'>
                             <MilkdownProvider>
                                 <ProsemirrorAdapterProvider>
                                     <MilkdownEditor data={feed.content} readonly={true} />
@@ -60,9 +70,9 @@ export function FeedPage({ id }: { id: string }) {
                             </MilkdownProvider>
                         </div>
                         {feed.hashtags.length > 0 &&
-                            <div className="mt-2 flex flex-row">
+                            <div className="mt-2 flex flex-row space-x-2">
                                 {feed.hashtags.map(({ name }, index) => (
-                                    <div key={index} className="bg-neutral-100 py-1 px-2 m-1 rounded-lg">
+                                    <div key={index} className="bg-neutral-100 py-1 px-2 rounded-lg">
                                         {name}
                                     </div>
                                 ))}

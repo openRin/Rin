@@ -40,6 +40,14 @@ function App() {
             <WritingPage />
           </Route>
 
+          <Route path="/writing/:id">
+            {({ id }) => <>
+              <Header />
+              <WritingPage id={id} />
+            </>
+            }
+          </Route>
+
           <Route path="/callback" component={CallbackPage} />
 
           {/* Default route in a switch */}

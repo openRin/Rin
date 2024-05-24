@@ -1,8 +1,8 @@
 import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
-const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`);
+const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
+const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 
 export const feeds = sqliteTable("feeds", {
     id: integer("id").primaryKey(),
