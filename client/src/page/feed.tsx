@@ -39,7 +39,6 @@ export function FeedPage({ id }: { id: string }) {
     }, [])
     useEffect(() => {
         client.feed({ id }).get().then(({ data }) => {
-            console.log(data)
             if (data && typeof data !== 'string') {
                 setFeed(data)
             }
