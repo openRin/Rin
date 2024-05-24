@@ -18,12 +18,12 @@ async function publish(title: string, content: string, tags: string[], draft: bo
   if (error) {
     alert(error.value)
   }
-  if (typeof data != 'string') {
+  if (data && typeof data != 'string') {
     alert('发布成功')
     localStorage.removeItem('markdown')
     localStorage.removeItem('title')
     localStorage.removeItem('tags')
-    window.location.href = '/feed/' + data?.insertedId
+    window.location.href = '/feed/' + data.insertedId
   }
 }
 
@@ -56,7 +56,7 @@ export function WritingPage() {
       <div className='basis-1/2 prose prose-neutral'>
         <MilkdownProvider>
           <ProsemirrorAdapterProvider>
-            <MilkdownEditor />
+            <MilkdownEditor readonly={false} />
           </ProsemirrorAdapterProvider>
         </MilkdownProvider>
       </div>
