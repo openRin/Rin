@@ -18,15 +18,21 @@ export const UserService = new Elysia()
                     },
                 });
                 const user = await response.json();
-                const profile = {
+                const profile:{
+                    openid: string;
+                    username: string;
+                    avatar: string;
+                    permission: number | null;
+                } = {
                     openid: user.id,
                     username: user.name,
                     avatar: user.avatar_url,
-                    permission: 0,
+                    permission: null
                 };
                 await db.query.users.findFirst({ where: eq(users.openid, profile.openid) })
                     .then(async (user) => {
                         if (user) {
+                            profile.permission = user.permission
                             await db.update(users).set(profile).where(eq(users.id, user.id));
                             token.set({
                                 value: await jwt.sign({ id: user.id }),
