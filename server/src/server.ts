@@ -6,7 +6,13 @@ import { UserService } from './services/user';
 import { logPlugin, logger } from './utils/logger';
 
 export const app = new Elysia()
-    .use(cors())
+    .use(cors({
+        allowedHeaders: [
+            'Authorization',
+            'content-type'
+        ],
+        maxAge: 600,
+    }))
     .use(logPlugin)
     .use(UserService)
     .use(FeedService)
