@@ -14,13 +14,14 @@ import { tooltip, TooltipView } from './tooltip';
 import { editorViewOptionsCtx } from '@milkdown/core';
 
 export function MilkdownEditor({ data, readonly = false }: { data?: string, readonly: boolean }) {
-    const markdown = data || localStorage.getItem('markdown') || '';
+    const markdown = data || localStorage.getItem('markdown') || '写点什么吧';
     const pluginViewFactory = usePluginViewFactory();
 
     useEditor((root) => {
         return Editor
             .make()
             .config(ctx => {
+                root.focus()
                 ctx.update(editorViewOptionsCtx, (prev) => ({
                     ...prev,
                     editable: () => !readonly,
