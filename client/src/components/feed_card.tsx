@@ -11,7 +11,7 @@ export function FeedCard({ id, title, content, hashtags, createdAt, updatedAt }:
                 </h1>
                 <div>
                     <span className="text-gray-400 text-sm" title={new Date(createdAt).toLocaleString()}>
-                        {format(createdAt) + (createdAt === updatedAt ? '' : '更新于' + format(updatedAt))}
+                        {format(createdAt) + (createdAt === updatedAt ? '' : '发布 ' + format(updatedAt) + "更新")}
                     </span>
                 </div>
                 <p>
