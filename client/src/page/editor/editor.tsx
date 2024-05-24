@@ -28,16 +28,16 @@ export function MilkdownEditor({ data, readonly = false }: { data?: string, read
                 }))
                 ctx.set(rootCtx, root)
                 ctx.set(defaultValueCtx, markdown)
-                ctx.set(slash.key, {
-                    view: pluginViewFactory({
-                        component: SlashView,
-                    })
-                })
-                ctx.set(tooltip.key, {
-                    view: pluginViewFactory({
-                        component: TooltipView,
-                    })
-                })
+                // ctx.set(slash.key, {
+                //     view: pluginViewFactory({
+                //         component: SlashView,
+                //     })
+                // })
+                // ctx.set(tooltip.key, {
+                //     view: pluginViewFactory({
+                //         component: TooltipView,
+                //     })
+                // })
                 const listener = ctx.get(listenerCtx);
 
                 listener.markdownUpdated((_, markdown, prevMarkdown) => {
@@ -49,8 +49,8 @@ export function MilkdownEditor({ data, readonly = false }: { data?: string, read
             .config(rin)
             .use(commonmark)
             .use(gfm)
-            .use(slash)
-            .use(tooltip)
+            // .use(slash)
+            // .use(tooltip)
             .use(history)
             .use(clipboard)
             .use(listener)

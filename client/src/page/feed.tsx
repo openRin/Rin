@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react"
-import { client } from "../main"
+import { format } from "@astroimg/timeago";
 import { MilkdownProvider } from "@milkdown/react";
 import { ProsemirrorAdapterProvider } from "@prosemirror-adapter/react";
-import { MilkdownEditor } from "./editor/editor";
-import { headersWithAuth } from "../utils/auth";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Icon } from "../components/icon";
-import { format } from "@astroimg/timeago";
+import { client } from "../main";
+import { ProfileContext } from "../state/profile";
+import { MilkdownEditor } from "./editor/editor";
 
 type Feed = {
     id: number;
@@ -26,23 +26,17 @@ type Feed = {
 }
 
 export function FeedPage({ id }: { id: string }) {
+    const profile = useContext(ProfileContext);
     const [feed, setFeed] = useState<Feed>()
-    const [permission, setPermission] = useState<boolean>(false)
+    const ref = useRef(false)
     useEffect(() => {
-        client.user.profile.get({
-            headers: headersWithAuth()
-        }).then(({ data }) => {
-            if (data && typeof data != 'string') {
-                setPermission(data.permission)
-            }
-        })
-    }, [])
-    useEffect(() => {
+        if (ref.current) return
         client.feed({ id }).get().then(({ data }) => {
             if (data && typeof data !== 'string') {
                 setFeed(data)
             }
         })
+        ref.current = true
     }, [])
     return (
         <>
@@ -53,7 +47,7 @@ export function FeedPage({ id }: { id: string }) {
                             <h1 className="text-xl font-bold text-gray-700">
                                 {feed.title}
                             </h1>
-                            {permission && <div className="flex-1 flex flex-col items-end justify-center">
+                            {profile?.permission && <div className="flex-1 flex flex-col items-end justify-center">
                                 <Icon name="ri-edit-2-line ri-lg" onClick={() => window.location.href = `/writing/${id}`} />
                             </div>}
                         </div>

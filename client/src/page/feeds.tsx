@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { FeedCard } from "../components/feed_card"
 import { client } from "../main"
 
 export function Feeds() {
     let [feeds, setFeeds] = useState<any>()
+    const ref = useRef(false)
     useEffect(() => {
+        if (ref.current) return
         client.feed.index.get().then(({ data }) => {
             if (data)
                 setFeeds(data)
         })
+        ref.current = true
     }, [])
     return (
         <>

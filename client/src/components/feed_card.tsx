@@ -6,7 +6,7 @@ export function FeedCard({ id, title, content, hashtags, createdAt, updatedAt }:
     return (
         <>
             <div onClick={() => setLocation(`/feed/${id}`)} className="w-1/2 rounded-2xl bg-white m-2 p-6 hover:bg-neutral-200 duration-300">
-                <h1 className="text-xl font-bold text-gray-700">
+                <h1 className="text-xl font-bold text-gray-700 text-pretty overflow-hidden">
                     {title}
                 </h1>
                 <div className="space-x-2">
@@ -19,7 +19,7 @@ export function FeedCard({ id, title, content, hashtags, createdAt, updatedAt }:
                         </span>
                     }
                 </div>
-                <p>
+                <p className="text-pretty overflow-hidden">
                     {content}
                 </p>
                 {hashtags.length > 0 &&
