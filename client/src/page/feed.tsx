@@ -55,7 +55,7 @@ export function FeedPage({ id }: { id: string }) {
                         <div className='flex flex-row justify-start mt-8'>
                             <MilkdownProvider>
                                 <ProsemirrorAdapterProvider>
-                                    <MilkdownEditor readonly={true} />
+                                    <MilkdownEditor data={feed.content} readonly={true} />
                                 </ProsemirrorAdapterProvider>
                             </MilkdownProvider>
                         </div>
