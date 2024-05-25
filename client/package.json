@@ -23,14 +23,10 @@
     "@milkdown/plugin-clipboard": "^7.3.6",
     "@milkdown/plugin-history": "^7.3.6",
     "@milkdown/plugin-listener": "^7.3.6",
-    "@milkdown/plugin-math": "^7.3.6",
-    "@milkdown/plugin-slash": "^7.3.6",
-    "@milkdown/plugin-tooltip": "^7.3.6",
     "@milkdown/preset-commonmark": "^7.3.6",
     "@milkdown/preset-gfm": "^7.3.6",
     "@milkdown/prose": "^7.3.6",
     "@milkdown/react": "^7.3.6",
-    "@milkdown/theme-nord": "^7.3.6",
     "@milkdown/transformer": "^7.3.6",
     "@prosemirror-adapter/react": "^0.2.6",
     "@tailwindcss/typography": "^0.5.13",
@@ -45,6 +41,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "rollup-plugin-visualizer": "^5.12.0",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
   }

@@ -18,7 +18,7 @@ export const UserService = new Elysia()
                     },
                 });
                 const user = await response.json();
-                const profile:{
+                const profile: {
                     openid: string;
                     username: string;
                     avatar: string;
@@ -63,7 +63,7 @@ export const UserService = new Elysia()
                     });
                 return redirect(`${frontend_url}/callback?token=${token.value}`);
             })
-            .get('/profile', async ({ jwt, set, uid }) => {
+            .get('/profile', async ({ set, uid }) => {
                 if (!uid) {
                     set.status = 403
                     return 'Permission denied'

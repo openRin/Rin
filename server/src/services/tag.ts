@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import Elysia, { t } from "elysia";
+import Elysia from "elysia";
 import db from "../db/db";
 import { feedHashtags, hashtags } from "../db/schema";
 
