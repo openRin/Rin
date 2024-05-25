@@ -18,7 +18,8 @@ describe('🐙 Feed', () => {
             title: 'hi',
             content: 'hi',
             draft: false,
-            tags: ['test', 'test2']
+            tags: ['test', 'test2'],
+            listed: true
         }, {
             headers: {
                 Authorization: `Bearer ${JSON.stringify(admin)}`
@@ -36,7 +37,8 @@ describe('🐙 Feed', () => {
             title: 'hi',
             content: 'hi',
             draft: false,
-            tags: ['test', 'test2']
+            tags: ['test', 'test2'],
+            listed: true
         }, {
             headers: {
                 Authorization: `Bearer ${JSON.stringify(user)}`

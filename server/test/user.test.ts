@@ -44,7 +44,8 @@ describe('😋 UserService', () => {
             title: 'hi',
             content: 'hi',
             draft: false,
-            tags: ['test', 'test2']
+            tags: ['test', 'test2'],
+            listed: true
         }, {
             headers: {
                 Authorization: `Bearer ${JSON.stringify(admin)}`
@@ -66,7 +67,8 @@ describe('😋 UserService', () => {
             title: 'hi',
             content: 'hi',
             draft: false,
-            tags: ['test', 'test2']
+            tags: ['test', 'test2'],
+            listed: true
         }, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -86,7 +88,8 @@ describe('😋 UserService', () => {
                 title: 'hi',
                 content: 'hi',
                 draft: false,
-                tags: ['test', 'test3']
+                tags: ['test', 'test3'],
+                listed: true
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`
