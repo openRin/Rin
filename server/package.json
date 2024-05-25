@@ -22,12 +22,13 @@
     "@elysiajs/cors": "^1.0.2",
     "@elysiajs/eden": "^1.0.13",
     "@elysiajs/jwt": "^1.0.2",
+    "@elysiajs/server-timing": "^1.0.2",
     "arctic": "^1.8.1",
     "drizzle-orm": "^0.30.10",
     "elysia": "^1.0.21",
     "elysia-oauth2": "^1.2.0",
     "logestic": "^1.1.1",
-    "@elysiajs/server-timing": "^1.0.2"
+    "url": "^0.11.3"
   },
   "trustedDependencies": [
     "es5-ext"

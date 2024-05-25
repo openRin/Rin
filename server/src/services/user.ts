@@ -3,12 +3,20 @@ import Elysia from "elysia";
 import db from "../db/db";
 import { users } from "../db/schema";
 import { frontend_url, setup } from "../setup";
+import { URL } from "url";
 export const UserService = new Elysia()
     .use(setup)
     .group('/user', (group) =>
         group
-            .get("/github", ({ oauth2 }) => oauth2.redirect("GitHub", { scopes: ["read:user"] }))
-            .get("/github/callback", async ({ jwt, oauth2, redirect, store, cookie: { token } }) => {
+            .get("/github", ({ oauth2, headers: { referer }, cookie: { redirect_to } }) => {
+                if (!referer) {
+                    return 'Referer not found'
+                }
+                const referer_url = new URL(referer)
+                redirect_to.value = `${referer_url.protocol}//${referer_url.host}`
+                oauth2.redirect("GitHub", { scopes: ["read:user"] })
+            })
+            .get("/github/callback", async ({ jwt, oauth2, redirect, store, cookie: { token, redirect_to } }) => {
                 const gh_token = await oauth2.authorize("GitHub");
                 // request https://api.github.com/user for user info
                 const response = await fetch("https://api.github.com/user", {
@@ -61,7 +69,8 @@ export const UserService = new Elysia()
                             }
                         }
                     });
-                return redirect(`${frontend_url}/callback?token=${token.value}`);
+                const redirect_url = redirect_to.value || frontend_url
+                return redirect(`${redirect_url}/callback?token=${token.value}`);
             })
             .get('/profile', async ({ set, uid }) => {
                 if (!uid) {
