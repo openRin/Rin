@@ -7,15 +7,22 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["^db:mig"]
     },
     "t": {
       "cache": false,
-      "dependsOn": ["^db:gen"]
+      "dependsOn": ["^g"]
+    },
+    "g": {
+        "cache": false,
+        "dependsOn": ["^db:gen"]
     },
     "db:gen": {
-        "cache": false,
-        "dependsOn": ["^generate"]
+      "cache": false
+    },
+    "db:mig": {
+      "cache": false
     },
     "format:check": {
       "dependsOn": ["^format:check"]

@@ -5,9 +5,8 @@
   "scripts": {
     "dev": "NODE_ENV=development bun --watch src/server.ts",
     "dev:test": "NODE_ENV=test bun --watch src/server.ts",
-    "generate": "bun drizzle-kit generate",
-    "mig": "bun migrate.ts",
-    "client": "bun --watch src/client.ts",
+    "db:gen": "bun drizzle-kit generate",
+    "db:mig": "bun migrate.ts",
     "build": "bun build src/server.ts",
     "start": "NODE_ENV=production bun src/server.ts",
     "t": "rm -f test.db && NODE_ENV=test bun migrate.ts && NODE_ENV=test bun test --coverage"
