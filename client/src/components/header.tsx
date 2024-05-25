@@ -13,24 +13,32 @@ export function Header() {
         <>
             <div className="fixed z-40">
                 <div className="w-screen">
-                    <Padding>
+                    <Padding className="mx-4 mt-4">
                         <div className="w-full flex justify-between items-center">
-                            <div className="invisible opacity-0 sm:visible sm:opacity-100 duration-300 mr-auto flex flex-row items-center">
+                            <div className="hidden opacity-0 sm:opacity-100 duration-300 mr-auto sm:flex flex-row items-center">
                                 <img src={process.env.AVATAR} alt="Avatar" className="w-12 h-12 rounded-2xl border-2" />
                                 <div className="flex flex-col justify-center items-start mx-4">
                                     <p className="text-xl font-bold">
                                         {process.env.NAME}
                                     </p>
-                                    <p className="text-sm text-neutral-500">
+                                    <p className="text-xs text-neutral-500">
                                         {process.env.DESCRIPTION}
                                     </p>
                                 </div>
                             </div>
-                            <div className="w-max transition-all duration-500 absolute left-1/2 translate-x-[-50%] flex-row justify-center items-center">
+                            <div className="w-full sm:w-max transition-all duration-500 sm:absolute sm:left-1/2 sm:translate-x-[-50%] flex-row justify-center items-center">
                                 <div className="flex flex-row items-center bg-white rounded-full px-2 shadow-xl shadow-neutral-200/30">
-                                    <div className={"p-4 text-base sm:hidden duration-300"} >
-                                        {process.env.NAME}
-                                    </div >
+                                    <div className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 mr-auto flex flex-row items-center">
+                                        <img src={process.env.AVATAR} alt="Avatar" className="w-12 h-12 rounded-full border-2" />
+                                        <div className="flex flex-col justify-center items-start mx-2">
+                                            <p className="text-base font-bold">
+                                                {process.env.NAME}
+                                            </p>
+                                            <p className="text-xs text-neutral-500">
+                                                {process.env.DESCRIPTION}
+                                            </p>
+                                        </div>
+                                    </div>
                                     <NavItem title="文章" selected={location === "/" || location.startsWith('/feed')} onClick={() => { setLocation("/") }} />
                                     {/* <NavItem title="标签" selected={false} onClick={() => { }} /> */}
                                     {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} onClick={() => { setLocation("/writing") }} />}
@@ -39,7 +47,7 @@ export function Header() {
                                     <UserAvatar className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 justify-center items-center w-12 h-12" profile={profile} />
                                 </div>
                             </div>
-                            <UserAvatar className="ml-auto invisible opacity-0 sm:visible sm:opacity-100 duration-300" profile={profile} />
+                            <UserAvatar className="ml-auto hidden opacity-0 sm:block sm:opacity-100 duration-300" profile={profile} />
                         </div>
                     </Padding>
                 </div>
