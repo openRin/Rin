@@ -36,7 +36,7 @@ export const FeedService = new Elysia()
                 });
                 return feed_list;
             })
-            .post('/', async ({ admin, set, uid, body: { title, content, draft, tags } }) => {
+            .post('/', async ({ admin, set, uid, body: { title, alias, content, draft, tags } }) => {
                 if (!admin) {
                     set.status = 403;
                     return 'Permission denied';
@@ -64,6 +64,7 @@ export const FeedService = new Elysia()
                     title,
                     content,
                     uid,
+                    alias,
                     draft: draft ? 1 : 0
                 }).returning({ insertedId: feeds.id });
                 bindTagToPost(result[0].insertedId, tags);
@@ -77,14 +78,15 @@ export const FeedService = new Elysia()
                 body: t.Object({
                     title: t.String(),
                     content: t.String(),
+                    alias: t.Optional(t.String()),
                     draft: t.Boolean(),
                     tags: t.Array(t.String())
                 })
             })
-            .get('/:id', async ({ set, params: { id } }) => {
+            .get('/:id', async ({ uid, admin, set, params: { id } }) => {
                 const id_num = parseInt(id);
                 const feed = (await db.query.feeds.findFirst({
-                    where: eq(feeds.id, id_num),
+                    where: or(eq(feeds.id, id_num), eq(feeds.alias, id)),
                     with: {
                         hashtags: {
                             columns: {},
@@ -102,6 +104,12 @@ export const FeedService = new Elysia()
                     set.status = 404;
                     return 'Not found';
                 }
+                // permission check
+                if (feed.draft && feed.uid !== uid && !admin) {
+                    set.status = 403;
+                    return 'Permission denied';
+                }
+
                 const { hashtags, ...other } = feed;
                 const hashtags_flatten = hashtags.map(({ hashtag }) => hashtag);
                 return {
@@ -109,7 +117,7 @@ export const FeedService = new Elysia()
                     hashtags: hashtags_flatten
                 };
             })
-            .post('/:id', async ({ admin, set, uid, params: { id }, body: { title, content, draft, tags } }) => {
+            .post('/:id', async ({ admin, set, uid, params: { id }, body: { title, content, alias, draft, tags } }) => {
                 const id_num = parseInt(id);
                 const feed = await db.query.feeds.findFirst({
                     where: eq(feeds.id, id_num)
@@ -125,6 +133,7 @@ export const FeedService = new Elysia()
                 await db.update(feeds).set({
                     title,
                     content,
+                    alias,
                     draft: draft ? 1 : 0,
                     updatedAt: new Date()
                 }).where(eq(feeds.id, id_num));
@@ -135,10 +144,11 @@ export const FeedService = new Elysia()
             }, {
                 body: t.Object({
                     title: t.Optional(t.String()),
+                    alias: t.Optional(t.String()),
                     content: t.Optional(t.String()),
                     draft: t.Optional(t.Boolean()),
                     tags: t.Optional(t.Array(t.String()))
                 })
             })
 
-    )
+    );

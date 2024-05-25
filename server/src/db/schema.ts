@@ -1,4 +1,5 @@
 import { relations, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/mysql-core";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
@@ -6,6 +7,7 @@ const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(uni
 
 export const feeds = sqliteTable("feeds", {
     id: integer("id").primaryKey(),
+    alias: text("alias"),
     title: text("title"),
     content: text("content").notNull(),
     draft: integer("draft").default(1),

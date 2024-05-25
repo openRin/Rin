@@ -6,6 +6,7 @@ import { Icon } from "../components/icon";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { MilkdownEditor } from "./editor/editor";
+import { headersWithAuth } from "../utils/auth";
 
 type Feed = {
     id: number;
@@ -28,11 +29,16 @@ type Feed = {
 export function FeedPage({ id }: { id: string }) {
     const profile = useContext(ProfileContext);
     const [feed, setFeed] = useState<Feed>()
+    const [error, setError] = useState<string>()
     const ref = useRef(false)
     useEffect(() => {
         if (ref.current) return
-        client.feed({ id }).get().then(({ data }) => {
-            if (data && typeof data !== 'string') {
+        client.feed({ id }).get({
+            headers: headersWithAuth()
+        }).then(({ data, error }) => {
+            if (error) {
+                setError(error.value as string)
+            } else if (data && typeof data !== 'string') {
                 setFeed(data)
             }
         })
@@ -41,6 +47,18 @@ export function FeedPage({ id }: { id: string }) {
     return (
         <>
             <div className="w-full flex flex-col justify-center items-center">
+                {error &&
+                    <>
+                        <div className="flex flex-col w-1/2 rounded-2xl bg-white m-2 p-6 items-center justify-center">
+                            <h1 className="text-xl font-bold text-gray-700">
+                                {error}
+                            </h1>
+                            <button className="mt-2 bg-theme text-white px-4 py-2 rounded-full" onClick={() => window.location.href = '/'}>
+                                返回首页
+                            </button>
+                        </div>
+                    </>
+                }
                 {feed &&
                     <div className="w-1/2 rounded-2xl bg-white m-2 p-6">
                         <div className="flex flex-row items-center">

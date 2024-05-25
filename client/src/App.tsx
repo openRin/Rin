@@ -49,13 +49,6 @@ function App() {
             }
           </Route>
 
-          <Route path="/about">
-            <Header />
-            <div className="mx-32 mt-8">
-              About
-            </div>
-          </Route>
-
           <Route path="/writing">
             <Header />
             <WritingPage />
@@ -64,12 +57,23 @@ function App() {
           <Route path="/writing/:id">
             {({ id }) => <>
               <Header />
-              <WritingPage id={id} />
+              <WritingPage idOrAlias={id} />
             </>
             }
           </Route>
 
           <Route path="/callback" component={CallbackPage} />
+
+          <Route path="/:alias">
+            {params =>
+              <>
+                <Header />
+                <div className="mx-32 mt-8">
+                  <FeedPage id={params.alias} />
+                </div>
+              </>
+            }
+          </Route>
 
           {/* Default route in a switch */}
           <Route>404: No such page!</Route>
