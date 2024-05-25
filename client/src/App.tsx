@@ -8,6 +8,7 @@ import { FeedsPage } from './page/feeds'
 import { WritingPage } from './page/writing'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
+import { FriendsPage } from './page/friends'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
@@ -39,6 +40,9 @@ function App() {
           <Route path="/writing">
             <Header />
             <WritingPage />
+          </Route>
+          <Route path="/friends">
+            <FriendsPage />
           </Route>
 
           <Route path="/writing/:id">

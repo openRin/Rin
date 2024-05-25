@@ -5,6 +5,7 @@ import { Padding } from '../components/padding';
 import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
 import { MilkdownEditor } from './editor/editor';
+import { Input, Checkbox } from '../components/input';
 
 
 async function publish({ title, alias, listed, content, tags, draft }: { title: string, listed: boolean, content: string, tags: string[], draft: boolean, alias?: string }) {
@@ -156,28 +157,5 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
         </div>
       </div>
     </Padding>
-  )
-}
-
-
-function Input({ value, setValue, className, placeholder, id }: { value: string, className?: string, placeholder: string, id: string, setValue: React.Dispatch<React.SetStateAction<string>> }) {
-  return (<input type='text'
-    placeholder={placeholder}
-    value={value}
-    onChange={(event) => {
-      setValue(event.target.value)
-      localStorage.setItem(id, value)
-    }}
-    className={'w-full py-2 px-4 rounded-xl ' + className} />
-  )
-}
-function Checkbox({ value, setValue, className, placeholder }: { value: boolean, className?: string, placeholder: string, id: string, setValue: React.Dispatch<React.SetStateAction<boolean>> }) {
-  return (<input type='checkbox'
-    placeholder={placeholder}
-    checked={value}
-    onChange={(event) => {
-      setValue(event.target.checked)
-    }}
-    className={className} />
   )
 }

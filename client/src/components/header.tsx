@@ -42,7 +42,7 @@ export function Header() {
                                     <NavItem title="文章" selected={location === "/" || location.startsWith('/feed')} onClick={() => { setLocation("/") }} />
                                     {/* <NavItem title="标签" selected={false} onClick={() => { }} /> */}
                                     {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} onClick={() => { setLocation("/writing") }} />}
-                                    {/* <NavItem title="朋友们" selected={false} onClick={() => { }} /> */}
+                                    <NavItem title="朋友们" selected={location === "/friends"} onClick={() => { setLocation("/friends") }} />
                                     <NavItem title="关于" selected={location === "/about"} onClick={() => { setLocation("/about") }} />
                                     <UserAvatar className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 justify-center items-center w-12 h-12" profile={profile} />
                                 </div>

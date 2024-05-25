@@ -5,6 +5,7 @@ import { FeedService } from './services/feed';
 import { TagService } from './services/tag';
 import { UserService } from './services/user';
 import { logPlugin, logger } from './utils/logger';
+import { FriendService } from './services/friends';
 
 export const app = new Elysia()
     .use(cors({
@@ -26,6 +27,7 @@ export const app = new Elysia()
     .use(UserService)
     .use(FeedService)
     .use(TagService)
+    .use(FriendService)
     .get('/', () => `Hi`)
     .onError(({ path, params, code }) => {
         if (code === 'NOT_FOUND')

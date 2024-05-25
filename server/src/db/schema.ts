@@ -1,4 +1,5 @@
 import { relations, sql } from "drizzle-orm";
+import { check } from "drizzle-orm/mysql-core";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
@@ -12,6 +13,19 @@ export const feeds = sqliteTable("feeds", {
     listed: integer("listed").default(1).notNull(),
     draft: integer("draft").default(1).notNull(),
     uid: integer("uid").references(() => users.id).notNull(),
+    createdAt: created_at,
+    updatedAt: updated_at,
+});
+
+export const friends = sqliteTable("friends", {
+    id: integer("id").primaryKey(),
+    name: text("name").notNull(),
+    desc: text("desc"),
+    avatar: text("avatar").notNull(),
+    url: text("url").notNull(),
+    uid: integer("uid").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    accepted: integer("accepted").default(0).notNull(),
+    health: integer("health").default(0).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
 });
