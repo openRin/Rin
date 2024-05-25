@@ -44,7 +44,7 @@ export function Header() {
                                     {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} onClick={() => { setLocation("/writing") }} />}
                                     <NavItem title="朋友们" selected={location === "/friends"} onClick={() => { setLocation("/friends") }} />
                                     <NavItem title="关于" selected={location === "/about"} onClick={() => { setLocation("/about") }} />
-                                    <UserAvatar className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 justify-center items-center w-8 h-8" profile={profile} />
+                                    <UserAvatar className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 justify-center items-center w-12 h-12" profile={profile} />
                                 </div>
                             </div>
                             <UserAvatar className="ml-auto hidden opacity-0 sm:block sm:opacity-100 duration-300" profile={profile} />
