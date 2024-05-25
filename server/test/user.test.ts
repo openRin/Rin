@@ -9,7 +9,11 @@ import { app } from '../src/server';
 const client = treaty(app)
 describe('😋 UserService', () => {
     it('OAuth', async () => {
-        const { headers, error } = await client.user.github.get()
+        const { headers, data, error } = await client.user.github.get({
+            headers: {
+                Referer: 'http://localhost:3000'
+            }
+        })
         expect(error?.status).toBe(302)
         if (headers instanceof Headers) {
             headers.forEach((value, key) => {
@@ -20,8 +24,12 @@ describe('😋 UserService', () => {
     })
     it('OAuth Callback', async () => {
         const { headers, error } = await client.user.github.callback.get({
+            query: {
+                code: 'test',
+                state: 'test'
+            },
             headers: {
-                Cookie: 'token=test'
+                Cookie: 'token=test; redirect_to=test; state=test'
             }
         })
         expect(error?.status).toBe(500)

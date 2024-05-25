@@ -14,7 +14,7 @@ export const UserService = new Elysia()
                 }
                 const referer_url = new URL(referer)
                 redirect_to.value = `${referer_url.protocol}//${referer_url.host}`
-                oauth2.redirect("GitHub", { scopes: ["read:user"] })
+                return oauth2.redirect("GitHub", { scopes: ["read:user"] })
             })
             .get("/github/callback", async ({ jwt, oauth2, redirect, store, query, cookie: { token, redirect_to, state } }) => {
 

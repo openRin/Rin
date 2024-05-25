@@ -13,3 +13,7 @@ body {
   max-width: 100% !important;
   width: 100%;
 }
+
+.wauto {
+  @apply w-full md:w-11/12 lg:w-10/12 xl:w-8/12 2xl:w-6/12 duration-300;
+}

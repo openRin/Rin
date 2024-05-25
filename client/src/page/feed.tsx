@@ -8,6 +8,7 @@ import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { MilkdownEditor } from "./editor/editor";
+import { Padding } from "../components/padding";
 
 type Feed = {
     id: number;
@@ -31,9 +32,9 @@ export function FeedPage({ id }: { id: string }) {
     return (
         <>
             <Header />
-            <div className="mx-32 mt-8">
+            <Padding>
                 <Feed id={id} />
-            </div>
+            </Padding>
         </>
     )
 }
@@ -64,7 +65,7 @@ function Feed({ id }: { id: string }) {
             <div className="w-full flex flex-col justify-center items-center">
                 {error &&
                     <>
-                        <div className="flex flex-col w-1/2 rounded-2xl bg-white m-2 p-6 items-center justify-center">
+                        <div className="flex flex-col wauto rounded-2xl bg-white m-2 p-6 items-center justify-center">
                             <h1 className="text-xl font-bold text-gray-700">
                                 {error}
                             </h1>
@@ -75,7 +76,7 @@ function Feed({ id }: { id: string }) {
                     </>
                 }
                 {feed &&
-                    <div className="w-1/2 rounded-2xl bg-white m-2 p-6">
+                    <div className="wauto rounded-2xl bg-white m-2 p-6">
                         <div className="flex flex-row items-center">
                             <h1 className="text-xl font-bold text-gray-700">
                                 {feed.title}

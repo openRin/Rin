@@ -1,0 +1,12 @@
+version: "3"
+services:
+  rin:
+    build: .
+    container_name: rin
+    ports:
+      - "8778:3001"
+    volumes:
+      - ./data:/data
+    environment:
+      - DB_PATH=/data/sqlite.db
+    restart: unless-stopped

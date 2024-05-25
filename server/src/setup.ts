@@ -6,9 +6,9 @@ import { users } from "./db/schema";
 import db from "./db/db";
 import { logger } from "./utils";
 
-const gh_client_id = process.env.GITHUB_CLIENT_ID;
-const gh_client_secret = process.env.GITHUB_CLIENT_SECRET;
-const jwt_secret = process.env.JWT_SECRET;
+let gh_client_id = process.env.GITHUB_CLIENT_ID;
+let gh_client_secret = process.env.GITHUB_CLIENT_SECRET;
+let jwt_secret = process.env.JWT_SECRET;
 export const frontend_url = process.env.FRONTEND_URL;
 
 if (!gh_client_id || !gh_client_secret) {

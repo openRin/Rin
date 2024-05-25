@@ -12,6 +12,7 @@
     "t": "turbo t",
     "g": "turbo run g",
     "m": "turbo run db:mig",
+    "clean": "rm -rf dist node_modules",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write"
   },
@@ -19,8 +20,8 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "turbo": "^1.13.3"
+    "turbo": "^1.13.3",
+    "wrangler": "^3.57.1"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

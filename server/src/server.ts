@@ -26,7 +26,7 @@ export const app = new Elysia()
     .use(UserService)
     .use(FeedService)
     .use(TagService)
-    .get('/', ({ uid }) => `Hi ${uid}`)
+    .get('/', () => `Hi`)
     .onError(({ path, params, code }) => {
         if (code === 'NOT_FOUND')
             return `${path} ${JSON.stringify(params)} not found`

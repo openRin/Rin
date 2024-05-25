@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from "react"
 import { FeedCard } from "../components/feed_card"
 import { Header } from "../components/header"
 import { client } from "../main"
+import { Padding } from "../components/padding"
 
 export function FeedsPage() {
     return (<>
         <Header />
-        <div className="mx-32 mt-8">
+        <Padding>
             <Feeds />
-        </div></>)
+        </Padding>
+    </>)
 }
 
 function Feeds() {
@@ -25,7 +27,7 @@ function Feeds() {
     return (
         <>
             <div className="w-full flex flex-col justify-center items-center">
-                <div className="w-1/2 text-start text-black p-4 text-4xl font-bold">
+                <div className="wauto text-start text-black p-4 text-4xl font-bold">
                     <p>
                         文章
                     </p>

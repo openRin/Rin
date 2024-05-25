@@ -9,6 +9,11 @@ export default {
       colors: {
         'theme': '#fc466b',
       },
+      transitionProperty: {
+        'height': 'height',
+        'width': 'width',
+        'spacing': 'margin, padding',
+      }
     },
   },
   plugins: [
