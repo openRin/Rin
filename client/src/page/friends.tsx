@@ -92,7 +92,7 @@ function Friends() {
                     梦想的同行者
                 </p>
             </div>
-            <div className="wauto grid grid-cols-4 gap-4">
+            <div className="wauto grid grid-cols-2 md:grid-cols-4 gap-4">
                 {friends?.map((friend) => (
                     <>
                         <Friend friend={friend} />
@@ -124,7 +124,7 @@ function Friends() {
 function Friend({ friend }: { friend: FriendItem }) {
     return (
         <>
-            <div onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-center items-center">
+            <div onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
                 <div className="w-16 h-16">
                     <img className="rounded-xl" src={friend.avatar} alt={friend.name} />
                 </div>
