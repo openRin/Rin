@@ -116,7 +116,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
                 <p>仅自己可见</p>
                 <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
               </div>
-              <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
+              <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setListed(!listed)}>
                 <p>列出在文章中</p>
                 <Checkbox id="listed" value={listed} setValue={setListed} placeholder='列出' />
               </div>
@@ -144,7 +144,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
                 <p>仅自己可见</p>
                 <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
               </div>
-              <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
+              <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setListed(!listed)}>
                 <p>列出在文章中</p>
                 <Checkbox id="listed" value={listed} setValue={setListed} placeholder='列出' />
               </div>

@@ -17,6 +17,7 @@ RUN bun b
 # copy production dependencies and source code into final image
 FROM base AS release
 COPY --from=prerelease /usr/src/server/build/app .
+COPY --from=prerelease /usr/src/server/drizzle/ drizzle
 COPY --from=prerelease /usr/src/server/sqlite.db ./init.db
 
 # run the app
@@ -24,3 +25,4 @@ ENV DB_PATH=./data/sqlite.db
 USER root
 EXPOSE 3001/tcp
 ENTRYPOINT [ "/usr/src/app" ]
+# ENTRYPOINT [ "/bin/bash" ]
