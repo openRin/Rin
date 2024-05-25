@@ -14,12 +14,12 @@ $ bun install
 
 Then create the database by:
 ```bash
-$ bun gen
+$ bun g
 ```
 
 Then run the database migration to create the database by:
 ```bash
-$ bun mig
+$ bun m
 ```
 
 

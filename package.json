@@ -11,6 +11,7 @@
     "build": "turbo build",
     "t": "turbo t",
     "g": "turbo run g",
+    "m": "turbo run db:mig",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write"
   },
