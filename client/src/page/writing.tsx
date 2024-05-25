@@ -103,24 +103,26 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
       <div className='flex flex-row justify-start'>
         <div className='xl:basis-1/4 transition-all duration-300' />
         <div className='writeauto xl:basis-1/2 pb-8'>
-          <div className='visible md:hidden bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4 mb-8'>
-            <Input id="title" value={title} setValue={setTitle} placeholder='标题' />
-            <Input id="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
-            <Input id="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
-            <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
-              <p>仅自己可见</p>
-              <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
+          <div className='bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4'>
+            <div className='visible md:hidden mb-8'>
+              <Input id="title" value={title} setValue={setTitle} placeholder='标题' />
+              <Input id="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
+              <Input id="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
+              <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
+                <p>仅自己可见</p>
+                <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
+              </div>
+            </div>
+            <div className='prose prose-neutral mx-4 my-2 md:mx-0 md:my-0'>
+              <MilkdownProvider>
+                <ProsemirrorAdapterProvider>
+                  {idOrAlias && data != null && <MilkdownEditor data={data} readonly={false} />}
+                  {!idOrAlias && <MilkdownEditor readonly={false} />}
+                </ProsemirrorAdapterProvider>
+              </MilkdownProvider>
             </div>
           </div>
-          <div className='prose prose-neutral'>
-            <MilkdownProvider>
-              <ProsemirrorAdapterProvider>
-                {idOrAlias && data != null && <MilkdownEditor data={data} readonly={false} />}
-                {!idOrAlias && <MilkdownEditor readonly={false} />}
-              </ProsemirrorAdapterProvider>
-            </MilkdownProvider>
-          </div>
-          <div className='visible md:hidden flex flex-row justify-center'>
+          <div className='visible md:hidden flex flex-row justify-center mt-8'>
             <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-neutral-200'>发布</button>
           </div>
         </div>
