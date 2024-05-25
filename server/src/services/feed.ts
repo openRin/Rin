@@ -1,4 +1,4 @@
-import { eq, or } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import db from "../db/db";
 import { feeds } from "../db/schema";
@@ -11,7 +11,7 @@ export const FeedService = new Elysia()
         group
             .get('/', async () => {
                 const feed_list = (await db.query.feeds.findMany({
-                    where: eq(feeds.draft, 0),
+                    where: and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
                     columns: {
                         draft: false
                     },
@@ -36,7 +36,7 @@ export const FeedService = new Elysia()
                 });
                 return feed_list;
             })
-            .post('/', async ({ admin, set, uid, body: { title, alias, content, draft, tags } }) => {
+            .post('/', async ({ admin, set, uid, body: { title, alias, listed, content, draft, tags } }) => {
                 if (!admin) {
                     set.status = 403;
                     return 'Permission denied';
@@ -65,6 +65,7 @@ export const FeedService = new Elysia()
                     content,
                     uid,
                     alias,
+                    listed: listed ? 1 : 0,
                     draft: draft ? 1 : 0
                 }).returning({ insertedId: feeds.id });
                 bindTagToPost(result[0].insertedId, tags);
@@ -80,6 +81,7 @@ export const FeedService = new Elysia()
                     content: t.String(),
                     alias: t.Optional(t.String()),
                     draft: t.Boolean(),
+                    listed: t.Boolean(),
                     tags: t.Array(t.String())
                 })
             })
@@ -117,7 +119,7 @@ export const FeedService = new Elysia()
                     hashtags: hashtags_flatten
                 };
             })
-            .post('/:id', async ({ admin, set, uid, params: { id }, body: { title, content, alias, draft, tags } }) => {
+            .post('/:id', async ({ admin, set, uid, params: { id }, body: { title, listed, content, alias, draft, tags } }) => {
                 const id_num = parseInt(id);
                 const feed = await db.query.feeds.findFirst({
                     where: eq(feeds.id, id_num)
@@ -134,6 +136,7 @@ export const FeedService = new Elysia()
                     title,
                     content,
                     alias,
+                    listed: listed ? 1 : 0,
                     draft: draft ? 1 : 0,
                     updatedAt: new Date()
                 }).where(eq(feeds.id, id_num));
@@ -146,6 +149,7 @@ export const FeedService = new Elysia()
                     title: t.Optional(t.String()),
                     alias: t.Optional(t.String()),
                     content: t.Optional(t.String()),
+                    listed: t.Boolean(),
                     draft: t.Optional(t.Boolean()),
                     tags: t.Optional(t.Array(t.String()))
                 })

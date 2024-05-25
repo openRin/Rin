@@ -3,9 +3,9 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
 
 const start = new Date().getTime();
-const db_path = process.env.DB_PATH ?? "sqlite.db"
-const connection = new Database(db_path, { create: true });
-const db = drizzle(connection);
+let db_path = process.env.DB_PATH ?? "sqlite.db"
+let connection = new Database(db_path, { create: true });
+let db = drizzle(connection);
 await migrate(db, { migrationsFolder: './drizzle' });
 await connection.close();
 

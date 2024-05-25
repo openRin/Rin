@@ -7,12 +7,13 @@ import { headersWithAuth } from '../utils/auth';
 import { MilkdownEditor } from './editor/editor';
 
 
-async function publish({ title, alias, content, tags, draft }: { title: string, content: string, tags: string[], draft: boolean, alias?: string }) {
+async function publish({ title, alias, listed, content, tags, draft }: { title: string, listed: boolean, content: string, tags: string[], draft: boolean, alias?: string }) {
   const { data, error } = await client.feed.index.post({
     title,
     alias,
     content,
     tags,
+    listed,
     draft
   }, {
     headers: headersWithAuth()
@@ -29,12 +30,13 @@ async function publish({ title, alias, content, tags, draft }: { title: string, 
   }
 }
 
-async function update({ id, title, alias, content, tags, draft }: { id: number, title?: string, alias?: string, content?: string, tags?: string[], draft?: boolean }) {
+async function update({ id, title, alias, content, tags, listed, draft }: { id: number, listed: boolean, title?: string, alias?: string, content?: string, tags?: string[], draft?: boolean }) {
   const { error } = await client.feed({ id }).post({
     title,
     alias,
     content,
     tags,
+    listed,
     draft
   }, {
     headers: headersWithAuth()
@@ -58,12 +60,13 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
   const [tags, setTags] = useState(localStorage.getItem("tags") ?? "")
   const [alias, setAlias] = useState(localStorage.getItem("alias") ?? "")
   const [draft, setDraft] = useState(false)
+  const [listed, setListed] = useState(true)
   const [id, setId] = useState<number | undefined>(undefined)
   function publishButton() {
     const tagsplit = tags.split('#').filter(tag => tag !== '').map(tag => tag.trim()) || []
     const content = localStorage.getItem('markdown') || undefined
     if (id != undefined) {
-      update({ id, title, content, alias, tags: tagsplit, draft })
+      update({ id, title, content, alias, tags: tagsplit, draft, listed })
     } else {
       if (!title) {
         alert('标题不能为空')
@@ -73,7 +76,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
         alert('内容不能为空')
         return
       }
-      publish({ title, content, tags: tagsplit, draft, alias })
+      publish({ title, content, tags: tagsplit, draft, alias, listed })
     }
   }
   const [data, setData] = useState<string | null>(null)
@@ -90,6 +93,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
             setTags(data.hashtags.map(({ name }) => `#${name}`).join(' '))
           if (data.alias)
             setAlias(data.alias)
+          setListed(data.listed === 1)
           setId(data.id)
           setData(data.content)
           setDraft(data.draft === 1)
@@ -111,6 +115,10 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
               <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
                 <p>仅自己可见</p>
                 <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
+              </div>
+              <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
+                <p>列出在文章中</p>
+                <Checkbox id="listed" value={listed} setValue={setListed} placeholder='列出' />
               </div>
             </div>
             <div className='prose prose-neutral mx-4 my-2 md:mx-0 md:my-0'>
@@ -135,6 +143,10 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
               <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
                 <p>仅自己可见</p>
                 <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
+              </div>
+              <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
+                <p>列出在文章中</p>
+                <Checkbox id="listed" value={listed} setValue={setListed} placeholder='列出' />
               </div>
             </div>
             <div className='flex flex-row justify-center'>
