@@ -41,7 +41,7 @@ type ApplyItem = {
 };
 
 async function publish({ name, avatar, desc, url }: { name: string, avatar: string, desc: string, url: string }) {
-    const { data, error } = await client.friend.index.post({
+    const { error } = await client.friend.index.post({
         avatar,
         name,
         desc,
@@ -59,7 +59,7 @@ async function publish({ name, avatar, desc, url }: { name: string, avatar: stri
 
 function Friends() {
     let [friends, setFriends] = useState<FriendItem[]>()
-    let [apply, setApply] = useState<ApplyItem>()
+    let [_, setApply] = useState<ApplyItem>()
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
     const [avatar, setAvatar] = useState("")

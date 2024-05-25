@@ -1,11 +1,11 @@
 import { MilkdownProvider } from '@milkdown/react';
 import { ProsemirrorAdapterProvider } from '@prosemirror-adapter/react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Checkbox, Input } from '../components/input';
 import { Padding } from '../components/padding';
 import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
 import { MilkdownEditor } from './editor/editor';
-import { Input, Checkbox } from '../components/input';
 
 
 async function publish({ title, alias, listed, content, tags, draft }: { title: string, listed: boolean, content: string, tags: string[], draft: boolean, alias?: string }) {
