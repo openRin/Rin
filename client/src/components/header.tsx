@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { removeCookie } from "typescript-cookie";
 import { useLocation } from "wouter";
-import { endpoint } from "../main";
+import { oauth_url } from "../main";
 import { Profile, ProfileContext } from "../state/profile";
 import { Icon } from "./icon";
 import { Padding } from "./padding";
@@ -70,7 +70,7 @@ function UserAvatar({ profile, className }: { className?: string, profile?: Prof
                 </div>
             </div>
         </> : <>
-            <Icon name="ri-login-circle-line ri-xl" onClick={() => window.location.href = `${endpoint}/user/github`} />
+            <Icon name="ri-login-circle-line ri-xl" onClick={() => window.location.href = `${oauth_url}`} />
         </>}
     </div>)
 }

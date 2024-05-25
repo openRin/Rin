@@ -17,3 +17,7 @@ body {
 .wauto {
   @apply w-full md:w-11/12 lg:w-10/12 xl:w-8/12 2xl:w-6/12 duration-300;
 }
+
+.writeauto {
+  @apply w-full md:w-7/12 lg:w-8/12 xl:w-10/12 2xl:w-full duration-300;
+}
