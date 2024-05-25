@@ -14,7 +14,8 @@
     "m": "turbo run db:mig",
     "clean": "rm -rf dist node_modules",
     "format:check": "turbo format:check",
-    "format:write": "turbo format:write"
+    "format:write": "turbo format:write",
+    "docker": "docker build . -t thankrain/rin:latest && docker push thankrain/rin:latest"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",

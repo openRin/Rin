@@ -120,7 +120,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
               </ProsemirrorAdapterProvider>
             </MilkdownProvider>
           </div>
-          <div className='flex flex-row justify-center'>
+          <div className='visible md:hidden flex flex-row justify-center'>
             <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-neutral-200'>发布</button>
           </div>
         </div>
