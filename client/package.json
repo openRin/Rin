@@ -30,7 +30,8 @@
     "@milkdown/transformer": "^7.3.6",
     "@prosemirror-adapter/react": "^0.2.6",
     "@tailwindcss/typography": "^0.5.13",
-    "@milkdown/utils": "^7.3.6"
+    "@milkdown/utils": "^7.3.6",
+    "clsx": "^2.1.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

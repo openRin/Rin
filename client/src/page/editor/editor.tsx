@@ -5,8 +5,6 @@ import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { gfm } from '@milkdown/preset-gfm';
 import { Milkdown, useEditor } from '@milkdown/react';
-import '@milkdown/theme-nord/style.css';
-import 'katex/dist/katex.min.css';
 import { rin } from './theme';
 
 export function MilkdownEditor({ data, readonly = false }: { data?: string, readonly: boolean }) {
