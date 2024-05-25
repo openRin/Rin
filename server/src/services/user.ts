@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import Elysia from "elysia";
+import Elysia, { t } from "elysia";
 import db from "../db/db";
 import { users } from "../db/schema";
 import { frontend_url, setup } from "../setup";
@@ -16,7 +16,12 @@ export const UserService = new Elysia()
                 redirect_to.value = `${referer_url.protocol}//${referer_url.host}`
                 oauth2.redirect("GitHub", { scopes: ["read:user"] })
             })
-            .get("/github/callback", async ({ jwt, oauth2, redirect, store, cookie: { token, redirect_to } }) => {
+            .get("/github/callback", async ({ jwt, oauth2, redirect, store, query, cookie: { token, redirect_to, state } }) => {
+
+                console.log('state', state.value)
+                console.log('p_state', query.state)
+                console.log('match', state.value === query.state)
+
                 const gh_token = await oauth2.authorize("GitHub");
                 // request https://api.github.com/user for user info
                 const response = await fetch("https://api.github.com/user", {
@@ -71,6 +76,11 @@ export const UserService = new Elysia()
                     });
                 const redirect_url = redirect_to.value || frontend_url
                 return redirect(`${redirect_url}/callback?token=${token.value}`);
+            }, {
+                query: t.Object({
+                    state: t.String(),
+                    code: t.String(),
+                })
             })
             .get('/profile', async ({ set, uid }) => {
                 if (!uid) {

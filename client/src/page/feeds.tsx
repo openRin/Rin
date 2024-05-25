@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 import { FeedCard } from "../components/feed_card"
+import { Header } from "../components/header"
 import { client } from "../main"
 
-export function Feeds() {
+export function FeedsPage() {
+    return (<>
+        <Header />
+        <div className="mx-32 mt-8">
+            <Feeds />
+        </div></>)
+}
+
+function Feeds() {
     let [feeds, setFeeds] = useState<any>()
     const ref = useRef(false)
     useEffect(() => {

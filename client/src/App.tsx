@@ -1,14 +1,13 @@
+import { useEffect, useRef, useState } from 'react'
 import { Route, Switch } from 'wouter'
 import { Header } from './components/header'
-import { Feeds } from './page/feeds'
-import { CallbackPage } from './page/callback'
-import { WritingPage } from './page/writing'
-import { FeedPage } from './page/feed'
-import { Profile, ProfileContext } from './state/profile'
-import { useEffect, useRef, useState } from 'react'
 import { client } from './main'
+import { CallbackPage } from './page/callback'
+import { FeedPage } from './page/feed'
+import { FeedsPage } from './page/feeds'
+import { WritingPage } from './page/writing'
+import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
-
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
@@ -31,22 +30,10 @@ function App() {
     <>
       <ProfileContext.Provider value={profile}>
         <Switch>
-          <Route path="/">
-            <Header />
-            <div className="mx-32 mt-8">
-              <Feeds />
-            </div>
-          </Route>
+          <Route path="/" component={FeedsPage} />
 
           <Route path="/feed/:id">
-            {params =>
-              <>
-                <Header />
-                <div className="mx-32 mt-8">
-                  <FeedPage id={params.id} />
-                </div>
-              </>
-            }
+            {params => <FeedPage id={params.id} />}
           </Route>
 
           <Route path="/writing">
@@ -65,14 +52,7 @@ function App() {
           <Route path="/callback" component={CallbackPage} />
 
           <Route path="/:alias">
-            {params =>
-              <>
-                <Header />
-                <div className="mx-32 mt-8">
-                  <FeedPage id={params.alias} />
-                </div>
-              </>
-            }
+            {params => <FeedPage id={params.alias} />}
           </Route>
 
           {/* Default route in a switch */}

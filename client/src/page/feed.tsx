@@ -2,11 +2,12 @@ import { format } from "@astroimg/timeago";
 import { MilkdownProvider } from "@milkdown/react";
 import { ProsemirrorAdapterProvider } from "@prosemirror-adapter/react";
 import { useContext, useEffect, useRef, useState } from "react";
+import { Header } from "../components/header";
 import { Icon } from "../components/icon";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
-import { MilkdownEditor } from "./editor/editor";
 import { headersWithAuth } from "../utils/auth";
+import { MilkdownEditor } from "./editor/editor";
 
 type Feed = {
     id: number;
@@ -27,23 +28,37 @@ type Feed = {
 }
 
 export function FeedPage({ id }: { id: string }) {
+    return (
+        <>
+            <Header />
+            <div className="mx-32 mt-8">
+                <Feed id={id} />
+            </div>
+        </>
+    )
+}
+
+function Feed({ id }: { id: string }) {
     const profile = useContext(ProfileContext);
     const [feed, setFeed] = useState<Feed>()
     const [error, setError] = useState<string>()
-    const ref = useRef(false)
+    const ref = useRef("")
     useEffect(() => {
-        if (ref.current) return
+        if (ref.current == id) return
         client.feed({ id }).get({
             headers: headersWithAuth()
         }).then(({ data, error }) => {
             if (error) {
                 setError(error.value as string)
             } else if (data && typeof data !== 'string') {
-                setFeed(data)
+                setFeed(undefined)
+                setTimeout(() => {
+                    setFeed(data)
+                }, 0)
             }
         })
-        ref.current = true
-    }, [])
+        ref.current = id
+    }, [id])
     return (
         <>
             <div className="w-full flex flex-col justify-center items-center">

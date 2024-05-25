@@ -33,7 +33,7 @@ export const app = new Elysia()
     })
     .listen(process.env.PORT ?? 3001, () => {
         if (process.env.NODE_ENV != 'test')
-            logger.info(`[Rim] Server is running: http://localhost:${process.env.PORT ?? 3001}`)
+            logger.info(`[Rim] Server is running on port ${process.env.PORT ?? 3001}`)
     })
 
 export type App = typeof app

@@ -5,6 +5,7 @@ drizzle
 bun.lockb
 test.ts
 *.log
+build/
 
 # Logs
 

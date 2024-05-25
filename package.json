@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
+    "b": "turbo build",
     "t": "turbo t",
     "g": "turbo run g",
     "m": "turbo run db:mig",
