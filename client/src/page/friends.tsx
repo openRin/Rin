@@ -25,7 +25,7 @@ type FriendItem = {
     desc: string | null;
     url: string;
     accepted: number;
-    health: number;
+    health: string;
 };
 type ApplyItem = {
     name: string;
@@ -37,7 +37,7 @@ type ApplyItem = {
     desc: string | null;
     url: string;
     accepted: number;
-    health: number;
+    health: string;
 };
 
 async function publish({ name, avatar, desc, url }: { name: string, avatar: string, desc: string, url: string }) {
@@ -82,25 +82,47 @@ function Friends() {
     function publishButton() {
         publish({ name, desc, avatar, url })
     }
+    const friends_avaliable = friends?.filter(({ health }) => health.length === 0)
+    const friends_unavaliable = friends?.filter(({ health }) => health.length > 0)
     return (<>
         <div className="w-full flex flex-col justify-center items-center">
-            <div className="wauto text-start text-black p-4 text-4xl font-bold">
-                <p>
-                    朋友们
-                </p>
-                <p className="text-sm mt-4 text-neutral-500 font-normal">
-                    梦想的同行者
-                </p>
-            </div>
-            <div className="wauto grid grid-cols-2 md:grid-cols-4 gap-4">
-                {friends?.map((friend) => (
-                    <>
-                        <Friend friend={friend} />
-                    </>
-                ))}
-            </div>
+            {friends_avaliable && (friends_avaliable.length > 0) &&
+                <>
+                    <div className="wauto text-start text-black py-4 text-4xl font-bold">
+                        <p>
+                            朋友们
+                        </p>
+                        <p className="text-sm mt-4 text-neutral-500 font-normal">
+                            梦想的同行者
+                        </p>
+                    </div>
+                    <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {friends_avaliable.map((friend) => (
+                            <>
+                                <Friend friend={friend} />
+                            </>
+                        ))}
+                    </div>
+                </>
+            }
+            {friends_unavaliable && (friends_unavaliable.length > 0) &&
+                <>
+                    <div className="wauto text-start text-black py-4">
+                        <p className="text-sm mt-4 text-neutral-500 font-normal">
+                            暂时离开
+                        </p>
+                    </div>
+                    <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {friends_unavaliable.map((friend) => (
+                            <>
+                                <Friend friend={friend} />
+                            </>
+                        ))}
+                    </div>
+                </>
+            }
             {profile && profile.permission &&
-                <div className="wauto flex text-start text-black text-2xl font-bold mt-8">
+                <div className="wauto flex text-start text-black text-2xl font-bold my-8">
                     <div className="md:basis-1/2 bg-white rounded-xl p-4">
                         <p>
                             创建友链
@@ -124,12 +146,13 @@ function Friends() {
 function Friend({ friend }: { friend: FriendItem }) {
     return (
         <>
-            <div onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
+            <div title={friend.health} onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
                 <div className="w-16 h-16">
-                    <img className="rounded-xl" src={friend.avatar} alt={friend.name} />
+                    <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
                 <p className="text-base text-center">{friend.name}</p>
-                <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>
+                {friend.health.length == 0 && <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>}
+                {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{friend.health}</p>}
             </div>
         </>
     )

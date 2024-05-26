@@ -6,6 +6,7 @@ import { TagService } from './services/tag';
 import { UserService } from './services/user';
 import { logPlugin, logger } from './utils/logger';
 import { FriendService } from './services/friends';
+import { CronService } from './services/cron';
 
 export const app = new Elysia()
     .use(cors({
@@ -23,6 +24,7 @@ export const app = new Elysia()
     .use(serverTiming({
         enabled: true,
     }))
+    .use(CronService)
     .use(logPlugin)
     .use(UserService)
     .use(FeedService)

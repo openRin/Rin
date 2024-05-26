@@ -24,7 +24,7 @@ export const friends = sqliteTable("friends", {
     url: text("url").notNull(),
     uid: integer("uid").references(() => users.id, { onDelete: 'cascade' }).notNull(),
     accepted: integer("accepted").default(0).notNull(),
-    health: integer("health").default(0).notNull(),
+    health: text("health").default("").notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
 });

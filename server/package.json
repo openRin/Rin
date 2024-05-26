@@ -23,6 +23,7 @@
   "dependencies": {
     "@elysiajs/cors": "^1.0.2",
     "@elysiajs/eden": "^1.0.13",
+    "@elysiajs/cron": "^1.0.3",
     "@elysiajs/jwt": "^1.0.2",
     "@elysiajs/server-timing": "^1.0.2",
     "arctic": "^1.8.1",
