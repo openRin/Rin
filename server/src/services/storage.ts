@@ -41,10 +41,10 @@ export const StorageService = new Elysia()
     .group('/storage', (group) =>
         group
             .post('/', async ({ uid, set, body: { key } }) => {
-                // if (!uid) {
-                //     set.status = 401;
-                //     return 'Unauthorized';
-                // }
+                if (!uid) {
+                    set.status = 401;
+                    return 'Unauthorized';
+                }
                 const suffix = key.split('.').pop();
                 const random = Math.random().toString();
                 hasher.update(random);
