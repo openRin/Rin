@@ -5,6 +5,7 @@ import { client } from "../main"
 import { Input } from "../components/input"
 import { headersWithAuth } from "../utils/auth"
 import { ProfileContext } from "../state/profile"
+import { shuffleArray } from "../utils/array"
 
 export function FriendsPage() {
     return (<>
