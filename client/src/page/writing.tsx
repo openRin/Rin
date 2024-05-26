@@ -54,6 +54,35 @@ async function update({ id, title, alias, content, tags, listed, draft }: { id: 
   }
 }
 
+function uploadImage(file: File, onSuccess: (url: string) => void) {
+  client.storage.index.post({
+    key: file.name,
+  }, {
+    headers: headersWithAuth()
+  }).then(({ data,error }) => {
+    if (error) {
+      alert('上传失败' + error.value)
+    }
+    if (data && typeof data !== 'string') {
+      const { upload_url, url } = data
+      fetch(upload_url, {
+        method: 'PUT',
+        body: file
+      }).then((response) => {
+        if (response.ok) {
+          onSuccess(url)
+        } else {
+          alert('上传失败')
+        }
+      })
+    }
+  })
+    .catch((e) => {
+      console.error(e)
+      alert('上传失败' + e.message)
+    })
+}
+
 
 
 // 写作页面
@@ -106,7 +135,15 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
 
   return (
     <Padding>
-      <div className='flex flex-row justify-start'>
+      <div onDragOver={e => { e.preventDefault() }} onDragLeave={e => { e.preventDefault() }} onDrop={e => {
+        e.preventDefault()
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          const file = e.dataTransfer.files[i]
+          uploadImage(file, (url) => {
+            setData(data + `![${file.name}](${url})`)
+          })
+        }
+      }} className='flex flex-row justify-start'>
         <div className='xl:basis-1/4 transition-all duration-300' />
         <div className='writeauto xl:basis-11/12 pb-8'>
           <div className='bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4'>

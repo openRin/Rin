@@ -31,7 +31,9 @@
     "elysia": "^1.0.21",
     "elysia-oauth2": "^1.2.0",
     "logestic": "^1.1.1",
-    "url": "^0.11.3"
+    "url": "^0.11.3",
+    "@aws-sdk/client-s3": "^3.583.0",
+    "@aws-sdk/s3-request-presigner": "^3.583.0"
   },
   "trustedDependencies": [
     "es5-ext"

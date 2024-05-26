@@ -1,12 +1,13 @@
 import cors from '@elysiajs/cors';
 import { serverTiming } from '@elysiajs/server-timing';
 import { Elysia } from 'elysia';
+import { CronService } from './services/cron';
 import { FeedService } from './services/feed';
+import { FriendService } from './services/friends';
+import { StorageService } from './services/storage';
 import { TagService } from './services/tag';
 import { UserService } from './services/user';
 import { logPlugin, logger } from './utils/logger';
-import { FriendService } from './services/friends';
-import { CronService } from './services/cron';
 
 export const app = new Elysia()
     .use(cors({
@@ -26,6 +27,7 @@ export const app = new Elysia()
     }))
     .use(CronService)
     .use(logPlugin)
+    .use(StorageService)
     .use(UserService)
     .use(FeedService)
     .use(TagService)
