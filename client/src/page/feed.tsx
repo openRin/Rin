@@ -170,12 +170,17 @@ function Comments({ id }: { id: string }) {
     const [comments, setComments] = useState<Comment[]>([])
     const [error, setError] = useState<string>()
     const ref = useRef("")
+    function errorHumanize(error: string) {
+        if (error === 'Unauthorized') return '请先登录'
+        else if (error === 'Content is required') return '评论内容不能为空'
+        return error
+    }
     function loadComments() {
         client.feed.comment({ feed: id }).get({
             headers: headersWithAuth()
         }).then(({ data, error }) => {
             if (error) {
-                setError(error.value as string)
+                setError(errorHumanize(error.value as string))
             } else if (data && Array.isArray(data)) {
                 setComments(data)
             }
