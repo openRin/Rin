@@ -8,6 +8,7 @@ import { StorageService } from './services/storage';
 import { TagService } from './services/tag';
 import { UserService } from './services/user';
 import { logPlugin, logger } from './utils/logger';
+import { CommentService } from './services/comments';
 
 export const app = new Elysia()
     .use(cors({
@@ -30,6 +31,7 @@ export const app = new Elysia()
     .use(StorageService)
     .use(UserService)
     .use(FeedService)
+    .use(CommentService)
     .use(TagService)
     .use(FriendService)
     .get('/', () => `Hi`)
