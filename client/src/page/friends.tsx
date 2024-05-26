@@ -101,9 +101,7 @@ function Friends() {
                     </div>
                     <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {friends_avaliable.map((friend) => (
-                            <>
-                                <Friend friend={friend} />
-                            </>
+                            <Friend key={friend.id} friend={friend} />
                         ))}
                     </div>
                 </>
@@ -117,9 +115,7 @@ function Friends() {
                     </div>
                     <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {friends_unavaliable.map((friend) => (
-                            <>
-                                <Friend friend={friend} />
-                            </>
+                            <Friend key={friend.id} friend={friend} />
                         ))}
                     </div>
                 </>
