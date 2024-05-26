@@ -108,7 +108,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
     <Padding>
       <div className='flex flex-row justify-start'>
         <div className='xl:basis-1/4 transition-all duration-300' />
-        <div className='writeauto xl:basis-1/2 pb-8'>
+        <div className='writeauto xl:basis-11/12 pb-8'>
           <div className='bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4'>
             <div className='visible md:hidden mb-8'>
               <Input id="title" value={title} setValue={setTitle} placeholder='标题' />
@@ -124,7 +124,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
               </div>
             </div>
             <div className='mx-4 my-2 md:mx-0 md:my-0'>
-              <MDEditor height={300} value={data} onChange={(data) => {
+              <MDEditor height={500} value={data} onChange={(data) => {
                 localStorage.setItem('markdown', data ?? '')
                 setData(data ?? '')
               }} />
