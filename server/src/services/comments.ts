@@ -1,8 +1,9 @@
 import Elysia, { t } from "elysia";
 import db from "../db/db";
-import { desc, eq } from "drizzle-orm";
-import { comments } from "../db/schema";
-import { setup } from "../setup";
+import { desc, eq, not } from "drizzle-orm";
+import { comments, feeds, users } from "../db/schema";
+import { frontend_url, setup } from "../setup";
+import { notify } from "../utils/webhook";
 
 export const CommentService = new Elysia()
     .use(setup)
@@ -33,11 +34,26 @@ export const CommentService = new Elysia()
                 }
                 const feedId = parseInt(feed);
                 const userId = parseInt(uid);
+                const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+                if (!user) {
+                    set.status = 400;
+                    return 'User not found';
+                }
+                const exist = await db.query.feeds.findFirst({ where: eq(feeds.id, feedId) });
+                if (!exist) {
+                    set.status = 400;
+                    return 'Feed not found';
+                }
+
                 await db.insert(comments).values({
                     feedId,
                     userId,
                     content
                 });
+
+                // notify
+                notify(`${frontend_url}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
+
                 return 'OK';
             }, {
                 body: t.Object({
