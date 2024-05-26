@@ -146,14 +146,23 @@ function Friends() {
 function Friend({ friend }: { friend: FriendItem }) {
     return (
         <>
-            <div title={friend.health} onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
+            <div title={errorHumanize(friend.health)} onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
                 <div className="w-16 h-16">
                     <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
                 <p className="text-base text-center">{friend.name}</p>
                 {friend.health.length == 0 && <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>}
-                {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{friend.health}</p>}
+                {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
             </div>
         </>
     )
+}
+
+function errorHumanize(error: string) {
+    if (error === "certificate has expired") {
+        return "证书已过期"
+    } else if (error.includes("Unable to connect")) {
+        return "无法访问"
+    }
+    return error
 }
