@@ -1,12 +1,13 @@
-import { MilkdownProvider } from '@milkdown/react';
-import { ProsemirrorAdapterProvider } from '@prosemirror-adapter/react';
+import MDEditor from '@uiw/react-md-editor';
 import { useEffect, useState } from 'react';
 import { Checkbox, Input } from '../components/input';
 import { Padding } from '../components/padding';
 import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
-import { MilkdownEditor } from './editor/editor';
-
+// No import is required in the WebPack.
+import "@uiw/react-md-editor/markdown-editor.css";
+// No import is required in the WebPack.
+import "@uiw/react-markdown-preview/markdown.css";
 
 async function publish({ title, alias, listed, content, tags, draft }: { title: string, listed: boolean, content: string, tags: string[], draft: boolean, alias?: string }) {
   const { data, error } = await client.feed.index.post({
@@ -63,9 +64,10 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
   const [draft, setDraft] = useState(false)
   const [listed, setListed] = useState(true)
   const [id, setId] = useState<number | undefined>(undefined)
+  const [data, setData] = useState<string>(localStorage.getItem("markdown") ?? "")
   function publishButton() {
     const tagsplit = tags.split('#').filter(tag => tag !== '').map(tag => tag.trim()) || []
-    const content = localStorage.getItem('markdown') || undefined
+    const content = data
     if (id != undefined) {
       update({ id, title, content, alias, tags: tagsplit, draft, listed })
     } else {
@@ -80,7 +82,6 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
       publish({ title, content, tags: tagsplit, draft, alias, listed })
     }
   }
-  const [data, setData] = useState<string | null>(null)
   useEffect(() => {
     console.log(idOrAlias)
     if (idOrAlias) {
@@ -122,13 +123,11 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
                 <Checkbox id="listed" value={listed} setValue={setListed} placeholder='列出' />
               </div>
             </div>
-            <div className='prose prose-neutral mx-4 my-2 md:mx-0 md:my-0'>
-              <MilkdownProvider>
-                <ProsemirrorAdapterProvider>
-                  {idOrAlias && data != null && <MilkdownEditor data={data} readonly={false} />}
-                  {!idOrAlias && <MilkdownEditor readonly={false} />}
-                </ProsemirrorAdapterProvider>
-              </MilkdownProvider>
+            <div className='mx-4 my-2 md:mx-0 md:my-0'>
+              <MDEditor height={300} value={data} onChange={(data) => {
+                localStorage.setItem('markdown', data ?? '')
+                setData(data ?? '')
+              }} />
             </div>
           </div>
           <div className='visible md:hidden flex flex-row justify-center mt-8'>

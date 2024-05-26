@@ -5,7 +5,7 @@ export function Input({ value, setValue, className, placeholder, id }: { value: 
         onChange={(event) => {
             setValue(event.target.value)
             if (id)
-                localStorage.setItem(id, value)
+                localStorage.setItem(id, event.target.value)
         }}
         className={'w-full py-2 px-4 rounded-xl ' + className} />
     )

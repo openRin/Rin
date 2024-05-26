@@ -12,7 +12,7 @@
     "t": "turbo t",
     "g": "turbo run g",
     "m": "turbo run db:mig",
-    "clean": "rm -rf dist node_modules",
+    "clean": "rm -rf dist node_modules client/node_modules server/node_modules",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
     "docker": "docker build . -t thankrain/rin:latest && docker push thankrain/rin:latest"
