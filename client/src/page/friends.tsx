@@ -82,11 +82,13 @@ function Friends() {
     function publishButton() {
         publish({ name, desc, avatar, url })
     }
-    const friends_avaliable = friends?.filter(({ health }) => health.length === 0)
-    const friends_unavaliable = friends?.filter(({ health }) => health.length > 0)
+    const friends_avaliable = friends?.filter(({ health }) => health.length === 0) || []
+    shuffleArray(friends_avaliable)
+    const friends_unavaliable = friends?.filter(({ health }) => health.length > 0) || []
+    shuffleArray(friends_unavaliable)
     return (<>
         <div className="w-full flex flex-col justify-center items-center">
-            {friends_avaliable && (friends_avaliable.length > 0) &&
+            {friends_avaliable.length > 0 &&
                 <>
                     <div className="wauto text-start text-black py-4 text-4xl font-bold">
                         <p>
@@ -105,7 +107,7 @@ function Friends() {
                     </div>
                 </>
             }
-            {friends_unavaliable && (friends_unavaliable.length > 0) &&
+            {friends_unavaliable.length > 0 &&
                 <>
                     <div className="wauto text-start text-black py-4">
                         <p className="text-sm mt-4 text-neutral-500 font-normal">
