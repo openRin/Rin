@@ -146,7 +146,7 @@ function Friends() {
 function Friend({ friend }: { friend: FriendItem }) {
     return (
         <>
-            <div title={errorHumanize(friend.health)} onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
+            <div title={friend.health} onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
                 <div className="w-16 h-16">
                     <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
