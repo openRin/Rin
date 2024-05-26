@@ -1,4 +1,4 @@
-import { and, eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import db from "../db/db";
 import { feeds } from "../db/schema";
@@ -26,7 +26,8 @@ export const FeedService = new Elysia()
                         }, user: {
                             columns: { id: true, username: true, avatar: true }
                         }
-                    }
+                    },
+                    orderBy: [desc(feeds.updatedAt), desc(feeds.createdAt)]
                 })).map(({ content, hashtags, ...other }) => {
                     return {
                         content: content.length > 100 ? content.slice(0, 100) : content,
