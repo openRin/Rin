@@ -7,7 +7,7 @@ dist/**
 bun.lockb
 test.ts
 *.log
-
+.env.production
 
 # Logs
 logs
