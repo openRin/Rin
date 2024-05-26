@@ -9,9 +9,9 @@ FROM base AS prerelease
 COPY . .
 RUN bun install
 # [optional] tests & build
-ENV NODE_ENV=production
 RUN bun m
 RUN bun t
+ENV NODE_ENV=production
 RUN bun b
 
 # copy production dependencies and source code into final image
