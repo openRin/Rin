@@ -19,6 +19,7 @@ function App() {
     }).then(({ data }) => {
       if (data && typeof data != 'string') {
         setProfile({
+          id: data.id,
           avatar: data.avatar || '',
           permission: data.permission,
           name: data.username

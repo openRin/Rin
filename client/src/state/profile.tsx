@@ -1,6 +1,7 @@
 import { createContext } from "react";
 
 export type Profile = {
+  id: number;
   avatar: string;
   permission: boolean;
   name: string
