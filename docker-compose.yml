@@ -1,7 +1,7 @@
 version: "3"
 services:
   rin:
-    build: .
+    image: thankrain/rin:latest
     container_name: rin
     ports:
       - "8778:3001"
