@@ -1,6 +1,8 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 *.db
 .env
+.env.development
+.env.production
 drizzle
 bun.lockb
 test.ts
