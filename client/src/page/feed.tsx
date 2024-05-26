@@ -1,14 +1,12 @@
 import { format } from "@astroimg/timeago";
-import { MilkdownProvider } from "@milkdown/react";
-import { ProsemirrorAdapterProvider } from "@prosemirror-adapter/react";
+import MarkdownPreview from '@uiw/react-markdown-preview';
 import { useContext, useEffect, useRef, useState } from "react";
 import { Header } from "../components/header";
 import { Icon } from "../components/icon";
+import { Padding } from "../components/padding";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
-import { MilkdownEditor } from "./editor/editor";
-import { Padding } from "../components/padding";
 
 type Feed = {
     id: number;
@@ -95,11 +93,7 @@ function Feed({ id }: { id: string }) {
                                 </p>
                             }
                         </div>
-                        <MilkdownProvider>
-                            <ProsemirrorAdapterProvider>
-                                <MilkdownEditor data={feed.content} readonly={true} />
-                            </ProsemirrorAdapterProvider>
-                        </MilkdownProvider>
+                        <MarkdownPreview source={feed.content} />
                         {feed.hashtags.length > 0 &&
                             <div className="mt-2 flex flex-row space-x-2">
                                 {feed.hashtags.map(({ name }, index) => (

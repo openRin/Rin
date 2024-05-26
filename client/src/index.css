@@ -5,8 +5,16 @@ body {
   background-color: #f5f5f5;
 }
 
-.editor:focus {
+textarea:focus {
   outline: none;
+}
+
+ol {
+  list-style: decimal;
+}
+
+ul {
+  list-style: initial;
 }
 
 .prose {

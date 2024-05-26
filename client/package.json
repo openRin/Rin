@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@uiw/react-markdown-preview": "^5.1.1",
+    "@uiw/react-md-editor": "^4.0.4",
     "@elysiajs/eden": "^1.0.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -18,20 +20,8 @@
     "remixicon": "^4.2.0",
     "wouter": "^3.1.3",
     "typescript-cookie": "^1.0.6",
-    "@milkdown/core": "^7.3.6",
-    "@milkdown/ctx": "^7.3.6",
-    "@milkdown/plugin-clipboard": "^7.3.6",
-    "@milkdown/plugin-history": "^7.3.6",
-    "@milkdown/plugin-listener": "^7.3.6",
-    "@milkdown/preset-commonmark": "^7.3.6",
-    "@milkdown/preset-gfm": "^7.3.6",
-    "@milkdown/prose": "^7.3.6",
-    "@milkdown/react": "^7.3.6",
-    "@milkdown/transformer": "^7.3.6",
     "@prosemirror-adapter/react": "^0.2.6",
-    "@tailwindcss/typography": "^0.5.13",
-    "@milkdown/utils": "^7.3.6",
-    "clsx": "^2.1.1"
+    "@tailwindcss/typography": "^0.5.13"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
