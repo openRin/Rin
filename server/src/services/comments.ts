@@ -1,6 +1,6 @@
+import { desc, eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import db from "../db/db";
-import { desc, eq, not } from "drizzle-orm";
 import { comments, feeds, users } from "../db/schema";
 import { frontend_url, setup } from "../setup";
 import { notify } from "../utils/webhook";
