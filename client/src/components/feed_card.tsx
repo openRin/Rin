@@ -1,7 +1,7 @@
 import { format } from "@astroimg/timeago";
 import { useLocation } from "wouter";
 
-export function FeedCard({ id, title, content, hashtags, createdAt, updatedAt }: { id: string, title: string, content: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
+export function FeedCard({ id, title, draft, listed, content, hashtags, createdAt, updatedAt }: { id: string, draft?: number, listed?: number, title: string, content: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
     const [_, setLocation] = useLocation();
     return (
         <>
@@ -18,6 +18,8 @@ export function FeedCard({ id, title, content, hashtags, createdAt, updatedAt }:
                             {format(updatedAt) + '更新'}
                         </span>
                     }
+                    {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}
+                    {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
                 </div>
                 <p className="text-pretty overflow-hidden">
                     {content}

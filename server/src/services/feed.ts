@@ -9,10 +9,10 @@ export const FeedService = new Elysia()
     .use(setup)
     .group('/feed', (group) =>
         group
-            .get('/', async () => {
+            .get('/', async ({ admin }) => {
                 const feed_list = (await db.query.feeds.findMany({
-                    where: and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
-                    columns: {
+                    where: admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                    columns: admin ? undefined : {
                         draft: false
                     },
                     with: {
