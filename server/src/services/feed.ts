@@ -70,7 +70,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     listed: listed ? 1 : 0,
                     draft: draft ? 1 : 0
                 }).returning({ insertedId: feeds.id });
-                bindTagToPost(db, result[0].insertedId, tags);
+                await bindTagToPost(db, result[0].insertedId, tags);
                 if (result.length === 0) {
                     set.status = 500;
                     return 'Failed to insert';

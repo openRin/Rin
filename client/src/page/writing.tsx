@@ -74,6 +74,23 @@ function uploadImage(file: File, onSuccess: (url: string) => void) {
     })
 }
 
+const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
+  // Access the clipboard data using event.clipboardData
+  const clipboardData = event.clipboardData;
+  // only if clipboard payload is file
+  if (clipboardData.files.length === 1) {
+    const myfile = clipboardData.files[0] as File;
+    uploadImage(myfile, (url) => {
+      document.execCommand(
+        "insertText",
+        false,
+        `![${myfile.name}](${url})\n`
+      );
+    })
+    event.preventDefault();
+  }
+};
+
 
 
 // 写作页面
@@ -131,7 +148,14 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
         for (let i = 0; i < e.dataTransfer.files.length; i++) {
           const file = e.dataTransfer.files[i]
           uploadImage(file, (url) => {
-            setData(data + `![${file.name}](${url})`)
+            const textInput: HTMLInputElement | null = document.querySelector('.w-md-editor-text-input');
+            if (!textInput) return;
+            textInput.focus();
+            document.execCommand(
+              "insertText",
+              false,
+              `![${file.name}](${url})\n`
+            );
           })
         }
       }} className='flex flex-row justify-start'>
@@ -152,7 +176,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
               </div>
             </div>
             <div className='mx-4 my-2 md:mx-0 md:my-0'>
-              <MDEditor height={500} value={data} onChange={(data) => {
+              <MDEditor height={500} value={data} onPaste={handlePaste} onChange={(data) => {
                 localStorage.setItem('markdown', data ?? '')
                 setData(data ?? '')
               }} />
