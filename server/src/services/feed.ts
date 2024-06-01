@@ -30,9 +30,17 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     },
                     orderBy: [desc(feeds.updatedAt), desc(feeds.createdAt)]
                 })).map(({ content, hashtags, summary, ...other }) => {
+                    // 提取首图
+                    const img_reg = /!\[.*?\]\((.*?)\)/;
+                    const img_match = img_reg.exec(content);
+                    let avatar: string | undefined = undefined;
+                    if (img_match) {
+                        avatar = img_match[1];
+                    }
                     return {
                         summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
                         hashtags: hashtags.map(({ hashtag }) => hashtag),
+                        avatar,
                         ...other
                     }
                 });
