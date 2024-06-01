@@ -3,8 +3,13 @@ import Elysia, { t } from "elysia";
 import type { DB } from "../_worker";
 import type { Env } from "../db/db";
 import { setup } from "../setup";
+import path from "node:path"
 
-
+function buf2hex(buffer: ArrayBuffer) {
+    return [...new Uint8Array(buffer)]
+        .map(x => x.toString(16).padStart(2, '0'))
+        .join('');
+}
 
 export const StorageService = (db: DB, env: Env) => {
     const region = env.S3_REGION;
@@ -44,8 +49,12 @@ export const StorageService = (db: DB, env: Env) => {
                         return 'Unauthorized';
                     }
                     const suffix = key.includes(".") ? key.split('.').pop() : "";
-                    var uuid = crypto.randomUUID();
-                    const hashkey = folder + uuid + "." + suffix;
+                    const hashArray = await crypto.subtle.digest(
+                        { name: 'SHA-1' },
+                        await file.arrayBuffer()
+                    );
+                    const hash = buf2hex(hashArray)
+                    const hashkey = path.join(folder, hash + "." + suffix);
                     try {
                         const response = await s3.send(new PutObjectCommand({ Bucket: bucket, Key: hashkey, Body: file }))
                         console.info(response);
