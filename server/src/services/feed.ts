@@ -28,7 +28,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                             columns: { id: true, username: true, avatar: true }
                         }
                     },
-                    orderBy: [desc(feeds.updatedAt), desc(feeds.createdAt)]
+                    orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)]
                 })).map(({ content, hashtags, summary, ...other }) => {
                     // 提取首图
                     const img_reg = /!\[.*?\]\((.*?)\)/;
