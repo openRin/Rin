@@ -57,27 +57,18 @@ async function update({ id, title, alias, content, tags, listed, draft }: { id: 
 function uploadImage(file: File, onSuccess: (url: string) => void) {
   client.storage.index.post({
     key: file.name,
+    file: file
   }, {
     headers: headersWithAuth()
-  }).then(({ data,error }) => {
+  }).then(({ data, error }) => {
     if (error) {
       alert('上传失败' + error.value)
     }
-    if (data && typeof data !== 'string') {
-      const { upload_url, url } = data
-      fetch(upload_url, {
-        method: 'PUT',
-        body: file
-      }).then((response) => {
-        if (response.ok) {
-          onSuccess(url)
-        } else {
-          alert('上传失败')
-        }
-      })
+    if (data) {
+      onSuccess(data)
     }
   })
-    .catch((e) => {
+    .catch((e: any) => {
       console.error(e)
       alert('上传失败' + e.message)
     })

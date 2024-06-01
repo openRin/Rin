@@ -4,8 +4,7 @@
   "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "dev": "wrangler dev --port 8787",
     "test": "vitest",
     "cf-typegen": "wrangler types",
     "dev:pre": "NODE_ENV=development bun --watch src/server.ts",
