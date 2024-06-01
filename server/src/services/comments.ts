@@ -53,7 +53,7 @@ export const CommentService = (db: DB, env: Env) => new Elysia({ aot: false })
                 });
 
                 // notify
-                notify(env.WEBHOOK_URL, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
+                await notify(env.WEBHOOK_URL, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
 
                 return 'OK';
             }, {
