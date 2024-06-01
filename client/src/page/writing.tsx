@@ -9,11 +9,12 @@ import "@uiw/react-md-editor/markdown-editor.css";
 // No import is required in the WebPack.
 import "@uiw/react-markdown-preview/markdown.css";
 
-async function publish({ title, alias, listed, content, tags, draft }: { title: string, listed: boolean, content: string, tags: string[], draft: boolean, alias?: string }) {
+async function publish({ title, alias, listed, content, summary, tags, draft }: { title: string, listed: boolean, content: string, summary: string, tags: string[], draft: boolean, alias?: string }) {
   const { data, error } = await client.feed.index.post({
     title,
     alias,
     content,
+    summary,
     tags,
     listed,
     draft
@@ -32,11 +33,12 @@ async function publish({ title, alias, listed, content, tags, draft }: { title: 
   }
 }
 
-async function update({ id, title, alias, content, tags, listed, draft }: { id: number, listed: boolean, title?: string, alias?: string, content?: string, tags?: string[], draft?: boolean }) {
+async function update({ id, title, alias, content, summary, tags, listed, draft }: { id: number, listed: boolean, title?: string, alias?: string, content?: string, summary?: string, tags?: string[], draft?: boolean }) {
   const { error } = await client.feed({ id }).post({
     title,
     alias,
     content,
+    summary,
     tags,
     listed,
     draft
@@ -96,6 +98,7 @@ const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
 // 写作页面
 export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
   const [title, setTitle] = useState(localStorage.getItem("title") ?? "")
+  const [summary, setSummary] = useState(localStorage.getItem("summary") ?? "")
   const [tags, setTags] = useState(localStorage.getItem("tags") ?? "")
   const [alias, setAlias] = useState(localStorage.getItem("alias") ?? "")
   const [draft, setDraft] = useState(false)
@@ -106,7 +109,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
     const tagsplit = tags.split('#').filter(tag => tag !== '').map(tag => tag.trim()) || []
     const content = data
     if (id != undefined) {
-      update({ id, title, content, alias, tags: tagsplit, draft, listed })
+      update({ id, title, content, summary, alias, tags: tagsplit, draft, listed })
     } else {
       if (!title) {
         alert('标题不能为空')
@@ -116,7 +119,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
         alert('内容不能为空')
         return
       }
-      publish({ title, content, tags: tagsplit, draft, alias, listed })
+      publish({ title, content, summary, tags: tagsplit, draft, alias, listed })
     }
   }
   useEffect(() => {
@@ -164,6 +167,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
           <div className='bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4'>
             <div className='visible md:hidden mb-8'>
               <Input id="title" value={title} setValue={setTitle} placeholder='标题' />
+              <Input id="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
               <Input id="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
               <Input id="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
               <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
@@ -190,6 +194,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
           <div className='fixed'>
             <div className='bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4 my-8 mx-8'>
               <Input id="title" value={title} setValue={setTitle} placeholder='标题' />
+              <Input id="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
               <Input id="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
               <Input id="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
               <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>

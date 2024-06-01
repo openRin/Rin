@@ -1,7 +1,7 @@
 import { format } from "@astroimg/timeago";
 import { useLocation } from "wouter";
 
-export function FeedCard({ id, title, draft, listed, content, hashtags, createdAt, updatedAt }: { id: string, draft?: number, listed?: number, title: string, content: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
+export function FeedCard({ id, title, draft, listed, summary, hashtags, createdAt, updatedAt }: { id: string, draft?: number, listed?: number, title: string, summary: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
     const [_, setLocation] = useLocation();
     return (
         <>
@@ -22,7 +22,7 @@ export function FeedCard({ id, title, draft, listed, content, hashtags, createdA
                     {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
                 </div>
                 <p className="text-pretty overflow-hidden">
-                    {content}
+                    {summary}
                 </p>
                 {hashtags.length > 0 &&
                     <div className="mt-2 flex flex-row">
