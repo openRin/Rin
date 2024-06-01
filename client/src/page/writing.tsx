@@ -29,6 +29,7 @@ async function publish({ title, alias, listed, content, summary, tags, draft }: 
     localStorage.removeItem('markdown')
     localStorage.removeItem('title')
     localStorage.removeItem('tags')
+    localStorage.removeItem('summary')
     window.location.href = '/feed/' + data.insertedId
   }
 }
@@ -52,6 +53,7 @@ async function update({ id, title, alias, content, summary, tags, listed, draft 
     localStorage.removeItem('markdown')
     localStorage.removeItem('title')
     localStorage.removeItem('tags')
+    localStorage.removeItem('summary')
     window.location.href = '/feed/' + id
   }
 }
@@ -139,6 +141,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
           setId(data.id)
           setData(data.content)
           setDraft(data.draft === 1)
+          setSummary(data.summary)
         }
       })
     }
