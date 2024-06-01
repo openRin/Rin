@@ -26,7 +26,7 @@ ul {
 }
 
 .markdown-alert {
-  @apply !border-l-2 border-2 rounded-lg p-4 my-4 !px-2 !leading-snug;
+  @apply !border-l-0 border-0 rounded-lg !py-4 my-4 !px-4 !leading-snug;
 }
 .markdown-alert-note {
   @apply !border-indigo-100 bg-indigo-50 !text-indigo-400  ;
@@ -44,5 +44,5 @@ ul {
   @apply !border-red-100 bg-red-50 !text-red-400 ;
 }
 .markdown-alert-title {
-  @apply !mb-0 !text-inherit !font-bold;
+  @apply !mb-2 !text-inherit !font-bold;
 }
