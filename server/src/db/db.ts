@@ -13,6 +13,7 @@ export interface Env {
     S3_ACCESS_HOST: string,
     S3_BUCKET: string,
     S3_FOLDER: string,
+    WEBHOOK_URL: string,
 }
 
 export function db(env: Env) {

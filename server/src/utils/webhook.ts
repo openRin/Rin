@@ -1,5 +1,3 @@
-const webhook_url = process.env.WEBHOOK_URL
-
 function sendWebhook(url: string, data: any) {
     return fetch(url, {
         method: 'POST',
@@ -10,7 +8,7 @@ function sendWebhook(url: string, data: any) {
     })
 }
 
-export function notify(message: string) {
+export function notify(webhook_url: string, message: string) {
     if (!webhook_url) {
         throw new Error('Please set WEBHOOK_URL')
     }
