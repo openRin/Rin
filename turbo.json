@@ -28,6 +28,9 @@
     },
     "format:write": {
       "dependsOn": ["^format:write"]
+    },
+    "cf:deploy": {
+      "cache": false
     }
   }
 }

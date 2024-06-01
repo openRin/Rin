@@ -3,7 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "deploy": "wrangler deploy",
+    "cf:deploy": "wrangler deploy",
     "dev": "wrangler dev --port 8787",
     "test": "vitest",
     "cf-typegen": "wrangler types",

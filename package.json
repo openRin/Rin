@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
+    "cf:deploy": "turbo cf:deploy",
     "b": "turbo build",
     "t": "turbo t",
     "g": "turbo run g",
