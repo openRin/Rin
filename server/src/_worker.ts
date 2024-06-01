@@ -5,7 +5,7 @@ import type { Env } from "./db/db";
 import * as schema from './db/schema';
 import { app } from "./server";
 
-export type DB = DrizzleD1Database<typeof import("/home/xeu/projects/web/xeulife/server/src/db/schema")>
+export type DB = DrizzleD1Database<typeof import("./db/schema")>
 
 export default {
     async fetch(
