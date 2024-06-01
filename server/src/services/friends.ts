@@ -1,15 +1,18 @@
-import Elysia, { t } from "elysia";
-import db from "../db/db";
 import { eq } from "drizzle-orm";
+import Elysia, { t } from "elysia";
+import type { DB } from "../_worker";
 import { friends } from "../db/schema";
 import { setup } from "../setup";
+import type { Env } from "../db/db";
 
-export const FriendService = new Elysia()
-    .use(setup)
+export const FriendService = (db: DB, env: Env) => new Elysia({ aot: false })
+    .use(setup(db, env))
     .group('/friend', (group) =>
         group.get('/', async ({ admin, uid }) => {
             const friend_list = await (admin ? db.query.friends.findMany() : db.query.friends.findMany({ where: eq(friends.accepted, 1) }));
-            const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid) });
+            console.log(friend_list);
+            const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid ?? null) });
+            console.log(apply_list);
             return { friend_list, apply_list };
         })
             .post('/', async ({ admin, uid, set, body: { name, desc, avatar, url } }) => {

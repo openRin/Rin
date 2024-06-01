@@ -8,6 +8,7 @@ bun.lockb
 test.ts
 *.log
 build/
+.*.vars
 
 # Logs
 

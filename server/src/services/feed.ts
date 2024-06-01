@@ -1,12 +1,13 @@
 import { and, desc, eq, or } from "drizzle-orm";
 import Elysia, { t } from "elysia";
-import db from "../db/db";
+import type { DB } from "../_worker";
 import { feeds } from "../db/schema";
 import { setup } from "../setup";
 import { bindTagToPost } from "./tag";
+import type { Env } from "../db/db";
 
-export const FeedService = new Elysia()
-    .use(setup)
+export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
+    .use(setup(db, env))
     .group('/feed', (group) =>
         group
             .get('/', async ({ admin }) => {
@@ -69,7 +70,7 @@ export const FeedService = new Elysia()
                     listed: listed ? 1 : 0,
                     draft: draft ? 1 : 0
                 }).returning({ insertedId: feeds.id });
-                bindTagToPost(result[0].insertedId, tags);
+                bindTagToPost(db, result[0].insertedId, tags);
                 if (result.length === 0) {
                     set.status = 500;
                     return 'Failed to insert';
@@ -142,7 +143,7 @@ export const FeedService = new Elysia()
                     updatedAt: new Date()
                 }).where(eq(feeds.id, id_num));
                 if (tags) {
-                    await bindTagToPost(id_num, tags);
+                    await bindTagToPost(db, id_num, tags);
                 }
                 return 'Updated';
             }, {

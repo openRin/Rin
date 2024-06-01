@@ -7,8 +7,7 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true,
-      "dependsOn": ["^db:mig"]
+      "persistent": true
     },
     "t": {
       "cache": false,
@@ -29,6 +28,9 @@
     },
     "format:write": {
       "dependsOn": ["^format:write"]
+    },
+    "cf:deploy": {
+      "cache": false
     }
   }
 }

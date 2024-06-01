@@ -1,16 +1,21 @@
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-import * as schema from './schema';
-const db_path = process.env.DB_PATH ?? 'sqlite.db';
-import {} from '../../migrate'
+import { drizzle } from 'drizzle-orm/d1';
 
-const is_exists = await Bun.file(db_path).exists()
-if (!is_exists) {
-    console.log('Database not found, creating a new one...')
-    const init_db = Bun.file("init.db");
-    await Bun.write(db_path, init_db);
+export interface Env {
+    DB: D1Database;
+    GITHUB_CLIENT_ID: string;
+    GITHUB_CLIENT_SECRET: string;
+    JWT_SECRET: string;
+    FRONTEND_URL: string;
+    S3_REGION: string,
+    S3_ENDPOINT: string,
+    S3_ACCESS_KEY_ID: string,
+    S3_SECRET_ACCESS_KEY: string,
+    S3_ACCESS_HOST: string,
+    S3_BUCKET: string,
+    S3_FOLDER: string,
 }
-const connection = new Database(db_path);
-export const db = drizzle(connection, { schema: schema });
 
+export function db(env: Env) {
+    return drizzle(env.DB);
+}
 export default db;

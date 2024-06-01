@@ -1,18 +1,18 @@
 import cors from '@elysiajs/cors';
 import { serverTiming } from '@elysiajs/server-timing';
 import { Elysia } from 'elysia';
-import { CronService } from './services/cron';
+import type { DB } from './_worker';
+import type { Env } from './db/db';
+import { CommentService } from './services/comments';
 import { FeedService } from './services/feed';
 import { FriendService } from './services/friends';
-import { StorageService } from './services/storage';
 import { TagService } from './services/tag';
 import { UserService } from './services/user';
-import { logPlugin, logger } from './utils/logger';
-import { CommentService } from './services/comments';
+import { StorageService } from './services/storage';
 
-export const app = new Elysia()
+export const app = (db: DB, env: Env) => new Elysia({ aot: false })
     .use(cors({
-        aot: true,
+        aot: false,
         origin: '*',
         methods: '*',
         allowedHeaders: [
@@ -26,22 +26,16 @@ export const app = new Elysia()
     .use(serverTiming({
         enabled: true,
     }))
-    .use(CronService)
-    .use(logPlugin)
-    .use(StorageService)
-    .use(UserService)
-    .use(FeedService)
-    .use(CommentService)
-    .use(TagService)
-    .use(FriendService)
+    .use(UserService(db, env))
+    .use(FeedService(db, env))
+    .use(CommentService(db, env))
+    .use(TagService(db))
+    .use(StorageService(db, env))
+    .use(FriendService(db, env))
     .get('/', () => `Hi`)
     .onError(({ path, params, code }) => {
         if (code === 'NOT_FOUND')
             return `${path} ${JSON.stringify(params)} not found`
     })
-    .listen(process.env.PORT ?? 3001, () => {
-        if (process.env.NODE_ENV != 'test')
-            logger.info(`[Rim] Server is running on port ${process.env.PORT ?? 3001}`)
-    })
 
-export type App = typeof app
+export type App = ReturnType<typeof app>;
