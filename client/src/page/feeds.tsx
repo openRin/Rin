@@ -36,7 +36,7 @@ function Feeds() {
             (draft === 1) === onlyDraft && (onlyDraft || (listed === 1) != enableListed))
     return (
         <>
-            <div className="w-full flex flex-col justify-center items-center">
+            <div className="w-full flex flex-col justify-center items-center mb-8">
                 <div className="wauto text-start text-black p-4 text-4xl font-bold">
                     <p>
                         {onlyDraft ? "草稿箱" : "文章"}

@@ -88,7 +88,7 @@ function Friends() {
     const friends_unavaliable = friends?.filter(({ health }) => health.length > 0) || []
     shuffleArray(friends_unavaliable)
     return (<>
-        <div className="w-full flex flex-col justify-center items-center">
+        <div className="w-full flex flex-col justify-center items-center mb-8">
             {friends_avaliable.length > 0 &&
                 <>
                     <div className="wauto text-start text-black py-4 text-4xl font-bold">
@@ -121,7 +121,7 @@ function Friends() {
                 </>
             }
             {profile && profile.permission &&
-                <div className="wauto flex text-start text-black text-2xl font-bold my-8">
+                <div className="wauto flex text-start text-black text-2xl font-bold mt-8">
                     <div className="md:basis-1/2 bg-white rounded-xl p-4">
                         <p>
                             创建友链
