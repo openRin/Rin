@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
-import db from "../db/db";
-import { users } from "../db/schema";
-import { frontend_url, setup } from "../setup";
 import { URL } from "url";
-export const UserService = new Elysia()
-    .use(setup)
+import type { DB } from "../_worker";
+import { users } from "../db/schema";
+import { setup } from "../setup";
+import type { Env } from "../db/db";
+export const UserService = (db: DB, env: Env) => new Elysia({ aot: false })
+    .use(setup(db, env))
     .group('/user', (group) =>
         group
             .get("/github", ({ oauth2, headers: { referer }, cookie: { redirect_to } }) => {
@@ -16,11 +17,10 @@ export const UserService = new Elysia()
                 redirect_to.value = `${referer_url.protocol}//${referer_url.host}`
                 return oauth2.redirect("GitHub", { scopes: ["read:user"] })
             })
-            .get("/github/callback", async ({ jwt, oauth2, redirect, store, query, cookie: { token, redirect_to, state } }) => {
+            .get("/github/callback", async ({ jwt, oauth2, set, store, query, cookie: { token, redirect_to, state } }) => {
 
                 console.log('state', state.value)
                 console.log('p_state', query.state)
-                console.log('match', state.value === query.state)
 
                 const gh_token = await oauth2.authorize("GitHub");
                 // request https://api.github.com/user for user info
@@ -28,9 +28,10 @@ export const UserService = new Elysia()
                     headers: {
                         Authorization: `Bearer ${gh_token.accessToken}`,
                         Accept: "application/json",
+                        "User-Agent": "elysia"
                     },
                 });
-                const user = await response.json();
+                const user: any = await response.json();
                 const profile: {
                     openid: string;
                     username: string;
@@ -55,11 +56,11 @@ export const UserService = new Elysia()
                         } else {
                             // if no user exists, set permission to 1
                             // store.anyUser is a global state to cache the existence of any user
-                            if (!store.anyUser) {
+                            if (!await store.anyUser(db)) {
                                 const realTimeCheck = (await db.query.users.findMany())?.length > 0
                                 if (!realTimeCheck) {
                                     profile.permission = 1
-                                    store.anyUser = true
+                                    store.anyUser = async (_: DB) => true
                                 }
                             }
                             const result = await db.insert(users).values(profile).returning({ insertedId: users.id });
@@ -74,8 +75,12 @@ export const UserService = new Elysia()
                             }
                         }
                     });
-                const redirect_url = redirect_to.value || frontend_url
-                return redirect(`${redirect_url}/callback?token=${token.value}`);
+                const redirect_host = redirect_to.value || ""
+                const redirect_url = (`${redirect_host}/callback?token=${token.value}`);
+                set.headers = {
+                    'Content-Type': 'text/html',
+                }
+                return `<html><head><meta http-equiv="refresh" content="0; url=${redirect_url}" /><head></html>`
             }, {
                 query: t.Object({
                     state: t.String(),

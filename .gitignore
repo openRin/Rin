@@ -8,7 +8,8 @@ bun.lockb
 test.ts
 *.log
 .env.production
-
+.wrangler
+wrangler.toml
 # Logs
 logs
 *.log

@@ -1,12 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
-import db from "../db/db";
+import type { DB } from "../_worker";
 import { comments, feeds, users } from "../db/schema";
-import { frontend_url, setup } from "../setup";
+import { setup } from "../setup";
 import { notify } from "../utils/webhook";
+import type { Env } from "../db/db";
 
-export const CommentService = new Elysia()
-    .use(setup)
+export const CommentService = (db: DB, env: Env) => new Elysia({ aot: false })
+    .use(setup(db, env))
     .group('/feed/comment', (group) =>
         group
             .get('/:feed', async ({ params: { feed } }) => {
@@ -52,7 +53,7 @@ export const CommentService = new Elysia()
                 });
 
                 // notify
-                notify(`${frontend_url}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
+                notify(`${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
 
                 return 'OK';
             }, {

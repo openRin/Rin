@@ -3,37 +3,44 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development bun --watch src/server.ts",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "test": "vitest",
+    "cf-typegen": "wrangler types",
+    "dev:pre": "NODE_ENV=development bun --watch src/server.ts",
     "dev:test": "NODE_ENV=test bun --watch src/server.ts",
     "db:gen": "bun drizzle-kit generate",
-    "db:mig": "bun migrate.ts",
     "build": "bun build src/server.ts --target=bun --sourcemap --compile --outfile build/app",
     "build:js": "bun build src/server.ts --target=bun --outdir build",
     "preview": "wrangler pages dev dist --compatibility-date=2023-12-20",
-    "start": "NODE_ENV=production bun src/server.ts",
+    "start:pre": "NODE_ENV=production bun src/server.ts",
     "t": "rm -f test.db && NODE_ENV=test bun migrate.ts && NODE_ENV=test bun test --coverage"
   },
   "devDependencies": {
     "@types/bun": "^1.1.2",
-    "drizzle-kit": "^0.21.2"
+    "drizzle-kit": "^0.21.2",
+    "wrangler": "^3.57.1",
+    "@cloudflare/vitest-pool-workers": "^0.1.0",
+    "@cloudflare/workers-types": "^4.20240529.0",
+    "typescript": "^5.0.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.583.0",
+    "@aws-sdk/s3-request-presigner": "^3.583.0",
     "@elysiajs/cors": "^1.0.2",
-    "@elysiajs/eden": "^1.0.13",
     "@elysiajs/cron": "^1.0.3",
-    "@elysiajs/jwt": "^1.0.2",
+    "@elysiajs/eden": "^1.0.13",
     "@elysiajs/server-timing": "^1.0.2",
-    "arctic": "^1.8.1",
+    "arctic": "^1.9.0",
     "drizzle-orm": "^0.30.10",
     "elysia": "^1.0.21",
     "elysia-oauth2": "^1.2.0",
-    "logestic": "^1.1.1",
-    "url": "^0.11.3",
-    "@aws-sdk/client-s3": "^3.583.0",
-    "@aws-sdk/s3-request-presigner": "^3.583.0"
+    "jose": "^5.3.0",
+    "url": "^0.11.3"
   },
   "trustedDependencies": [
     "es5-ext"
