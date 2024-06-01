@@ -43,7 +43,7 @@ export const StorageService = (db: DB, env: Env) => {
                         set.status = 401;
                         return 'Unauthorized';
                     }
-                    const suffix = key.split('.').pop();
+                    const suffix = key.includes(".") ? key.split('.').pop() : "";
                     var uuid = crypto.randomUUID();
                     const hashkey = folder + uuid + "." + suffix;
                     try {
