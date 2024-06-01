@@ -158,9 +158,9 @@ function Friend({ friend }: { friend: FriendItem }) {
 }
 
 function errorHumanize(error: string) {
-    if (error === "certificate has expired") {
+    if (error === "certificate has expired" || error == "526") {
         return "证书已过期"
-    } else if (error.includes("Unable to connect")) {
+    } else if (error.includes("Unable to connect") || error == "521") {
         return "无法访问"
     }
     return error

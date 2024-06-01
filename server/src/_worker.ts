@@ -18,11 +18,13 @@ export default {
             .handle(request)
     },
     async scheduled(
+        _controller: ScheduledController | null,
         env: Env,
+        ctx: ExecutionContext
     ) {
-        const db = drizzle(env.DB, { schema: schema });
-        console.info('update friends health')
+        const db = drizzle(env.DB, { schema: schema })
         const friend_list = await db.query.friends.findMany()
+        console.info(`total friends: ${friend_list.length}`)
         let health = 0
         let unhealthy = 0
         for (const friend of friend_list) {
@@ -32,15 +34,15 @@ export default {
                 console.info(`response status: ${response.status}`)
                 console.info(`response statusText: ${response.statusText}`)
                 if (response.ok) {
-                    await db.update(schema.friends).set({ health: "" }).where(eq(schema.friends.id, friend.id))
+                    ctx.waitUntil(db.update(schema.friends).set({ health: "" }).where(eq(schema.friends.id, friend.id)))
                     health++
                 } else {
-                    await db.update(schema.friends).set({ health: `${response.status}` }).where(eq(schema.friends.id, friend.id))
+                    ctx.waitUntil(db.update(schema.friends).set({ health: `${response.status}` }).where(eq(schema.friends.id, friend.id)))
                     unhealthy++
                 }
             } catch (e: any) {
                 console.error(e.message)
-                await db.update(schema.friends).set({ health: e.message }).where(eq(schema.friends.id, friend.id))
+                ctx.waitUntil(db.update(schema.friends).set({ health: e.message }).where(eq(schema.friends.id, friend.id)))
                 unhealthy++
             }
         }
