@@ -1,5 +1,5 @@
 import MDEditor from '@uiw/react-md-editor';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Checkbox, Input } from '../components/input';
 import { Padding } from '../components/padding';
 import { client } from '../main';
