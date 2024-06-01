@@ -18,7 +18,7 @@ export default {
             .handle(request)
     },
     async scheduled(
-        controller: ScheduledController | null,
+        _controller: ScheduledController | null,
         env: Env,
         ctx: ExecutionContext
     ) {
