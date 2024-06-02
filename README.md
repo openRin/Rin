@@ -7,6 +7,14 @@
 
 Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，无需服务器无需备案，只需要一个解析到 Cloudflare 的域名即可部署。
 
+## 演示地址
+
+[xeu.life](https://xeu.life)
+
+## 同步阅读
+
+[Rin 部署指南](https://xeu.life/deploy-rin)
+
 ## 特性
 1. 支持 Github OAuth 登录，默认第一个登录的用户拥有管理权限，其他用户均为普通用户
 2. 支持文章的写作与编辑
