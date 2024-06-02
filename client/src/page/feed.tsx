@@ -66,11 +66,13 @@ function Feed({ id }: { id: string }) {
         })
         ref.current = id
     }, [id])
+    const siteName = `${process.env.NAME} - ${process.env.DESCRIPTION}`
     return (
         <>
             {feed &&
                 <Helmet>
-                    <meta property="og:site_name" content={`${process.env.NAME} - ${process.env.DESCRIPTION}`} />
+                    <title>{`${feed.title ?? "Unnamed"} - ${process.env.NAME}`}</title>
+                    <meta property="og:site_name" content={siteName} />
                     <meta property="og:title" content={feed.title ?? ""} />
                     <meta property="og:image" content={headImage ?? process.env.AVATAR} />
                     <meta property="og:type" content="article" />
