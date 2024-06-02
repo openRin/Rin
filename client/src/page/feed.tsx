@@ -79,7 +79,7 @@ function Feed({ id }: { id: string }) {
                     <meta property="og:url" content={document.URL} />
                     <meta name="og:description" content={feed.content.length > 200 ? feed.content.substring(0, 200) : feed.content} />
                     <meta name="author" content={feed.user.username} />
-                    <meta name="keywords" content={feed.hashtags.join(", ")} />
+                    <meta name="keywords" content={feed.hashtags.map(({ name }) => name).join(", ")} />
                     <meta name="description" content={feed.content.length > 200 ? feed.content.substring(0, 200) : feed.content} />
                 </Helmet>
             }
