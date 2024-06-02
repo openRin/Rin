@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { removeCookie } from "typescript-cookie";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { oauth_url } from "../main";
 import { Profile, ProfileContext } from "../state/profile";
 import { Icon } from "./icon";
@@ -39,11 +39,11 @@ export function Header() {
                                             </p>
                                         </div>
                                     </div>
-                                    <NavItem title="文章" selected={location === "/" || location.startsWith('/feed')} onClick={() => { setLocation("/") }} />
+                                    <NavItem title="文章" selected={location === "/" || location.startsWith('/feed')} herf="/" />
                                     {/* <NavItem title="标签" selected={false} onClick={() => { }} /> */}
-                                    {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} onClick={() => { setLocation("/writing") }} />}
-                                    <NavItem title="朋友们" selected={location === "/friends"} onClick={() => { setLocation("/friends") }} />
-                                    <NavItem title="关于" selected={location === "/about"} onClick={() => { setLocation("/about") }} />
+                                    {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} herf="/writing" />}
+                                    <NavItem title="朋友们" selected={location === "/friends"} herf="/friends" />
+                                    <NavItem title="关于" selected={location === "/about"} herf="/about" />
                                     <UserAvatar className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 justify-center items-center w-12 h-12" profile={profile} />
                                 </div>
                             </div>
@@ -57,11 +57,11 @@ export function Header() {
     )
 }
 
-function NavItem({ title, selected, onClick }: { title: string, selected: boolean, onClick: () => void }) {
+function NavItem({ title, selected, herf }: { title: string, selected: boolean, herf: string }) {
     return (
-        <div onClick={onClick} className={"cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm " + (selected ? "text-theme" : "")} >
+        <Link href={herf} className={"cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm " + (selected ? "text-theme" : "")} >
             {title}
-        </div >
+        </Link>
     )
 }
 
@@ -71,14 +71,14 @@ function UserAvatar({ profile, className }: { className?: string, profile?: Prof
             <div className="relative">
                 <img src={profile.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2" />
                 <div className="z-50 absolute left-0 top-0 w-10 h-10 opacity-0 hover:opacity-100 duration-300">
-                    <Icon name="ri-login-circle-line ri-xl" onClick={() => {
+                    <Icon label="退出登录" name="ri-login-circle-line ri-xl" onClick={() => {
                         removeCookie("token")
                         window.location.reload()
                     }} hover={false} />
                 </div>
             </div>
         </> : <>
-            <Icon name="ri-login-circle-line ri-md" onClick={() => window.location.href = `${oauth_url}`} />
+            <Icon label="Github 登录" name="ri-login-circle-line ri-md" onClick={() => window.location.href = `${oauth_url}`} />
         </>}
     </div>)
 }

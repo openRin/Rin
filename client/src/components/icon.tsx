@@ -1,15 +1,15 @@
-export function Icon({ name, className, onClick, hover = true }: { name: string, className?: string, onClick: () => any, hover?: boolean }) {
+export function Icon({ name, label, className, onClick, hover = true }: { name: string, label: string, className?: string, onClick: () => any, hover?: boolean }) {
     return (
-        <div onClick={onClick} className={`max-w-12 flex rounded-full border px-3 bg-white aspect-[1] items-center justify-center ${hover ? "hover:bg-neutral-200" : ""} ` + className}>
+        <button aria-label={label} onClick={onClick} className={`max-w-12 flex rounded-full border px-2 bg-white aspect-[1] items-center justify-center ${hover ? "hover:bg-neutral-200" : ""} ` + className}>
             <i className={name}></i>
-        </div>
+        </button>
     )
 }
 
-export function IconSmall({ name, className, onClick, hover = true }: { name: string, className?: string, onClick: () => any, hover?: boolean }) {
+export function IconSmall({ name, label, className, onClick, hover = true }: { name: string, label: string, className?: string, onClick: () => any, hover?: boolean }) {
     return (
-        <div onClick={onClick} className={`max-w-8 flex rounded-full border px-2 bg-white aspect-[1] items-center justify-center ${hover ? "hover:bg-neutral-200" : ""} ` + className}>
+        <button aria-label={label} onClick={onClick} className={`max-w-8 flex rounded-full border px-2 bg-white aspect-[1] items-center justify-center ${hover ? "hover:bg-neutral-200" : ""} ` + className}>
             <i className={name}></i>
-        </div>
+        </button>
     )
 }

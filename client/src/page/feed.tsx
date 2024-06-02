@@ -74,44 +74,46 @@ function Feed({ id }: { id: string }) {
                     </>
                 }
                 {feed &&
-                    <div className="wauto rounded-2xl bg-white m-2 p-6">
-                        <div className="flex flex-row items-center">
-                            <h1 className="text-xl font-bold text-gray-700">
-                                {feed.title}
-                            </h1>
-                            {profile?.permission && <div className="flex-1 flex flex-col items-end justify-center">
-                                <Icon name="ri-edit-2-line ri-lg" onClick={() => window.location.href = `/writing/${id}`} />
-                            </div>}
-                        </div>
-                        <div className="my-2">
-                            <p className="text-gray-400 text-sm" title={new Date(feed.createdAt).toLocaleString()}>
-                                发布于 {format(feed.createdAt)}
-                            </p>
-                            {feed.createdAt !== feed.updatedAt &&
-                                <p className="text-gray-400 text-sm" title={new Date(feed.updatedAt).toLocaleString()}>
-                                    更新于 {format(feed.updatedAt)}
+                    <main className="wauto rounded-2xl bg-white m-2 p-6">
+                        <article aria-label="正文">
+                            <div className="flex flex-row items-center">
+                                <h1 className="text-xl font-bold text-gray-700">
+                                    {feed.title}
+                                </h1>
+                                {profile?.permission && <div className="flex-1 flex flex-col items-end justify-center">
+                                    <Icon label="编辑" name="ri-edit-2-line ri-lg" onClick={() => window.location.href = `/writing/${id}`} />
+                                </div>}
+                            </div>
+                            <div className="my-2">
+                                <p className="text-gray-400 text-sm" title={new Date(feed.createdAt).toLocaleString()}>
+                                    发布于 {format(feed.createdAt)}
                                 </p>
+                                {feed.createdAt !== feed.updatedAt &&
+                                    <p className="text-gray-400 text-sm" title={new Date(feed.updatedAt).toLocaleString()}>
+                                        更新于 {format(feed.updatedAt)}
+                                    </p>
+                                }
+                            </div>
+                            <MarkdownPreview source={feed.content} />
+                            {feed.hashtags.length > 0 &&
+                                <div className="mt-2 flex flex-row space-x-2">
+                                    {feed.hashtags.map(({ name }, index) => (
+                                        <div key={index} className="bg-neutral-100 py-1 px-2 rounded-lg">
+                                            {name}
+                                        </div>
+                                    ))}
+                                </div>
                             }
-                        </div>
-                        <MarkdownPreview source={feed.content} />
-                        {feed.hashtags.length > 0 &&
-                            <div className="mt-2 flex flex-row space-x-2">
-                                {feed.hashtags.map(({ name }, index) => (
-                                    <div key={index} className="bg-neutral-100 py-1 px-2 rounded-lg">
-                                        {name}
-                                    </div>
-                                ))}
+                            <div className="mt-2 flex flex-row items-center">
+                                <img src={feed.user.avatar || '/avatar.png'} className="w-8 h-8 rounded-full" />
+                                <div className="ml-2">
+                                    <span className="text-gray-400 text-sm">
+                                        {feed.user.username}
+                                    </span>
+                                </div>
                             </div>
-                        }
-                        <div className="mt-2 flex flex-row items-center">
-                            <img src={feed.user.avatar || '/avatar.png'} className="w-8 h-8 rounded-full" />
-                            <div className="ml-2">
-                                <span className="text-gray-400 text-sm">
-                                    {feed.user.username}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                        </article>
+                    </main>
                 }
                 {feed && <Comments id={id} />}
                 <div className="h-16" />
@@ -146,7 +148,10 @@ function CommentInput({ id, onRefresh }: { id: string, onRefresh: () => void }) 
     }
     return (
         <div className="wauto rounded-2xl bg-white m-2 p-6 items-end flex flex-col">
-            <textarea placeholder="说点什么吧" className="w-full h-24 p-2 rounded-lg" value={content} onChange={e => setContent(e.target.value)} />
+            <div className="flex flex-col w-full items-start space-y-4">
+                <label htmlFor="comment">评论</label>
+                <textarea id="comment" placeholder="说点什么吧" className="w-full h-24 rounded-lg" value={content} onChange={e => setContent(e.target.value)} />
+            </div>
             <button className="mt-2 bg-theme text-white px-4 py-2 rounded-full" onClick={submit}>
                 发表评论
             </button>
@@ -253,7 +258,7 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
                     {format(comment.createdAt)}
                 </span>
                 {(profile?.permission || profile?.id == comment.user.id) && <div className="flex flex-row">
-                    <IconSmall name="ri-delete-bin-2-line ri-sm" onClick={deleteComment} />
+                    <IconSmall label="删除评论" name="ri-delete-bin-2-line ri-sm" onClick={deleteComment} />
                 </div>
                 }
             </div>
