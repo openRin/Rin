@@ -1,11 +1,13 @@
-export function Input({ value, setValue, className, placeholder, id }: { value: string, className?: string, placeholder: string, id?: string, setValue: React.Dispatch<React.SetStateAction<string>> }) {
+import { Cache, Keys } from "../page/writing"
+
+export function Input({ value, setValue, className, placeholder, id, name }: { value: string, className?: string, placeholder: string, id?: number, name?: Keys, setValue: React.Dispatch<React.SetStateAction<string>> }) {
     return (<input type='text'
         placeholder={placeholder}
         value={value}
         onChange={(event) => {
             setValue(event.target.value)
-            if (id)
-                localStorage.setItem(id, event.target.value)
+            if (name)
+                Cache.with(id).set(name, event.target.value)
         }}
         className={'w-full py-2 px-4 rounded-xl ' + className} />
     )

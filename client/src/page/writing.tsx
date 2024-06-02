@@ -160,10 +160,10 @@ export function WritingPage({ id }: { id?: number }) {
         <div className='writeauto xl:basis-11/12 pb-8'>
           <div className='bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4'>
             <div className='visible md:hidden mb-8'>
-              <Input id="title" value={title} setValue={setTitle} placeholder='标题' />
-              <Input id="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
-              <Input id="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
-              <Input id="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
+              <Input id={id} name="title" value={title} setValue={setTitle} placeholder='标题' />
+              <Input id={id} name="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
+              <Input id={id} name="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
+              <Input id={id} name="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
               <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
                 <p>仅自己可见</p>
                 <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
@@ -187,10 +187,10 @@ export function WritingPage({ id }: { id?: number }) {
         <div className='hidden md:visible basis-1/2 md:basis-1/4 md:flex flex-col'>
           <div className='fixed'>
             <div className='bg-white rounded-2xl shadow-xl shadow-neutral-200 p-4 my-8 mx-8'>
-              <Input id="title" value={title} setValue={setTitle} placeholder='标题' />
-              <Input id="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
-              <Input id="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
-              <Input id="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
+              <Input id={id} name="title" value={title} setValue={setTitle} placeholder='标题' />
+              <Input id={id} name="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
+              <Input id={id} name="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
+              <Input id={id} name="alias" value={alias} setValue={setAlias} placeholder='别名' className='mt-4' />
               <div className='select-none flex flex-row justify-between items-center mt-6 mb-2 px-4' onClick={() => setDraft(!draft)}>
                 <p>仅自己可见</p>
                 <Checkbox id="draft" value={draft} setValue={setDraft} placeholder='草稿' />
@@ -210,9 +210,9 @@ export function WritingPage({ id }: { id?: number }) {
   )
 }
 
-type Keys = 'title' | 'content' | 'tags' | 'summary' | 'draft' | 'alias' | 'listed'
+export type Keys = 'title' | 'content' | 'tags' | 'summary' | 'draft' | 'alias' | 'listed'
 const keys: Keys[] = ['title', 'content', 'tags', 'summary', 'draft', 'alias', 'listed']
-class Cache {
+export class Cache {
   static with(id?: number) {
     return new Cache(id)
   }
