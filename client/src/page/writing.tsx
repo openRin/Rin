@@ -98,10 +98,9 @@ export function WritingPage({ id }: { id?: number }) {
   const [alias, setAlias] = useState(cache.get("alias"))
   const [draft, setDraft] = useState(false)
   const [listed, setListed] = useState(true)
-  const [data, setData] = useState<string>(cache.get("content") ?? "")
+  const [content, setContent] = useState<string>(cache.get("content") ?? "")
   function publishButton() {
     const tagsplit = tags.split('#').filter(tag => tag !== '').map(tag => tag.trim()) || []
-    const content = data
     if (id != undefined) {
       update({ id, title, content, summary, alias, tags: tagsplit, draft, listed })
     } else {
@@ -123,16 +122,18 @@ export function WritingPage({ id }: { id?: number }) {
         headers: headersWithAuth()
       }).then(({ data }) => {
         if (data && typeof data !== 'string') {
-          if (data.title)
+          if (title == '' && data.title)
             setTitle(data.title)
-          if (data.hashtags)
+          if (tags == '' && data.hashtags)
             setTags(data.hashtags.map(({ name }) => `#${name}`).join(' '))
-          if (data.alias)
+          if (alias == '' && data.alias)
             setAlias(data.alias)
+          if (content == '')
+            setContent(data.content)
+          if (summary == '')
+            setSummary(data.summary)
           setListed(data.listed === 1)
-          setData(data.content)
           setDraft(data.draft === 1)
-          setSummary(data.summary)
         }
       })
     }
@@ -174,9 +175,9 @@ export function WritingPage({ id }: { id?: number }) {
               </div>
             </div>
             <div className='mx-4 my-2 md:mx-0 md:my-0'>
-              <MDEditor height={500} value={data} onPaste={handlePaste} onChange={(data) => {
+              <MDEditor height={500} value={content} onPaste={handlePaste} onChange={(data) => {
                 cache.set('content', data ?? '')
-                setData(data ?? '')
+                setContent(data ?? '')
               }} />
             </div>
           </div>
@@ -224,7 +225,10 @@ export class Cache {
     return localStorage.getItem(`${this.id}/${key}`) ?? ''
   }
   public set(key: Keys, value: string) {
-    localStorage.setItem(`${this.id}/${key}`, value)
+    if (value === '')
+      localStorage.removeItem(`${this.id}/${key}`)
+    else
+      localStorage.setItem(`${this.id}/${key}`, value)
   }
   clear() {
     keys.forEach(key => {
