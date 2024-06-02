@@ -8,7 +8,7 @@ import { Padding } from "./padding";
 
 export function Header() {
     const profile = useContext(ProfileContext);
-    const [location, setLocation] = useLocation();
+    const [location, _] = useLocation();
     return (
         <>
             <div className="fixed z-40">
