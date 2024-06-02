@@ -104,7 +104,7 @@ function Feed({ id }: { id: string }) {
                                     {feed.title}
                                 </h1>
                                 {profile?.permission && <div className="flex-1 flex flex-col items-end justify-center">
-                                    <Icon label="编辑" name="ri-edit-2-line ri-lg" onClick={() => window.location.href = `/writing/${id}`} />
+                                    <Icon label="编辑" name="ri-edit-2-line ri-lg" onClick={() => window.location.href = `/writing/${feed.id}`} />
                                 </div>}
                             </div>
                             <div className="my-2">

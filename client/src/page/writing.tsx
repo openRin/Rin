@@ -4,9 +4,7 @@ import { Checkbox, Input } from '../components/input';
 import { Padding } from '../components/padding';
 import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
-// No import is required in the WebPack.
 import "@uiw/react-md-editor/markdown-editor.css";
-// No import is required in the WebPack.
 import "@uiw/react-markdown-preview/markdown.css";
 
 async function publish({ title, alias, listed, content, summary, tags, draft }: { title: string, listed: boolean, content: string, summary: string, tags: string[], draft: boolean, alias?: string }) {
@@ -26,10 +24,7 @@ async function publish({ title, alias, listed, content, summary, tags, draft }: 
   }
   if (data && typeof data != 'string') {
     alert('发布成功')
-    localStorage.removeItem('markdown')
-    localStorage.removeItem('title')
-    localStorage.removeItem('tags')
-    localStorage.removeItem('summary')
+    Cache.with().clear()
     window.location.href = '/feed/' + data.insertedId
   }
 }
@@ -50,10 +45,7 @@ async function update({ id, title, alias, content, summary, tags, listed, draft 
     alert(error.value)
   } else {
     alert('更新成功')
-    localStorage.removeItem('markdown')
-    localStorage.removeItem('title')
-    localStorage.removeItem('tags')
-    localStorage.removeItem('summary')
+    Cache.with(id).clear()
     window.location.href = '/feed/' + id
   }
 }
@@ -98,15 +90,15 @@ const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
 
 
 // 写作页面
-export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
-  const [title, setTitle] = useState(localStorage.getItem("title") ?? "")
-  const [summary, setSummary] = useState(localStorage.getItem("summary") ?? "")
-  const [tags, setTags] = useState(localStorage.getItem("tags") ?? "")
-  const [alias, setAlias] = useState(localStorage.getItem("alias") ?? "")
+export function WritingPage({ id }: { id?: number }) {
+  const cache = Cache.with(id)
+  const [title, setTitle] = useState(cache.get("title"))
+  const [summary, setSummary] = useState(cache.get("summary"))
+  const [tags, setTags] = useState(cache.get("tags"))
+  const [alias, setAlias] = useState(cache.get("alias"))
   const [draft, setDraft] = useState(false)
   const [listed, setListed] = useState(true)
-  const [id, setId] = useState<number | undefined>(undefined)
-  const [data, setData] = useState<string>(localStorage.getItem("markdown") ?? "")
+  const [data, setData] = useState<string>(cache.get("content") ?? "")
   function publishButton() {
     const tagsplit = tags.split('#').filter(tag => tag !== '').map(tag => tag.trim()) || []
     const content = data
@@ -125,9 +117,9 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
     }
   }
   useEffect(() => {
-    console.log(idOrAlias)
-    if (idOrAlias) {
-      client.feed({ id: idOrAlias }).get({
+    console.log(id)
+    if (id) {
+      client.feed({ id }).get({
         headers: headersWithAuth()
       }).then(({ data }) => {
         if (data && typeof data !== 'string') {
@@ -138,7 +130,6 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
           if (data.alias)
             setAlias(data.alias)
           setListed(data.listed === 1)
-          setId(data.id)
           setData(data.content)
           setDraft(data.draft === 1)
           setSummary(data.summary)
@@ -184,7 +175,7 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
             </div>
             <div className='mx-4 my-2 md:mx-0 md:my-0'>
               <MDEditor height={500} value={data} onPaste={handlePaste} onChange={(data) => {
-                localStorage.setItem('markdown', data ?? '')
+                cache.set('content', data ?? '')
                 setData(data ?? '')
               }} />
             </div>
@@ -217,4 +208,27 @@ export function WritingPage({ idOrAlias }: { idOrAlias?: string }) {
       </div>
     </Padding>
   )
+}
+
+type Keys = 'title' | 'content' | 'tags' | 'summary' | 'draft' | 'alias' | 'listed'
+const keys: Keys[] = ['title', 'content', 'tags', 'summary', 'draft', 'alias', 'listed']
+class Cache {
+  static with(id?: number) {
+    return new Cache(id)
+  }
+  private id: string
+  constructor(id?: number) {
+    this.id = `${id ?? 'new'}`
+  }
+  public get(key: Keys) {
+    return localStorage.getItem(`${this.id}/${key}`) ?? ''
+  }
+  public set(key: Keys, value: string) {
+    localStorage.setItem(`${this.id}/${key}`, value)
+  }
+  clear() {
+    keys.forEach(key => {
+      localStorage.removeItem(`${this.id}/${key}`)
+    })
+  }
 }

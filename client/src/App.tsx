@@ -47,10 +47,15 @@ function App() {
           </Route>
 
           <Route path="/writing/:id">
-            {({ id }) => <>
-              <Header />
-              <WritingPage idOrAlias={id} />
-            </>
+            {({ id }) => {
+              const id_num = parseInt(id)
+              return (
+                <>
+                  <Header />
+                  <WritingPage id={id_num} />
+                </>
+              )
+            }
             }
           </Route>
 
