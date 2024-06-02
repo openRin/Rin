@@ -1,6 +1,7 @@
 import { format } from "@astroimg/timeago";
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import { useContext, useEffect, useRef, useState } from "react";
+import { Helmet } from 'react-helmet';
 import { Header } from "../components/header";
 import { Icon, IconSmall } from "../components/icon";
 import { Padding } from "../components/padding";
@@ -41,6 +42,7 @@ function Feed({ id }: { id: string }) {
     const profile = useContext(ProfileContext);
     const [feed, setFeed] = useState<Feed>()
     const [error, setError] = useState<string>()
+    const [headImage, setHeadImage] = useState<string>()
     const ref = useRef("")
     useEffect(() => {
         if (ref.current == id) return
@@ -53,6 +55,12 @@ function Feed({ id }: { id: string }) {
                 setFeed(undefined)
                 setTimeout(() => {
                     setFeed(data)
+                    // 提取首图
+                    const img_reg = /!\[.*?\]\((.*?)\)/;
+                    const img_match = img_reg.exec(data.content)
+                    if (img_match) {
+                        setHeadImage(img_match[1])
+                    }
                 }, 0)
             }
         })
@@ -60,6 +68,19 @@ function Feed({ id }: { id: string }) {
     }, [id])
     return (
         <>
+            {feed &&
+                <Helmet>
+                    <meta property="og:site_name" content={`${process.env.NAME} - ${process.env.DESCRIPTION}`} />
+                    <meta property="og:title" content={feed.title ?? ""} />
+                    <meta property="og:image" content={headImage ?? process.env.AVATAR} />
+                    <meta property="og:type" content="article" />
+                    <meta property="og:url" content={document.URL} />
+                    <meta name="og:description" content={feed.content.length > 200 ? feed.content.substring(0, 200) : feed.content} />
+                    <meta name="author" content={feed.user.username} />
+                    <meta name="keywords" content={feed.hashtags.join(", ")} />
+                    <meta name="description" content={feed.content.length > 200 ? feed.content.substring(0, 200) : feed.content} />
+                </Helmet>
+            }
             <div className="w-full flex flex-col justify-center items-center">
                 {error &&
                     <>
