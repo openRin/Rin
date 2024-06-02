@@ -1,6 +1,7 @@
 # Rin
 
-![封面](https://images.xeu.life/images/a8726d27bd3d95d697b3405a2c44b795fce66eae.jpg)
+![封面](https://github.com/OXeu/Rin/assets/36541432/98100c9f-a7d5-4274-bef4-33d69a5c3c8e)
+
 
 # 介绍
 
@@ -38,16 +39,18 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 打开仓库页面：https://github.com/OXeu/Rin
 ## Fork 
 点击 Fork 按钮 fork 出一个新仓库
-![fork.png](https://images.xeu.life/images/76c6738c8b2ec6fa2bb2dfce4e7eeef1a40362f2.png)
+![1000000657](https://github.com/OXeu/Rin/assets/36541432/df3607ca-a8a9-49b8-92ce-6b348afeb13f)
+
 
 ## 前端
 登录 [Cloudflare](https://dash.cloudflare.com) 控制台，进入 `Workers 和 Pages` 页面，点击`创建应用程序`，选择 Pages
 
-![Pages.png](https://images.xeu.life/images/1103308579a115fc10ec6b4e6937ca6cc4c974c6.png)
+![Pages.png]()
 
 点击连接到 Git 连接自己的 Github 账号并选择 Fork 的存储库
 
-![选择仓库.png](https://images.xeu.life/images/10fcfe4ec91bfea6af9ed877e1a971716e881520.png)
+![1000000658](https://github.com/OXeu/Rin/assets/36541432/35d4f9e3-3af3-4ec8-8060-2a352f4d51ae)
+
 
 点击 `开始设置` 进入配置页面：
 
@@ -58,7 +61,8 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 构建输出目录：client/dist
 路径：<留空>
 ```
-![构建设置.png](https://images.xeu.life/images/cb8e37b41face1cee458aab633dc92a0f14d7590.png)
+![1000000659](https://github.com/OXeu/Rin/assets/36541432/98fb3021-932b-4bfa-8118-3378f98ff628)
+
 
 环境变量复制以下内容，根据自身情况修改变量值：
 >[!IMPORTANT]
@@ -71,15 +75,18 @@ API_URL=https://rin.xeu.life # 服务端域名，可以先留空后面再改
 SKIP_DEPENDENCY_INSTALL=true
 UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 ```
-![环境变量.png](https://images.xeu.life/images/b47655a60ab53f34dff55927785d38d7ee3499a1.png)
+![1000000660](https://github.com/OXeu/Rin/assets/36541432/0fe9276f-e16f-4b8a-87c5-14de582c9a3a)
+
 
 点击`保存并部署`，等待构建部署，不出意外的话约 30s 后即可部署完成：
 
-![部署成功.png](https://images.xeu.life/images/bcc7d740dc6ba389fd03cd32354eb9d8018819d5.png)
+![1000000661](https://github.com/OXeu/Rin/assets/36541432/979810b7-3f6f-415b-a8e8-5b08b0da905d)
+
 
 点击打开即可看见前端页面
 
-![前端页面.png](https://images.xeu.life/images/da0f0c17d0eedf7a3dbe9c7ec311d67d87d5d6c8.png)
+![1000000662](https://github.com/OXeu/Rin/assets/36541432/57c61ad6-c324-48e4-a28f-a1708fd7d41a)
+
 
 前端就全部部署完成啦🎉
 
@@ -99,7 +106,8 @@ UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下滑动一段距离）可以找到`账户ID`
 
 创建 API 令牌：点击右上角`头像` > `我的个人资料` > `API 令牌` > `创建令牌`，模板选择`编辑 Cloudflare Workers`：
-![用户 API 令牌](https://images.xeu.life/images/d6aefc0509b2fef0096fe9eab80942ff81399a4b.png)
+![1000000663](https://github.com/OXeu/Rin/assets/36541432/3a34a2ad-b993-47fe-965d-31cca4a8e92a)
+
 
 创建完成后保存令牌
 
@@ -179,7 +187,8 @@ https://<你的后端地址>/user/github/callback
 ```
 
 这里附上我的参数 
-![Github OAuth 配置](https://images.xeu.life/images/a7f26cf78e3ec1f757cd76532158c0ee7973e545.png)
+![Github OAuth 配置](https://github.com/OXeu/Rin/assets/36541432/74ab8d16-93ca-4919-beec-4beb7a2003a6)
+
 
 
 
@@ -192,7 +201,8 @@ https://<你的后端地址>/user/github/callback
 理论上支持任意遵循 S3 协议的对象存储服务，这里只介绍接入 Cloudflare R2 的操作
 
 Cloudflare 面板中点击 `R2` > `创建存储桶`，填写名称，选择距离自己近的位置：
-![图片.png](https://images.xeu.life/images/352fa5f9f9064f97e8710086849869e57c8502a2.png)
+![1000000665](https://github.com/OXeu/Rin/assets/36541432/17c5ad7b-8a3a-49b2-845a-8d043484aa63)
+
 
 创建存储桶之后进入存储桶详情页 > `设置`，复制 S3 API 地址，去除末尾的存储桶名称后填入 `S3_ENDPOINT`，如：
 ```ini
