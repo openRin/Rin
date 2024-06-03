@@ -33,7 +33,7 @@ function Feeds() {
     }, [])
     const feed_filtered = feeds?.filter(
         ({ draft, listed }: { draft: number | undefined, listed: number | undefined }) =>
-            listState === 'draft' ? draft === 1 : listState === 'unlisted' ? listed === 0 : true)
+            listState === 'draft' ? draft === 1 : listState === 'unlisted' ? listed === 0 : draft === 0 && listed === 1)
     return (
         <>
             <Waiting wait={feed_filtered}>
