@@ -48,6 +48,8 @@ function Feed({ id }: { id: string }) {
     useEffect(() => {
         if (ref.current == id) return
         setFeed(undefined)
+        setError(undefined)
+        setHeadImage(undefined)
         client.feed({ id }).get({
             headers: headersWithAuth()
         }).then(({ data, error }) => {
