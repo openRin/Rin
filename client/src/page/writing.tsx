@@ -1,11 +1,11 @@
-import MDEditor from '@uiw/react-md-editor';
-import { useEffect, useState } from 'react';
+import "@uiw/react-markdown-preview/markdown.css";
+import MDEditor, { ContextStore, getCommands, TextAreaTextApi } from '@uiw/react-md-editor';
+import "@uiw/react-md-editor/markdown-editor.css";
+import { useEffect, useRef, useState } from 'react';
 import { Checkbox, Input } from '../components/input';
 import { Padding } from '../components/padding';
 import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
 
 async function publish({ title, alias, listed, content, summary, tags, draft }: { title: string, listed: boolean, content: string, summary: string, tags: string[], draft: boolean, alias?: string }) {
   const { data, error } = await client.feed.index.post({
@@ -87,6 +87,42 @@ const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
   }
 };
 
+function uploadImageButton() {
+  const uploadRef = useRef<HTMLInputElement>(null)
+  const upChange = (event: any) => {
+    let imgfile = event.currentTarget.files[0];///获得input的第一个图片
+    if (imgfile.size > 5 * 1024000) {
+      alert('图片不能超过 5MB')
+      uploadRef.current!.value = ''
+    }
+    else {
+      uploadImage(imgfile, (url) => {
+        const textInput: HTMLInputElement | null = document.querySelector('.w-md-editor-text-input');
+        if (!textInput) return;
+        textInput.focus();
+        document.execCommand(
+          "insertText",
+          false,
+          `![${imgfile.name}](${url})\n`
+        );
+      })
+    }
+  }
+  return {
+    name: 'uploadImage',
+    keyCommand: 'uploadImage',
+    buttonProps: { 'aria-label': 'Upload Image' },
+    icon: (
+      <>
+        <input ref={uploadRef} onChange={upChange} className='hidden' type="file" accept="image/gif,image/jpeg,image/jpg,image/png" />
+        <i className="ri-image-add-line" />
+      </>
+    ),
+    execute: (_state: ContextStore, _api: TextAreaTextApi) => {
+      uploadRef.current?.click()
+    },
+  };
+}
 
 
 // 写作页面
@@ -175,10 +211,15 @@ export function WritingPage({ id }: { id?: number }) {
               </div>
             </div>
             <div className='mx-4 my-2 md:mx-0 md:my-0'>
-              <MDEditor height={500} value={content} onPaste={handlePaste} onChange={(data) => {
-                cache.set('content', data ?? '')
-                setContent(data ?? '')
-              }} />
+              <MDEditor height={500} value={content} onPaste={handlePaste}
+                commands={[
+                  ...getCommands(),
+                  uploadImageButton()
+                ]}
+                onChange={(data) => {
+                  cache.set('content', data ?? '')
+                  setContent(data ?? '')
+                }} />
             </div>
           </div>
           <div className='visible md:hidden flex flex-row justify-center mt-8'>
