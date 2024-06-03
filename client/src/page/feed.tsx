@@ -8,6 +8,7 @@ import { Padding } from "../components/padding";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
+import { Waiting } from "../components/loading";
 
 type Feed = {
     id: number;
@@ -68,7 +69,7 @@ function Feed({ id }: { id: string }) {
     }, [id])
     const siteName = `${process.env.NAME} - ${process.env.DESCRIPTION}`
     return (
-        <>
+        <Waiting wait={feed || error}>
             {feed &&
                 <Helmet>
                     <title>{`${feed.title ?? "Unnamed"} - ${process.env.NAME}`}</title>
@@ -141,7 +142,7 @@ function Feed({ id }: { id: string }) {
                 {feed && <Comments id={id} />}
                 <div className="h-16" />
             </div>
-        </>
+        </Waiting>
     )
 }
 

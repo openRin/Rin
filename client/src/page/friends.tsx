@@ -6,6 +6,7 @@ import { Input } from "../components/input"
 import { headersWithAuth } from "../utils/auth"
 import { ProfileContext } from "../state/profile"
 import { shuffleArray } from "../utils/array"
+import { Waiting } from "../components/loading"
 
 export function FriendsPage() {
     return (<>
@@ -88,57 +89,59 @@ function Friends() {
     const friends_unavaliable = friends?.filter(({ health }) => health.length > 0) || []
     shuffleArray(friends_unavaliable)
     return (<>
-        <div className="w-full flex flex-col justify-center items-center mb-8">
-            {friends_avaliable.length > 0 &&
-                <>
-                    <div className="wauto text-start text-black py-4 text-4xl font-bold">
-                        <p>
-                            朋友们
-                        </p>
-                        <p className="text-sm mt-4 text-neutral-500 font-normal">
-                            梦想的同行者
-                        </p>
-                    </div>
-                    <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {friends_avaliable.map((friend) => (
-                            <Friend key={friend.id} friend={friend} />
-                        ))}
-                    </div>
-                </>
-            }
-            {friends_unavaliable.length > 0 &&
-                <>
-                    <div className="wauto text-start text-black py-4">
-                        <p className="text-sm mt-4 text-neutral-500 font-normal">
-                            暂时离开
-                        </p>
-                    </div>
-                    <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {friends_unavaliable.map((friend) => (
-                            <Friend key={friend.id} friend={friend} />
-                        ))}
-                    </div>
-                </>
-            }
-            {profile && profile.permission &&
-                <div className="wauto flex text-start text-black text-2xl font-bold mt-8">
-                    <div className="md:basis-1/2 bg-white rounded-xl p-4">
-                        <p>
-                            创建友链
-                        </p>
-                        <div className="text-sm mt-4 text-neutral-500 font-normal">
-                            <Input value={name} setValue={setName} placeholder="站点名称" />
-                            <Input value={desc} setValue={setDesc} placeholder="描述" className="mt-2" />
-                            <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />
-                            <Input value={url} setValue={setUrl} placeholder="地址" className="my-2" />
-                            <div className='flex flex-row justify-center'>
-                                <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-neutral-200'>创建</button>
+        <Waiting wait={friends}>
+            <div className="w-full flex flex-col justify-center items-center mb-8">
+                {friends_avaliable.length > 0 &&
+                    <>
+                        <div className="wauto text-start text-black py-4 text-4xl font-bold">
+                            <p>
+                                朋友们
+                            </p>
+                            <p className="text-sm mt-4 text-neutral-500 font-normal">
+                                梦想的同行者
+                            </p>
+                        </div>
+                        <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {friends_avaliable.map((friend) => (
+                                <Friend key={friend.id} friend={friend} />
+                            ))}
+                        </div>
+                    </>
+                }
+                {friends_unavaliable.length > 0 &&
+                    <>
+                        <div className="wauto text-start text-black py-4">
+                            <p className="text-sm mt-4 text-neutral-500 font-normal">
+                                暂时离开
+                            </p>
+                        </div>
+                        <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {friends_unavaliable.map((friend) => (
+                                <Friend key={friend.id} friend={friend} />
+                            ))}
+                        </div>
+                    </>
+                }
+                {profile && profile.permission &&
+                    <div className="wauto flex text-start text-black text-2xl font-bold mt-8">
+                        <div className="md:basis-1/2 bg-white rounded-xl p-4">
+                            <p>
+                                创建友链
+                            </p>
+                            <div className="text-sm mt-4 text-neutral-500 font-normal">
+                                <Input value={name} setValue={setName} placeholder="站点名称" />
+                                <Input value={desc} setValue={setDesc} placeholder="描述" className="mt-2" />
+                                <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />
+                                <Input value={url} setValue={setUrl} placeholder="地址" className="my-2" />
+                                <div className='flex flex-row justify-center'>
+                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-neutral-200'>创建</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        </Waiting>
     </>)
 }
 

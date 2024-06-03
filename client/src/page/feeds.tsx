@@ -1,10 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { FeedCard } from "../components/feed_card"
 import { Header } from "../components/header"
-import { client } from "../main"
+import { Waiting } from "../components/loading"
 import { Padding } from "../components/padding"
-import { headersWithAuth } from "../utils/auth"
+import { client } from "../main"
 import { ProfileContext } from "../state/profile"
+import { headersWithAuth } from "../utils/auth"
 
 export function FeedsPage() {
     return (<>
@@ -36,31 +37,33 @@ function Feeds() {
             (draft === 1) === onlyDraft && (onlyDraft || (listed === 1) != enableListed))
     return (
         <>
-            <div className="w-full flex flex-col justify-center items-center mb-8">
-                <div className="wauto text-start text-black p-4 text-4xl font-bold">
-                    <p>
-                        {onlyDraft ? "草稿箱" : "文章"}
-                    </p>
-                    <div className="flex flex-row justify-between">
-                        <p className="text-sm mt-4 text-neutral-500 font-normal">
-                            共有 {feed_filtered?.length} 篇文章
+            <Waiting wait={feed_filtered}>
+                <div className="w-full flex flex-col justify-center items-center mb-8">
+                    <div className="wauto text-start text-black p-4 text-4xl font-bold">
+                        <p>
+                            {onlyDraft ? "草稿箱" : "文章"}
                         </p>
-                        {profile?.permission &&
-                            <div className="flex flex-row space-x-4">
-                                <button onClick={() => setDraft(!onlyDraft)} className={`text-sm mt-4 text-neutral-500 font-normal ${onlyDraft ? "text-theme" : ""}`}>
-                                    草稿箱
-                                </button>
-                                <button onClick={() => setListed(!enableListed)} className={`text-sm mt-4 text-neutral-500 font-normal ${enableListed ? "text-theme" : ""}`}>
-                                    未列出
-                                </button>
-                            </div>
-                        }
+                        <div className="flex flex-row justify-between">
+                            <p className="text-sm mt-4 text-neutral-500 font-normal">
+                                共有 {feed_filtered?.length} 篇文章
+                            </p>
+                            {profile?.permission &&
+                                <div className="flex flex-row space-x-4">
+                                    <button onClick={() => setDraft(!onlyDraft)} className={`text-sm mt-4 text-neutral-500 font-normal ${onlyDraft ? "text-theme" : ""}`}>
+                                        草稿箱
+                                    </button>
+                                    <button onClick={() => setListed(!enableListed)} className={`text-sm mt-4 text-neutral-500 font-normal ${enableListed ? "text-theme" : ""}`}>
+                                        未列出
+                                    </button>
+                                </div>
+                            }
+                        </div>
                     </div>
+                    {feed_filtered && feed_filtered.map(({ id, ...feed }: any) => (
+                        <FeedCard key={id} id={id} {...feed} />
+                    ))}
                 </div>
-                {feed_filtered && feed_filtered.map(({ id, ...feed }: any) => (
-                    <FeedCard key={id} id={id} {...feed} />
-                ))}
-            </div>
+            </Waiting>
         </>
     )
 }
