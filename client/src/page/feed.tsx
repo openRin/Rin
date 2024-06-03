@@ -47,13 +47,13 @@ function Feed({ id }: { id: string }) {
     const ref = useRef("")
     useEffect(() => {
         if (ref.current == id) return
+        setFeed(undefined)
         client.feed({ id }).get({
             headers: headersWithAuth()
         }).then(({ data, error }) => {
             if (error) {
                 setError(error.value as string)
             } else if (data && typeof data !== 'string') {
-                setFeed(undefined)
                 setTimeout(() => {
                     setFeed(data)
                     // 提取首图
