@@ -10,6 +10,7 @@ crons = ["*/20 * * * *"]
 
 [vars]
 FRONTEND_URL = "https://xeu.life"
+S3_FOLDER = "images/"
 
 
 
