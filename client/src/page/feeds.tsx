@@ -18,8 +18,7 @@ export function FeedsPage() {
 
 function Feeds() {
     const profile = useContext(ProfileContext);
-    const [onlyDraft, setDraft] = useState<boolean>(false)
-    const [enableListed, setListed] = useState<boolean>(false)
+    const [listState, setListState] = useState<'draft' | 'unlisted' | 'normal'>('normal')
     const [feeds, setFeeds] = useState<any>()
     const ref = useRef(false)
     useEffect(() => {
@@ -34,14 +33,14 @@ function Feeds() {
     }, [])
     const feed_filtered = feeds?.filter(
         ({ draft, listed }: { draft: number | undefined, listed: number | undefined }) =>
-            (draft === 1) === onlyDraft && (onlyDraft || (listed === 1) != enableListed))
+            listState === 'draft' ? draft === 1 : listState === 'unlisted' ? listed === 0 : true)
     return (
         <>
             <Waiting wait={feed_filtered}>
                 <div className="w-full flex flex-col justify-center items-center mb-8">
                     <div className="wauto text-start text-black p-4 text-4xl font-bold">
                         <p>
-                            {onlyDraft ? "草稿箱" : "文章"}
+                            {listState === 'draft' ? "草稿箱" : listState === 'normal' ? "文章" : "未列出"}
                         </p>
                         <div className="flex flex-row justify-between">
                             <p className="text-sm mt-4 text-neutral-500 font-normal">
@@ -49,10 +48,10 @@ function Feeds() {
                             </p>
                             {profile?.permission &&
                                 <div className="flex flex-row space-x-4">
-                                    <button onClick={() => setDraft(!onlyDraft)} className={`text-sm mt-4 text-neutral-500 font-normal ${onlyDraft ? "text-theme" : ""}`}>
+                                    <button onClick={() => listState === 'draft' ? setListState('normal') : setListState('draft')} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'draft' ? "text-theme" : ""}`}>
                                         草稿箱
                                     </button>
-                                    <button onClick={() => setListed(!enableListed)} className={`text-sm mt-4 text-neutral-500 font-normal ${enableListed ? "text-theme" : ""}`}>
+                                    <button onClick={() => listState === 'unlisted' ? setListState('normal') : setListState('unlisted')} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'unlisted' ? "text-theme" : ""}`}>
                                         未列出
                                     </button>
                                 </div>
