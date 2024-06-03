@@ -268,23 +268,25 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
     return (
         <div className="flex flex-row items-start hover:bg-neutral-200 p-2 rounded-xl">
             <img src={comment.user.avatar || ''} className="w-8 h-8 rounded-full" />
-            <div className="ml-2">
-                <span className="text-gray-400 text-sm">
-                    {comment.user.username}
-                </span>
-                <p>
-                    {comment.content}
-                </p>
-            </div>
-            <div className="flex-1" />
-            <div className="flex flex-col items-end">
-                <span title={new Date(comment.createdAt).toLocaleString()} className="text-gray-400 text-sm">
-                    {format(comment.createdAt)}
-                </span>
-                {(profile?.permission || profile?.id == comment.user.id) && <div className="flex flex-row">
-                    <IconSmall label="删除评论" name="ri-delete-bin-2-line ri-sm" onClick={deleteComment} />
+            <div className="flex flex-col w-full ml-2">
+                <div className="flex flex-row">
+                    <span className="text-gray-400 text-sm">
+                        {comment.user.username}
+                    </span>
+                    <div className="flex-1" />
+                    <span title={new Date(comment.createdAt).toLocaleString()} className="text-gray-400 text-sm">
+                        {format(comment.createdAt)}
+                    </span>
                 </div>
-                }
+                <div className="flex flex-row items-start">
+                    <p className="flex-1">
+                        {comment.content}
+                    </p>
+                    {(profile?.permission || profile?.id == comment.user.id) && <div className="flex flex-row">
+                        <IconSmall label="删除评论" name="ri-delete-bin-2-line ri-sm" onClick={deleteComment} />
+                    </div>
+                    }
+                </div>
             </div>
         </div>)
 }
