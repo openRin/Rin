@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
+
+    useEffect(()=>{
+        const mode = localStorage.getItem('theme') as ThemeMode;
+        setModeState(mode);
+        setMode(mode);
+    },[])
 
     const setMode = (mode: ThemeMode) => {
         setModeState(mode);
