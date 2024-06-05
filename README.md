@@ -1,7 +1,6 @@
 # Rin
 
-![封面](https://github.com/OXeu/Rin/assets/36541432/98100c9f-a7d5-4274-bef4-33d69a5c3c8e)
-
+![封面](https://repository-images.githubusercontent.com/803866357/958bc2c1-1703-4127-920c-853291495bdc)
 
 # 介绍
 
