@@ -10,7 +10,8 @@ async function sendWebhook(url: string, data: any) {
 
 export async function notify(webhook_url: string, message: string) {
     if (!webhook_url) {
-        throw new Error('Please set WEBHOOK_URL')
+        console.error('Please set WEBHOOK_URL')
+        return
     }
     return await sendWebhook(webhook_url, { content: message })
 }
