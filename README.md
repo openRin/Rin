@@ -2,6 +2,11 @@
 
 ![封面](https://repository-images.githubusercontent.com/803866357/958bc2c1-1703-4127-920c-853291495bdc)
 
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/OXeu/Rin?style=for-the-badge)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/OXeu/Rin/main?style=for-the-badge)
+![GitHub top language](https://img.shields.io/github/languages/top/OXeu/Rin?style=for-the-badge)
+![GitHub License](https://img.shields.io/github/license/OXeu/Rin?style=for-the-badge)
+
 # 介绍
 
 Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，无需服务器无需备案，只需要一个解析到 Cloudflare 的域名即可部署。
@@ -26,10 +31,15 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 12. 支持输入形如"#博客 #部署 #Cloudflare"之类的标签文本并自动解析为标签
 12. 更多特性请参考 https://xeu.life
 
-# 部署
-参见 [部署文档（Github）](./docs/DEPLOY.md)
+# 文档
+1. [部署文档（Github）](./docs/DEPLOY.md)
 或 [Rin 部署指南（xeu.life）](https://xeu.life/deploy-rin)
 
+2. [环境变量列表](./docs/ENV.md)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=OXeu/Rin&type=Date)](https://star-history.com/#OXeu/Rin&Date)
 
 # License
 ```
