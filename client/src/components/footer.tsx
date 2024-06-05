@@ -4,7 +4,7 @@ function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
 
     useEffect(()=>{
-        const mode = localStorage.getItem('theme') as ThemeMode;
+        const mode = localStorage.getItem('theme') as ThemeMode || 'system';
         setModeState(mode);
         setMode(mode);
     },[])
