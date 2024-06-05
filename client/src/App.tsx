@@ -1,16 +1,16 @@
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DefaultParams, PathPattern, Route, RouteProps, Switch } from 'wouter'
+import Footer from './components/footer'
 import { Header } from './components/header'
+import { Padding } from './components/padding'
 import { client } from './main'
 import { CallbackPage } from './page/callback'
 import { FeedPage } from './page/feed'
 import { FeedsPage } from './page/feeds'
+import { FriendsPage } from './page/friends'
 import { WritingPage } from './page/writing'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
-import { FriendsPage } from './page/friends'
-import Footer from './components/footer'
-import { Padding } from './components/padding'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()

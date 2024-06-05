@@ -2,14 +2,11 @@ import { format } from "@astroimg/timeago";
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
-import { Header } from "../components/header";
 import { Icon, IconSmall } from "../components/icon";
-import { Padding } from "../components/padding";
+import { Waiting } from "../components/loading";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
-import { Waiting } from "../components/loading";
-import Footer from "../components/footer";
 
 type Feed = {
     id: number;

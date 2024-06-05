@@ -1,12 +1,10 @@
-import { useState, useRef, useEffect, useContext } from "react"
-import { Header } from "../components/header"
-import { Padding } from "../components/padding"
-import { client } from "../main"
+import { useContext, useEffect, useRef, useState } from "react"
 import { Input } from "../components/input"
-import { headersWithAuth } from "../utils/auth"
+import { Waiting } from "../components/loading"
+import { client } from "../main"
 import { ProfileContext } from "../state/profile"
 import { shuffleArray } from "../utils/array"
-import { Waiting } from "../components/loading"
+import { headersWithAuth } from "../utils/auth"
 
 
 type FriendItem = {
@@ -149,7 +147,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                 {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
             </div>
         </>
-    )   
+    )
 }
 
 function errorHumanize(error: string) {
