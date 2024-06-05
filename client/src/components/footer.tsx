@@ -5,16 +5,18 @@ function Footer() {
 
     const setMode = (mode: ThemeMode) => {
         setModeState(mode);
-        if (mode === 'system') {
-            localStorage.removeItem('theme');
-        } else {
-            localStorage.theme = mode;
-        }
+        localStorage.setItem('theme', mode);
+
 
         if (mode !== 'system' || (!('theme' in localStorage) && window.matchMedia(`(prefers-color-scheme: ${mode})`).matches)) {
             document.documentElement.setAttribute('data-color-mode', mode);
         } else {
-            document.documentElement.removeAttribute('data-color-mode')
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+            if (mediaQuery.matches) {
+                document.documentElement.setAttribute('data-color-mode', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-color-mode', 'light');
+            }
         }
     };
 
