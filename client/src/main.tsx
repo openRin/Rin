@@ -10,8 +10,6 @@ export const oauth_url = process.env.OAUTH_URL || (process.env.API_URL + '/user/
 export const client = treaty<Server>(endpoint)
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <div className='dark'>
-      <App />
-    </div>
+    <App />
   </React.StrictMode>
 )

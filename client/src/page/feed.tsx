@@ -9,6 +9,7 @@ import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { Waiting } from "../components/loading";
+import Footer from "../components/footer";
 
 type Feed = {
     id: number;
@@ -29,17 +30,6 @@ type Feed = {
 }
 
 export function FeedPage({ id }: { id: string }) {
-    return (
-        <>
-            <Header />
-            <Padding>
-                <Feed id={id} />
-            </Padding>
-        </>
-    )
-}
-
-function Feed({ id }: { id: string }) {
     const profile = useContext(ProfileContext);
     const [feed, setFeed] = useState<Feed>()
     const [error, setError] = useState<string>()

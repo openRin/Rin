@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Route, Switch } from 'wouter'
+import { ReactNode, useEffect, useRef, useState } from 'react'
+import { DefaultParams, PathPattern, Route, RouteProps, Switch } from 'wouter'
 import { Header } from './components/header'
 import { client } from './main'
 import { CallbackPage } from './page/callback'
@@ -9,6 +9,8 @@ import { WritingPage } from './page/writing'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { FriendsPage } from './page/friends'
+import Footer from './components/footer'
+import { Padding } from './components/padding'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
@@ -32,44 +34,64 @@ function App() {
     <>
       <ProfileContext.Provider value={profile}>
         <Switch>
-          <Route path="/" component={FeedsPage} />
+          <RouteMe path="/">
+            <FeedsPage />
+          </RouteMe>
 
-          <Route path="/feed/:id">
+          <RouteMe path="/feed/:id">
             {params => <FeedPage id={params.id} />}
-          </Route>
+          </RouteMe>
 
-          <Route path="/writing">
-            <Header />
+          <RouteMe path="/writing">
             <WritingPage />
-          </Route>
-          <Route path="/friends">
+          </RouteMe>
+          <RouteMe path="/friends">
             <FriendsPage />
-          </Route>
+          </RouteMe>
 
-          <Route path="/writing/:id">
+          <RouteMe path="/writing/:id">
             {({ id }) => {
               const id_num = parseInt(id)
               return (
-                <>
-                  <Header />
-                  <WritingPage id={id_num} />
-                </>
+                <WritingPage id={id_num} />
               )
             }
             }
-          </Route>
+          </RouteMe>
 
-          <Route path="/callback" component={CallbackPage} />
+          <RouteMe path="/callback" >
+            <CallbackPage />
+          </RouteMe>
 
-          <Route path="/:alias">
+          <RouteMe path="/:alias">
             {params => <FeedPage id={params.alias} />}
-          </Route>
+          </RouteMe>
 
           {/* Default route in a switch */}
           <Route>404: No such page!</Route>
         </Switch>
       </ProfileContext.Provider>
     </>
+  )
+}
+
+function RouteMe<
+  T extends DefaultParams | undefined = undefined,
+  RoutePath extends PathPattern = PathPattern
+>(props: RouteProps<T, RoutePath>) {
+  const { children, ...rest } = props
+  return (
+    <Route {...rest} >
+      {params => {
+        return (<>
+          <Header />
+          <Padding>
+            {typeof children === 'function' ? children(params) : children}
+          </Padding>
+          <Footer />
+        </>)
+      }}
+    </Route>
   )
 }
 

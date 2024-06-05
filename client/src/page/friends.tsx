@@ -8,14 +8,6 @@ import { ProfileContext } from "../state/profile"
 import { shuffleArray } from "../utils/array"
 import { Waiting } from "../components/loading"
 
-export function FriendsPage() {
-    return (<>
-        <Header />
-        <Padding>
-            <Friends />
-        </Padding>
-    </>)
-}
 
 type FriendItem = {
     name: string;
@@ -59,7 +51,7 @@ async function publish({ name, avatar, desc, url }: { name: string, avatar: stri
     }
 }
 
-function Friends() {
+export function FriendsPage() {
     let [friends, setFriends] = useState<FriendItem[]>()
     let [_, setApply] = useState<ApplyItem>()
     const [name, setName] = useState("")

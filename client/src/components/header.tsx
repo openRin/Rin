@@ -27,7 +27,7 @@ export function Header() {
                                 </div>
                             </div>
                             <div className="w-full sm:w-max transition-all duration-500 sm:absolute sm:left-1/2 sm:translate-x-[-50%] flex-row justify-center items-center">
-                                <div className="flex flex-row items-center bg-w rounded-full px-2 shadow-xl shadow-color">
+                                <div className="flex flex-row items-center bg-w t-primary rounded-full px-2 shadow-xl shadow-color">
                                     <div className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 mr-auto flex flex-row items-center">
                                         <img src={process.env.AVATAR} alt="Avatar" className="w-10 h-10 rounded-full border-2" />
                                         <div className="flex flex-col justify-center items-start mx-2">

@@ -1,22 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { FeedCard } from "../components/feed_card"
-import { Header } from "../components/header"
 import { Waiting } from "../components/loading"
-import { Padding } from "../components/padding"
 import { client } from "../main"
 import { ProfileContext } from "../state/profile"
 import { headersWithAuth } from "../utils/auth"
 
 export function FeedsPage() {
-    return (<>
-        <Header />
-        <Padding>
-            <Feeds />
-        </Padding>
-    </>)
-}
-
-function Feeds() {
     const profile = useContext(ProfileContext);
     const [listState, setListState] = useState<'draft' | 'unlisted' | 'normal'>('normal')
     const [feeds, setFeeds] = useState<any>()
