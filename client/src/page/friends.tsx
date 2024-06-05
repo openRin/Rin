@@ -90,10 +90,10 @@ function Friends() {
     shuffleArray(friends_unavaliable)
     return (<>
         <Waiting wait={friends}>
-            <div className="w-full flex flex-col justify-center items-center mb-8">
+            <div className="w-full flex flex-col justify-center items-center mb-8 t-primary">
                 {friends_avaliable.length > 0 &&
                     <>
-                        <div className="wauto text-start text-black py-4 text-4xl font-bold">
+                        <div className="wauto text-start py-4 text-4xl font-bold">
                             <p>
                                 朋友们
                             </p>
@@ -110,7 +110,7 @@ function Friends() {
                 }
                 {friends_unavaliable.length > 0 &&
                     <>
-                        <div className="wauto text-start text-black py-4">
+                        <div className="wauto text-start py-4">
                             <p className="text-sm mt-4 text-neutral-500 font-normal">
                                 暂时离开
                             </p>
@@ -123,8 +123,8 @@ function Friends() {
                     </>
                 }
                 {profile && profile.permission &&
-                    <div className="wauto flex text-start text-black text-2xl font-bold mt-8">
-                        <div className="md:basis-1/2 bg-white rounded-xl p-4">
+                    <div className="wauto t-primary flex text-start text-black text-2xl font-bold mt-8">
+                        <div className="md:basis-1/2 bg-w rounded-xl p-4">
                             <p>
                                 创建友链
                             </p>
@@ -134,7 +134,7 @@ function Friends() {
                                 <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />
                                 <Input value={url} setValue={setUrl} placeholder="地址" className="my-2" />
                                 <div className='flex flex-row justify-center'>
-                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-neutral-200'>创建</button>
+                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-color'>创建</button>
                                 </div>
                             </div>
                         </div>
@@ -148,7 +148,7 @@ function Friends() {
 function Friend({ friend }: { friend: FriendItem }) {
     return (
         <>
-            <div title={friend.health} onClick={() => window.open(friend.url)} className="hover:bg-neutral-200 w-full bg-white rounded-xl p-4 flex flex-col justify-start items-center">
+            <div title={friend.health} onClick={() => window.open(friend.url)} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-start items-center">
                 <div className="w-16 h-16">
                     <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
@@ -157,7 +157,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                 {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
             </div>
         </>
-    )
+    )   
 }
 
 function errorHumanize(error: string) {

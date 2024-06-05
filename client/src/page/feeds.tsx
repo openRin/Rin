@@ -38,7 +38,7 @@ function Feeds() {
         <>
             <Waiting wait={feed_filtered}>
                 <div className="w-full flex flex-col justify-center items-center mb-8">
-                    <div className="wauto text-start text-black p-4 text-4xl font-bold">
+                    <div className="wauto text-start text-black dark:text-white p-4 text-4xl font-bold">
                         <p>
                             {listState === 'draft' ? "草稿箱" : listState === 'normal' ? "文章" : "未列出"}
                         </p>

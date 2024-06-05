@@ -18,7 +18,7 @@ export function Header() {
                             <div className="hidden opacity-0 sm:opacity-100 duration-300 mr-auto sm:flex flex-row items-center">
                                 <img src={process.env.AVATAR} alt="Avatar" className="w-12 h-12 rounded-2xl border-2" />
                                 <div className="flex flex-col justify-center items-start mx-4">
-                                    <p className="text-xl font-bold">
+                                    <p className="text-xl font-bold dark:text-white">
                                         {process.env.NAME}
                                     </p>
                                     <p className="text-xs text-neutral-500">
@@ -27,7 +27,7 @@ export function Header() {
                                 </div>
                             </div>
                             <div className="w-full sm:w-max transition-all duration-500 sm:absolute sm:left-1/2 sm:translate-x-[-50%] flex-row justify-center items-center">
-                                <div className="flex flex-row items-center bg-white rounded-full px-2 shadow-xl shadow-neutral-200/30">
+                                <div className="flex flex-row items-center bg-w rounded-full px-2 shadow-xl shadow-color">
                                     <div className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 mr-auto flex flex-row items-center">
                                         <img src={process.env.AVATAR} alt="Avatar" className="w-10 h-10 rounded-full border-2" />
                                         <div className="flex flex-col justify-center items-start mx-2">
@@ -59,7 +59,7 @@ export function Header() {
 
 function NavItem({ title, selected, herf }: { title: string, selected: boolean, herf: string }) {
     return (
-        <Link href={herf} className={"cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm " + (selected ? "text-theme" : "")} >
+        <Link href={herf} className={"cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm " + (selected ? "text-theme" : "dark:text-white")} >
             {title}
         </Link>
     )
@@ -80,9 +80,9 @@ function UserAvatar({ profile, className }: { className?: string, profile?: Prof
         </> : <>
             <button title="Github 登录" aria-label="Github 登录"
                 onClick={() => window.location.href = `${oauth_url}`}
-                className="flex rounded-full sm:rounded-xl border h-10 sm:h-auto px-2 py-2 bg-white items-center justify-center hover:bg-neutral-200">
+                className="flex rounded-full sm:rounded-xl border-2 h-10 sm:h-auto px-2 py-2 bg-w bg-hover t-secondary items-center justify-center">
                 <i className="ri-github-line ri-xl"></i>
-                <p className="text-sm ml-1 hidden sm:block">
+                <p className="text-sm ml-1 hidden sm:block ">
                     Github 登录
                 </p>
             </button>

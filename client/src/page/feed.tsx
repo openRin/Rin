@@ -89,8 +89,8 @@ function Feed({ id }: { id: string }) {
             <div className="w-full flex flex-col justify-center items-center">
                 {error &&
                     <>
-                        <div className="flex flex-col wauto rounded-2xl bg-white m-2 p-6 items-center justify-center">
-                            <h1 className="text-xl font-bold text-gray-700">
+                        <div className="flex flex-col wauto rounded-2xl bg-w m-2 p-6 items-center justify-center">
+                            <h1 className="text-xl font-bold t-primary">
                                 {error}
                             </h1>
                             <button className="mt-2 bg-theme text-white px-4 py-2 rounded-full" onClick={() => window.location.href = '/'}>
@@ -100,10 +100,10 @@ function Feed({ id }: { id: string }) {
                     </>
                 }
                 {feed &&
-                    <main className="wauto rounded-2xl bg-white m-2 p-6">
+                    <main className="wauto rounded-2xl bg-w m-2 p-6">
                         <article aria-label="正文">
                             <div className="flex flex-row items-center">
-                                <h1 className="text-xl font-bold text-gray-700">
+                                <h1 className="text-xl font-bold t-primary">
                                     {feed.title}
                                 </h1>
                                 {profile?.permission && <div className="flex-1 flex flex-col items-end justify-center">
@@ -173,10 +173,10 @@ function CommentInput({ id, onRefresh }: { id: string, onRefresh: () => void }) 
             })
     }
     return (
-        <div className="wauto rounded-2xl bg-white m-2 p-6 items-end flex flex-col">
+        <div className="wauto rounded-2xl bg-w t-primary m-2 p-6 items-end flex flex-col">
             <div className="flex flex-col w-full items-start space-y-4">
                 <label htmlFor="comment">评论</label>
-                <textarea id="comment" placeholder="说点什么吧" className="w-full h-24 rounded-lg" value={content} onChange={e => setContent(e.target.value)} />
+                <textarea id="comment" placeholder="说点什么吧" className="bg-w w-full h-24 rounded-lg" value={content} onChange={e => setContent(e.target.value)} />
             </div>
             <button className="mt-2 bg-theme text-white px-4 py-2 rounded-full" onClick={submit}>
                 发表评论
@@ -229,8 +229,8 @@ function Comments({ id }: { id: string }) {
                 <CommentInput id={id} onRefresh={loadComments} />
                 {error &&
                     <>
-                        <div className="flex flex-col wauto rounded-2xl bg-white m-2 p-6 items-center justify-center">
-                            <h1 className="text-xl font-bold text-gray-700">
+                        <div className="flex flex-col wauto rounded-2xl bg-w t-primary m-2 p-6 items-center justify-center">
+                            <h1 className="text-xl font-bold t-primary">
                                 {error}
                             </h1>
                             <button className="mt-2 bg-theme text-white px-4 py-2 rounded-full" onClick={loadComments}>
@@ -240,7 +240,7 @@ function Comments({ id }: { id: string }) {
                     </>
                 }
                 {comments.length > 0 &&
-                    <div className="wauto rounded-2xl bg-white m-2 p-2 space-y-2">
+                    <div className="wauto rounded-2xl bg-w m-2 p-2 space-y-2">
                         {comments.map(comment => (
                             <CommentItem key={comment.id} comment={comment} onRefresh={loadComments} />
                         ))}
@@ -268,7 +268,7 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
         })
     }
     return (
-        <div className="flex flex-row items-start hover:bg-neutral-200 p-2 rounded-xl">
+        <div className="flex flex-row items-start bg-hover p-2 rounded-xl">
             <img src={comment.user.avatar || ''} className="w-8 h-8 rounded-full" />
             <div className="flex flex-col w-full ml-2">
                 <div className="flex flex-row">
@@ -280,7 +280,7 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
                         {format(comment.createdAt)}
                     </span>
                 </div>
-                <div className="flex flex-row items-start">
+                <div className="flex flex-row items-start t-primary">
                     <p className="flex-1">
                         {comment.content}
                     </p>
