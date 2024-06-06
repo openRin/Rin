@@ -24,7 +24,6 @@ jobs:
             - name: Deploy
               run: |
                     curl -fsSL https://bun.sh/install | bash
-                    source ~/.bashrc
                     cd Rin/
-                    bun i
-                    bun server/migrator.ts
+                    "~/.bun/bin/bun i
+                    "~/.bun/bin/bun server/migrator.ts
