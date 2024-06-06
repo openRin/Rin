@@ -1,6 +1,6 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "rin-server"
-main = "src/_worker.ts"
+main = "server/src/_worker.ts"
 compatibility_date = "2024-05-29"
 # compatibility_flags = ["nodejs_compat"]
 node_compat = true
