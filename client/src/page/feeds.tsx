@@ -1,25 +1,56 @@
 import { useContext, useEffect, useRef, useState } from "react"
+import { Link, useSearch } from "wouter"
 import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
 import { client } from "../main"
 import { ProfileContext } from "../state/profile"
 import { headersWithAuth } from "../utils/auth"
 
+function tryInt(defaultValue: number, ...args: (string | number | undefined | null)[]): number {
+    for (const v of args) {
+        if (typeof v === "number") return v
+        if (typeof v === "string") {
+            const n = parseInt(v)
+            if (!isNaN(n)) return n
+        }
+    }
+    return defaultValue
+}
+
 export function FeedsPage() {
+    const query = new URLSearchParams(useSearch());
     const profile = useContext(ProfileContext);
     const [listState, setListState] = useState<'draft' | 'unlisted' | 'normal'>('normal')
     const [feeds, setFeeds] = useState<any>()
+    const [hasNext, setHasNext] = useState<boolean>(false)
+    const page = tryInt(1, query.get("page"))
+    const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
     const ref = useRef(false)
-    useEffect(() => {
-        if (ref.current) return
+    function fetchFeeds() {
         client.feed.index.get({
+            query: {
+                page: page,
+                limit: limit
+            },
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data)
-                setFeeds(data)
+            if (data) {
+                setFeeds(data.data)
+                setHasNext(data.hasNext)
+            }
         })
+    }
+    useEffect(() => {
+        if (ref.current) return
+        fetchFeeds()
         ref.current = true
     }, [])
+
+    useEffect(() => {
+        if (feeds) {
+            fetchFeeds()
+        }
+    }, [query.get("page")])
     const feed_filtered = feeds?.filter(
         ({ draft, listed }: { draft: number | undefined, listed: number | undefined }) =>
             listState === 'draft' ? draft === 1 : listState === 'unlisted' ? listed === 0 : draft != 1 && listed != 0)
@@ -50,6 +81,16 @@ export function FeedsPage() {
                     {feed_filtered && feed_filtered.map(({ id, ...feed }: any) => (
                         <FeedCard key={id} id={id} {...feed} />
                     ))}
+                    <div className="wauto flex justify-between items-center">
+                        <Link href={"/?page=" + (page - 1)}
+                            className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme  ${page > 1 ? '' : 'invisible'}`}>
+                            上一页
+                        </Link>
+                        <Link href={"/?page=" + (page + 1)}
+                            className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme ${hasNext ? '' : 'invisible'}`}>
+                            下一页
+                        </Link>
+                    </div>
                 </div>
             </Waiting>
         </>

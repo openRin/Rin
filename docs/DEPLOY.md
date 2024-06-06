@@ -51,6 +51,7 @@ NAME=Xeu # 昵称，显示在左上角
 DESCRIPTION=杂食动物 # 个人描述，显示在左上角昵称下方
 AVATAR=https://avatars.githubusercontent.com/u/36541432 # 头像地址，显示在左上角
 API_URL=https://rin.xeu.life # 服务端域名，可以先留空后面再改
+PAGE_SIZE=10 # 默认分页大小
 SKIP_DEPENDENCY_INSTALL=true
 UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 ```

@@ -1,16 +1,18 @@
 import { and, desc, eq, or } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import type { DB } from "../_worker";
+import type { Env } from "../db/db";
 import { feeds } from "../db/schema";
 import { setup } from "../setup";
 import { bindTagToPost } from "./tag";
-import type { Env } from "../db/db";
 
 export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
     .use(setup(db, env))
     .group('/feed', (group) =>
         group
-            .get('/', async ({ admin }) => {
+            .get('/', async ({ admin, query: { page, limit } }) => {
+                const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
+                const limit_num = limit ? +limit > 50 ? 50 : +limit : 20;
                 const feed_list = (await db.query.feeds.findMany({
                     where: admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
                     columns: admin ? undefined : {
@@ -28,7 +30,9 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                             columns: { id: true, username: true, avatar: true }
                         }
                     },
-                    orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)]
+                    orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
+                    offset: page_num * limit_num,
+                    limit: limit_num + 1,
                 })).map(({ content, hashtags, summary, ...other }) => {
                     // 提取首图
                     const img_reg = /!\[.*?\]\((.*?)\)/;
@@ -44,7 +48,23 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                         ...other
                     }
                 });
-                return feed_list;
+                if (feed_list.length === limit_num + 1) {
+                    feed_list.pop();
+                    return {
+                        data: feed_list,
+                        hasNext: true
+                    }
+                } else {
+                    return {
+                        data: feed_list,
+                        hasNext: false
+                    }
+                }
+            }, {
+                query: t.Object({
+                    page: t.Optional(t.Numeric()),
+                    limit: t.Optional(t.Numeric())
+                })
             })
             .post('/', async ({ admin, set, uid, body: { title, alias, listed, content, summary, draft, tags } }) => {
                 if (!admin) {
