@@ -32,11 +32,7 @@ type FeedsMap = {
 export function FeedsPage() {
     const query = new URLSearchParams(useSearch());
     const profile = useContext(ProfileContext);
-    const [listState, _setListState] = useState<FeedType>('normal')
-    function setListState(type: FeedType) {
-        if (feeds[type].size === 0) fetchFeeds(type)
-        _setListState(type)
-    }
+    const [listState, _setListState] = useState<FeedType>(query.get("type") as FeedType || 'normal')
     const [feeds, setFeeds] = useState<FeedsMap>({
         draft: { size: 0, data: [], hasNext: false },
         unlisted: { size: 0, data: [], hasNext: false },
@@ -44,7 +40,7 @@ export function FeedsPage() {
     })
     const page = tryInt(1, query.get("page"))
     const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
-    const ref = useRef(false)
+    const ref = useRef("")
     function fetchFeeds(type: FeedType) {
         client.feed.index.get({
             query: {
@@ -63,16 +59,16 @@ export function FeedsPage() {
         })
     }
     useEffect(() => {
-        if (ref.current) return
-        fetchFeeds(listState)
-        ref.current = true
-    }, [])
-
-    useEffect(() => {
-        if (feeds) {
-            fetchFeeds(listState)
+        const key = `${query.get("page")} ${query.get("type")}`
+        console.log(key)
+        if (ref.current == key) return
+        const type = query.get("type") as FeedType || 'normal'
+        if (type !== listState) {
+            _setListState(type)
         }
-    }, [query.get("page")])
+        fetchFeeds(type)
+        ref.current = key
+    }, [query.get("page"), query.get("type")])
     return (
         <>
             <Waiting wait={feeds}>
@@ -87,12 +83,12 @@ export function FeedsPage() {
                             </p>
                             {profile?.permission &&
                                 <div className="flex flex-row space-x-4">
-                                    <button onClick={() => listState === 'draft' ? setListState('normal') : setListState('draft')} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'draft' ? "text-theme" : ""}`}>
+                                    <Link href={listState === 'draft' ? '/?type=normal' : '/?type=draft'} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'draft' ? "text-theme" : ""}`}>
                                         草稿箱
-                                    </button>
-                                    <button onClick={() => listState === 'unlisted' ? setListState('normal') : setListState('unlisted')} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'unlisted' ? "text-theme" : ""}`}>
+                                    </Link>
+                                    <Link href={listState === 'unlisted' ? '/?type=normal' : '/?type=unlisted'} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'unlisted' ? "text-theme" : ""}`}>
                                         未列出
-                                    </button>
+                                    </Link>
                                 </div>
                             }
                         </div>
@@ -101,11 +97,11 @@ export function FeedsPage() {
                         <FeedCard key={id} id={id} {...feed} />
                     ))}
                     <div className="wauto flex justify-between items-center">
-                        <Link href={"/?page=" + (page - 1)}
+                        <Link href={`/?type=${listState}&page=${(page - 1)}`}
                             className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme  ${page > 1 ? '' : 'invisible'}`}>
                             上一页
                         </Link>
-                        <Link href={"/?page=" + (page + 1)}
+                        <Link href={`/?type=${listState}&page=${(page + 1)}`}
                             className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme ${feeds[listState]?.hasNext ? '' : 'invisible'}`}>
                             下一页
                         </Link>
