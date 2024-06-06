@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
-    "cf:deploy": "turbo cf:deploy",
+    "cf-deploy": "bun server/migrator.ts",
     "b": "turbo build",
     "t": "turbo t",
     "g": "turbo run g",
@@ -25,5 +25,5 @@
     "turbo": "^1.13.3",
     "vitest": "1.3.0"
   },
-  "dependencies": {  }
+  "dependencies": {}
 }
