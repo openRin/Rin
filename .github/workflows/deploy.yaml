@@ -1,34 +1,38 @@
 name: Deploy
 
 on:
-    push:
-        branches:
-            - main
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Set up Node.js
-              uses: actions/setup-node@v3
-              with:
-                node-version: 21
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 21
 
-            - name: Clone Rin repository
-              uses: actions/checkout@v2
-              with:
-                path: Rin
+      - name: Clone Rin repository
+        uses: actions/checkout@v4
+        with:
+          path: Rin
 
-            - name: Set up Bun
-              uses: oven-sh/setup-bun@v1
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
 
-            - name: Deploy
-              env: # Or as an environment variable
-                CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID  }}
-                CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN  }}
-              run: |
-                    cd Rin/
-                    bun i
-                    bun server/migrator.ts
+      - name: Deploy
+        env: # Or as an environment variable
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID  }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN  }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          WORKER_NAME: ${{ vars.WORKER_NAME }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          S3_FOLDER: ${{ vars.S3_FOLDER }}
+        run: |
+          cd Rin/
+          bun i
+          bun server/migrator.ts
