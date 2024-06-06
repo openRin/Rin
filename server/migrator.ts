@@ -77,7 +77,7 @@ try {
 
 console.log(`Migrated D1 "${DB_NAME}"`)
 console.log(`----------------------------`)
-console.log(`Deploying"`)
+console.log(`Deploying`)
 await $`echo -e "n\ny\n" | bunx wrangler deploy`
 console.log(`Deployed`)
 console.log(`----------------------------`)
