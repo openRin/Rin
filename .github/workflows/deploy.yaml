@@ -12,12 +12,12 @@ jobs:
 
         steps:
             - name: Set up Node.js
-                uses: actions/setup-node@v3
-                with:
-                    node-version: 21
+              uses: actions/setup-node@v3
+              with:
+                node-version: 21
 
             - name: Install bun
-                run: |
+              run: |
                     curl -fsSL https://bun.sh/install | bash
                     source /root/.bashrc
 
@@ -27,11 +27,11 @@ jobs:
                 path: Rin
 
             - name: Install dependencies
-                run: |
+              run: |
                     cd Rin/
                     bun i
 
             - name: Deploy
-                run: |
+              run: |
                     cd Rin/
                     bun server/migrator.ts
