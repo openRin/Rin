@@ -75,12 +75,10 @@ UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 
 ## 后端
 
-后端部署比较繁琐，但整体分为**创建并初始化数据库**和**创建 Worker** 两个步骤，为了不频繁切换环境这里选择将所有流程在命令行中完成，总体而言，需要使用 git,npm & bun 环境。
+后端部署比较繁琐，但经过几次的优化部署流程，现在已经大大简化了
 
-### 快速部署
-
-#### 获取用户 ID 与 API 令牌
-如果你是在自己带 Linux 桌面的环境中操作的，你可以直接使用`npx wrangler login` 登录，如果你是参照指南在 docker 中操作的，你需要参照 https://developers.cloudflare.com/workers/wrangler/ci-cd/ 来登录
+### 获取用户 ID 与 API 令牌
+参照 https://developers.cloudflare.com/workers/wrangler/ci-cd/ 来配置 Github Actions 所需的 Cloudflare 登录环境变量
 
 ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下滑动一段距离）可以找到`账户ID`
 
@@ -90,53 +88,24 @@ ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下�
 
 创建完成后保存令牌
 
-在命令行中设置 用户 ID 和 令牌环境变量：
+### 配置 Github Action
+
+在自己 fork 的仓库中 > `Settings` > `Secrets and Variables` > `Actions` > `Repository secrets` 点击 `New repository secret` 创建以下两个密钥：
+
 ```
-export CLOUDFLARE_ACCOUNT_ID=<你的用户ID>
-export CLOUDFLARE_API_TOKEN=<你的令牌>
+CLOUDFLARE_ACCOUNT_ID=<你的用户ID>
+CLOUDFLARE_API_TOKEN=<你的令牌>
+```
+同时你可以在`Actions secrets and variables`的 `Variables` 中创建以下变量：
+```ini
+DB_NAME=<数据库名称，默认rin>
+WORKER_NAME=<Cloudflare Worker 名称，默认rin-server>
+FRONTEND_URL=<前端地址，用于Webhook通知时拼接地址，可不填>
+S3_FOLDER=<S3 图片资源存储的文件夹，默认为images/>
 ```
 
-这里选择创建一个 Node 的容器来完成这些工作：
-```shell
-docker run -it node:22 /bin/bash
+完成准备工作以后即可在 Github Action 中手动触发一次 Workflow，一切正常的话很快就能部署完成
 
-# 以下内容在容器中执行
-
-# 环境变量建议编辑好后再粘贴
-export DB_NAME=xue # 你的数据库名称
-export FRONTEND_URL=https://xeu.life # 你的前端地址
-export S3_FOLDER=images/ # 在存储桶中存放图片的路径
-export WORKER_NAME=xue-server # 你的 Worker 名称
-export CLOUDFLARE_ACCOUNT_ID=xxx # 上文获取的 Cloudflare 用户 ID
-export CLOUDFLARE_API_TOKEN=xxxxxxx # 上文获取的 Cloudflare API 令牌
-
-# 以下是一键脚本
-curl -fsSL https://bun.sh/install | bash
-source /root/.bashrc
-git clone https://github.com/OXeu/Rin.git
-cd Rin/
-bun i
-cd server/
-cat << EOF > wrangler.toml
-#:schema node_modules/wrangler/config-schema.json
-name = "$WORKER_NAME"
-main = "src/_worker.ts"
-compatibility_date = "2024-05-29"
-# compatibility_flags = ["nodejs_compat"]
-node_compat = true
-
-[triggers]
-crons = ["*/20 * * * *"]
-
-[vars]
-FRONTEND_URL = "$FRONTEND_URL"
-S3_FOLDER = "$S3_FOLDER"
-EOF
-bunx wrangler d1 create $DB_NAME | grep -A10000 '[[d1_databases]]' >> wrangler.toml
-SQL_PATH=$(bunx drizzle-kit generate | grep -oP 'drizzle/\d+_[\w_]+\.sql')
-bunx wrangler d1 execute $DB_NAME --remote --file=$SQL_PATH -y
-echo -e "n\ny\n" | bunx wrangler deploy
-```
 这样服务端就部署好了，但是我们还需要配置 Github OAuth用于登录和 S3 存储用于存储图片
 
 
