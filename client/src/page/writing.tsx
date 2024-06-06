@@ -223,7 +223,7 @@ export function WritingPage({ id }: { id?: number }) {
             </div>
           </div>
           <div className='visible md:hidden flex flex-row justify-center mt-8'>
-            <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-neutral-200'>发布</button>
+            <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-color'>发布</button>
           </div>
         </div>
         <div className='hidden md:visible basis-1/2 md:basis-1/4 md:flex flex-col'>
