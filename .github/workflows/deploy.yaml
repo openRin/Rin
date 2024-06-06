@@ -19,7 +19,7 @@ jobs:
             - name: Install bun
               run: |
                     curl -fsSL https://bun.sh/install | bash
-                    source /root/.bashrc
+                    source ~/.bashrc
 
             - name: Clone Rin repository
               uses: actions/checkout@v2

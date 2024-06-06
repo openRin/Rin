@@ -2,9 +2,9 @@ import { $ } from "bun";
 import stripIndent from 'strip-indent';
 import { readdir } from "node:fs/promises";
 
-const DB_NAME = 'rin'
-const WORKER_NAME = 'rin-server'
-const FRONTEND_URL = 'https://xeu.life'
+const DB_NAME = process.env.DB_NAME ?? 'rin'
+const WORKER_NAME = process.env.WORKER_NAME ?? 'rin-server'
+const FRONTEND_URL = process.env.FRONTEND_URL ?? ""
 const S3_FOLDER = 'images/'
 
 Bun.write('wrangler.toml', stripIndent(`
