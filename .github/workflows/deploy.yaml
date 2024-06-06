@@ -19,7 +19,6 @@ jobs:
             - name: Install bun
               run: |
                     curl -fsSL https://bun.sh/install | bash
-                    source ~/.bashrc
 
             - name: Clone Rin repository
               uses: actions/checkout@v2
@@ -28,10 +27,12 @@ jobs:
 
             - name: Install dependencies
               run: |
+                    source ~/.bashrc
                     cd Rin/
                     bun i
 
             - name: Deploy
               run: |
+                    source ~/.bashrc
                     cd Rin/
                     bun server/migrator.ts
