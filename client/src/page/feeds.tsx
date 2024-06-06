@@ -96,15 +96,20 @@ export function FeedsPage() {
                     {feeds[listState].data.map(({ id, ...feed }: any) => (
                         <FeedCard key={id} id={id} {...feed} />
                     ))}
-                    <div className="wauto flex justify-between items-center">
-                        <Link href={`/?type=${listState}&page=${(page - 1)}`}
-                            className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme  ${page > 1 ? '' : 'invisible'}`}>
-                            上一页
-                        </Link>
-                        <Link href={`/?type=${listState}&page=${(page + 1)}`}
-                            className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme ${feeds[listState]?.hasNext ? '' : 'invisible'}`}>
-                            下一页
-                        </Link>
+                    <div className="wauto flex flex-row items-center mt-4">
+                        {page > 1 &&
+                            <Link href={`/?type=${listState}&page=${(page - 1)}`}
+                                className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
+                                上一页
+                            </Link>
+                        }
+                        <div className="flex-1" />
+                        {feeds[listState]?.hasNext &&
+                            <Link href={`/?type=${listState}&page=${(page + 1)}`}
+                                className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
+                                下一页
+                            </Link>
+                        }
                     </div>
                 </div>
             </Waiting>
