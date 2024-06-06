@@ -35,4 +35,4 @@ jobs:
         run: |
           cd Rin/
           bun i
-          bun server/migrator.ts
+          bun scripts/migrator.ts
