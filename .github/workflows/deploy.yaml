@@ -22,8 +22,8 @@ jobs:
                 path: Rin
 
             - name: Deploy
+              uses: oven-sh/setup-bun@v1
               run: |
-                    curl -fsSL https://bun.sh/install | bash
                     cd Rin/
-                    "~/.bun/bin/bun i
-                    "~/.bun/bin/bun server/migrator.ts
+                    bun i
+                    bun server/migrator.ts
