@@ -17,46 +17,65 @@ function tryInt(defaultValue: number, ...args: (string | number | undefined | nu
     return defaultValue
 }
 
+type FeedsData = {
+    size: number,
+    data: any[],
+    hasNext: boolean
+}
+
+type FeedType = 'draft' | 'unlisted' | 'normal'
+
+type FeedsMap = {
+    [key in FeedType]: FeedsData
+}
+
 export function FeedsPage() {
     const query = new URLSearchParams(useSearch());
     const profile = useContext(ProfileContext);
-    const [listState, setListState] = useState<'draft' | 'unlisted' | 'normal'>('normal')
-    const [feeds, setFeeds] = useState<any>()
-    const [hasNext, setHasNext] = useState<boolean>(false)
+    const [listState, _setListState] = useState<FeedType>('normal')
+    function setListState(type: FeedType) {
+        if (feeds[type].size === 0) fetchFeeds(type)
+        _setListState(type)
+    }
+    const [feeds, setFeeds] = useState<FeedsMap>({
+        draft: { size: 0, data: [], hasNext: false },
+        unlisted: { size: 0, data: [], hasNext: false },
+        normal: { size: 0, data: [], hasNext: false }
+    })
     const page = tryInt(1, query.get("page"))
     const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
     const ref = useRef(false)
-    function fetchFeeds() {
+    function fetchFeeds(type: FeedType) {
         client.feed.index.get({
             query: {
                 page: page,
-                limit: limit
+                limit: limit,
+                type: type
             },
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data) {
-                setFeeds(data.data)
-                setHasNext(data.hasNext)
+            if (data && typeof data != 'string') {
+                setFeeds({
+                    ...feeds,
+                    [type]: data
+                })
             }
         })
     }
     useEffect(() => {
         if (ref.current) return
-        fetchFeeds()
+        fetchFeeds(listState)
         ref.current = true
     }, [])
 
     useEffect(() => {
         if (feeds) {
-            fetchFeeds()
+            fetchFeeds(listState)
         }
     }, [query.get("page")])
-    const feed_filtered = feeds?.filter(
-        ({ draft, listed }: { draft: number | undefined, listed: number | undefined }) =>
-            listState === 'draft' ? draft === 1 : listState === 'unlisted' ? listed === 0 : draft != 1 && listed != 0)
     return (
         <>
-            <Waiting wait={feed_filtered}>
+            <Waiting wait={feeds}>
                 <div className="w-full flex flex-col justify-center items-center mb-8">
                     <div className="wauto text-start text-black dark:text-white p-4 text-4xl font-bold">
                         <p>
@@ -64,7 +83,7 @@ export function FeedsPage() {
                         </p>
                         <div className="flex flex-row justify-between">
                             <p className="text-sm mt-4 text-neutral-500 font-normal">
-                                共有 {feed_filtered?.length} 篇文章
+                                共有 {feeds[listState]?.size} 篇文章
                             </p>
                             {profile?.permission &&
                                 <div className="flex flex-row space-x-4">
@@ -78,7 +97,7 @@ export function FeedsPage() {
                             }
                         </div>
                     </div>
-                    {feed_filtered && feed_filtered.map(({ id, ...feed }: any) => (
+                    {feeds[listState].data.map(({ id, ...feed }: any) => (
                         <FeedCard key={id} id={id} {...feed} />
                     ))}
                     <div className="wauto flex justify-between items-center">
@@ -87,7 +106,7 @@ export function FeedsPage() {
                             上一页
                         </Link>
                         <Link href={"/?page=" + (page + 1)}
-                            className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme ${hasNext ? '' : 'invisible'}`}>
+                            className={`text-sm mt-4 font-normal rounded-full px-4 py-2 text-white bg-theme ${feeds[listState]?.hasNext ? '' : 'invisible'}`}>
                             下一页
                         </Link>
                     </div>
