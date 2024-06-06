@@ -6,6 +6,7 @@
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/OXeu/Rin/main?style=for-the-badge)
 ![GitHub top language](https://img.shields.io/github/languages/top/OXeu/Rin?style=for-the-badge)
 ![GitHub License](https://img.shields.io/github/license/OXeu/Rin?style=for-the-badge)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/OXeu/Rin/deploy.yaml?style=for-the-badge)
 
 # 介绍
 
