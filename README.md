@@ -44,7 +44,13 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=OXeu/Rin&type=Date)](https://star-history.com/#OXeu/Rin&Date)
+<a href="https://star-history.com/#OXeu/Rin&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=OXeu/Rin&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=OXeu/Rin&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OXeu/Rin&type=Date" />
+ </picture>
+</a>
 
 # License
 ```
