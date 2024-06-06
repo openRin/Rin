@@ -16,23 +16,15 @@ jobs:
               with:
                 node-version: 21
 
-            - name: Install bun
-              run: |
-                    curl -fsSL https://bun.sh/install | bash
-
             - name: Clone Rin repository
               uses: actions/checkout@v2
               with:
                 path: Rin
 
-            - name: Install dependencies
+            - name: Deploy
               run: |
+                    curl -fsSL https://bun.sh/install | bash
                     source ~/.bashrc
                     cd Rin/
                     bun i
-
-            - name: Deploy
-              run: |
-                    source ~/.bashrc
-                    cd Rin/
                     bun server/migrator.ts
