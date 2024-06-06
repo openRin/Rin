@@ -31,6 +31,9 @@
     },
     "cf:deploy": {
       "cache": false
+    },
+    "check": {
+      "dependsOn": ["^check"]
     }
   }
 }
