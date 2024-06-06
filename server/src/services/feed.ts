@@ -1,4 +1,4 @@
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, count, desc, eq, or } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import type { DB } from "../_worker";
 import type { Env } from "../db/db";
@@ -10,13 +10,27 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
     .use(setup(db, env))
     .group('/feed', (group) =>
         group
-            .get('/', async ({ admin, query: { page, limit } }) => {
+            .get('/', async ({ admin, set, query: { page, limit, type } }) => {
+                if ((type === 'draft' || type === 'unlisted') && !admin) {
+                    set.status = 403;
+                    return 'Permission denied';
+                }
                 const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
                 const limit_num = limit ? +limit > 50 ? 50 : +limit : 20;
+                const where = type === 'draft' ? eq(feeds.draft, 1) : type === 'unlisted' ? and(eq(feeds.draft, 0), eq(feeds.listed, 0)) : and(eq(feeds.draft, 0), eq(feeds.listed, 1));
+                const size = await db.select({ count: count() }).from(feeds).where(where);
+                if (size[0].count === 0) {
+                    return {
+                        size: 0,
+                        data: [],
+                        hasNext: false
+                    }
+                }
                 const feed_list = (await db.query.feeds.findMany({
-                    where: admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                    where: where,
                     columns: admin ? undefined : {
-                        draft: false
+                        draft: false,
+                        listed: false
                     },
                     with: {
                         hashtags: {
@@ -51,11 +65,13 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                 if (feed_list.length === limit_num + 1) {
                     feed_list.pop();
                     return {
+                        size: size[0].count,
                         data: feed_list,
                         hasNext: true
                     }
                 } else {
                     return {
+                        size: size[0].count,
                         data: feed_list,
                         hasNext: false
                     }
@@ -63,7 +79,8 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
             }, {
                 query: t.Object({
                     page: t.Optional(t.Numeric()),
-                    limit: t.Optional(t.Numeric())
+                    limit: t.Optional(t.Numeric()),
+                    type: t.Optional(t.String())
                 })
             })
             .post('/', async ({ admin, set, uid, body: { title, alias, listed, content, summary, draft, tags } }) => {
