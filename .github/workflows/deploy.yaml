@@ -21,8 +21,10 @@ jobs:
               with:
                 path: Rin
 
-            - name: Deploy
+            - name: Set up Bun
               uses: oven-sh/setup-bun@v1
+
+            - name: Deploy
               run: |
                     cd Rin/
                     bun i
