@@ -1,5 +1,7 @@
 # 部署
 
+项目目前处于开发阶段，文档可能未及时更新或存在描述不清，如遇部署失败请提 [Issue](https://github.com/OXeu/Rin/issues/new?assignees=&labels=help+wanted&projects=&template=need-help.md&title=%5BHelp%5D+%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0)
+
 ## 更新日志
 ### v0.2.0 2024-06-07 更新
 * 新增 `S3_CACHE_FOLDER` 环境变量
@@ -159,10 +161,10 @@ S3_ACCESS_HOST=<S3 存储桶访问地址，末尾无'/'>
 > 
 > ~~在 `设置` > `变量` > `环境变量` 处编辑变量，点击添加变量，复制粘贴以下内容至变量名处即可自动添加上所有环境变量，之后再根据自己的具体配置修改变量值：~~
 在 v0.2.0 版本后，以下所有环境变量都建议通过在 Github 创建对应的密钥来添加，添加方式与上文添加 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN` 相同，以下是环境变量列表：
-```
+```ini
 GITHUB_CLIENT_ID=<你的GithubClientID>
 GITHUB_CLIENT_SECRET=<你的GithubClientSecret>
-JWT_SECRET=<JWT密钥>
+JWT_SECRET=<JWT 认证所需密钥，可为常规格式的任意密码>
 S3_ACCESS_KEY_ID=<你的S3AccessKeyID>
 S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 ```
