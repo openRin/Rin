@@ -39,9 +39,9 @@ export const UserService = (db: DB, env: Env) => new Elysia({ aot: false })
                     permission: number | null;
                 } = {
                     openid: user.id,
-                    username: user.name,
+                    username: user.name || user.login,
                     avatar: user.avatar_url,
-                    permission: null
+                    permission: 0
                 };
                 await db.query.users.findFirst({ where: eq(users.openid, profile.openid) })
                     .then(async (user) => {
