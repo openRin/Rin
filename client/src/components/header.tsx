@@ -57,9 +57,9 @@ export function Header() {
     )
 }
 
-function NavItem({ title, selected, herf }: { title: string, selected: boolean, herf: string }) {
+function NavItem({ title, selected, href }: { title: string, selected: boolean, href: string }) {
     return (
-        <Link href={herf} className={"cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm " + (selected ? "text-theme" : "dark:text-white")} >
+        <Link href={href} className={"cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm " + (selected ? "text-theme" : "dark:text-white")} >
             {title}
         </Link>
     )
