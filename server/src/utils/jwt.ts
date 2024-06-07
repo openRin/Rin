@@ -73,7 +73,7 @@ export interface JWTOption<
      */
     exp?: string | number
     /**
-	 * Disable Ahead of Time compliation
+	 * Disable Ahead of Time compilation
 	 *
 	 * Reduced performance but faster startup time
 	 */
