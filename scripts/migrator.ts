@@ -1,11 +1,35 @@
-import { $ } from "bun";
-import stripIndent from 'strip-indent';
-import { readdir } from "node:fs/promises";
+import { $ } from "bun"
+import { readdir } from "node:fs/promises"
+import stripIndent from 'strip-indent'
 
-const DB_NAME = process.env.DB_NAME || 'rin'
-const WORKER_NAME = process.env.WORKER_NAME || 'rin-server'
-const FRONTEND_URL = process.env.FRONTEND_URL || ""
-const S3_FOLDER = process.env.S3_FOLDER || 'images/'
+
+function env(name: string, defaultValue?: string, required = false) {
+    const env = process.env
+    const value = env[name] || defaultValue
+    if (required && !value) {
+        throw new Error(`${name} is not defined`)
+    }
+    return value
+}
+const renv = (name: string, defaultValue?: string) => env(name, defaultValue, true)
+
+const DB_NAME = renv("DB_NAME", 'rin')
+const WORKER_NAME = renv("WORKER_NAME", 'rin-server')
+const FRONTEND_URL = env("FRONTEND_URL", "")
+
+const S3_ENDPOINT = renv("S3_ENDPOINT")
+const S3_ACCESS_HOST = renv("S3_ACCESS_HOST", S3_ENDPOINT)
+const S3_BUCKET = renv("S3_BUCKET")
+const S3_CACHE_FOLDER = renv("S3_CACHE_FOLDER", 'cache/')
+const S3_FOLDER = renv("S3_FOLDER", 'images/')
+const S3_REGION = renv("S3_REGION")
+
+// Secrets
+const accessKeyId = env("S3_ACCESS_KEY_ID")
+const secretAccessKey = env("S3_SECRET_ACCESS_KEY")
+const jwtSecret = env("JWT_SECRET")
+const githubClientId = env("GITHUB_CLIENT_ID")
+const githubClientSecret = env("GITHUB_CLIENT_SECRET")
 
 Bun.write('wrangler.toml', stripIndent(`
 #:schema node_modules/wrangler/config-schema.json
@@ -21,6 +45,11 @@ crons = ["*/20 * * * *"]
 [vars]
 FRONTEND_URL = "${FRONTEND_URL}"
 S3_FOLDER = "${S3_FOLDER}"
+S3_CACHE_FOLDER="${S3_CACHE_FOLDER}"
+S3_REGION = "${S3_REGION}"
+S3_ENDPOINT = "${S3_ENDPOINT}"
+S3_ACCESS_HOST = "${S3_ACCESS_HOST}"
+S3_BUCKET = "${S3_BUCKET}"
 
 [placement]
 mode = "smart"
@@ -65,7 +94,7 @@ console.log(`----------------------------`)
 
 console.log(`Migrating D1 "${DB_NAME}"`)
 try {
-    const files = await readdir("./server/sql", { recursive: false });
+    const files = await readdir("./server/sql", { recursive: false })
     for (const file of files) {
         await $`bunx wrangler d1 execute ${DB_NAME} --remote --file ./server/sql/${file} -y`
         console.log(`Migrated ${file}`)
@@ -76,6 +105,23 @@ try {
 }
 
 console.log(`Migrated D1 "${DB_NAME}"`)
+console.log(`----------------------------`)
+console.log(`Put secrets`)
+
+async function putSecret(name: string, value?: string) {
+    if (value) {
+        console.log(`Put ${name}`)
+        await $`echo "${value}" | bun wrangler secret put ${name}`
+    }
+}
+
+await putSecret('S3_ACCESS_KEY_ID', accessKeyId)
+await putSecret('S3_SECRET_ACCESS_KEY', secretAccessKey)
+await putSecret('GITHUB_CLIENT_ID', githubClientId)
+await putSecret('GITHUB_CLIENT_SECRET', githubClientSecret)
+await putSecret('JWT_SECRET', jwtSecret)
+
+console.log(`Put Done.`)
 console.log(`----------------------------`)
 console.log(`Deploying`)
 await $`echo -e "n\ny\n" | bunx wrangler deploy`

@@ -1,5 +1,13 @@
 # 部署
 
+## 更新日志
+### v0.2.0 2024-06-07 更新
+* 新增 `S3_CACHE_FOLDER` 环境变量
+* 环境变量加密列表与变量列表更新，仅保留必须加密的环境变量
+* 加密变量现在可以通过 Github 直接配置
+* Github 变量配置更新，新增必须通过 Github 配置的加密变量（S3 存储，用于 SEO 索引保存）
+
+
 ## 其他文档
 [环境变量列表](./ENV.md)
 
@@ -51,7 +59,7 @@ NAME=Xeu # 昵称，显示在左上角
 DESCRIPTION=杂食动物 # 个人描述，显示在左上角昵称下方
 AVATAR=https://avatars.githubusercontent.com/u/36541432 # 头像地址，显示在左上角
 API_URL=https://rin.xeu.life # 服务端域名，可以先留空后面再改
-PAGE_SIZE=10 # 默认分页大小
+PAGE_SIZE=5 # 默认分页大小，推荐 5
 SKIP_DEPENDENCY_INSTALL=true
 UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 ```
@@ -97,34 +105,44 @@ ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下�
 CLOUDFLARE_ACCOUNT_ID=<你的用户ID>
 CLOUDFLARE_API_TOKEN=<你的令牌>
 ```
+
 同时你可以在`Actions secrets and variables`的 `Variables` 中创建以下变量：
 ```ini
 DB_NAME=<数据库名称，默认rin>
 WORKER_NAME=<Cloudflare Worker 名称，默认rin-server>
 FRONTEND_URL=<前端地址，用于Webhook通知时拼接地址，可不填>
-S3_FOLDER=<S3 图片资源存储的文件夹，默认为images/>
+SEO_BASE_URL=<SEO 基础地址，用于 SEO 索引，默认为 FRONTEND_URL>
+SEO_CONTAINS_KEY=<SEO 索引时只索引以 SEO_BASE_URL 开头或包含SEO_CONTAINS_KEY 关键字的链接，默认为空>
+S3_FOLDER=<S3 图片资源存储的文件夹，默认为 'images/'>
+S3_CACHE_FOLDER=<S3 缓存文件夹（用于 SEO、高频请求缓存），默认为 'cache/'>
+S3_BUCKET=<S3 存储桶名称>
+S3_REGION=<S3 存储桶所在区域，如使用 Cloudflare R2 填写 auto 即可>
+S3_ENDPOINT=<S3 存储桶接入点地址>
+S3_ACCESS_HOST=<S3 存储桶访问地址，末尾无'/'>
 ```
+> [!TIP]
+> 关于 SEO 工作原理与配置请参考 [SEO 文档](./SEO.md)
 
 完成准备工作以后即可在 Github Action 中手动触发一次 Workflow，一切正常的话很快就能部署完成
 
-这样服务端就部署好了，但是我们还需要配置 Github OAuth用于登录和 S3 存储用于存储图片
+这样服务端就部署好了，但是目前仍然不能运行，我们还需要配置 Github OAuth用于登录和 S3 存储用于存储图片
 
 
-回到 Cloudflare 面板配置后端域名与一些敏感的环境变量
+> [!TIP]
+> 在 v0.2.0 版本后，不再需要回到 Cloudflare 面板配置后端域名与一些敏感的环境变量，所有环境变量都可以通过 Github 创建对应的密钥来添加，如果你在更早的版本中部署过，需要将环境变量迁移到 Github 中
 
-在 `设置` > `触发器` > `自定义域` 处可以自定义后端的域名，默认也有分配一个`workers.dev`的域名
-
-在 `设置` > `变量` > `环境变量` 处编辑变量，点击添加变量，复制粘贴以下内容至变量名处即可自动添加上所有环境变量，之后再根据自己的具体配置修改变量值：
+> ~~回到 Cloudflare 面板配置后端域名与一些敏感的环境变量~~
+> 
+> ~~在 `设置` > `触发器` > `自定义域` 处可以自定义后端的域名，默认也有分配一个`workers.dev`的域名~~
+> 
+> ~~在 `设置` > `变量` > `环境变量` 处编辑变量，点击添加变量，复制粘贴以下内容至变量名处即可自动添加上所有环境变量，之后再根据自己的具体配置修改变量值：~~
+在 v0.2.0 版本后，以下所有环境变量都建议通过在 Github 创建对应的密钥来添加，添加方式与上文添加 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN` 相同，以下是环境变量列表：
 ```
-GITHUB_CLIENT_ID=YourGithubClientID
-GITHUB_CLIENT_SECRET=YourGithubClientSecret
-JWT_SECRET=YourJWTSecret
-S3_BUCKET=YourBucketName
-S3_REGION=YourRegion
-S3_ENDPOINT=YourEndpoint
-S3_ACCESS_HOST=YourAccessHost
-S3_ACCESS_KEY_ID=YourAccessKeyID
-S3_SECRET_ACCESS_KEY=YourSecretAccessKey
+GITHUB_CLIENT_ID=<你的GithubClientID>
+GITHUB_CLIENT_SECRET=<你的GithubClientSecret>
+JWT_SECRET=<JWT密钥>
+S3_ACCESS_KEY_ID=<你的S3AccessKeyID>
+S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 ```
 
 ## 接入 Github OAuth
