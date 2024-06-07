@@ -7,6 +7,7 @@ import { Waiting } from "../components/loading";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
+import { siteName } from "../utils/constants";
 
 type Feed = {
     id: number;
@@ -56,7 +57,6 @@ export function FeedPage({ id }: { id: string }) {
         })
         ref.current = id
     }, [id])
-    const siteName = `${process.env.NAME} - ${process.env.DESCRIPTION}`
     return (
         <Waiting wait={feed || error}>
             {feed &&
