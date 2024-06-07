@@ -2,7 +2,6 @@ import { $ } from "bun"
 import { readdir } from "node:fs/promises"
 import stripIndent from 'strip-indent'
 
-
 function env(name: string, defaultValue?: string, required = false) {
     const env = process.env
     const value = env[name] || defaultValue
@@ -11,18 +10,20 @@ function env(name: string, defaultValue?: string, required = false) {
     }
     return value
 }
+
+// must be defined
 const renv = (name: string, defaultValue?: string) => env(name, defaultValue, true)
 
 const DB_NAME = renv("DB_NAME", 'rin')
 const WORKER_NAME = renv("WORKER_NAME", 'rin-server')
 const FRONTEND_URL = env("FRONTEND_URL", "")
 
-const S3_ENDPOINT = renv("S3_ENDPOINT")
-const S3_ACCESS_HOST = renv("S3_ACCESS_HOST", S3_ENDPOINT)
-const S3_BUCKET = renv("S3_BUCKET")
+const S3_ENDPOINT = env("S3_ENDPOINT", "")
+const S3_ACCESS_HOST = env("S3_ACCESS_HOST", S3_ENDPOINT)
+const S3_BUCKET = env("S3_BUCKET", "")
 const S3_CACHE_FOLDER = renv("S3_CACHE_FOLDER", 'cache/')
 const S3_FOLDER = renv("S3_FOLDER", 'images/')
-const S3_REGION = renv("S3_REGION")
+const S3_REGION = renv("S3_REGION", "auto")
 
 // Secrets
 const accessKeyId = env("S3_ACCESS_KEY_ID")
