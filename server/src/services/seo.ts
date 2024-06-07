@@ -8,12 +8,13 @@ export const SEOService = (db: DB, env: Env) => {
     const endpoint = env.S3_ENDPOINT;
     const accessHost = env.S3_ACCESS_HOST || endpoint;
     const folder = env.S3_CACHE_FOLDER || 'cache/';
-    if (!accessHost) {
-        throw new Error('S3_ACCESS_HOST is not defined');
-    }
     return new Elysia({ aot: false })
         .use(setup(db, env))
         .get('/seo/*', async ({ set, params, query }) => {
+            if (!accessHost) {
+                set.status = 500;
+                return 'S3_ACCESS_HOST is not defined'
+            }
             let url = params['*'];
             // query concat
             for (const key in query) {
