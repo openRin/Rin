@@ -38,9 +38,11 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 
 2. [环境变量列表](./docs/ENV.md)
 
-3. [贡献指南](./CONTRIBUTING.md)
+3. [SEO 优化配置](./docs/SEO.md)
 
-4. [行为准则](./CODE_OF_CONDUCT.md)
+4. [贡献指南](./CONTRIBUTING.md)
+
+5. [行为准则](./CODE_OF_CONDUCT.md)
 
 ## Star History
 
