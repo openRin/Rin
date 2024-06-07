@@ -30,7 +30,7 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 10. 支持通过 Webhook 发送评论通知
 11. 支持自动识别文章中的第一张图片并作为头图展示在文章列表中
 12. 支持输入形如"#博客 #部署 #Cloudflare"之类的标签文本并自动解析为标签
-12. 更多特性请参考 https://xeu.life
+13. 更多特性请参考 https://xeu.life
 
 # 文档
 1. [部署文档（Github）](./docs/DEPLOY.md)
