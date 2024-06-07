@@ -47,8 +47,8 @@
 
 | 名称                 | 描述                                                                              | 示例值                                                           |
 | -------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| GITHUB_CLIENT_ID     | Github OAuth 的客户端 ID                                                          | Ux66poMrKi1k11M1Q1b2                                             |
-| GITHUB_CLIENT_SECRET | Github OAuth 的客户端密钥                                                         | 1234567890abcdef1234567890abcdef12345678                         |
+| RIN_GITHUB_CLIENT_ID     | Github OAuth 的客户端 ID                                                          | Ux66poMrKi1k11M1Q1b2                                             |
+| RIN_GITHUB_CLIENT_SECRET | Github OAuth 的客户端密钥                                                         | 1234567890abcdef1234567890abcdef12345678                         |
 | JWT_SECRET           | JWT 认证所需密钥，可为常规格式的任意密码                                          | J0sT%Ch@nge#Me1                                                  |
 | S3_ACCESS_KEY_ID     | S3 存储桶访问所需的 KEY ID，使用 Cloudflare R2 时为拥有 R2 编辑权限的 API 令牌 ID | 1234567890abcdef1234567890abcd                                   |
 | S3_SECRET_ACCESS_KEY | S3 存储桶访问所需的 Secret，使用 Cloudflare R2 时为拥有 R2 编辑权限的 API 令牌    | 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef |
