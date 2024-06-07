@@ -82,7 +82,7 @@ S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 NAME=Xeu # 昵称，显示在左上角
 DESCRIPTION=杂食动物 # 个人描述，显示在左上角昵称下方
 AVATAR=https://avatars.githubusercontent.com/u/36541432 # 头像地址，显示在左上角
-API_URL=https://rin.xeu.life # 服务端域名，可以先留空后面再改
+API_URL=https://rin.xeu.life # 服务端域名，可以先使用默认值查看效果，后续部署服务端后再修改
 PAGE_SIZE=5 # 默认分页大小，推荐 5
 SKIP_DEPENDENCY_INSTALL=true
 UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
@@ -94,13 +94,32 @@ UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 
 ![1000000661](https://github.com/OXeu/Rin/assets/36541432/979810b7-3f6f-415b-a8e8-5b08b0da905d)
 
-
 点击打开即可看见前端页面
 
 ![1000000662](https://github.com/OXeu/Rin/assets/36541432/57c61ad6-c324-48e4-a28f-a1708fd7d41a)
 
 
 前端就全部部署完成啦🎉
+
+### 故障排除
+
+如遇以下错误，请检查环境变量中是否存在空格等无关内容
+```
+2024-06-07T02:24:04.979145Z	Using v2 root directory strategy
+2024-06-07T02:24:05.003931Z	Success: Finished cloning repository files
+2024-06-07T02:24:06.568608Z	Checking for configuration in a wrangler.toml configuration file (BETA)
+2024-06-07T02:24:06.56923Z	
+2024-06-07T02:24:06.667468Z	No wrangler.toml file found. Continuing.
+2024-06-07T02:24:07.542274Z	Failed: an internal error occurred. If this continues, contact support: https://cfl.re/3WgEyrH
+```
+
+如错误提示为以下内容，请点击`重试部署`再次尝试：
+```
+16:30:39.855	Using v2 root directory strategy
+16:30:39.881	Success: Finished cloning repository files
+16:30:40.746	Failed: unable to read wrangler.toml file with code: -11
+16:30:41.587	Failed: an internal error occurred. If this continues, contact support: https://cfl.re/3WgEyrH
+```
 
 后续可以在 Pages 的设置中再次修改环境变量以及配置域名
 
