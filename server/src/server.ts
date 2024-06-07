@@ -9,6 +9,7 @@ import { FriendService } from './services/friends';
 import { TagService } from './services/tag';
 import { UserService } from './services/user';
 import { StorageService } from './services/storage';
+import { SEOService } from './services/seo';
 
 export const app = (db: DB, env: Env) => new Elysia({ aot: false })
     .use(cors({
@@ -32,6 +33,7 @@ export const app = (db: DB, env: Env) => new Elysia({ aot: false })
     .use(TagService(db))
     .use(StorageService(db, env))
     .use(FriendService(db, env))
+    .use(SEOService(db, env))
     .get('/', () => `Hi`)
     .onError(({ path, params, code }) => {
         if (code === 'NOT_FOUND')
