@@ -39,11 +39,11 @@ export function Header() {
                                             </p>
                                         </div>
                                     </div>
-                                    <NavItem title="文章" selected={location === "/" || location.startsWith('/feed')} herf="/" />
+                                    <NavItem title="文章" selected={location === "/" || location.startsWith('/feed')} href="/" />
                                     {/* <NavItem title="标签" selected={false} onClick={() => { }} /> */}
-                                    {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} herf="/writing" />}
-                                    <NavItem title="朋友们" selected={location === "/friends"} herf="/friends" />
-                                    <NavItem title="关于" selected={location === "/about"} herf="/about" />
+                                    {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} href="/writing" />}
+                                    <NavItem title="朋友们" selected={location === "/friends"} href="/friends" />
+                                    <NavItem title="关于" selected={location === "/about"} href="/about" />
                                     <UserAvatar className="visible opacity-100 sm:hidden sm:opacity-0 duration-300 justify-center items-center h-12" profile={profile} />
                                 </div>
                             </div>
