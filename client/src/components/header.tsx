@@ -40,7 +40,7 @@ export function Header() {
                                         </div>
                                     </div>
                                     <NavItem title="文章" selected={location === "/" || location.startsWith('/feed')} href="/" />
-                                    {/* <NavItem title="标签" selected={false} onClick={() => { }} /> */}
+                                    <NavItem title="时间轴" selected={location === "/timeline"} href="/timeline" />
                                     {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} href="/writing" />}
                                     <NavItem title="朋友们" selected={location === "/friends"} href="/friends" />
                                     <NavItem title="关于" selected={location === "/about"} href="/about" />
