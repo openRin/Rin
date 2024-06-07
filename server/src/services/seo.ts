@@ -19,6 +19,9 @@ export const SEOService = (db: DB, env: Env) => {
             for (const key in query) {
                 url += `&${key}=${query[key]}`;
             }
+            if (url.endsWith('/') || url === '') {
+                url += 'index.html';
+            }
             const key = path.join(folder, url);
             try {
                 const url = `${accessHost}/${key}`;

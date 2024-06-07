@@ -80,7 +80,7 @@ async function fetchPage(url: string) {
             const anchors = Array.from(document.querySelectorAll('a'));
             return anchors.map(anchor => anchor.href);
         });
-        for (const link of links.filter(link => (link.startsWith(baseUrl) || link.includes(containsKey)))) {
+        for (const link of links.filter(link => (link.startsWith(baseUrl) || (containsKey != '' && link.includes(containsKey))))) {
             const linkWithoutHash = link.split('#')[0];
             if (fetchedLinks.has(linkWithoutHash)) {
                 continue;
