@@ -3,8 +3,8 @@ import puppeteer from 'puppeteer';
 import path from "node:path"
 
 const env = process.env;
-const baseUrl = env.SEO_BASE_URL || 'https://xeu.life';
-const containsKey = env.SEO_CONTAINS_KEY || 'xeu.life'
+const baseUrl = env.SEO_BASE_URL || env.FRONTEND_URL || '';
+const containsKey = env.SEO_CONTAINS_KEY || '';
 const region = env.S3_REGION;
 const endpoint = env.S3_ENDPOINT;
 const accessKeyId = env.S3_ACCESS_KEY_ID;
@@ -12,6 +12,9 @@ const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
 const accessHost = env.S3_ACCESS_HOST || endpoint;
 const bucket = env.S3_BUCKET;
 const folder = env.S3_CACHE_FOLDER || 'cache/';
+if (!baseUrl) {
+    throw new Error('SEO_BASE_URL is not defined');
+}
 if (!region) {
     throw new Error('S3_REGION is not defined');
 }
@@ -59,7 +62,7 @@ const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox']
 });
 
-async function fetchPage(url: string, referer: string = baseUrl) {
+async function fetchPage(url: string) {
     // Fetch page content
     console.log(`Fetching ${url}`);
     const page = await browser.newPage();
@@ -82,7 +85,7 @@ async function fetchPage(url: string, referer: string = baseUrl) {
             if (fetchedLinks.has(linkWithoutHash)) {
                 continue;
             }
-            await fetchPage(linkWithoutHash, url);
+            await fetchPage(linkWithoutHash);
         }
     }
 }
