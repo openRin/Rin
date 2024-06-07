@@ -1,11 +1,35 @@
 # 部署
 
+项目目前处于开发阶段，文档可能未及时更新或存在描述不清，如遇部署失败请提 [Issue](https://github.com/OXeu/Rin/issues/new?assignees=&labels=help+wanted&projects=&template=need-help.md&title=%5BHelp%5D+%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0)
+
 ## 更新日志
 ### v0.2.0 2024-06-07 更新
 * 新增 `S3_CACHE_FOLDER` 环境变量
 * 环境变量加密列表与变量列表更新，仅保留必须加密的环境变量
 * 加密变量现在可以通过 Github 直接配置
 * Github 变量配置更新，新增必须通过 Github 配置的加密变量（S3 存储，用于 SEO 索引保存）
+
+## 迁移指南
+无特别说明时正常的版本更新直接同步 frok 的仓库即可
+
+### v0.2.0 迁移指南
+* 由于引入 SEO 优化导致需要在 Github 中配置 S3 存储的环境变量，因此需要额外在 Github 中配置以下环境变量（明文，添加到 Variables）：
+```ini
+SEO_BASE_URL=<SEO 基础地址，用于 SEO 索引，默认为 FRONTEND_URL>
+SEO_CONTAINS_KEY=<SEO 索引时只索引以 SEO_BASE_URL 开头或包含SEO_CONTAINS_KEY 关键字的链接，默认为空>
+S3_FOLDER=<S3 图片资源存储的文件夹，默认为 'images/'>
+S3_CACHE_FOLDER=<S3 缓存文件夹（用于 SEO、高频请求缓存），默认为 'cache/'>
+S3_BUCKET=<S3 存储桶名称>
+S3_REGION=<S3 存储桶所在区域，如使用 Cloudflare R2 填写 auto 即可>
+S3_ENDPOINT=<S3 存储桶接入点地址>
+S3_ACCESS_HOST=<S3 存储桶访问地址，末尾无'/'>
+```
+同时添加以下加密环境变量（加密，添加到 Secrets）：
+```ini
+S3_ACCESS_KEY_ID=<你的S3AccessKeyID>
+S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
+```
+以上环境变量在之前的版本中是通过 Cloudflare 面板配置的，现在需要迁移到 Github 中配置，新版本的部署 Github Action 会自动其上传到 Cloudflare，之后就不再需要在 Cloudflare 面板中配置这些环境变量了
 
 
 ## 其他文档
@@ -58,7 +82,7 @@
 NAME=Xeu # 昵称，显示在左上角
 DESCRIPTION=杂食动物 # 个人描述，显示在左上角昵称下方
 AVATAR=https://avatars.githubusercontent.com/u/36541432 # 头像地址，显示在左上角
-API_URL=https://rin.xeu.life # 服务端域名，可以先留空后面再改
+API_URL=https://rin.xeu.life # 服务端域名，可以先使用默认值查看效果，后续部署服务端后再修改
 PAGE_SIZE=5 # 默认分页大小，推荐 5
 SKIP_DEPENDENCY_INSTALL=true
 UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
@@ -70,13 +94,32 @@ UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 
 ![1000000661](https://github.com/OXeu/Rin/assets/36541432/979810b7-3f6f-415b-a8e8-5b08b0da905d)
 
-
 点击打开即可看见前端页面
 
 ![1000000662](https://github.com/OXeu/Rin/assets/36541432/57c61ad6-c324-48e4-a28f-a1708fd7d41a)
 
 
 前端就全部部署完成啦🎉
+
+### 故障排除
+
+如遇以下错误，请检查环境变量中是否存在空格等无关内容
+```
+2024-06-07T02:24:04.979145Z	Using v2 root directory strategy
+2024-06-07T02:24:05.003931Z	Success: Finished cloning repository files
+2024-06-07T02:24:06.568608Z	Checking for configuration in a wrangler.toml configuration file (BETA)
+2024-06-07T02:24:06.56923Z	
+2024-06-07T02:24:06.667468Z	No wrangler.toml file found. Continuing.
+2024-06-07T02:24:07.542274Z	Failed: an internal error occurred. If this continues, contact support: https://cfl.re/3WgEyrH
+```
+
+如错误提示为以下内容，请点击`重试部署`再次尝试：
+```
+16:30:39.855	Using v2 root directory strategy
+16:30:39.881	Success: Finished cloning repository files
+16:30:40.746	Failed: unable to read wrangler.toml file with code: -11
+16:30:41.587	Failed: an internal error occurred. If this continues, contact support: https://cfl.re/3WgEyrH
+```
 
 后续可以在 Pages 的设置中再次修改环境变量以及配置域名
 
@@ -137,10 +180,10 @@ S3_ACCESS_HOST=<S3 存储桶访问地址，末尾无'/'>
 > 
 > ~~在 `设置` > `变量` > `环境变量` 处编辑变量，点击添加变量，复制粘贴以下内容至变量名处即可自动添加上所有环境变量，之后再根据自己的具体配置修改变量值：~~
 在 v0.2.0 版本后，以下所有环境变量都建议通过在 Github 创建对应的密钥来添加，添加方式与上文添加 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN` 相同，以下是环境变量列表：
-```
+```ini
 GITHUB_CLIENT_ID=<你的GithubClientID>
 GITHUB_CLIENT_SECRET=<你的GithubClientSecret>
-JWT_SECRET=<JWT密钥>
+JWT_SECRET=<JWT 认证所需密钥，可为常规格式的任意密码>
 S3_ACCESS_KEY_ID=<你的S3AccessKeyID>
 S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 ```
