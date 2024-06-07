@@ -1,11 +1,38 @@
 import { $ } from "bun";
-import stripIndent from 'strip-indent';
 import { readdir } from "node:fs/promises";
+import stripIndent from 'strip-indent';
 
-const DB_NAME = process.env.DB_NAME || 'rin'
-const WORKER_NAME = process.env.WORKER_NAME || 'rin-server'
-const FRONTEND_URL = process.env.FRONTEND_URL || ""
-const S3_FOLDER = process.env.S3_FOLDER || 'images/'
+const env = process.env
+const DB_NAME = env.DB_NAME || 'rin'
+const WORKER_NAME = env.WORKER_NAME || 'rin-server'
+const FRONTEND_URL = env.FRONTEND_URL || ""
+const S3_FOLDER = env.S3_FOLDER || 'images/'
+const S3_CACHE_FOLDER = env.S3_CACHE_FOLDER || 'cache/'
+
+const region = env.S3_REGION;
+const endpoint = env.S3_ENDPOINT;
+const accessHost = env.S3_ACCESS_HOST || endpoint;
+const bucket = env.S3_BUCKET;
+
+if (!region) {
+    console.error('S3_REGION is not defined')
+    process.exit(1)
+}
+if (!endpoint) {
+    console.error('S3_ENDPOINT is not defined')
+    process.exit(1)
+}
+if (!bucket) {
+    console.error('S3_BUCKET is not defined')
+    process.exit(1)
+}
+
+// Secrets
+const accessKeyId = env.S3_ACCESS_KEY_ID;
+const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
+
+const githubClientId = env.GITHUB_CLIENT_ID;
+const githubClientSecret = env.GITHUB_CLIENT_SECRET;
 
 Bun.write('wrangler.toml', stripIndent(`
 #:schema node_modules/wrangler/config-schema.json
@@ -21,6 +48,11 @@ crons = ["*/20 * * * *"]
 [vars]
 FRONTEND_URL = "${FRONTEND_URL}"
 S3_FOLDER = "${S3_FOLDER}"
+S3_CACHE_FOLDER="${S3_CACHE_FOLDER}"
+S3_REGION = "${region}"
+S3_ENDPOINT = "${endpoint}"
+S3_ACCESS_HOST = "${accessHost}"
+S3_BUCKET = "${bucket}"
 
 [placement]
 mode = "smart"
@@ -76,6 +108,27 @@ try {
 }
 
 console.log(`Migrated D1 "${DB_NAME}"`)
+console.log(`----------------------------`)
+console.log(`Put secrets`)
+
+if (accessKeyId) {
+    console.log(`Put S3_ACCESS_KEY_ID`)
+    await $`echo "${accessKeyId}" | bun wrangler secret put S3_ACCESS_KEY_ID`
+}
+if (secretAccessKey) {
+    console.log(`Put S3_SECRET_ACCESS_KEY`)
+    await $`echo "${secretAccessKey}" | bun wrangler secret put S3_SECRET_ACCESS_KEY`
+}
+if (githubClientId) {
+    console.log(`Put GITHUB_CLIENT_ID`)
+    await $`echo "${githubClientId}" | bun wrangler secret put GITHUB_CLIENT_ID`
+}
+if (githubClientSecret) {
+    console.log(`Put GITHUB_CLIENT_SECRET`)
+    await $`echo "${githubClientSecret}" | bun wrangler secret put GITHUB_CLIENT_SECRET`
+}
+
+console.log(`Put Done.`)
 console.log(`----------------------------`)
 console.log(`Deploying`)
 await $`echo -e "n\ny\n" | bunx wrangler deploy`
