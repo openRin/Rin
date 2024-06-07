@@ -34,7 +34,6 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 
 # 文档
 1. [部署文档（Github）](./docs/DEPLOY.md)
-或 [Rin 部署指南（xeu.life）](https://xeu.life/deploy-rin)
 
 2. [环境变量列表](./docs/ENV.md)
 
