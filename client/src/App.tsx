@@ -11,6 +11,7 @@ import { FriendsPage } from './page/friends'
 import { WritingPage } from './page/writing'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
+import { TimelinePage } from './page/timeline'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
@@ -36,6 +37,10 @@ function App() {
         <Switch>
           <RouteMe path="/">
             <FeedsPage />
+          </RouteMe>
+
+          <RouteMe path="/timeline">
+            <TimelinePage />
           </RouteMe>
 
           <RouteMe path="/feed/:id">
