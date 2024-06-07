@@ -68,6 +68,20 @@ S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 
 ## 前端
 
+> [!TIP]
+> 先简单介绍一下前端与后端的关系，前端是一个静态页面，托管于 Cloudflare Pages上，前端本质上只是一堆不会变化的文件和代码，并没有你的文章数据之类的内容，想要实现如登录，写文章，评论，获取文章列表和内容、评论列表等逻辑还需要与后端进行数据交换；
+> 
+> 后端负责处理具体的逻辑，在本项目中后端运行在 Cloudflare Workers 上，前端通过 API 与后端通信，后端通过 Cloudflare D1 保存文章等数据，通过 Cloudflare R2 存储文章中的图片
+> 
+> 下文提到的前端与后端你可以分别等价代换为 Cloudflare Pages 与 Cloudflare Workers，当提到说需要前端地址或者后端地址时，即为 Cloudflare Pages 地址或 Cloudflare Workers 地址，你可以在 Cloudflare 控制面板中通过少量的操作找到这两个地址，如下面的截图所示：
+> 前端（Pages）的地址在 `Workers 和 Pages` > 你的 Pages 项目 > `部署` 中可以找到：
+> <!--图片-->
+> 图中的`rin-6qe.pages.dev`,`direct.xeu.life` 都是前端地址，如果有更多的地址，你还可以点击形如 `+2 个域` 的链接查看更多的地址，这些地址都是可以访问的，你可以使用其中任意一个地址，但是需要保持不同地方都填写的是同一个前端地址（如果有多个环境变量要求填写前端地址的话），通常来说前端地址是 `https://rin-6qe.pages.dev` 或 `https://direct.xeu.life` 这样的形式
+>
+> 后端（Workers）的地址在 `Workers 和 Pages` > 你的 Workers 项目 > 设置` > `触发器` 中可以找到：
+> <!--图片-->
+> 图中的 `rin.xeu.life` 和 `rin-server.xeu.workers.dev` 都是后端地址，前者是自定义域名，后者是默认分配的域名，你可以使用默认分配的域名，也可以自定义域名，自定义域名需要在 Cloudflare 控制面板中进行配置，在本文档中当要求填写后端地址时，你可以填写形如 `https://rin.xeu.life` 或 `https://rin-server.xeu.workers.dev`的地址，但需保持不同地方都填写的是同一个后端地址（如果有多个环境变量要求填写后端地址的话）
+
 登录 [Cloudflare](https://dash.cloudflare.com) 控制台，进入 `Workers 和 Pages` 页面，点击`创建应用程序`，选择 Pages
 
 ![1000000658](https://github.com/OXeu/Rin/assets/36541432/35d4f9e3-3af3-4ec8-8060-2a352f4d51ae)
