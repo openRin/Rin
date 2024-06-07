@@ -28,10 +28,19 @@ jobs:
         env: # Or as an environment variable
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID  }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN  }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
           DB_NAME: ${{ vars.DB_NAME }}
           WORKER_NAME: ${{ vars.WORKER_NAME }}
           FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          S3_ACCESS_HOST: ${{ vars.S3_ACCESS_HOST }}
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          S3_CACHE_FOLDER: ${{ vars.S3_CACHE_FOLDER }}
+          S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
           S3_FOLDER: ${{ vars.S3_FOLDER }}
+          S3_REGION: ${{ vars.S3_REGION }}
         run: |
           cd Rin/
           bun i

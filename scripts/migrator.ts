@@ -1,38 +1,35 @@
-import { $ } from "bun";
-import { readdir } from "node:fs/promises";
-import stripIndent from 'strip-indent';
+import { $ } from "bun"
+import { readdir } from "node:fs/promises"
+import stripIndent from 'strip-indent'
 
-const env = process.env
-const DB_NAME = env.DB_NAME || 'rin'
-const WORKER_NAME = env.WORKER_NAME || 'rin-server'
-const FRONTEND_URL = env.FRONTEND_URL || ""
-const S3_FOLDER = env.S3_FOLDER || 'images/'
-const S3_CACHE_FOLDER = env.S3_CACHE_FOLDER || 'cache/'
 
-const region = env.S3_REGION;
-const endpoint = env.S3_ENDPOINT;
-const accessHost = env.S3_ACCESS_HOST || endpoint;
-const bucket = env.S3_BUCKET;
+function env(name: string, defaultValue?: string, required = false) {
+    const env = process.env
+    const value = env[name] || defaultValue
+    if (required && !value) {
+        throw new Error(`${name} is not defined`)
+    }
+    return value
+}
+const renv = (name: string, defaultValue?: string) => env(name, defaultValue, true)
 
-if (!region) {
-    console.error('S3_REGION is not defined')
-    process.exit(1)
-}
-if (!endpoint) {
-    console.error('S3_ENDPOINT is not defined')
-    process.exit(1)
-}
-if (!bucket) {
-    console.error('S3_BUCKET is not defined')
-    process.exit(1)
-}
+const DB_NAME = renv("DB_NAME", 'rin')
+const WORKER_NAME = renv("WORKER_NAME", 'rin-server')
+const FRONTEND_URL = env("FRONTEND_URL", "")
+
+const S3_ENDPOINT = renv("S3_ENDPOINT")
+const S3_ACCESS_HOST = renv("S3_ACCESS_HOST", S3_ENDPOINT)
+const S3_BUCKET = renv("S3_BUCKET")
+const S3_CACHE_FOLDER = renv("S3_CACHE_FOLDER", 'cache/')
+const S3_FOLDER = renv("S3_FOLDER", 'images/')
+const S3_REGION = renv("S3_REGION")
 
 // Secrets
-const accessKeyId = env.S3_ACCESS_KEY_ID;
-const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
-const jwtSecret = env.JWT_SECRET;
-const githubClientId = env.GITHUB_CLIENT_ID;
-const githubClientSecret = env.GITHUB_CLIENT_SECRET;
+const accessKeyId = env("S3_ACCESS_KEY_ID")
+const secretAccessKey = env("S3_SECRET_ACCESS_KEY")
+const jwtSecret = env("JWT_SECRET")
+const githubClientId = env("GITHUB_CLIENT_ID")
+const githubClientSecret = env("GITHUB_CLIENT_SECRET")
 
 Bun.write('wrangler.toml', stripIndent(`
 #:schema node_modules/wrangler/config-schema.json
@@ -49,10 +46,10 @@ crons = ["*/20 * * * *"]
 FRONTEND_URL = "${FRONTEND_URL}"
 S3_FOLDER = "${S3_FOLDER}"
 S3_CACHE_FOLDER="${S3_CACHE_FOLDER}"
-S3_REGION = "${region}"
-S3_ENDPOINT = "${endpoint}"
-S3_ACCESS_HOST = "${accessHost}"
-S3_BUCKET = "${bucket}"
+S3_REGION = "${S3_REGION}"
+S3_ENDPOINT = "${S3_ENDPOINT}"
+S3_ACCESS_HOST = "${S3_ACCESS_HOST}"
+S3_BUCKET = "${S3_BUCKET}"
 
 [placement]
 mode = "smart"
@@ -97,7 +94,7 @@ console.log(`----------------------------`)
 
 console.log(`Migrating D1 "${DB_NAME}"`)
 try {
-    const files = await readdir("./server/sql", { recursive: false });
+    const files = await readdir("./server/sql", { recursive: false })
     for (const file of files) {
         await $`bunx wrangler d1 execute ${DB_NAME} --remote --file ./server/sql/${file} -y`
         console.log(`Migrated ${file}`)

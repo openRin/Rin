@@ -118,7 +118,7 @@ S3_CACHE_FOLDER=<S3 缓存文件夹（用于 SEO、高频请求缓存），默�
 S3_BUCKET=<S3 存储桶名称>
 S3_REGION=<S3 存储桶所在区域，如使用 Cloudflare R2 填写 auto 即可>
 S3_ENDPOINT=<S3 存储桶接入点地址>
-S3_ACCESS_HOST=<S3 存储桶访问地址>
+S3_ACCESS_HOST=<S3 存储桶访问地址，末尾无'/'>
 ```
 > [!TIP]
 > 关于 SEO 工作原理与配置请参考 [SEO 文档](./SEO.md)
