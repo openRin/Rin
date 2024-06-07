@@ -62,10 +62,12 @@ type D1Item = {
     created_at: string,
 }
 
-const { exitCode, stderr } = await $`bunx wrangler d1 create ${DB_NAME}`.quiet().nothrow()
+const { exitCode, stderr, stdout } = await $`bunx wrangler d1 create ${DB_NAME}`.quiet().nothrow()
 if (exitCode !== 0) {
     if (!stderr.toString().includes('already exists')) {
         console.error(`Failed to create D1 "${DB_NAME}"`)
+        console.error(stripIndent(stdout.toString()))
+        console.log(`----------------------------`)
         console.error(stripIndent(stderr.toString()))
         process.exit(1)
     } else {
