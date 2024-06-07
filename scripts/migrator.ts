@@ -112,6 +112,8 @@ async function putSecret(name: string, value?: string) {
     if (value) {
         console.log(`Put ${name}`)
         await $`echo "${value}" | bun wrangler secret put ${name}`
+    } else {
+        console.log(`Skip ${name}, value is not defined.`)
     }
 }
 
