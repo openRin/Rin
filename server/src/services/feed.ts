@@ -83,6 +83,19 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     type: t.Optional(t.String())
                 })
             })
+            .get('/timeline', async () => {
+                const where = and(eq(feeds.draft, 0), eq(feeds.listed, 1));
+                const feed_list = (await db.query.feeds.findMany({
+                    where: where,
+                    columns: {
+                        id: true,
+                        title: true,
+                        createdAt: true,
+                    },
+                    orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
+                }))
+                return feed_list
+            })
             .post('/', async ({ admin, set, uid, body: { title, alias, listed, content, summary, draft, tags } }) => {
                 if (!admin) {
                     set.status = 403;
