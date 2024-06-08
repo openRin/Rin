@@ -25,6 +25,7 @@ const S3_CACHE_FOLDER = renv("S3_CACHE_FOLDER", 'cache/')
 const S3_FOLDER = renv("S3_FOLDER", 'images/')
 const S3_REGION = renv("S3_REGION", "auto")
 const S3_FORCE_PATH_STYLE = env("S3_FORCE_PATH_STYLE", "false")
+const WEBHOOK_URL = env("WEBHOOK_URL", "")
 
 // Secrets
 const accessKeyId = env("S3_ACCESS_KEY_ID")
@@ -53,6 +54,7 @@ S3_ENDPOINT = "${S3_ENDPOINT}"
 S3_ACCESS_HOST = "${S3_ACCESS_HOST}"
 S3_BUCKET = "${S3_BUCKET}"
 S3_FORCE_PATH_STYLE = "${S3_FORCE_PATH_STYLE}"
+WEBHOOK_URL = "${WEBHOOK_URL}"
 
 [placement]
 mode = "smart"

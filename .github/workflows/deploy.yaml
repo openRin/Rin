@@ -44,6 +44,7 @@ jobs:
           S3_FOLDER: ${{ vars.S3_FOLDER }}
           S3_REGION: ${{ vars.S3_REGION }}
           S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
+          WEBHOOK_SECRET: ${{ vars.WEBHOOK_SECRET }}
         run: |
           cd Rin/
           bun i
