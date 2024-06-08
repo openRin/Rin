@@ -227,7 +227,7 @@ function Comments({ id }: { id: string }) {
                     </>
                 }
                 {comments.length > 0 &&
-                    <div className="wauto rounded-2xl bg-w m-2 p-2 space-y-2">
+                    <div className="wauto">
                         {comments.map(comment => (
                             <CommentItem key={comment.id} comment={comment} onRefresh={loadComments} />
                         ))}
@@ -255,27 +255,25 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
         })
     }
     return (
-        <div className="flex flex-row items-start bg-hover p-2 rounded-xl">
-            <img src={comment.user.avatar || ''} className="w-8 h-8 rounded-full" />
-            <div className="flex flex-col w-full ml-2">
+        <div className="flex flex-row items-start rounded-xl mt-2">
+            <img src={comment.user.avatar || ''} className="w-8 h-8 rounded-full mt-4" />
+            <div className="flex flex-col flex-1 w-0 ml-2 bg-w rounded-xl p-4">
                 <div className="flex flex-row">
-                    <span className="text-gray-400 text-sm">
+                    <span className="t-primary text-base font-bold">
                         {comment.user.username}
                     </span>
-                    <div className="flex-1" />
+                    <div className="flex-1 w-0" />
                     <span title={new Date(comment.createdAt).toLocaleString()} className="text-gray-400 text-sm">
                         {format(comment.createdAt)}
                     </span>
                 </div>
-                <div className="flex flex-row items-start t-primary">
-                    <p className="flex-1">
-                        {comment.content}
-                    </p>
-                    {(profile?.permission || profile?.id == comment.user.id) && <div className="flex flex-row">
-                        <IconSmall label="删除评论" name="ri-delete-bin-2-line ri-sm" onClick={deleteComment} />
-                    </div>
-                    }
+                <p className="t-primary">
+                    {comment.content}
+                </p>
+                {(profile?.permission || profile?.id == comment.user.id) && <div className="flex flex-row self-end">
+                    <IconSmall label="删除评论" name="ri-delete-bin-2-line ri-sm" onClick={deleteComment} />
                 </div>
+                }
             </div>
         </div>)
 }
