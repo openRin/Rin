@@ -1,6 +1,7 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import Elysia from "elysia";
 import { Feed } from "feed";
 import path from 'path';
 import type { Env } from "../db/db";
@@ -8,16 +9,12 @@ import * as schema from "../db/schema";
 import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
 import { createS3Client } from "../utils/s3";
-import Elysia from "elysia";
-import type { DB } from "../_worker";
-import { setup } from "../setup";
 
-export const RSSService = (db: DB, env: Env) => {
+export const RSSService = (env: Env) => {
     const endpoint = env.S3_ENDPOINT;
     const accessHost = env.S3_ACCESS_HOST || endpoint;
     const folder = env.S3_CACHE_FOLDER || 'cache/';
     return new Elysia({ aot: false })
-        .use(setup(db, env))
         .get('/sub/:name', async ({ set, params: { name } }) => {
             if (!accessHost) {
                 set.status = 500;
