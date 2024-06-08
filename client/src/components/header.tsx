@@ -67,7 +67,7 @@ function NavItem({ title, selected, href, always }: { title: string, selected: b
     )
 }
 
-function UserAvatar({ profile, className }: { className?: string, profile?: Profile }) {
+function UserAvatar({ profile, className, mobile }: { className?: string, profile?: Profile, mobile?: boolean }) {
     return (<div className={"flex flex-row justify-end " + className}>
         {profile?.avatar ? <>
             <div className="relative">
@@ -82,7 +82,7 @@ function UserAvatar({ profile, className }: { className?: string, profile?: Prof
         </> : <>
             <button title="Github 登录" aria-label="Github 登录"
                 onClick={() => window.location.href = `${oauth_url}`}
-                className="flex rounded-xl bg-secondary h-10 sm:h-auto px-2 py-2 bg-w bg-hover t-secondary items-center justify-center">
+                className={`flex rounded-xl ${mobile ? "bg-secondary" : "bg-w"} h-10 sm:h-auto px-2 py-2 bg-w bg-hover t-secondary items-center justify-center`}>
                 <i className="ri-github-line ri-xl"></i>
                 <p className="text-sm ml-1">
                     Github 登录
@@ -102,13 +102,13 @@ function Menu() {
                     <i className="ri-menu-line ri-lg" />
                 </button>
             } position="bottom right"
+                nested
                 closeOnDocumentClick
-                mouseLeaveDelay={300}
-                mouseEnterDelay={0}
+                closeOnEscape
                 overlayStyle={{ background: "rgba(0,0,0,0.3)" }}
             >
                 <div className="flex flex-col bg-w rounded-xl p-2 mt-4 w-[50vw]">
-                    <UserAvatar profile={profile} />
+                    <UserAvatar profile={profile} mobile />
                     <NavItem always={true} title="文章" selected={location === "/" || location.startsWith('/feed')} href="/" />
                     <NavItem always={true} title="时间轴" selected={location === "/timeline"} href="/timeline" />
                     {profile?.permission && <NavItem always={true} title="写作" selected={location.startsWith("/writing")} href="/writing" />}
