@@ -22,6 +22,7 @@ export const StorageService = (db: DB, env: Env) => {
     const s3 = new S3Client({
         region: region,
         endpoint: endpoint,
+        forcePathStyle: true,
         credentials: {
             accessKeyId: accessKeyId,
             secretAccessKey: secretAccessKey
