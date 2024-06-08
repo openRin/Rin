@@ -4,6 +4,7 @@ import type { DB } from "../_worker";
 import type { Env } from "../db/db";
 import { feeds } from "../db/schema";
 import { setup } from "../setup";
+import { extractImage } from "../utils/image";
 import { bindTagToPost } from "./tag";
 
 export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
@@ -49,12 +50,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     limit: limit_num + 1,
                 })).map(({ content, hashtags, summary, ...other }) => {
                     // 提取首图
-                    const img_reg = /!\[.*?\]\((.*?)\)/;
-                    const img_match = img_reg.exec(content);
-                    let avatar: string | undefined = undefined;
-                    if (img_match) {
-                        avatar = img_match[1];
-                    }
+                    const avatar = extractImage(content);
                     return {
                         summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
                         hashtags: hashtags.map(({ hashtag }) => hashtag),

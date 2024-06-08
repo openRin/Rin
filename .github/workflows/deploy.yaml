@@ -46,6 +46,8 @@ jobs:
           S3_REGION: ${{ vars.S3_REGION }}
           S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
           WEBHOOK_URL: ${{ vars.WEBHOOK_URL }}
+          RSS_TITLE: ${{ vars.RSS_TITLE }}
+          RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION }}
         run: |
           cd Rin/
           bun i

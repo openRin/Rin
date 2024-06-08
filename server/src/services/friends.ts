@@ -2,8 +2,10 @@ import { eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import type { DB } from "../_worker";
 import { friends } from "../db/schema";
+import * as schema from "../db/schema";
 import { setup } from "../setup";
 import type { Env } from "../db/db";
+import { drizzle } from "drizzle-orm/d1";
 
 export const FriendService = (db: DB, env: Env) => new Elysia({ aot: false })
     .use(setup(db, env))
@@ -112,3 +114,31 @@ export const FriendService = (db: DB, env: Env) => new Elysia({ aot: false })
                 return 'OK';
             })
     )
+
+export async function friendCrontab(env: Env, ctx: ExecutionContext) {
+    const db = drizzle(env.DB, { schema: schema })
+    const friend_list = await db.query.friends.findMany()
+    console.info(`total friends: ${friend_list.length}`)
+    let health = 0
+    let unhealthy = 0
+    for (const friend of friend_list) {
+        console.info(`checking ${friend.name}: ${friend.url}`)
+        try {
+            const response = await fetch(friend.url)
+            console.info(`response status: ${response.status}`)
+            console.info(`response statusText: ${response.statusText}`)
+            if (response.ok) {
+                ctx.waitUntil(db.update(schema.friends).set({ health: "" }).where(eq(schema.friends.id, friend.id)))
+                health++
+            } else {
+                ctx.waitUntil(db.update(schema.friends).set({ health: `${response.status}` }).where(eq(schema.friends.id, friend.id)))
+                unhealthy++
+            }
+        } catch (e: any) {
+            console.error(e.message)
+            ctx.waitUntil(db.update(schema.friends).set({ health: e.message }).where(eq(schema.friends.id, friend.id)))
+            unhealthy++
+        }
+    }
+    console.info(`update friends health done. Total: ${health + unhealthy}, Healthy: ${health}, Unhealthy: ${unhealthy}`)
+}

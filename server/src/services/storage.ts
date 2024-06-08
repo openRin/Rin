@@ -1,9 +1,10 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import Elysia, { t } from "elysia";
 import path from "node:path";
 import type { DB } from "../_worker";
 import type { Env } from "../db/db";
 import { setup } from "../setup";
+import { createS3Client } from "../utils/s3";
 
 function buf2hex(buffer: ArrayBuffer) {
     return [...new Uint8Array(buffer)]
@@ -12,23 +13,13 @@ function buf2hex(buffer: ArrayBuffer) {
 }
 
 export const StorageService = (db: DB, env: Env) => {
-    const region = env.S3_REGION;
     const endpoint = env.S3_ENDPOINT;
-    const accessKeyId = env.S3_ACCESS_KEY_ID;
-    const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
-    const accessHost = env.S3_ACCESS_HOST || endpoint;
     const bucket = env.S3_BUCKET;
     const folder = env.S3_FOLDER || '';
-    const forcePathStyle = env.S3_FORCE_PATH_STYLE === "true";
-    const s3 = new S3Client({
-        region: region,
-        endpoint: endpoint,
-        forcePathStyle: forcePathStyle,
-        credentials: {
-            accessKeyId: accessKeyId,
-            secretAccessKey: secretAccessKey
-        }
-    });
+    const accessHost = env.S3_ACCESS_HOST || endpoint;
+    const accessKeyId = env.S3_ACCESS_KEY_ID;
+    const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
+    const s3 = createS3Client(env);
     return new Elysia({ aot: false })
         .use(setup(db, env))
         .group('/storage', (group) =>
