@@ -1,10 +1,12 @@
 import { useContext, useEffect, useRef, useState } from "react"
+import { Helmet } from 'react-helmet'
 import { Link, useSearch } from "wouter"
 import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
 import { client } from "../main"
 import { ProfileContext } from "../state/profile"
 import { headersWithAuth } from "../utils/auth"
+import { siteName } from "../utils/constants"
 
 function tryInt(defaultValue: number, ...args: (string | number | undefined | null)[]): number {
     for (const v of args) {
@@ -74,8 +76,16 @@ export function FeedsPage() {
     }, [query.get("page"), query.get("type")])
     return (
         <>
+            <Helmet>
+                <title>{`${"文章"} - ${process.env.NAME}`}</title>
+                <meta property="og:site_name" content={siteName} />
+                <meta property="og:title" content={"文章"} />
+                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:type" content="article" />
+                <meta property="og:url" content={document.URL} />
+            </Helmet>
             <Waiting wait={feeds[listState].size > 0 || status === 'idle'}>
-                <div className="w-full flex flex-col justify-center items-center mb-8">
+                <main className="w-full flex flex-col justify-center items-center mb-8">
                     <div className="wauto text-start text-black dark:text-white p-4 text-4xl font-bold">
                         <p>
                             {listState === 'draft' ? "草稿箱" : listState === 'normal' ? "文章" : "未列出"}
@@ -116,7 +126,7 @@ export function FeedsPage() {
                             }
                         </div>
                     </Waiting>
-                </div>
+                </main>
             </Waiting>
         </>
     )

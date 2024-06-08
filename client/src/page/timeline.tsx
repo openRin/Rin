@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react"
+import { Helmet } from 'react-helmet'
 import { Link } from "wouter"
 import { Waiting } from "../components/loading"
 import { client } from "../main"
 import { headersWithAuth } from "../utils/auth"
+import { siteName } from "../utils/constants"
 
 export function TimelinePage() {
     const [feeds, setFeeds] = useState<Partial<Record<number, { id: number; title: string | null; createdAt: Date; }[]>>>()
@@ -26,8 +28,16 @@ export function TimelinePage() {
     }, [])
     return (
         <>
+            <Helmet>
+                <title>{`${"时间线"} - ${process.env.NAME}`}</title>
+                <meta property="og:site_name" content={siteName} />
+                <meta property="og:title" content={"时间线"} />
+                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:type" content="article" />
+                <meta property="og:url" content={document.URL} />
+            </Helmet>
             <Waiting wait={feeds}>
-                <div className="w-full flex flex-col justify-center items-center mb-8 px-4">
+                <main className="w-full flex flex-col justify-center items-center mb-8 px-4">
                     <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
                         <p>
                             时间轴
@@ -53,7 +63,7 @@ export function TimelinePage() {
                             </div>
                         </div>
                     ))}
-                </div>
+                </main>
             </Waiting>
         </>
     )

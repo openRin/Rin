@@ -6,6 +6,8 @@ import { Checkbox, Input } from '../components/input';
 import { Padding } from '../components/padding';
 import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
+import { Helmet } from 'react-helmet'
+import { siteName } from "../utils/constants";
 
 async function publish({ title, alias, listed, content, summary, tags, draft }: { title: string, listed: boolean, content: string, summary: string, tags: string[], draft: boolean, alias?: string }) {
   const { data, error } = await client.feed.index.post({
@@ -177,6 +179,14 @@ export function WritingPage({ id }: { id?: number }) {
 
   return (
     <Padding>
+      <Helmet>
+        <title>{`${"写作"} - ${process.env.NAME}`}</title>
+        <meta property="og:site_name" content={siteName} />
+        <meta property="og:title" content={"写作"} />
+        <meta property="og:image" content={process.env.AVATAR} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={document.URL} />
+      </Helmet>
       <div onDragOver={e => { e.preventDefault() }} onDragLeave={e => { e.preventDefault() }} onDrop={e => {
         e.preventDefault()
         for (let i = 0; i < e.dataTransfer.files.length; i++) {
