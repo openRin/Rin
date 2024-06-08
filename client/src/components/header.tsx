@@ -103,6 +103,8 @@ function Menu() {
                 </button>
             } position="bottom right"
                 nested
+                onOpen={() => document.body.style.overflow = "hidden"}
+                onClose={() => document.body.style.overflow = "auto"}
                 closeOnDocumentClick
                 closeOnEscape
                 overlayStyle={{ background: "rgba(0,0,0,0.3)" }}
