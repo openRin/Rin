@@ -205,7 +205,7 @@ export function WritingPage({ id }: { id?: number }) {
       }} className='flex flex-row justify-start t-primary'>
         <div className='xl:basis-1/4 transition-all duration-300' />
         <div className='writeauto xl:basis-11/12 pb-8'>
-          <div className='bg-w rounded-2xl shadow-xl shadow-color p-4'>
+          <div className='bg-w rounded-2xl shadow-xl shadow-light p-4'>
             <div className='visible md:hidden mb-8'>
               <Input id={id} name="title" value={title} setValue={setTitle} placeholder='标题' />
               <Input id={id} name="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
@@ -233,12 +233,12 @@ export function WritingPage({ id }: { id?: number }) {
             </div>
           </div>
           <div className='visible md:hidden flex flex-row justify-center mt-8'>
-            <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-color'>发布</button>
+            <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>发布</button>
           </div>
         </div>
         <div className='hidden md:visible basis-1/2 md:basis-1/4 md:flex flex-col'>
           <div className='fixed'>
-            <div className='bg-w rounded-2xl shadow-xl shadow-color p-4 my-8 mx-8'>
+            <div className='bg-w rounded-2xl shadow-xl shadow-light p-4 my-8 mx-8'>
               <Input id={id} name="title" value={title} setValue={setTitle} placeholder='标题' />
               <Input id={id} name="summary" value={summary} setValue={setSummary} placeholder='摘要' className='mt-4' />
               <Input id={id} name="tags" value={tags} setValue={setTags} placeholder='标签' className='mt-4' />
@@ -253,7 +253,7 @@ export function WritingPage({ id }: { id?: number }) {
               </div>
             </div>
             <div className='flex flex-row justify-center'>
-              <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-color'>发布</button>
+              <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>发布</button>
             </div>
           </div>
         </div>

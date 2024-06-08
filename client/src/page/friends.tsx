@@ -134,7 +134,7 @@ export function FriendsPage() {
                                 <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />
                                 <Input value={url} setValue={setUrl} placeholder="地址" className="my-2" />
                                 <div className='flex flex-row justify-center'>
-                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-color'>创建</button>
+                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>创建</button>
                                 </div>
                             </div>
                         </div>

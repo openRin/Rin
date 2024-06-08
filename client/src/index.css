@@ -9,6 +9,10 @@ textarea:focus {
   outline: none;
 }
 
+.popup-overlay {
+  pointer-events: visible !important;
+}
+
 .wmde-markdown {
   @apply bg-w;
 }
@@ -37,8 +41,12 @@ ul {
   @apply hover:bg-neutral-200 dark:hover:bg-neutral-600;
 }
 
-.shadow-color {
+.shadow-light {
   @apply shadow-neutral-200/30 dark:shadow-black/10;
+}
+
+.shadow-deep {
+  @apply shadow-neutral-200/70 dark:shadow-black/30;
 }
 
 .t-primary {
