@@ -21,6 +21,7 @@
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
     "react-loading": "^2.0.3",
+    "reactjs-popup": "^2.0.6",
     "remixicon": "^4.2.0",
     "rin-server": "workspace:../server",
     "typescript-cookie": "^1.0.6",
