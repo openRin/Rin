@@ -83,7 +83,8 @@ export async function rssCrontab(env: Env) {
             }
         }
     });
-    feed_list.forEach(async ({ summary, content, user, ...other }) => {
+    for(const f of feed_list) {
+        const { summary, content, user, ...other } = f;
         const file = await unified()
             .use(remarkParse)
             .use(remarkGfm)
@@ -101,7 +102,7 @@ export async function rssCrontab(env: Env) {
             author: [{ name: user.username }],
             image: extractImage(content) || user.avatar as string,
         });
-    });
+    }
     // save rss.xml to s3
     console.log('save rss.xml to s3');
     const bucket = env.S3_BUCKET;
