@@ -218,5 +218,21 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     tags: t.Optional(t.Array(t.String()))
                 })
             })
+            .delete('/:id', async ({ admin, set, uid, params: { id } }) => {
+                const id_num = parseInt(id);
+                const feed = await db.query.feeds.findFirst({
+                    where: eq(feeds.id, id_num)
+                });
+                if (!feed) {
+                    set.status = 404;
+                    return 'Not found';
+                }
+                if (feed.uid !== uid && !admin) {
+                    set.status = 403;
+                    return 'Permission denied';
+                }
+                await db.delete(feeds).where(eq(feeds.id, id_num));
+                return 'Deleted';
+            })
 
     );

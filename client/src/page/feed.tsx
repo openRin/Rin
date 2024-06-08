@@ -2,7 +2,8 @@ import { format } from "@astroimg/timeago";
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
-import { Icon, IconSmall } from "../components/icon";
+import Popup from "reactjs-popup";
+import { Link, useLocation } from "wouter";
 import { Waiting } from "../components/loading";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
@@ -33,6 +34,22 @@ export function FeedPage({ id }: { id: string }) {
     const [error, setError] = useState<string>()
     const [headImage, setHeadImage] = useState<string>()
     const ref = useRef("")
+    const [_, setLocation] = useLocation()
+    function deleteFeed() {
+        // 询问
+        if (!confirm("确定要删除这篇文章吗？")) return
+        if (!feed) return
+        client.feed({ id: feed.id }).delete(null, {
+            headers: headersWithAuth()
+        }).then(({ error }) => {
+            if (error) {
+                alert(error.value)
+            } else {
+                alert("删除成功")
+                setLocation('/')
+            }
+        })
+    }
     useEffect(() => {
         if (ref.current == id) return
         setFeed(undefined)
@@ -93,9 +110,22 @@ export function FeedPage({ id }: { id: string }) {
                                 <h1 className="text-xl font-bold t-primary">
                                     {feed.title}
                                 </h1>
-                                {profile?.permission && <div className="flex-1 flex flex-col items-end justify-center">
-                                    <Icon label="编辑" name="ri-edit-2-line ri-lg" onClick={() => window.location.href = `/writing/${feed.id}`} />
-                                </div>}
+                                <div className="flex-1 w-0" />
+                                {profile?.permission &&
+                                    <Popup arrow={false} trigger={
+                                        <button className="px-2 py bg-neutral-400/15 rounded-full">
+                                            <i className="ri-more-fill t-secondary"></i>
+                                        </button>
+                                    } position="bottom center">
+                                        <div className="flex flex-col self-end t-secondary mt-2 space-y-2">
+                                            <Link aria-label="编辑" href={`/writing/${feed.id}`} className="flex-1 flex flex-col items-end justify-center px-2 py bg-neutral-400/15 rounded-full">
+                                                <i className="ri-edit-2-line" />
+                                            </Link>
+                                            <button aria-label="删除" onClick={deleteFeed} className="flex-1 flex flex-col items-end justify-center px-2 py bg-neutral-400/15 rounded-full">
+                                                <i className="ri-delete-bin-7-line" />
+                                            </button>
+                                        </div>
+                                    </Popup>}
                             </div>
                             <div className="my-2">
                                 <p className="text-gray-400 text-sm" title={new Date(feed.createdAt).toLocaleString()}>
@@ -270,10 +300,21 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
                 <p className="t-primary">
                     {comment.content}
                 </p>
-                {(profile?.permission || profile?.id == comment.user.id) && <div className="flex flex-row self-end">
-                    <IconSmall label="删除评论" name="ri-delete-bin-2-line ri-sm" onClick={deleteComment} />
+                <div className="flex flex-row justify-end">
+                    {(profile?.permission || profile?.id == comment.user.id) &&
+                        <Popup arrow={false} trigger={
+                            <button className="px-2 py bg-neutral-400/15 rounded-full">
+                                <i className="ri-more-fill t-secondary"></i>
+                            </button>
+                        } position="left center">
+                            <div className="flex flex-row self-end mr-2">
+                                <button onClick={deleteComment} aria-label="删除评论" className="px-2 py bg-neutral-400/15 rounded-full">
+                                    <i className="ri-delete-bin-2-line t-secondary"></i>
+                                </button>
+                            </div>
+                        </Popup>
+                    }
                 </div>
-                }
             </div>
         </div>)
 }
