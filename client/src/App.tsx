@@ -12,23 +12,26 @@ import { WritingPage } from './page/writing'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { TimelinePage } from './page/timeline'
+import { getCookie } from 'typescript-cookie'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
   useEffect(() => {
     if (ref.current) return
-    client.user.profile.get({
-      headers: headersWithAuth()
-    }).then(({ data }) => {
-      if (data && typeof data != 'string') {
-        setProfile({
-          id: data.id,
-          avatar: data.avatar || '',
-          permission: data.permission,
-          name: data.username
-        })
-      }
-    })
+    if (getCookie('token')?.length ?? 0 > 0) {
+      client.user.profile.get({
+        headers: headersWithAuth()
+      }).then(({ data }) => {
+        if (data && typeof data != 'string') {
+          setProfile({
+            id: data.id,
+            avatar: data.avatar || '',
+            permission: data.permission,
+            name: data.username
+          })
+        }
+      })
+    }
     ref.current = true
   }, [])
   return (
