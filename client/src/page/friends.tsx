@@ -5,6 +5,8 @@ import { client } from "../main"
 import { ProfileContext } from "../state/profile"
 import { shuffleArray } from "../utils/array"
 import { headersWithAuth } from "../utils/auth"
+import { Helmet } from 'react-helmet'
+import { siteName } from "../utils/constants"
 
 
 type FriendItem = {
@@ -79,8 +81,16 @@ export function FriendsPage() {
     const friends_unavaliable = friends?.filter(({ health }) => health.length > 0) || []
     shuffleArray(friends_unavaliable)
     return (<>
+        <Helmet>
+            <title>{`${"朋友们"} - ${process.env.NAME}`}</title>
+            <meta property="og:site_name" content={siteName} />
+            <meta property="og:title" content={"朋友们"} />
+            <meta property="og:image" content={process.env.AVATAR} />
+            <meta property="og:type" content="article" />
+            <meta property="og:url" content={document.URL} />
+        </Helmet>
         <Waiting wait={friends}>
-            <div className="w-full flex flex-col justify-center items-center mb-8 t-primary">
+            <main className="w-full flex flex-col justify-center items-center mb-8 t-primary">
                 {friends_avaliable.length > 0 &&
                     <>
                         <div className="wauto text-start py-4 text-4xl font-bold">
@@ -130,7 +140,7 @@ export function FriendsPage() {
                         </div>
                     </div>
                 }
-            </div>
+            </main>
         </Waiting>
     </>)
 }
