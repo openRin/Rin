@@ -9,6 +9,11 @@ import * as schema from "../db/schema";
 import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
 import { createS3Client } from "../utils/s3";
+import remarkGfm from "remark-gfm";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
 
 export const RSSService = (env: Env) => {
     const endpoint = env.S3_ENDPOINT;
@@ -78,14 +83,21 @@ export async function rssCrontab(env: Env) {
             }
         }
     });
-    feed_list.forEach(({ summary, content, user, ...other }) => {
+    feed_list.forEach(async ({ summary, content, user, ...other }) => {
+        const file = await unified()
+            .use(remarkParse)
+            .use(remarkGfm)
+            .use(remarkRehype)
+            .use(rehypeStringify)
+            .process(content)
+        let contentHtml = file.toString()
         feed.addItem({
             title: other.title || "No title",
             id: other.id?.toString() || "0",
             link: `${frontendUrl}/feed/${other.id}`,
             date: other.createdAt,
             description: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
-            content: content,
+            content: contentHtml,
             author: [{ name: user.username }],
             image: extractImage(content) || user.avatar as string,
         });
