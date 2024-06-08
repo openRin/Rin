@@ -17,6 +17,7 @@ export interface Env {
     S3_FOLDER: string,
     S3_CACHE_FOLDER: string,
     WEBHOOK_URL: string,
+    S3_FORCE_PATH_STYLE: string,
 }
 
 export function db(env: Env) {

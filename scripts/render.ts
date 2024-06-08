@@ -12,6 +12,7 @@ const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
 const accessHost = env.S3_ACCESS_HOST || endpoint;
 const bucket = env.S3_BUCKET;
 const folder = env.S3_CACHE_FOLDER || 'cache/';
+const forcePathStyle = env.S3_FORCE_PATH_STYLE === "true";
 if (!baseUrl) {
     throw new Error('SEO_BASE_URL is not defined');
 }
@@ -33,6 +34,7 @@ if (!bucket) {
 const s3 = new S3Client({
     region: region,
     endpoint: endpoint,
+    forcePathStyle: forcePathStyle,
     credentials: {
         accessKeyId: accessKeyId,
         secretAccessKey: secretAccessKey

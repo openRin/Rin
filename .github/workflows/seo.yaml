@@ -41,6 +41,7 @@ jobs:
           S3_ACCESS_HOST: ${{ vars.S3_ACCESS_HOST }}
           S3_BUCKET: ${{ vars.S3_BUCKET }}
           S3_CACHE_FOLDER: ${{ vars.S3_CACHE_FOLDER }}
+          S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
         run: |
           cd Rin/
           bun i

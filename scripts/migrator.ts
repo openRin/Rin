@@ -24,6 +24,7 @@ const S3_BUCKET = env("S3_BUCKET", "")
 const S3_CACHE_FOLDER = renv("S3_CACHE_FOLDER", 'cache/')
 const S3_FOLDER = renv("S3_FOLDER", 'images/')
 const S3_REGION = renv("S3_REGION", "auto")
+const S3_FORCE_PATH_STYLE = env("S3_FORCE_PATH_STYLE", "false")
 
 // Secrets
 const accessKeyId = env("S3_ACCESS_KEY_ID")
@@ -51,6 +52,7 @@ S3_REGION = "${S3_REGION}"
 S3_ENDPOINT = "${S3_ENDPOINT}"
 S3_ACCESS_HOST = "${S3_ACCESS_HOST}"
 S3_BUCKET = "${S3_BUCKET}"
+S3_FORCE_PATH_STYLE = "${S3_FORCE_PATH_STYLE}"
 
 [placement]
 mode = "smart"

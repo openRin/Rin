@@ -19,9 +19,11 @@ export const StorageService = (db: DB, env: Env) => {
     const accessHost = env.S3_ACCESS_HOST || endpoint;
     const bucket = env.S3_BUCKET;
     const folder = env.S3_FOLDER || '';
+    const forcePathStyle = env.S3_FORCE_PATH_STYLE === "true";
     const s3 = new S3Client({
         region: region,
         endpoint: endpoint,
+        forcePathStyle: true,
         credentials: {
             accessKeyId: accessKeyId,
             secretAccessKey: secretAccessKey
