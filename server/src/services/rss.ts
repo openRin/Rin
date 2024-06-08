@@ -8,7 +8,41 @@ import * as schema from "../db/schema";
 import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
 import { createS3Client } from "../utils/s3";
+import Elysia from "elysia";
+import type { DB } from "../_worker";
+import { setup } from "../setup";
 
+export const RSSService = (db: DB, env: Env) => {
+    const endpoint = env.S3_ENDPOINT;
+    const accessHost = env.S3_ACCESS_HOST || endpoint;
+    const folder = env.S3_CACHE_FOLDER || 'cache/';
+    return new Elysia({ aot: false })
+        .use(setup(db, env))
+        .get('/sub/:name', async ({ set, params: { name } }) => {
+            if (!accessHost) {
+                set.status = 500;
+                return 'S3_ACCESS_HOST is not defined'
+            }
+            if (name === 'rss.xml' || name === 'atom.xml' || name === 'rss.json') {
+                const key = path.join(folder, name);
+                try {
+                    const url = `${accessHost}/${key}`;
+                    console.log(`Fetching ${url}`);
+                    const response = await fetch(new Request(url))
+                    return new Response(response.body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                    });
+                } catch (e: any) {
+                    console.error(e);
+                    set.status = 500;
+                    return e.message;
+                }
+            }
+            set.status = 404;
+            return 'Not Found';
+        })
+}
 
 export async function rssCrontab(env: Env) {
     const frontendUrl = env.FRONTEND_URL;
@@ -60,6 +94,7 @@ export async function rssCrontab(env: Env) {
         });
     });
     // save rss.xml to s3
+    console.log('save rss.xml to s3');
     const bucket = env.S3_BUCKET;
     const folder = env.S3_CACHE_FOLDER || 'cache/';
     const s3 = createS3Client(env);
@@ -72,6 +107,9 @@ export async function rssCrontab(env: Env) {
         }
     }
     await save('rss.xml', feed.rss2());
+    console.log('Saved atom.xml to s3');
     await save('atom.xml', feed.atom1());
+    console.log('Saved rss.json to s3');
     await save('rss.json', feed.json1());
+    console.log('Saved rss.xml to s3');
 }
