@@ -113,15 +113,15 @@ export function FeedPage({ id }: { id: string }) {
                                 <div className="flex-1 w-0" />
                                 {profile?.permission &&
                                     <Popup arrow={false} trigger={
-                                        <button className="px-2 py bg-neutral-400/15 rounded-full">
+                                        <button className="px-2 py bg-secondary rounded-full">
                                             <i className="ri-more-fill t-secondary"></i>
                                         </button>
                                     } position="bottom center">
                                         <div className="flex flex-col self-end t-secondary mt-2 space-y-2">
-                                            <Link aria-label="编辑" href={`/writing/${feed.id}`} className="flex-1 flex flex-col items-end justify-center px-2 py bg-neutral-400/15 rounded-full">
+                                            <Link aria-label="编辑" href={`/writing/${feed.id}`} className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary rounded-full">
                                                 <i className="ri-edit-2-line" />
                                             </Link>
-                                            <button aria-label="删除" onClick={deleteFeed} className="flex-1 flex flex-col items-end justify-center px-2 py bg-neutral-400/15 rounded-full">
+                                            <button aria-label="删除" onClick={deleteFeed} className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary rounded-full">
                                                 <i className="ri-delete-bin-7-line" />
                                             </button>
                                         </div>
@@ -303,12 +303,12 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
                 <div className="flex flex-row justify-end">
                     {(profile?.permission || profile?.id == comment.user.id) &&
                         <Popup arrow={false} trigger={
-                            <button className="px-2 py bg-neutral-400/15 rounded-full">
+                            <button className="px-2 py bg-secondary rounded-full">
                                 <i className="ri-more-fill t-secondary"></i>
                             </button>
                         } position="left center">
                             <div className="flex flex-row self-end mr-2">
-                                <button onClick={deleteComment} aria-label="删除评论" className="px-2 py bg-neutral-400/15 rounded-full">
+                                <button onClick={deleteComment} aria-label="删除评论" className="px-2 py bg-secondary rounded-full">
                                     <i className="ri-delete-bin-2-line t-secondary"></i>
                                 </button>
                             </div>
