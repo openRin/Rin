@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
+import { getCookie } from 'typescript-cookie'
 import { DefaultParams, PathPattern, Route, RouteProps, Switch } from 'wouter'
 import Footer from './components/footer'
 import { Header } from './components/header'
 import { Padding } from './components/padding'
 import { client } from './main'
 import { CallbackPage } from './page/callback'
-import { FeedPage } from './page/feed'
+import { FeedPage, TOCHeader } from './page/feed'
 import { FeedsPage } from './page/feeds'
 import { FriendsPage } from './page/friends'
+import { TimelinePage } from './page/timeline'
 import { WritingPage } from './page/writing'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
-import { TimelinePage } from './page/timeline'
-import { getCookie } from 'typescript-cookie'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
@@ -46,9 +46,19 @@ function App() {
             <TimelinePage />
           </RouteMe>
 
-          <RouteMe path="/feed/:id">
-            {params => <FeedPage id={params.id} />}
-          </RouteMe>
+          <Route path="/feed/:id" >
+            {params => {
+              return (<>
+                <Header>
+                  <TOCHeader />
+                </Header>
+                <Padding className='mx-4'>
+                  <FeedPage id={params.id} />
+                </Padding>
+                <Footer />
+              </>)
+            }}
+          </Route>
 
           <RouteMe path="/writing">
             <WritingPage />
@@ -102,5 +112,4 @@ function RouteMe<
     </Route>
   )
 }
-
 export default App
