@@ -1,11 +1,12 @@
 import { useContext, useEffect, useRef, useState } from "react"
+import { Helmet } from 'react-helmet'
+import Popup from "reactjs-popup"
 import { Input } from "../components/input"
 import { Waiting } from "../components/loading"
 import { client } from "../main"
 import { ProfileContext } from "../state/profile"
 import { shuffleArray } from "../utils/array"
 import { headersWithAuth } from "../utils/auth"
-import { Helmet } from 'react-helmet'
 import { siteName } from "../utils/constants"
 
 
@@ -146,16 +147,78 @@ export function FriendsPage() {
 }
 
 function Friend({ friend }: { friend: FriendItem }) {
+    const profile = useContext(ProfileContext)
+    const [avatar, setAvatar] = useState(friend.avatar)
+    const [name, setName] = useState(friend.name)
+    const [desc, setDesc] = useState(friend.desc || "")
+    const [url, setUrl] = useState(friend.url)
+    function deleteFriend() {
+        if (confirm("确定删除吗？")) {
+            client.friend({ id: friend.id }).delete(friend.id, {
+                headers: headersWithAuth()
+            }).then(({ error }) => {
+                if (error) {
+                    alert(error.value)
+                } else {
+                    alert("删除成功")
+                    window.location.reload()
+                }
+            })
+        }
+    }
+    function updateFriend() {
+        client.friend({ id: friend.id }).put({
+            avatar,
+            name,
+            desc,
+            url
+        }, {
+            headers: headersWithAuth()
+        }).then(({ error }) => {
+            if (error) {
+                alert(error.value)
+            } else {
+                alert("更新成功")
+                window.location.reload()
+            }
+        })
+    }
     return (
         <>
-            <div title={friend.health} onClick={() => window.open(friend.url)} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-start items-center">
+            <div title={friend.health} onClick={(e) => { console.log(e); window.open(friend.url) }} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-start items-center relative">
                 <div className="w-16 h-16">
                     <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
                 <p className="text-base text-center">{friend.name}</p>
                 {friend.health.length == 0 && <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>}
                 {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
-            </div>
+                {profile?.permission && <Popup
+                    trigger={<button className="absolute top-0 right-0 m-2 px-2 py-1 bg-secondary t-primary rounded-full bg-hover">
+                        <i className="ri-settings-line"></i>
+                    </button>
+                    }
+                    modal
+                    closeOnDocumentClick
+                    closeOnEscape
+                    lockScroll
+                    overlayStyle={{ background: "rgba(0,0,0,0.3)" }}
+
+                >
+                    <div className="w-[80vw] sm:w-[60vw] md:w-[50vw] lg:w-[40vw] xl:w-[30vw] bg-w rounded-xl p-4 flex flex-col justify-start items-center relative">
+                        <div className="w-16 h-16">
+                            <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
+                        </div>
+                        <Input value={name} setValue={setName} placeholder="站点名称" />
+                        <Input value={desc} setValue={setDesc} placeholder="描述" className="mt-2" />
+                        <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />
+                        <Input value={url} setValue={setUrl} placeholder="地址" className="my-2" />
+                        <div className='flex flex-row justify-center space-x-2'>
+                            <button onClick={deleteFriend} className="bg-secondary text-theme rounded-full bg-hover px-4 py-2 mt-2">删除</button>
+                            <button onClick={updateFriend} className="bg-secondary t-primary rounded-full bg-hover px-4 py-2 mt-2">保存</button>
+                        </div>
+                    </div >
+                </Popup >}
+            </div >
         </>
     )
 }
