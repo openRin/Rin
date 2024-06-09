@@ -8,6 +8,7 @@ import App from './App'
 import './index.css'
 import { siteName } from './utils/constants'
 import { listenSystemMode } from './utils/darkModeUtils'
+import Modal from 'react-modal';
 
 export const endpoint = process.env.API_URL || 'http://localhost:3001'
 export const oauth_url = process.env.OAUTH_URL || (process.env.API_URL + '/user/github')
@@ -21,3 +22,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>
 )
+Modal.setAppElement('#root');
