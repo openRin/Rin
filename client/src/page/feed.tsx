@@ -252,8 +252,8 @@ export function TOCHeader() {
                     })
                 }}
             >
-                <div className="rounded-2xl bg-w py-4 px-4 fixed w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative" >
-                    <h1 className="text-xl font-bold t-primary">
+                <div className="rounded-2xl bg-w py-4 px-4 fixed w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary" >
+                    <h1 className="text-xl font-bold">
                         目录
                     </h1>
                     {empty && <p className="text-gray-400 text-sm mt-2">目录为空</p>}
@@ -267,8 +267,8 @@ export function TOCHeader() {
 
 export function TOC({ empty }: { empty: boolean }) {
     return (
-        <div className={`rounded-2xl bg-w mt-2 py-4 px-4 fixed start-0 end-0`} style={{ position: 'sticky', top: '150px' }}>
-            <h1 className="text-xl font-bold t-primary">
+        <div className={`rounded-2xl bg-w mt-2 py-4 px-4 fixed start-0 end-0  t-primary`} style={{ position: 'sticky', top: '150px' }}>
+            <h1 className="text-xl font-bold">
                 目录
             </h1>
             {empty && <p className="text-gray-400 text-sm mt-2">目录为空</p>}
