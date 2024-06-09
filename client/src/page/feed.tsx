@@ -37,6 +37,7 @@ export function FeedPage({ id }: { id: string }) {
     const [headImage, setHeadImage] = useState<string>()
     const ref = useRef("")
     const [_, setLocation] = useLocation()
+    const [empty, setEmpty] = useState(true)
     function deleteFeed() {
         // 询问
         if (!confirm("确定要删除这篇文章吗？")) return
@@ -58,7 +59,10 @@ export function FeedPage({ id }: { id: string }) {
             tocSelector: '.toc',
             contentSelector: '.toc-content',
             headingSelector: 'h1, h2, h3',
-            hasInnerContainers: true
+            headingLabelCallback(headingLabel) {
+                setEmpty(false)
+                return headingLabel
+            },
         })
         setFeed(undefined)
         setError(undefined)
@@ -102,7 +106,7 @@ export function FeedPage({ id }: { id: string }) {
                     <meta name="description" content={feed.content.length > 200 ? feed.content.substring(0, 200) : feed.content} />
                 </Helmet>
             }
-            <div className="w-full flex flex-col justify-center items-center">
+            <div className="w-full flex flex-row justify-center">
                 {error &&
                     <>
                         <div className="flex flex-col wauto rounded-2xl bg-w m-2 p-6 items-center justify-center">
@@ -115,8 +119,8 @@ export function FeedPage({ id }: { id: string }) {
                         </div>
                     </>
                 }
-                {feed &&
-                    <div className="flex flex-row justify-center">
+                {feed && !error &&
+                    <>
                         <div className="xl:w-64" />
                         <main className="wauto">
                             <article className="rounded-2xl bg-w m-2 p-6" aria-label="正文">
@@ -173,10 +177,10 @@ export function FeedPage({ id }: { id: string }) {
                             {feed && <Comments id={id} />}
                             <div className="h-16" />
                         </main>
-                        <div className="w-80 hidden lg:block" >
-                            <TOC />
+                        <div className="w-80 hidden lg:block relative" >
+                            <TOC empty={empty} />
                         </div>
-                    </div>
+                    </>
                 }
             </div>
         </Waiting>
@@ -185,18 +189,23 @@ export function FeedPage({ id }: { id: string }) {
 
 export function TOCHeader() {
     const [isOpened, setIsOpened] = useState(false)
+    const [empty, setEmpty] = useState(true)
     return (
         <div className="lg:hidden" >
             <button onClick={
                 () => {
                     setIsOpened(true)
-                    console.log("open")
                     setTimeout(() => {
                         console.log("refresh")
                         tocbot.init({
                             tocSelector: '.toc2',
                             contentSelector: '.toc-content',
                             headingSelector: 'h1, h2, h3',
+                            hasInnerContainers: true,
+                            headingLabelCallback(headingLabel) {
+                                setEmpty(false)
+                                return headingLabel
+                            },
                         })
                     }, 0)
                 }
@@ -233,14 +242,19 @@ export function TOCHeader() {
                             tocSelector: '.toc',
                             contentSelector: '.toc-content',
                             headingSelector: 'h1, h2, h3',
+                            headingLabelCallback(headingLabel) {
+                                setEmpty(false)
+                                return headingLabel
+                            },
                         })
                     })
                 }}
             >
-                <div className="rounded-2xl bg-w py-4 px-4 fixed lg:max-w-64 w-full overflow-clip relative" >
+                <div className="rounded-2xl bg-w py-4 px-4 fixed w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative" >
                     <h1 className="text-xl font-bold t-primary">
                         目录
                     </h1>
+                    {empty && <p className="text-gray-400 text-sm mt-2">目录为空</p>}
                     <div className="toc toc2 mt-2" >
                     </div>
                 </div >
@@ -249,15 +263,17 @@ export function TOCHeader() {
     )
 }
 
-export function TOC({ className = "" }: { className?: string }) {
+export function TOC({ empty }: { empty: boolean }) {
     return (
-        <div className={`rounded-2xl bg-w mt-2 py-4 px-4 fixed lg:max-w-64 ${className}`} >
+        <div className={`rounded-2xl bg-w mt-2 py-4 px-4 fixed start-0 end-0`} style={{ position: 'sticky', top: '150px' }}>
             <h1 className="text-xl font-bold t-primary">
                 目录
             </h1>
-            <div className="toc mt-2" >
+            {empty && <p className="text-gray-400 text-sm mt-2">目录为空</p>}
+            <div className="toc mt-2">
             </div>
-        </div >)
+        </div>
+    )
 }
 
 function CommentInput({ id, onRefresh }: { id: string, onRefresh: () => void }) {

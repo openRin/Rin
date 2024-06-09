@@ -52,7 +52,7 @@ function App() {
                 <Header>
                   <TOCHeader />
                 </Header>
-                <Padding>
+                <Padding className='mx-4'>
                   <FeedPage id={params.id} />
                 </Padding>
                 <Footer />
