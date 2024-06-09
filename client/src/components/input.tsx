@@ -9,7 +9,7 @@ export function Input({ value, setValue, className, placeholder, id, name }: { v
             if (name)
                 Cache.with(id).set(name, event.target.value)
         }}
-        className={'w-full py-2 px-4 rounded-xl bg-w ' + className} />
+        className={'w-full py-2 px-4 rounded-xl bg-w t-primary ' + className} />
     )
 }
 export function Checkbox({ value, setValue, className, placeholder }: { value: boolean, className?: string, placeholder: string, id: string, setValue: React.Dispatch<React.SetStateAction<boolean>> }) {

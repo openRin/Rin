@@ -77,12 +77,15 @@ export const FriendService = (db: DB, env: Env) => new Elysia({ aot: false })
                 if (!admin) {
                     accepted = 0;
                 }
+                function wrap(s: string | undefined) {
+                    return s ? s.length === 0 ? undefined : s : undefined;
+                }
                 await db.update(friends).set({
-                    name,
-                    desc,
-                    avatar,
-                    url,
-                    accepted,
+                    name: wrap(name),
+                    desc: wrap(desc),
+                    avatar: wrap(avatar),
+                    url: wrap(url),
+                    accepted: accepted === undefined ? undefined : accepted,
                 }).where(eq(friends.id, parseInt(id)));
                 return 'OK';
             }, {
