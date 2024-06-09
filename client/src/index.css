@@ -30,6 +30,13 @@ textarea:focus {
   @apply bg-w;
 }
 
+.wmde-markdown img {
+  @apply rounded-lg;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 ol {
   list-style: decimal;
 }
