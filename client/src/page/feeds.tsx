@@ -86,7 +86,7 @@ export function FeedsPage() {
             </Helmet>
             <Waiting wait={feeds[listState].size > 0 || status === 'idle'}>
                 <main className="w-full flex flex-col justify-center items-center mb-8">
-                    <div className="wauto text-start text-black dark:text-white p-4 text-4xl font-bold">
+                    <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
                         <p>
                             {listState === 'draft' ? "草稿箱" : listState === 'normal' ? "文章" : "未列出"}
                         </p>
