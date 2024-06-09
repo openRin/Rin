@@ -58,7 +58,8 @@ export function FeedPage({ id }: { id: string }) {
         tocbot.init({
             tocSelector: '.toc',
             contentSelector: '.toc-content',
-            headingSelector: 'h1, h2, h3',
+            headingSelector: 'h1, h2, h3, h4, h5, h6',
+            collapseDepth: 2,
             headingLabelCallback(headingLabel) {
                 setEmpty(false)
                 return headingLabel
@@ -200,8 +201,8 @@ export function TOCHeader() {
                         tocbot.init({
                             tocSelector: '.toc2',
                             contentSelector: '.toc-content',
-                            headingSelector: 'h1, h2, h3',
-                            hasInnerContainers: true,
+                            headingSelector: 'h1, h2, h3, h4, h5, h6',
+                            collapseDepth: 2,
                             headingLabelCallback(headingLabel) {
                                 setEmpty(false)
                                 return headingLabel
@@ -241,7 +242,8 @@ export function TOCHeader() {
                         tocbot.init({
                             tocSelector: '.toc',
                             contentSelector: '.toc-content',
-                            headingSelector: 'h1, h2, h3',
+                            headingSelector: 'h1, h2, h3, h4, h5, h6',
+                            collapseDepth: 2,
                             headingLabelCallback(headingLabel) {
                                 setEmpty(false)
                                 return headingLabel
