@@ -65,19 +65,19 @@ ul {
   @apply !border-l-0 border-0 rounded-lg !py-4 my-4 !px-4 !leading-snug;
 }
 .markdown-alert-note {
-  @apply !border-indigo-100 bg-indigo-50 !text-indigo-400  ;
+  @apply !border-indigo-100 bg-indigo-50 !text-indigo-400;
 }
 .markdown-alert-warning {
-  @apply !border-yellow-100 bg-yellow-50 !text-yellow-400 ;
+  @apply !border-yellow-100 bg-yellow-50 !text-yellow-400;
 }
 .markdown-alert-tip {
-  @apply !border-green-100 bg-green-50 !text-green-400 ;
+  @apply !border-green-100 bg-green-50 !text-green-400;
 }
 .markdown-alert-important {
-  @apply !border-purple-100 bg-purple-50 !text-purple-400 ;
+  @apply !border-purple-100 bg-purple-50 !text-purple-400;
 }
 .markdown-alert-caution {
-  @apply !border-red-100 bg-red-50 !text-red-400 ;
+  @apply !border-red-100 bg-red-50 !text-red-400;
 }
 .markdown-alert-title {
   @apply !mb-2 !text-inherit !font-bold;
@@ -104,4 +104,63 @@ ul {
 }
 .popup-content {
   animation: anvil 0.3s cubic-bezier(0.38, 0.1, 0.36, 0.9) forwards;
+}
+
+/* TOC Style */
+
+.toc {
+  overflow-y: auto;
+}
+
+.toc > .toc-list {
+  overflow: hidden;
+  position: relative;
+}
+
+.toc > .toc-list li {
+  list-style: none;
+}
+
+.toc-list {
+  margin: 0;
+  padding-left: 10px;
+}
+
+a.toc-link {
+  color: currentColor;
+  height: 100%;
+}
+
+.is-collapsible {
+  max-height: 1000px;
+  overflow: hidden;
+  transition: all 300ms ease-in-out;
+}
+
+.is-collapsed {
+  max-height: 0;
+}
+
+.is-position-fixed {
+  position: fixed !important;
+  top: 0;
+}
+
+.is-active-link {
+  font-weight: 700;
+}
+
+.toc-link::before {
+  background-color: #eee;
+  content: " ";
+  display: inline-block;
+  height: inherit;
+  left: 0;
+  margin-top: -1px;
+  position: absolute;
+  width: 2px;
+}
+
+.is-active-link::before {
+  @apply bg-theme;
 }

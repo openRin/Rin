@@ -8,7 +8,7 @@ import { Icon } from "./icon";
 import { Padding } from "./padding";
 
 
-export function Header() {
+export function Header({ children }: { children?: React.ReactNode }) {
     const profile = useContext(ProfileContext);
     const [location, _] = useLocation();
     return (
@@ -46,6 +46,7 @@ export function Header() {
                                     {profile?.permission && <NavItem title="写作" selected={location.startsWith("/writing")} href="/writing" />}
                                     <NavItem title="朋友们" selected={location === "/friends"} href="/friends" />
                                     <NavItem title="关于" selected={location === "/about"} href="/about" />
+                                    {children}
                                     <Menu />
                                 </div>
                             </div>
