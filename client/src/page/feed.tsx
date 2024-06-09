@@ -91,7 +91,7 @@ export function FeedPage({ id }: { id: string }) {
         ref.current = id
     }, [id])
     return (
-        <Waiting wait={feed || error}>
+        <Waiting for={feed || error}>
             {feed &&
                 <Helmet>
                     <title>{`${feed.title ?? "Unnamed"} - ${process.env.NAME}`}</title>
