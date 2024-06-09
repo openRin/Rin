@@ -53,20 +53,26 @@ async function publish({ name, avatar, desc, url }: { name: string, avatar: stri
 }
 
 export function FriendsPage() {
-    let [friends, setFriends] = useState<FriendItem[]>()
     let [_, setApply] = useState<ApplyItem>()
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
     const [avatar, setAvatar] = useState("")
     const [url, setUrl] = useState("")
     const profile = useContext(ProfileContext);
+    const [friendsAvailable, setFriendsAvailable] = useState<FriendItem[]>([])
+    const [friendsUnavailable, setFriendsUnavailable] = useState<FriendItem[]>([])
 
     const ref = useRef(false)
     useEffect(() => {
         if (ref.current) return
         client.friend.index.get().then(({ data }) => {
             if (data) {
-                setFriends(data.friend_list)
+                const friends_avaliable = data.friend_list?.filter(({ health }) => health.length === 0) || []
+                shuffleArray(friends_avaliable)
+                setFriendsAvailable(friends_avaliable)
+                const friends_unavaliable = data.friend_list?.filter(({ health }) => health.length > 0) || []
+                shuffleArray(friends_unavaliable)
+                setFriendsUnavailable(friends_unavaliable)
                 if (data.apply_list)
                     setApply(data.apply_list)
             }
@@ -77,10 +83,6 @@ export function FriendsPage() {
     function publishButton() {
         publish({ name, desc, avatar, url })
     }
-    const friends_avaliable = friends?.filter(({ health }) => health.length === 0) || []
-    shuffleArray(friends_avaliable)
-    const friends_unavaliable = friends?.filter(({ health }) => health.length > 0) || []
-    shuffleArray(friends_unavaliable)
     return (<>
         <Helmet>
             <title>{`${"朋友们"} - ${process.env.NAME}`}</title>
@@ -90,9 +92,9 @@ export function FriendsPage() {
             <meta property="og:type" content="article" />
             <meta property="og:url" content={document.URL} />
         </Helmet>
-        <Waiting wait={friends}>
+        <Waiting for={friendsAvailable || friendsUnavailable}>
             <main className="w-full flex flex-col justify-center items-center mb-8 t-primary">
-                {friends_avaliable.length > 0 &&
+                {friendsAvailable.length > 0 &&
                     <>
                         <div className="wauto text-start py-4 text-4xl font-bold">
                             <p>
@@ -103,13 +105,13 @@ export function FriendsPage() {
                             </p>
                         </div>
                         <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {friends_avaliable.map((friend) => (
+                            {friendsAvailable.map((friend) => (
                                 <Friend key={friend.id} friend={friend} />
                             ))}
                         </div>
                     </>
                 }
-                {friends_unavaliable.length > 0 &&
+                {friendsUnavailable.length > 0 &&
                     <>
                         <div className="wauto text-start py-4">
                             <p className="text-sm mt-4 text-neutral-500 font-normal">
@@ -117,7 +119,7 @@ export function FriendsPage() {
                             </p>
                         </div>
                         <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {friends_unavaliable.map((friend) => (
+                            {friendsUnavailable.map((friend) => (
                                 <Friend key={friend.id} friend={friend} />
                             ))}
                         </div>
