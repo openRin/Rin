@@ -2,11 +2,10 @@ import "@uiw/react-markdown-preview/markdown.css";
 import MDEditor, { ContextStore, getCommands, TextAreaTextApi } from '@uiw/react-md-editor';
 import "@uiw/react-md-editor/markdown-editor.css";
 import { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import { Checkbox, Input } from '../components/input';
-import { Padding } from '../components/padding';
 import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
-import { Helmet } from 'react-helmet'
 import { siteName } from "../utils/constants";
 
 async function publish({ title, alias, listed, content, summary, tags, draft }: { title: string, listed: boolean, content: string, summary: string, tags: string[], draft: boolean, alias?: string }) {
@@ -176,9 +175,9 @@ export function WritingPage({ id }: { id?: number }) {
       })
     }
   }, [])
-
+  const [drag, setDrag] = useState(false)
   return (
-    <Padding>
+    <>
       <Helmet>
         <title>{`${"写作"} - ${process.env.NAME}`}</title>
         <meta property="og:site_name" content={siteName} />
@@ -187,22 +186,7 @@ export function WritingPage({ id }: { id?: number }) {
         <meta property="og:type" content="article" />
         <meta property="og:url" content={document.URL} />
       </Helmet>
-      <div onDragOver={e => { e.preventDefault() }} onDragLeave={e => { e.preventDefault() }} onDrop={e => {
-        e.preventDefault()
-        for (let i = 0; i < e.dataTransfer.files.length; i++) {
-          const file = e.dataTransfer.files[i]
-          uploadImage(file, (url) => {
-            const textInput: HTMLInputElement | null = document.querySelector('.w-md-editor-text-input');
-            if (!textInput) return;
-            textInput.focus();
-            document.execCommand(
-              "insertText",
-              false,
-              `![${file.name}](${url})\n`
-            );
-          })
-        }
-      }} className='flex flex-row justify-start t-primary'>
+      <div className='flex flex-row justify-start t-primary'>
         <div className='xl:basis-1/4 transition-all duration-300' />
         <div className='writeauto xl:basis-11/12 pb-8'>
           <div className='bg-w rounded-2xl shadow-xl shadow-light p-4'>
@@ -220,7 +204,29 @@ export function WritingPage({ id }: { id?: number }) {
                 <Checkbox id="listed" value={listed} setValue={setListed} placeholder='列出' />
               </div>
             </div>
-            <div className='mx-4 my-2 md:mx-0 md:my-0'>
+            <div onDragOver={e => {
+              e.preventDefault();
+              setDrag(true)
+            }} onDragLeave={e => {
+              e.preventDefault();
+              setDrag(false)
+            }} onDrop={e => {
+              e.preventDefault()
+              setDrag(false)
+              for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                const file = e.dataTransfer.files[i]
+                uploadImage(file, (url) => {
+                  const textInput: HTMLInputElement | null = document.querySelector('.w-md-editor-text-input');
+                  if (!textInput) return;
+                  textInput.focus();
+                  document.execCommand(
+                    "insertText",
+                    false,
+                    `![${file.name}](${url})\n`
+                  );
+                })
+              }
+            }} className='mx-4 my-2 md:mx-0 md:my-0 relative'>
               <MDEditor height={500} value={content} onPaste={handlePaste}
                 commands={[
                   ...getCommands(),
@@ -230,6 +236,9 @@ export function WritingPage({ id }: { id?: number }) {
                   cache.set('content', data ?? '')
                   setContent(data ?? '')
                 }} />
+              <div className={`absolute bg-theme/10 t-secondary text-xl top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center ${drag ? "" : "hidden"}`}>
+                拖拽图片到这里上传
+              </div>
             </div>
           </div>
           <div className='visible md:hidden flex flex-row justify-center mt-8'>
@@ -258,7 +267,7 @@ export function WritingPage({ id }: { id?: number }) {
           </div>
         </div>
       </div>
-    </Padding>
+    </>
   )
 }
 
