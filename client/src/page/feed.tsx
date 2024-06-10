@@ -410,7 +410,7 @@ function CommentItem({ comment, onRefresh }: { comment: Comment, onRefresh: () =
                         {format(comment.createdAt)}
                     </span>
                 </div>
-                <p className="t-primary">
+                <p className="t-primary break-words">
                     {comment.content}
                 </p>
                 <div className="flex flex-row justify-end">
