@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getCookie } from 'typescript-cookie'
-import { DefaultParams, PathPattern, Route, RouteProps, Switch } from 'wouter'
+import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
 import Footer from './components/footer'
 import { Header } from './components/header'
 import { Padding } from './components/padding'
@@ -13,6 +13,7 @@ import { TimelinePage } from './page/timeline'
 import { WritingPage } from './page/writing'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
+import { tryInt } from './utils/int'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
@@ -46,55 +47,42 @@ function App() {
             <TimelinePage />
           </RouteMe>
 
-
-          <RouteMe path="/writing">
-            <WritingPage />
-          </RouteMe>
+          
           <RouteMe path="/friends">
             <FriendsPage />
           </RouteMe>
 
-          <RouteMe path="/writing/:id">
+
+          <RouteMe path="/writing" paddingClassName='mx-4'>
+            <WritingPage />
+          </RouteMe>
+          
+          <RouteMe path="/writing/:id" paddingClassName='mx-4'>
             {({ id }) => {
-              const id_num = parseInt(id)
+              const id_num = tryInt(0, id)
               return (
                 <WritingPage id={id_num} />
               )
-            }
-            }
+            }}
           </RouteMe>
 
           <RouteMe path="/callback" >
             <CallbackPage />
           </RouteMe>
 
-          <Route path="/feed/:id" >
+          <RouteMe path="/feed/:id" headerComponent={TOCHeader()} paddingClassName='mx-4'>
             {params => {
-              return (<>
-                <Header>
-                  <TOCHeader />
-                </Header>
-                <Padding className='mx-4'>
-                  <FeedPage id={params.id} />
-                </Padding>
-                <Footer />
-              </>)
+              return (<FeedPage id={params.id || ""} />)
             }}
-          </Route>
+          </RouteMe>
 
-          <Route path="/:alias">
+          <RouteMe path="/:alias" headerComponent={TOCHeader()} paddingClassName='mx-4'>
             {params => {
-              return (<>
-                <Header>
-                  <TOCHeader />
-                </Header>
-                <Padding className='mx-4'>
-                  <FeedPage id={params.alias} />
-                </Padding>
-                <Footer />
-              </>)
+              return (
+                <FeedPage id={params.alias || ""} />
+              )
             }}
-          </Route>
+          </RouteMe>
 
           {/* Default route in a switch */}
           <Route>404: No such page!</Route>
@@ -104,17 +92,16 @@ function App() {
   )
 }
 
-function RouteMe<
-  T extends DefaultParams | undefined = undefined,
-  RoutePath extends PathPattern = PathPattern
->(props: RouteProps<T, RoutePath>) {
-  const { children, ...rest } = props
+function RouteMe({ path, children, headerComponent, paddingClassName }:
+  { path: PathPattern, children: React.ReactNode | ((params: DefaultParams) => React.ReactNode), headerComponent?: React.ReactNode, paddingClassName?: string }) {
   return (
-    <Route {...rest} >
+    <Route path={path} >
       {params => {
         return (<>
-          <Header />
-          <Padding>
+          <Header>
+            {headerComponent}
+          </Header>
+          <Padding className={paddingClassName}>
             {typeof children === 'function' ? children(params) : children}
           </Padding>
           <Footer />
@@ -123,4 +110,5 @@ function RouteMe<
     </Route>
   )
 }
+
 export default App
