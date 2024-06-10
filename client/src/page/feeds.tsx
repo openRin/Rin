@@ -100,7 +100,7 @@ export function FeedsPage() {
                         {feeds[listState].data.map(({ id, ...feed }: any) => (
                             <FeedCard key={id} id={id} {...feed} />
                         ))}
-                        <div className="wauto flex flex-row items-center mt-4">
+                        <div className="wauto flex flex-row items-center mt-4 ani-show">
                             {page > 1 &&
                                 <Link href={`/?type=${listState}&page=${(page - 1)}`}
                                     className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>

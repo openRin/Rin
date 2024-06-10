@@ -107,7 +107,7 @@ export function FeedPage({ id }: { id: string }) {
                     <meta name="description" content={feed.content.length > 200 ? feed.content.substring(0, 200) : feed.content} />
                 </Helmet>
             }
-            <div className="w-full flex flex-row justify-center">
+            <div className="w-full flex flex-row justify-center ani-show">
                 {error &&
                     <>
                         <div className="flex flex-col wauto rounded-2xl bg-w m-2 p-6 items-center justify-center">
