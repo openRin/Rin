@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import Popup from "reactjs-popup";
 import { removeCookie } from "typescript-cookie";
 import { Link, useLocation } from "wouter";
@@ -60,9 +60,13 @@ export function Header({ children }: { children?: React.ReactNode }) {
     )
 }
 
-function NavItem({ title, selected, href, always }: { title: string, selected: boolean, href: string, always?: boolean }) {
+function NavItem({ title, selected, href, always, onClick }: { title: string, selected: boolean, href: string, always?: boolean, onClick?: () => void }) {
     return (
-        <Link href={href} className={`${always ? "" : "hidden"} sm:block cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm ${selected ? "text-theme" : "dark:text-white"}`} >
+        <Link href={href}
+            className={`${always ? "" : "hidden"} sm:block cursor-pointer hover:text-theme duration-300 px-2 py-4 sm:p-4 text-sm ${selected ? "text-theme" : "dark:text-white"}`}
+            state={{ animate: true }}
+            onClick={onClick}
+        >
             {title}
         </Link>
     )
@@ -96,27 +100,38 @@ function UserAvatar({ profile, className, mobile }: { className?: string, profil
 function Menu() {
     const [location, _] = useLocation();
     const profile = useContext(ProfileContext);
+    const [isOpen, setOpen] = useState(false)
+    function onClose() {
+        console.log("close")
+        document.body.style.overflow = "auto"
+        setOpen(false)
+    }
     return (
         <div className="visible sm:hidden sm:flex flex-row items-center">
-            <Popup arrow={false} trigger={
-                <button className="w-10 h-10 rounded-full flex flex-row items-center justify-center">
-                    <i className="ri-menu-line ri-lg" />
-                </button>
-            } position="bottom right"
+            <Popup
+                arrow={false}
+                trigger={<div>
+                    <button onClick={() => setOpen(true)} className="w-10 h-10 rounded-full flex flex-row items-center justify-center">
+                        <i className="ri-menu-line ri-lg" />
+                    </button>
+                </div>
+                }
+                position="bottom right"
+                open={isOpen}
                 nested
                 onOpen={() => document.body.style.overflow = "hidden"}
-                onClose={() => document.body.style.overflow = "auto"}
+                onClose={onClose}
                 closeOnDocumentClick
                 closeOnEscape
                 overlayStyle={{ background: "rgba(0,0,0,0.3)" }}
             >
                 <div className="flex flex-col bg-w rounded-xl p-2 mt-4 w-[50vw]">
                     <UserAvatar profile={profile} mobile />
-                    <NavItem always={true} title="文章" selected={location === "/" || location.startsWith('/feed')} href="/" />
-                    <NavItem always={true} title="时间轴" selected={location === "/timeline"} href="/timeline" />
-                    {profile?.permission && <NavItem always={true} title="写作" selected={location.startsWith("/writing")} href="/writing" />}
-                    <NavItem always={true} title="朋友们" selected={location === "/friends"} href="/friends" />
-                    <NavItem always={true} title="关于" selected={location === "/about"} href="/about" />
+                    <NavItem onClick={onClose} always={true} title="文章" selected={location === "/" || location.startsWith('/feed')} href="/" />
+                    <NavItem onClick={onClose} always={true} title="时间轴" selected={location === "/timeline"} href="/timeline" />
+                    {profile?.permission && <NavItem onClick={onClose} always={true} title="写作" selected={location.startsWith("/writing")} href="/writing" />}
+                    <NavItem onClick={onClose} always={true} title="朋友们" selected={location === "/friends"} href="/friends" />
+                    <NavItem onClick={onClose} always={true} title="关于" selected={location === "/about"} href="/about" />
                 </div>
             </Popup>
         </div>
