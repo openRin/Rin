@@ -46,19 +46,6 @@ function App() {
             <TimelinePage />
           </RouteMe>
 
-          <Route path="/feed/:id" >
-            {params => {
-              return (<>
-                <Header>
-                  <TOCHeader />
-                </Header>
-                <Padding className='mx-4'>
-                  <FeedPage id={params.id} />
-                </Padding>
-                <Footer />
-              </>)
-            }}
-          </Route>
 
           <RouteMe path="/writing">
             <WritingPage />
@@ -81,9 +68,33 @@ function App() {
             <CallbackPage />
           </RouteMe>
 
-          <RouteMe path="/:alias">
-            {params => <FeedPage id={params.alias} />}
-          </RouteMe>
+          <Route path="/feed/:id" >
+            {params => {
+              return (<>
+                <Header>
+                  <TOCHeader />
+                </Header>
+                <Padding className='mx-4'>
+                  <FeedPage id={params.id} />
+                </Padding>
+                <Footer />
+              </>)
+            }}
+          </Route>
+
+          <Route path="/:alias">
+            {params => {
+              return (<>
+                <Header>
+                  <TOCHeader />
+                </Header>
+                <Padding className='mx-4'>
+                  <FeedPage id={params.alias} />
+                </Padding>
+                <Footer />
+              </>)
+            }}
+          </Route>
 
           {/* Default route in a switch */}
           <Route>404: No such page!</Route>
