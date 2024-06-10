@@ -37,7 +37,7 @@ export function TimelinePage() {
                 <meta property="og:url" content={document.URL} />
             </Helmet>
             <Waiting for={feeds}>
-                <main className="w-full flex flex-col justify-center items-center mb-8">
+                <main className="w-full flex flex-col justify-center items-center mb-8 ani-show">
                     <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
                         <p>
                             时间轴

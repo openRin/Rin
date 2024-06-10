@@ -4,7 +4,7 @@ import { Link } from "wouter";
 export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, createdAt, updatedAt }: { id: string, avatar?: string, draft?: number, listed?: number, title: string, summary: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
     return (
         <>
-            <Link href={`/feed/${id}`} target="_blank" className="wauto rounded-2xl bg-w bg-hover m-2 p-6 duration-300">
+            <Link href={`/feed/${id}`} target="_blank" className="wauto rounded-2xl bg-w bg-hover m-2 p-6 duration-300 ani-show">
                 {avatar &&
                     <div className="flex flex-row items-center mb-2">
                         <img src={avatar} alt=""

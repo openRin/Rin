@@ -92,11 +92,11 @@ export function FriendsPage() {
             <meta property="og:type" content="article" />
             <meta property="og:url" content={document.URL} />
         </Helmet>
-        <Waiting for={friendsAvailable || friendsUnavailable}>
+        <Waiting for={friendsAvailable.length != 0 || friendsUnavailable.length != 0}>
             <main className="w-full flex flex-col justify-center items-center mb-8 t-primary">
                 {friendsAvailable.length > 0 &&
                     <>
-                        <div className="wauto text-start py-4 text-4xl font-bold">
+                        <div className="wauto text-start py-4 text-4xl font-bold ani-show">
                             <p>
                                 朋友们
                             </p>
@@ -188,7 +188,7 @@ function Friend({ friend }: { friend: FriendItem }) {
     }
     return (
         <>
-            <div title={friend.health} onClick={(e) => { console.log(e); window.open(friend.url) }} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-start items-center relative">
+            <div title={friend.health} onClick={(e) => { console.log(e); window.open(friend.url) }} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-start items-center relative ani-show">
                 <div className="w-16 h-16">
                     <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
