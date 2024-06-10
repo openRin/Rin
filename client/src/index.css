@@ -165,6 +165,8 @@ ul {
 a.toc-link {
   color: currentColor;
   height: 100%;
+  width: 100%;
+  display: block;
 }
 
 .is-collapsible {
