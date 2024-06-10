@@ -48,7 +48,7 @@ ul {
   list-style: initial;
 }
 
-a {
+.link-line a {
   @apply hover:underline;
 }
 
