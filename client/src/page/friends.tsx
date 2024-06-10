@@ -126,7 +126,7 @@ export function FriendsPage() {
                     </>
                 }
                 {profile && profile.permission &&
-                    <div className="wauto t-primary flex text-start text-black text-2xl font-bold mt-8">
+                    <div className="wauto t-primary flex text-start text-black text-2xl font-bold mt-8 ani-show">
                         <div className="md:basis-1/2 bg-w rounded-xl p-4">
                             <p>
                                 创建友链
