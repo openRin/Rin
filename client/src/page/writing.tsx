@@ -186,7 +186,7 @@ export function WritingPage({ id }: { id?: number }) {
         <meta property="og:type" content="article" />
         <meta property="og:url" content={document.URL} />
       </Helmet>
-      <div className='flex flex-row justify-start t-primary mt-2 ani-show'>
+      <div className='flex flex-row justify-start t-primary mt-2'>
         <div className='xl:basis-1/4 transition-all duration-300' />
         <div className='writeauto xl:basis-11/12 pb-8'>
           <div className='bg-w rounded-2xl shadow-xl shadow-light p-4'>
