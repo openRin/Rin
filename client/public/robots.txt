@@ -1,0 +1,5 @@
+User-agent: Googlebot
+Disallow: /writing/
+
+User-agent: *
+Allow: /
