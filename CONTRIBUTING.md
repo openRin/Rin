@@ -27,13 +27,13 @@ If you want to skip the hook, run `git commit` with `--no-verify` option.
 ```sh
 bun i
 ```
-4. Copy the `wrangler.example.toml` file to `wrangler.toml` and fill in the necessary information
-5. Copy the `client/.env.example` file to `client/.env` and fill in the necessary information
-5. Start the development server
+1. Copy the `wrangler.example.toml` file to `wrangler.toml` and fill in the necessary information
+2. Copy the `client/.env.example` file to `client/.env` and fill in the necessary information
+3. Start the development server
 ```sh
 bun dev
 ```
-6. For more control over the development server, you can run the dev command in the client directory and the server directory separately:
+1. For more control over the development server, you can run the dev command in the client directory and the server directory separately:
 ```sh
 # tty1
 cd client
