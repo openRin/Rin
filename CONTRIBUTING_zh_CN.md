@@ -29,16 +29,16 @@ ln -s ../../scripts/commit-msg.sh commit-msg
 bun i
 ```
 
-4. 将 `wrangler.example.toml` 文件复制到 `wrangler.toml` 并填写必要信息
+1. 将 `wrangler.example.toml` 文件复制到 `wrangler.toml` 并填写必要信息
 
-5. 将 `client/.env.example` 文件复制到 `client/.env` 并填写必要信息
+2. 将 `client/.env.example` 文件复制到 `client/.env` 并填写必要信息
 
-5. 启动开发服务器
+3. 启动开发服务器
 ```sh
 bun dev
 ```
 
-6. 为了更好地控制开发服务器，您可以分别在客户端目录和服务器目录中运行 dev 命令：
+1. 为了更好地控制开发服务器，您可以分别在客户端目录和服务器目录中运行 dev 命令：
 ```sh
 # tty1
 cd client
