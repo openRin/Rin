@@ -67,12 +67,12 @@ export function FriendsPage() {
         if (ref.current) return
         client.friend.index.get().then(({ data }) => {
             if (data) {
-                const friends_avaliable = data.friend_list?.filter(({ health }) => health.length === 0) || []
-                shuffleArray(friends_avaliable)
-                setFriendsAvailable(friends_avaliable)
-                const friends_unavaliable = data.friend_list?.filter(({ health }) => health.length > 0) || []
-                shuffleArray(friends_unavaliable)
-                setFriendsUnavailable(friends_unavaliable)
+                const friends_available = data.friend_list?.filter(({ health }) => health.length === 0) || []
+                shuffleArray(friends_available)
+                setFriendsAvailable(friends_available)
+                const friends_unavailable = data.friend_list?.filter(({ health }) => health.length > 0) || []
+                shuffleArray(friends_unavailable)
+                setFriendsUnavailable(friends_unavailable)
                 if (data.apply_list)
                     setApply(data.apply_list)
             }
