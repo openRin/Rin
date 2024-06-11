@@ -8,17 +8,17 @@
 
 - 新增 `S3_CACHE_FOLDER` 环境变量
 - 环境变量加密列表与变量列表更新，仅保留必须加密的环境变量
-- 加密变量现在可以通过 Github 直接配置
-- Github 变量配置更新，新增必须通过 Github 配置的加密变量（S3 存储，用于 SEO 索引保存）
-- `GITHUB_CLIENT_ID`与`GITHUB_CLIENT_SECRET`现在添加了前缀`RIN_`（`RIN_GITHUB_CLIENT_ID`,`RIN_GITHUB_CLIENT_SECRET`），以解决 Github 变量不能以 `GITHUB_` 开头的问题，使用 Cloudflare 面板配置的 `GITHUB_CLIENT_ID` 与 `GITHUB_CLIENT_SECRET` 不受影响
+- 加密变量现在可以通过 GitHub 直接配置
+- GitHub 变量配置更新，新增必须通过 GitHub 配置的加密变量（S3 存储，用于 SEO 索引保存）
+- `GITHUB_CLIENT_ID`与`GITHUB_CLIENT_SECRET`现在添加了前缀`RIN_`（`RIN_GITHUB_CLIENT_ID`,`RIN_GITHUB_CLIENT_SECRET`），以解决 GitHub 变量不能以 `GITHUB_` 开头的问题，使用 Cloudflare 面板配置的 `GITHUB_CLIENT_ID` 与 `GITHUB_CLIENT_SECRET` 不受影响
 
 ## 迁移指南
 
-无特别说明时正常的版本更新直接同步 frok 的仓库即可
+无特别说明时正常的版本更新直接同步 fork 的仓库即可
 
 ### v0.2.0 迁移指南
 
-- 由于引入 SEO 优化导致需要在 Github 中配置 S3 存储的环境变量，因此需要额外在 Github 中配置以下环境变量（明文，添加到 Variables）：
+- 由于引入 SEO 优化导致需要在 GitHub 中配置 S3 存储的环境变量，因此需要额外在 GitHub 中配置以下环境变量（明文，添加到 Variables）：
 
 ```ini
 SEO_BASE_URL=<SEO 基础地址，用于 SEO 索引，默认为 FRONTEND_URL>
@@ -38,7 +38,7 @@ S3_ACCESS_KEY_ID=<你的S3AccessKeyID>
 S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 ```
 
-以上环境变量在之前的版本中是通过 Cloudflare 面板配置的，现在需要迁移到 Github 中配置，新版本的部署 Github Action 会自动其上传到 Cloudflare，之后就不再需要在 Cloudflare 面板中配置这些环境变量了
+以上环境变量在之前的版本中是通过 Cloudflare 面板配置的，现在需要迁移到 GitHub 中配置，新版本的部署 GitHub Action 会自动其上传到 Cloudflare，之后就不再需要在 Cloudflare 面板中配置这些环境变量了
 
 ## 其他文档
 
@@ -86,7 +86,7 @@ S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 
 ![1000000658](https://github.com/OXeu/Rin/assets/36541432/35d4f9e3-3af3-4ec8-8060-2a352f4d51ae)
 
-点击连接到 Git 连接自己的 Github 账号并选择 Fork 的存储库
+点击连接到 Git 连接自己的 GitHub 账号并选择 Fork 的存储库
 
 ![1000000666](https://github.com/OXeu/Rin/assets/36541432/e3b6da75-1a5f-46ec-9820-636cc5238023)
 
@@ -160,7 +160,7 @@ UNSTABLE_PRE_BUILD=asdf install bun latest && asdf global bun latest && bun i
 
 ### 获取用户 ID 与 API 令牌
 
-参照 https://developers.cloudflare.com/workers/wrangler/ci-cd/ 来配置 Github Actions 所需的 Cloudflare 登录环境变量
+参照 https://developers.cloudflare.com/workers/wrangler/ci-cd/ 来配置 GitHub Actions 所需的 Cloudflare 登录环境变量
 
 ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下滑动一段距离）可以找到`账户ID`
 
@@ -169,7 +169,7 @@ ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下�
 
 创建完成后保存令牌
 
-### 配置 Github Action
+### 配置 GitHub Action
 
 在自己 fork 的仓库中 > `Settings` > `Secrets and Variables` > `Actions` > `Repository secrets` 点击 `New repository secret` 创建以下两个密钥：
 
@@ -197,19 +197,19 @@ S3_ACCESS_HOST=<S3 存储桶访问地址，末尾无'/'>
 > [!TIP]
 > 关于 SEO 工作原理与配置请参考 [SEO 文档](./SEO.md)
 
-完成准备工作以后即可在 Github Action 中手动触发一次 Workflow，一切正常的话很快就能部署完成
+完成准备工作以后即可在 GitHub Action 中手动触发一次 Workflow，一切正常的话很快就能部署完成
 
-这样服务端就部署好了，但是目前仍然不能运行，我们还需要配置 Github OAuth 用于登录和 S3 存储用于存储图片
+这样服务端就部署好了，但是目前仍然不能运行，我们还需要配置 GitHub OAuth 用于登录和 S3 存储用于存储图片
 
 > [!TIP]
-> 在 v0.2.0 版本后，不再需要回到 Cloudflare 面板配置后端域名与一些敏感的环境变量，所有环境变量都可以通过 Github 创建对应的密钥来添加，如果你在更早的版本中部署过，需要将环境变量迁移到 Github 中
+> 在 v0.2.0 版本后，不再需要回到 Cloudflare 面板配置后端域名与一些敏感的环境变量，所有环境变量都可以通过 GitHub 创建对应的密钥来添加，如果你在更早的版本中部署过，需要将环境变量迁移到 GitHub 中
 
 > ~~回到 Cloudflare 面板配置后端域名与一些敏感的环境变量~~
 >
 > ~~在 `设置` > `触发器` > `自定义域` 处可以自定义后端的域名，默认也有分配一个`workers.dev`的域名~~
 >
 > ~~在 `设置` > `变量` > `环境变量` 处编辑变量，点击添加变量，复制粘贴以下内容至变量名处即可自动添加上所有环境变量，之后再根据自己的具体配置修改变量值：~~
-> 在 v0.2.0 版本后，以下所有环境变量都建议通过在 Github 创建对应的密钥来添加，添加方式与上文添加 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN` 相同，以下是环境变量列表：
+> 在 v0.2.0 版本后，以下所有环境变量都建议通过在 GitHub 创建对应的密钥来添加，添加方式与上文添加 `CLOUDFLARE_ACCOUNT_ID` 与 `CLOUDFLARE_API_TOKEN` 相同，以下是环境变量列表：
 
 ```ini
 RIN_GITHUB_CLIENT_ID=<你的GithubClientID>
@@ -219,7 +219,7 @@ S3_ACCESS_KEY_ID=<你的S3AccessKeyID>
 S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 ```
 
-## 接入 Github OAuth
+## 接入 GitHub OAuth
 
 打开 <https://github.com/settings/developers>，选择 `New OAuth App` 创建一个新的 Oauth App，填入自己的应用名称与主页地址(带`http://`或`https://`)，`Authorization callback URL` 填写
 
@@ -228,11 +228,11 @@ https://<你的后端地址>/user/github/callback
 ```
 
 这里附上我的参数
-![Github OAuth 配置](https://github.com/OXeu/Rin/assets/36541432/74ab8d16-93ca-4919-beec-4beb7a2003a6)
+![GitHub OAuth 配置](https://github.com/OXeu/Rin/assets/36541432/74ab8d16-93ca-4919-beec-4beb7a2003a6)
 
 随后配置环境变量中 OAuth 部分
 
-以下是具体的配置，`RIN_GITHUB_CLIENT_ID`填写 Github OAuth App 中的`Client ID`,`RIN_GITHUB_CLIENT_SECRET`填写在 Github OAuth App 点击 `Generate a new client secret` 后的 `Client secret`，注意每次创建后只展示一次，后续无法查看，如果不慎丢失重新生成一个新的即可
+以下是具体的配置，`RIN_GITHUB_CLIENT_ID`填写 GitHub OAuth App 中的`Client ID`,`RIN_GITHUB_CLIENT_SECRET`填写在 GitHub OAuth App 点击 `Generate a new client secret` 后的 `Client secret`，注意每次创建后只展示一次，后续无法查看，如果不慎丢失重新生成一个新的即可
 
 ## 创建 R2 桶
 
