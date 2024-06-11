@@ -19,7 +19,7 @@ Rin is a blog based on Cloudflare Pages + Workers + D1 + R2. It does not require
 [xeu.life](https://xeu.life)
 
 ## Features
-1. Support Github OAuth login. By default, the first logged-in user has management privileges, and other users are ordinary users
+1. Support GitHub OAuth login. By default, the first logged-in user has management privileges, and other users are ordinary users
 2. Support article writing and editing
 3. Support local real-time saving of modifications/edits to any article without interfering between multiple articles
 4. Support setting it as visible only to yourself, which can serve as a draft box for cloud synchronization or record more private content
