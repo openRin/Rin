@@ -36,6 +36,7 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_REGION: ${{ vars.S3_REGION }}
           S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
           SEO_BASE_URL: ${{ vars.SEO_BASE_URL }}
           SEO_CONTAINS_KEY: ${{ vars.SEO_CONTAINS_KEY }}
           S3_ACCESS_HOST: ${{ vars.S3_ACCESS_HOST }}

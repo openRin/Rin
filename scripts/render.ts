@@ -45,13 +45,13 @@ async function saveFile(filename: string, data: string) {
     // Save data to file
     console.log(`Saving ${filename}`);
     const url = new URL(filename)
-    let fullname = path.join(folder, url.pathname + url.search.replace('?', '&'))
-    if (fullname.endsWith('/')) {
-        fullname += 'index.html';
+    let fileName = path.join(folder, url.pathname + url.search.replace('?', '&'))
+    if (fileName.endsWith('/')) {
+        fileName += 'index.html';
     }
     try {
-        await s3.send(new PutObjectCommand({ Bucket: bucket, Key: fullname, Body: data, ContentType: 'text/html' }))
-        console.info(`Saved ${accessHost}/${fullname}.`)
+        await s3.send(new PutObjectCommand({ Bucket: bucket, Key: fileName, Body: data, ContentType: 'text/html' }))
+        console.info(`Saved ${accessHost}/${fileName}.`)
     } catch (e: any) {
         console.error(e.message)
     }
