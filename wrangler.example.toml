@@ -16,9 +16,9 @@ S3_REGION = "auto"
 S3_ENDPOINT = "<YourS3Emdpoint>"
 S3_ACCESS_HOST = "<YourS3AccessHost>"
 S3_BUCKET = "<YourS3BucketName>"
-S3_FORCE_PATH_STYLE = "true"
+S3_FORCE_PATH_STYLE = "false"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "YourDatabaseName"
+database_name = "rin"
 database_id = "YourDatabaseID"
