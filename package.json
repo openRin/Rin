@@ -8,12 +8,14 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
+    "dev:client": "bun --filter './client' dev",
+    "dev:server": "bun --filter './server' dev",
     "check": "turbo check",
     "cf-deploy": "bun server/migrator.ts",
     "b": "turbo build",
     "t": "turbo t",
     "g": "turbo run g",
-    "m": "scripts/dev-migrator.sh",
+    "m": "bun scripts/dev-migrator.ts",
     "clean": "rm -rf dist node_modules client/node_modules server/node_modules",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write"
