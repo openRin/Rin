@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "cf:deploy": "wrangler deploy",
-    "dev": "wrangler dev --port 8787",
+    "dev": "wrangler dev --port 11498",
     "cf-typegen": "wrangler types",
     "db:gen": "bun drizzle-kit generate",
     "preview": "wrangler pages dev dist --compatibility-date=2023-12-20"

@@ -33,3 +33,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+/.dev.vars

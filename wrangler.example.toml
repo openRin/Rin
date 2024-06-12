@@ -9,16 +9,19 @@ node_compat = true
 crons = ["*/20 * * * *"]
 
 [vars]
-FRONTEND_URL = "https://xeu.life"
+FRONTEND_URL = "http://localhost:5173"
 S3_FOLDER = "images/"
 S3_CACHE_FOLDER="cache/"
 S3_REGION = "auto"
-S3_ENDPOINT = "<YourS3Emdpoint>"
+S3_ENDPOINT = "<YourS3Endpoint>"
 S3_ACCESS_HOST = "<YourS3AccessHost>"
 S3_BUCKET = "<YourS3BucketName>"
-S3_FORCE_PATH_STYLE = "true"
+S3_FORCE_PATH_STYLE = "false"
+WEBHOOK_URL = "https://<YourWebhookURL>"
+RSS_TITLE = "Rin Development Environment"
+RSS_DESCRIPTION = "Development Environment"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "YourDatabaseName"
+database_name = "rin"
 database_id = "YourDatabaseID"
