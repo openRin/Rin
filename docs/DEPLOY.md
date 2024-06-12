@@ -78,7 +78,7 @@ S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 > <!--图片-->
 > 图中的`rin-6qe.pages.dev`,`direct.xeu.life` 都是前端地址，如果有更多的地址，你还可以点击形如 `+2 个域` 的链接查看更多的地址，这些地址都是可以访问的，你可以使用其中任意一个地址，但是需要保持不同地方都填写的是同一个前端地址（如果有多个环境变量要求填写前端地址的话），通常来说前端地址是 `https://rin-6qe.pages.dev` 或 `https://direct.xeu.life` 这样的形式
 >
-> 后端（Workers）的地址在 `Workers 和 Pages` > 你的 Workers 项目 > 设置` > `触发器` 中可以找到：
+> 后端（Workers）的地址在 `Workers 和 Pages` > 你的 Workers 项目 > `设置` > `触发器` 中可以找到：
 > <!--图片-->
 > 图中的 `rin.xeu.life` 和 `rin-server.xeu.workers.dev` 都是后端地址，前者是自定义域名，后者是默认分配的域名，你可以使用默认分配的域名，也可以自定义域名，自定义域名需要在 Cloudflare 控制面板中进行配置，在本文档中当要求填写后端地址时，你可以填写形如 `https://rin.xeu.life` 或 `https://rin-server.xeu.workers.dev`的地址，但需保持不同地方都填写的是同一个后端地址（如果有多个环境变量要求填写后端地址的话）
 
