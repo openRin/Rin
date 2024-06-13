@@ -32,7 +32,12 @@ export const RSSService = (env: Env) => {
                     console.log(`Fetching ${url}`);
                     const response = await fetch(new Request(url))
                     return new Response(response.body, {
-                        status: 200,
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: {
+                            'Content-Type': response.headers.get('Content-Type') || 'application/xml',
+                            'Cache-Control': response.headers.get('Cache-Control') || 'public, max-age=3600',
+                        }
                     });
                 } catch (e: any) {
                     console.error(e);
