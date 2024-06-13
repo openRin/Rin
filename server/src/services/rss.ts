@@ -25,15 +25,23 @@ export const RSSService = (env: Env) => {
                 set.status = 500;
                 return 'S3_ACCESS_HOST is not defined'
             }
-            if (name === 'rss.xml' || name === 'atom.xml' || name === 'rss.json') {
+            if (name === 'feed.xml') {
+                name = 'rss.xml';
+            }
+            if (['rss.xml', 'atom.xml', 'rss.json'].includes(name)) {
                 const key = path.join(folder, name);
                 try {
                     const url = `${accessHost}/${key}`;
                     console.log(`Fetching ${url}`);
                     const response = await fetch(new Request(url))
+                    const contentType = name === 'rss.xml' ? 'application/rss+xml' : name === 'atom.xml' ? 'application/atom+xml' : 'application/feed+json';
                     return new Response(response.body, {
                         status: response.status,
                         statusText: response.statusText,
+                        headers: {
+                            'Content-Type': contentType,
+                            'Cache-Control': response.headers.get('Cache-Control') || 'public, max-age=3600',
+                        }
                     });
                 } catch (e: any) {
                     console.error(e);
@@ -83,7 +91,7 @@ export async function rssCrontab(env: Env) {
             }
         }
     });
-    for(const f of feed_list) {
+    for (const f of feed_list) {
         const { summary, content, user, ...other } = f;
         const file = await unified()
             .use(remarkParse)
