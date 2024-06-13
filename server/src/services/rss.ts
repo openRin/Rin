@@ -32,8 +32,7 @@ export const RSSService = (env: Env) => {
                     console.log(`Fetching ${url}`);
                     const response = await fetch(new Request(url))
                     return new Response(response.body, {
-                        status: response.status,
-                        statusText: response.statusText,
+                        status: 200,
                     });
                 } catch (e: any) {
                     console.error(e);
@@ -83,7 +82,7 @@ export async function rssCrontab(env: Env) {
             }
         }
     });
-    for(const f of feed_list) {
+    for (const f of feed_list) {
         const { summary, content, user, ...other } = f;
         const file = await unified()
             .use(remarkParse)
