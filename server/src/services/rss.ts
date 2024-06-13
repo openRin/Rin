@@ -25,17 +25,21 @@ export const RSSService = (env: Env) => {
                 set.status = 500;
                 return 'S3_ACCESS_HOST is not defined'
             }
-            if (name === 'rss.xml' || name === 'atom.xml' || name === 'rss.json') {
+            if (name === 'feed.xml') {
+                name = 'rss.xml';
+            }
+            if (name in ['rss.xml', 'atom.xml', 'rss.json']) {
                 const key = path.join(folder, name);
                 try {
                     const url = `${accessHost}/${key}`;
                     console.log(`Fetching ${url}`);
                     const response = await fetch(new Request(url))
+                    const contentType = name === 'rss.xml' ? 'application/rss+xml' : name === 'atom.xml' ? 'application/atom+xml' : 'application/feed+json';
                     return new Response(response.body, {
                         status: response.status,
                         statusText: response.statusText,
                         headers: {
-                            'Content-Type': response.headers.get('Content-Type') || 'application/xml',
+                            'Content-Type': contentType,
                             'Cache-Control': response.headers.get('Cache-Control') || 'public, max-age=3600',
                         }
                     });
