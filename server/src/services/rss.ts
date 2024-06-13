@@ -28,7 +28,7 @@ export const RSSService = (env: Env) => {
             if (name === 'feed.xml') {
                 name = 'rss.xml';
             }
-            if (name in ['rss.xml', 'atom.xml', 'rss.json']) {
+            if (['rss.xml', 'atom.xml', 'rss.json'].includes(name)) {
                 const key = path.join(folder, name);
                 try {
                     const url = `${accessHost}/${key}`;
