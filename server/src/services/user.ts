@@ -1,10 +1,11 @@
-import { eq } from "drizzle-orm";
-import Elysia, { t } from "elysia";
-import { URL } from "url";
-import type { DB } from "../_worker";
-import { users } from "../db/schema";
-import { setup } from "../setup";
-import type { Env } from "../db/db";
+import {eq} from "drizzle-orm";
+import Elysia, {t} from "elysia";
+import {URL} from "url";
+import type {DB} from "../_worker";
+import {users} from "../db/schema";
+import {setup} from "../setup";
+import type {Env} from "../db/db";
+
 export const UserService = (db: DB, env: Env) => new Elysia({ aot: false })
     .use(setup(db, env))
     .group('/user', (group) =>
@@ -80,7 +81,7 @@ export const UserService = (db: DB, env: Env) => new Elysia({ aot: false })
                 set.headers = {
                     'Content-Type': 'text/html',
                 }
-                return `<html><head><meta http-equiv="refresh" content="0; url=${redirect_url}" /><head></html>`
+                set.redirect = redirect_url
             }, {
                 query: t.Object({
                     state: t.String(),
