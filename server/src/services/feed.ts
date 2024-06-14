@@ -1,17 +1,19 @@
-import { and, count, desc, eq, or } from "drizzle-orm";
-import Elysia, { t } from "elysia";
-import type { DB } from "../_worker";
-import type { Env } from "../db/db";
-import { feeds } from "../db/schema";
-import { setup } from "../setup";
-import { extractImage } from "../utils/image";
-import { bindTagToPost } from "./tag";
+import {and, count, desc, eq, or} from "drizzle-orm";
+import Elysia, {t} from "elysia";
+import type {DB} from "../_worker";
+import type {Env} from "../db/db";
+import {feeds} from "../db/schema";
+import {setup} from "../setup";
+import {extractImage} from "../utils/image";
+import {bindTagToPost} from "./tag";
+import html2md from 'html-to-md'
+import {XMLParser} from "fast-xml-parser";
 
-export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
+export const FeedService = (db: DB, env: Env) => new Elysia({aot: false})
     .use(setup(db, env))
     .group('/feed', (group) =>
         group
-            .get('/', async ({ admin, set, query: { page, limit, type } }) => {
+            .get('/', async ({admin, set, query: {page, limit, type}}) => {
                 if ((type === 'draft' || type === 'unlisted') && !admin) {
                     set.status = 403;
                     return 'Permission denied';
@@ -19,7 +21,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                 const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
                 const limit_num = limit ? +limit > 50 ? 50 : +limit : 20;
                 const where = type === 'draft' ? eq(feeds.draft, 1) : type === 'unlisted' ? and(eq(feeds.draft, 0), eq(feeds.listed, 0)) : and(eq(feeds.draft, 0), eq(feeds.listed, 1));
-                const size = await db.select({ count: count() }).from(feeds).where(where);
+                const size = await db.select({count: count()}).from(feeds).where(where);
                 if (size[0].count === 0) {
                     return {
                         size: 0,
@@ -38,22 +40,22 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                             columns: {},
                             with: {
                                 hashtag: {
-                                    columns: { id: true, name: true }
+                                    columns: {id: true, name: true}
                                 }
                             }
                         }, user: {
-                            columns: { id: true, username: true, avatar: true }
+                            columns: {id: true, username: true, avatar: true}
                         }
                     },
                     orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
                     offset: page_num * limit_num,
                     limit: limit_num + 1,
-                })).map(({ content, hashtags, summary, ...other }) => {
+                })).map(({content, hashtags, summary, ...other}) => {
                     // 提取首图
                     const avatar = extractImage(content);
                     return {
                         summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
-                        hashtags: hashtags.map(({ hashtag }) => hashtag),
+                        hashtags: hashtags.map(({hashtag}) => hashtag),
                         avatar,
                         ...other
                     }
@@ -81,7 +83,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
             })
             .get('/timeline', async () => {
                 const where = and(eq(feeds.draft, 0), eq(feeds.listed, 1));
-                const feed_list = (await db.query.feeds.findMany({
+                return (await db.query.feeds.findMany({
                     where: where,
                     columns: {
                         id: true,
@@ -90,9 +92,8 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     },
                     orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
                 }))
-                return feed_list
             })
-            .post('/', async ({ admin, set, uid, body: { title, alias, listed, content, summary, draft, tags } }) => {
+            .post('/', async ({admin, set, uid, body: {title, alias, listed, content, summary, draft, tags}}) => {
                 if (!admin) {
                     set.status = 403;
                     return 'Permission denied';
@@ -124,7 +125,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     alias,
                     listed: listed ? 1 : 0,
                     draft: draft ? 1 : 0
-                }).returning({ insertedId: feeds.id });
+                }).returning({insertedId: feeds.id});
                 await bindTagToPost(db, result[0].insertedId, tags);
                 if (result.length === 0) {
                     set.status = 500;
@@ -143,7 +144,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     tags: t.Array(t.String())
                 })
             })
-            .get('/:id', async ({ uid, admin, set, params: { id } }) => {
+            .get('/:id', async ({uid, admin, set, params: {id}}) => {
                 const id_num = parseInt(id);
                 const feed = (await db.query.feeds.findFirst({
                     where: or(eq(feeds.id, id_num), eq(feeds.alias, id)),
@@ -152,11 +153,11 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                             columns: {},
                             with: {
                                 hashtag: {
-                                    columns: { id: true, name: true }
+                                    columns: {id: true, name: true}
                                 }
                             }
                         }, user: {
-                            columns: { id: true, username: true, avatar: true }
+                            columns: {id: true, username: true, avatar: true}
                         }
                     }
                 }));
@@ -170,14 +171,20 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     return 'Permission denied';
                 }
 
-                const { hashtags, ...other } = feed;
-                const hashtags_flatten = hashtags.map(({ hashtag }) => hashtag);
+                const {hashtags, ...other} = feed;
+                const hashtags_flatten = hashtags.map(({hashtag}) => hashtag);
                 return {
                     ...other,
                     hashtags: hashtags_flatten
                 };
             })
-            .post('/:id', async ({ admin, set, uid, params: { id }, body: { title, listed, content, summary, alias, draft, tags } }) => {
+            .post('/:id', async ({
+                                     admin,
+                                     set,
+                                     uid,
+                                     params: {id},
+                                     body: {title, listed, content, summary, alias, draft, tags}
+                                 }) => {
                 const id_num = parseInt(id);
                 const feed = await db.query.feeds.findFirst({
                     where: eq(feeds.id, id_num)
@@ -214,7 +221,7 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                     tags: t.Optional(t.Array(t.String()))
                 })
             })
-            .delete('/:id', async ({ admin, set, uid, params: { id } }) => {
+            .delete('/:id', async ({admin, set, uid, params: {id}}) => {
                 const id_num = parseInt(id);
                 const feed = await db.query.feeds.findFirst({
                     where: eq(feeds.id, id_num)
@@ -230,5 +237,97 @@ export const FeedService = (db: DB, env: Env) => new Elysia({ aot: false })
                 await db.delete(feeds).where(eq(feeds.id, id_num));
                 return 'Deleted';
             })
+    )
+    .post('wp', async ({set, admin, body: {data}}) => {
+        if (!admin) {
+            set.status = 403;
+            return 'Permission denied';
+        }
+        if (!data) {
+            set.status = 400;
+            return 'Data is required';
+        }
+        const xml = await data.text();
+        const parser = new XMLParser();
+        const result = await parser.parse(xml)
+        const items = result.rss.channel.item;
+        if (!items) {
+            set.status = 404;
+            return 'No items found';
+        }
+        const feedItems: FeedItem[] = items?.map((item: any) => {
+            const createdAt = new Date(item?.['wp:post_date']);
+            const updatedAt = new Date(item?.['wp:post_modified']);
+            const draft = item?.['wp:status'] != 'publish';
+            const contentHtml = item?.['content:encoded'];
+            const content = html2md(contentHtml);
+            const summary = content.length > 100 ? content.slice(0, 100) : content;
+            let tags = item?.['category'];
+            if (tags && Array.isArray(tags)) {
+                tags = tags.map((tag: any) => tag + '');
+            } else if (tags && typeof tags === 'string') {
+                tags = [tags];
+            }
+            return {
+                title: item.title,
+                summary,
+                content,
+                draft,
+                createdAt,
+                updatedAt,
+                tags
+            };
+        });
+        let success = 0;
+        let skipped = 0;
+        let skippedList: { title: string, reason: string }[] = [];
+        for (const item of feedItems) {
+            if (!item.content) {
+                skippedList.push({title: item.title, reason: "no content"});
+                skipped++;
+                continue;
+            }
+            const exist = await db.query.feeds.findFirst({
+                where: eq(feeds.content, item.content)
+            });
+            if (exist) {
+                skippedList.push({title: item.title, reason: "content exists"});
+                skipped++;
+                continue;
+            }
+            const result = await db.insert(feeds).values({
+                title: item.title,
+                content: item.content,
+                summary: item.summary,
+                uid: 1,
+                listed: 1,
+                draft: item.draft ? 1 : 0,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt
+            }).returning({insertedId: feeds.id});
+            if (item.tags) {
+                await bindTagToPost(db, result[0].insertedId, item.tags);
+            }
+            success++;
+        }
+        return {
+            success,
+            skipped,
+            skippedList
+        };
+    }, {
+        body: t.Object({
+            data: t.File()
+        })
+    })
 
-    );
+
+type FeedItem = {
+    title: string;
+    summary: string;
+    content: string;
+    draft: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    tags?: string[];
+}
