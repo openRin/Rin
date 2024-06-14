@@ -1,19 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
-import { getCookie } from 'typescript-cookie'
-import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
+import {useEffect, useRef, useState} from 'react'
+import {getCookie} from 'typescript-cookie'
+import {DefaultParams, PathPattern, Route, Switch} from 'wouter'
 import Footer from './components/footer'
-import { Header } from './components/header'
-import { Padding } from './components/padding'
-import { client } from './main'
-import { CallbackPage } from './page/callback'
-import { FeedPage, TOCHeader } from './page/feed'
-import { FeedsPage } from './page/feeds'
-import { FriendsPage } from './page/friends'
-import { TimelinePage } from './page/timeline'
-import { WritingPage } from './page/writing'
-import { Profile, ProfileContext } from './state/profile'
-import { headersWithAuth } from './utils/auth'
-import { tryInt } from './utils/int'
+import {Header} from './components/header'
+import {Padding} from './components/padding'
+import {client} from './main'
+import {CallbackPage} from './page/callback'
+import {FeedPage, TOCHeader} from './page/feed'
+import {FeedsPage} from './page/feeds'
+import {FriendsPage} from './page/friends'
+import {TimelinePage} from './page/timeline'
+import {WritingPage} from './page/writing'
+import {Profile, ProfileContext} from './state/profile'
+import {headersWithAuth} from './utils/auth'
+import {tryInt} from './utils/int'
+import {Settings} from "./page/settings.tsx";
+
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
@@ -50,6 +52,10 @@ function App() {
           
           <RouteMe path="/friends">
             <FriendsPage />
+          </RouteMe>
+
+          <RouteMe path="/settings" paddingClassName='mx-4'>
+            <Settings/>
           </RouteMe>
 
 

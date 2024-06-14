@@ -28,5 +28,8 @@
     "turbo": "^1.13.3",
     "vitest": "1.3.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "fast-xml-parser": "^4.4.0",
+    "html-to-md": "^0.8.5"
+  }
 }
