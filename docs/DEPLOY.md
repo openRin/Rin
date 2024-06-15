@@ -2,6 +2,10 @@
 
 项目目前处于开发阶段，文档可能未及时更新或存在描述不清，如遇部署失败请提 [Issue](https://github.com/OXeu/Rin/issues/new?assignees=&labels=help+wanted&projects=&template=need-help.md&title=%5BHelp%5D+%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0)
 
+> [!TIP]
+> 我们在文档末尾追加了完整的部署流程演示视频，以便解决您在部署期间遇到的部分困难
+> [点击直达](#操作视频)
+
 ## 更新日志
 
 ### v0.2.0 2024-06-07 更新
@@ -75,11 +79,11 @@ S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 > 
 > 下文提到的前端与后端你可以分别等价代换为 Cloudflare Pages 与 Cloudflare Workers，当提到说需要前端地址或者后端地址时，即为 Cloudflare Pages 地址或 Cloudflare Workers 地址，你可以在 Cloudflare 控制面板中通过少量的操作找到这两个地址，如下面的截图所示：
 > 前端（Pages）的地址在 `Workers 和 Pages` > 你的 Pages 项目 > `部署` 中可以找到：
-> <!--图片-->
+> ![图片](https://github.com/OXeu/Rin/assets/36541432/d9dcc5f2-6930-4487-af4b-0ab52e948114)
 > 图中的`rin-6qe.pages.dev`,`direct.xeu.life` 都是前端地址，如果有更多的地址，你还可以点击形如 `+2 个域` 的链接查看更多的地址，这些地址都是可以访问的，你可以使用其中任意一个地址，但是需要保持不同地方都填写的是同一个前端地址（如果有多个环境变量要求填写前端地址的话），通常来说前端地址是 `https://rin-6qe.pages.dev` 或 `https://direct.xeu.life` 这样的形式
 >
 > 后端（Workers）的地址在 `Workers 和 Pages` > 你的 Workers 项目 > `设置` > `触发器` 中可以找到：
-> <!--图片-->
+> ![图片](https://github.com/OXeu/Rin/assets/36541432/0a2385b7-94db-4469-bef9-399cc334f1b6)
 > 图中的 `rin.xeu.life` 和 `rin-server.xeu.workers.dev` 都是后端地址，前者是自定义域名，后者是默认分配的域名，你可以使用默认分配的域名，也可以自定义域名，自定义域名需要在 Cloudflare 控制面板中进行配置，在本文档中当要求填写后端地址时，你可以填写形如 `https://rin.xeu.life` 或 `https://rin-server.xeu.workers.dev`的地址，但需保持不同地方都填写的是同一个后端地址（如果有多个环境变量要求填写后端地址的话）
 
 登录 [Cloudflare](https://dash.cloudflare.com) 控制台，进入 `Workers 和 Pages` 页面，点击`创建应用程序`，选择 Pages
@@ -267,3 +271,11 @@ S3_ACCESS_HOST=https://image.xeu.life
 
 > [!TIP]
 > 在所有环境变量调试完毕后可点击加密按钮加密环境变量（只保留 FRONTEND_URL 和 S3_FOLDER），这样下次部署时加密的环境变量就不会覆盖/删除了
+
+# 操作视频
+由于时间原因未对以下视频做剪辑与后期说明处理，如果对于部署流程不了解或疑惑可参考视频步骤
+
+
+https://github.com/OXeu/Rin/assets/36541432/3ed98e93-2cc3-4e5f-a885-4d16a48500c3
+
+
