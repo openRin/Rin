@@ -24,6 +24,16 @@ const countNewlinesBeforeNode = (text: string, offset: number) => {
   return newlinesBefore;
 };
 
+// const countBacktickBeforeNode = (text: string, offset: number) => {
+//     let backtickBefore = 0;
+//     for (let i = offset - 1; i >= 0; i--) {
+//         if (text[i] === "`") {
+//         backtickBefore++;
+//         } else if (text[i] === "\n")
+//     }
+//     return backtickBefore;
+// };
+
 export function Markdown({ content }: { content: string }) {
   return (
     <ReactMarkdown
@@ -57,6 +67,10 @@ export function Markdown({ content }: { content: string }) {
         code(props) {
           const { children, className, node, ...rest } = props;
           const match = /language-(\w+)/.exec(className || "");
+
+          const curContent = content.slice(node?.position?.start.offset || 0);
+          const isCodeBlock = curContent.trimStart().startsWith("```");
+
           const codeBlockStyle = {
             fontFamily: '"Fira Code", monospace',
             fontSize: "14px",
@@ -64,40 +78,52 @@ export function Markdown({ content }: { content: string }) {
             WebkitFontFeatureSettings: '"liga" 1',
             fontFeatureSettings: '"liga" 1',
           };
+
           const inlineCodeStyle = {
-            fontFamily: '"Fira Code", monospace',
-            fontSize: "14px",
-            fontVariantLigatures: "normal",
-            WebkitFontFeatureSettings: '"liga" 1',
-            fontFeatureSettings: '"liga" 1',
+            ...codeBlockStyle,
+            fontSize: "13px",
           };
+
           const colorMode = getCurrentColorMode();
-          return match ? (
-            <SyntaxHighlighter
-              PreTag="div"
-              className="rounded"
-              language={match[1]}
-              style={
-                colorMode === "dark"
-                  ? vscDarkPlus
-                  : base16AteliersulphurpoolLight
-              }
-              wrapLongLines={true}
-              codeTagProps={{ style: codeBlockStyle }}
-            >
-              {String(children).replace(/\n$/, "")}
-            </SyntaxHighlighter>
-          ) : (
-            <code
-              {...rest}
-              className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-slate-800 dark:text-slate-300 ${
-                className ? className : ""
-              }`}
-              style={inlineCodeStyle}
-            >
-              {children}
-            </code>
-          );
+          const language = match ? match[1] : "";
+
+          console.log("Debug:", {
+            match,
+            className,
+            isCodeBlock,
+            curContent: curContent.slice(0, 20),
+          });
+
+          if (isCodeBlock) {
+            return (
+              <SyntaxHighlighter
+                PreTag="div"
+                className="rounded"
+                language={language}
+                style={
+                  colorMode === "dark"
+                    ? vscDarkPlus
+                    : base16AteliersulphurpoolLight
+                }
+                wrapLongLines={true}
+                codeTagProps={{ style: codeBlockStyle }}
+              >
+                {String(children).replace(/\n$/, "")}
+              </SyntaxHighlighter>
+            );
+          } else {
+            return (
+              <code
+                {...rest}
+                className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-slate-800 dark:text-slate-300 ${
+                  className || ""
+                }`}
+                style={inlineCodeStyle}
+              >
+                {children}
+              </code>
+            );
+          }
         },
         blockquote({ children, ...props }) {
           return (
