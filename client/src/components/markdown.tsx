@@ -5,8 +5,12 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  vscDarkPlus,
+  base16AteliersulphurpoolLight,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
+import { getCurrentColorMode } from "../utils/darkModeUtils";
 
 const countNewlinesBeforeNode = (text: string, offset: number) => {
   let newlinesBefore = 0;
@@ -53,14 +57,43 @@ export function Markdown({ content }: { content: string }) {
         code(props) {
           const { children, className, node, ...rest } = props;
           const match = /language-(\w+)/.exec(className || "");
+          const codeBlockStyle = {
+            fontFamily: '"Fira Code", monospace',
+            fontSize: "14px",
+            fontVariantLigatures: "normal",
+            WebkitFontFeatureSettings: '"liga" 1',
+            fontFeatureSettings: '"liga" 1',
+          };
+          const inlineCodeStyle = {
+            fontFamily: '"Fira Code", monospace',
+            fontSize: "14px",
+            fontVariantLigatures: "normal",
+            WebkitFontFeatureSettings: '"liga" 1',
+            fontFeatureSettings: '"liga" 1',
+          };
+          const colorMode = getCurrentColorMode();
           return match ? (
-            <SyntaxHighlighter PreTag="div" language={match[1]} style={dark}>
+            <SyntaxHighlighter
+              PreTag="div"
+              className="rounded"
+              language={match[1]}
+              style={
+                colorMode === "dark"
+                  ? vscDarkPlus
+                  : base16AteliersulphurpoolLight
+              }
+              wrapLongLines={true}
+              codeTagProps={{ style: codeBlockStyle }}
+            >
               {String(children).replace(/\n$/, "")}
             </SyntaxHighlighter>
           ) : (
             <code
               {...rest}
-              className={`bg-[#4a5061] pt-0.5 pb-1 px-1 rounded ${className}`}
+              className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-slate-800 dark:text-slate-300 ${
+                className ? className : ""
+              }`}
+              style={inlineCodeStyle}
             >
               {children}
             </code>
@@ -110,7 +143,7 @@ export function Markdown({ content }: { content: string }) {
         },
         li({ children, ...props }) {
           return (
-            <li className="pl-2" {...props}>
+            <li className="pl-2 py-1" {...props}>
               {children}
             </li>
           );
@@ -170,7 +203,7 @@ export function Markdown({ content }: { content: string }) {
         },
         p({ children, ...props }) {
           return (
-            <p className="mt-2" {...props}>
+            <p className="mt-2 py-1" {...props}>
               {children}
             </p>
           );

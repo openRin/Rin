@@ -17,3 +17,7 @@ export function listenSystemMode() {
     // 监听模式变化
     mediaQuery.addEventListener('change', darkModeHandler)
 }
+
+export function getCurrentColorMode() {
+    return document.documentElement.getAttribute('data-color-mode');
+}
