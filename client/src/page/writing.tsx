@@ -8,6 +8,7 @@ import { client } from '../main';
 import { headersWithAuth } from '../utils/auth';
 import { siteName } from "../utils/constants";
 
+
 async function publish({ title, alias, listed, content, summary, tags, draft }: { title: string, listed: boolean, content: string, summary: string, tags: string[], draft: boolean, alias?: string }) {
   const { data, error } = await client.feed.index.post({
     title,
