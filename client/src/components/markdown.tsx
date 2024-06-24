@@ -10,7 +10,7 @@ import {
   base16AteliersulphurpoolLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
-import { getCurrentColorMode } from "../utils/darkModeUtils";
+import { useColorMode } from "../utils/darkModeUtils";
 
 const countNewlinesBeforeNode = (text: string, offset: number) => {
   let newlinesBefore = 0;
@@ -24,17 +24,10 @@ const countNewlinesBeforeNode = (text: string, offset: number) => {
   return newlinesBefore;
 };
 
-// const countBacktickBeforeNode = (text: string, offset: number) => {
-//     let backtickBefore = 0;
-//     for (let i = offset - 1; i >= 0; i--) {
-//         if (text[i] === "`") {
-//         backtickBefore++;
-//         } else if (text[i] === "\n")
-//     }
-//     return backtickBefore;
-// };
-
 export function Markdown({ content }: { content: string }) {
+  const colorMode = useColorMode();
+  //   console.log(colorMode);
+
   return (
     <ReactMarkdown
       className="toc-content dark:text-neutral-300"
@@ -84,15 +77,7 @@ export function Markdown({ content }: { content: string }) {
             fontSize: "13px",
           };
 
-          const colorMode = getCurrentColorMode();
           const language = match ? match[1] : "";
-
-          console.log("Debug:", {
-            match,
-            className,
-            isCodeBlock,
-            curContent: curContent.slice(0, 20),
-          });
 
           if (isCodeBlock) {
             return (
