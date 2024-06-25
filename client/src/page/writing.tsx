@@ -346,7 +346,7 @@ export function WritingPage({ id }: { id?: number }) {
                   });
                 }
               }}
-              className="mx-4 my-2 md:mx-0 md:my-0 flex gap-2"
+              className="mx-4 my-2 md:mx-0 md:my-0 flex gap-2  flex-col sm:flex-row"
             >
               <MDEditor
                 height="800px"
