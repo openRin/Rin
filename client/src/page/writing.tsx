@@ -361,7 +361,7 @@ export function WritingPage({ id }: { id?: number }) {
                 preview="edit"
                 extraCommands={[]}
               />
-              <div className="border rounded border-[#d0d7de] dark:border-gray-500 px-4 flex-1 shadow">
+              <div className="border rounded border-[#d0d7de] dark:border-gray-500 px-4 flex-1 shadow h-[800px] overflow-y-scroll">
                 <Markdown content={content ? content : "> No content now. Write on the left side."} />
               </div>
 
