@@ -2,26 +2,30 @@ import { eq } from "drizzle-orm";
 import Elysia from "elysia";
 import type { DB } from "../_worker";
 import { feedHashtags, hashtags } from "../db/schema";
+import { getDB } from "../utils/di";
 
-export const TagService = (db: DB) => new Elysia({ aot: false })
-    .group('/tag', (group) =>
-        group
-            .get('/', async () => {
-                const tag_list = await db.query.hashtags.findMany();
-                return tag_list;
-            })
-            .get('/:name', async ({ set, params: { name } }) => {
-                const tag = await db.query.hashtags.findFirst({
-                    where: eq(hashtags.name, name),
-                    with: { feeds: true }
-                });
-                if (!tag) {
-                    set.status = 404;
-                    return 'Not found';
-                }
-                return tag;
-            })
-    );
+export function TagService() {
+    const db: DB = getDB();
+    return new Elysia({ aot: false })
+        .group('/tag', (group) =>
+            group
+                .get('/', async () => {
+                    const tag_list = await db.query.hashtags.findMany();
+                    return tag_list;
+                })
+                .get('/:name', async ({ set, params: { name } }) => {
+                    const tag = await db.query.hashtags.findFirst({
+                        where: eq(hashtags.name, name),
+                        with: { feeds: true }
+                    });
+                    if (!tag) {
+                        set.status = 404;
+                        return 'Not found';
+                    }
+                    return tag;
+                })
+        );
+}
 
 
 export async function bindTagToPost(db: DB, feedId: number, tags: string[]) {
