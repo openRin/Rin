@@ -7,6 +7,7 @@ import * as schema from './db/schema';
 import { app } from "./server";
 import { friendCrontab } from "./services/friends";
 import { rssCrontab } from "./services/rss";
+import { CacheImpl } from "./utils/cache";
 import { dbToken, envToken } from "./utils/di";
 export type DB = DrizzleD1Database<typeof import("./db/schema")>
 
@@ -18,6 +19,14 @@ export default {
         const db = drizzle(env.DB, { schema: schema })
         Container.set(envToken, env)
         Container.set(dbToken, db)
+
+        const exist = Container.has("cache")
+        if (!exist) {
+            Container.set("cache", new CacheImpl());
+            Container.set("server.config", new CacheImpl("server.config"));
+            Container.set("client.config", new CacheImpl("client.config"));
+        }
+
         return await new Elysia({ aot: false })
             .use(app())
             .handle(request)

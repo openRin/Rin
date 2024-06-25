@@ -1,15 +1,49 @@
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { client } from "../main.tsx";
 import { headersWithAuth } from "../utils/auth.ts";
 import Modal from "react-modal";
 import * as Switch from '@radix-ui/react-switch';
 import '../utils/thumb.css';
 
+
 export function Settings() {
     const [isOpen, setIsOpen] = useState(false);
     const [msg, setMsg] = useState('');
     const [msgList, setMsgList] = useState<{ title: string, reason: string }[]>([]);
     const [checked, setChecked] = useState(false);
+    const ref = useRef(false);
+
+    function updateConfig(type: 'client' | 'server', key: string, value: any) {
+        client.config({
+            type
+        }).post({
+            [key]: value
+        }, {
+            headers: headersWithAuth()
+        }).then(() => {
+            const config = sessionStorage.getItem('config')
+            if (config) {
+                sessionStorage.setItem('config', JSON.stringify({ ...JSON.parse(config), [key]: value }));
+            } else {
+                sessionStorage.setItem('config', JSON.stringify({ [key]: value }));
+            }
+        }).catch((err) => {
+            alert(`更新失败: ${err.message}`)
+        })
+    }
+    useEffect(() => {
+        if (ref.current) return;
+        client.config({
+            type: 'client'
+        }).get().then(({ data }) => {
+            if (data && typeof data != 'string') {
+                setChecked(data['rss']);
+            }
+        }).catch((err) => {
+            alert(`获取配置失败: ${err.message}`)
+        })
+        ref.current = true;
+    }, []);
 
     function onFileChange(e: ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -39,8 +73,9 @@ export function Settings() {
                     </h1>
                 </div>
                 <div className="flex flex-col items-start mt-4">
-                    <ItemSwitch title="启用评论" description="启用评论功能" checked={checked} onChange={() => {
+                    <ItemSwitch title="RSS 订阅链接" description="启用站点底部 RSS 订阅链接" checked={checked} onChange={() => {
                         setChecked(!checked);
+                        updateConfig('client', 'rss', !checked);
                     }} />
                     <ItemWithUpload title="从 WordPress 导入" description="上传 WordPress 导出的 XML 文件"
                         onFileChange={onFileChange} />
