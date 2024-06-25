@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Popup from 'reactjs-popup';
+import { ConfigContext } from '../state/config';
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
-
+    const config = useContext(ConfigContext);
     useEffect(() => {
         const mode = localStorage.getItem('theme') as ThemeMode || 'system';
         setModeState(mode);
@@ -34,7 +35,7 @@ function Footer() {
                     <span>
                         © 2024 Powered by <a className='hover:underline' href="https://github.com/OXeu/Rin" target="_blank">Rin</a>
                     </span>
-                    {process.env.RSS_ENABLE === "true" && <>
+                    {config?.['rss'] && <>
                         <Spliter />
                         <Popup trigger={
                             <button className="hover:underline" type="button">

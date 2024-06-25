@@ -1,9 +1,9 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import Elysia, { t } from "elysia";
 import path from "node:path";
-import type { DB } from "../_worker";
 import type { Env } from "../db/db";
 import { setup } from "../setup";
+import { getEnv } from "../utils/di";
 import { createS3Client } from "../utils/s3";
 
 function buf2hex(buffer: ArrayBuffer) {
@@ -12,16 +12,17 @@ function buf2hex(buffer: ArrayBuffer) {
         .join('');
 }
 
-export const StorageService = (db: DB, env: Env) => {
+export function StorageService() {
+    const env: Env = getEnv();
     const endpoint = env.S3_ENDPOINT;
     const bucket = env.S3_BUCKET;
     const folder = env.S3_FOLDER || '';
     const accessHost = env.S3_ACCESS_HOST || endpoint;
     const accessKeyId = env.S3_ACCESS_KEY_ID;
     const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
-    const s3 = createS3Client(env);
+    const s3 = createS3Client();
     return new Elysia({ aot: false })
-        .use(setup(db, env))
+        .use(setup())
         .group('/storage', (group) =>
             group
                 .post('/', async ({ uid, set, body: { key, file } }) => {
