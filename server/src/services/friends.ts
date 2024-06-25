@@ -6,13 +6,12 @@ import type { Env } from "../db/db";
 import * as schema from "../db/schema";
 import { friends } from "../db/schema";
 import { setup } from "../setup";
-import { getDB, getEnv } from "../utils/di";
+import { getDB } from "../utils/di";
 
 export function FriendService() {
     const db: DB = getDB();
-    const env: Env = getEnv();
     return new Elysia({ aot: false })
-        .use(setup(db, env))
+        .use(setup())
         .group('/friend', (group) =>
             group.get('/', async ({ admin, uid }) => {
                 const friend_list = await (admin ? db.query.friends.findMany() : db.query.friends.findMany({ where: eq(friends.accepted, 1) }));

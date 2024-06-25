@@ -2,16 +2,14 @@ import { eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import { URL } from "url";
 import type { DB } from "../_worker";
-import type { Env } from "../db/db";
 import { users } from "../db/schema";
 import { setup } from "../setup";
-import { getDB, getEnv } from "../utils/di";
+import { getDB } from "../utils/di";
 
 export function UserService() {
     const db: DB = getDB();
-    const env: Env = getEnv();
     return new Elysia({ aot: false })
-        .use(setup(db, env))
+        .use(setup())
         .group('/user', (group) =>
             group
                 .get("/github", ({ oauth2, headers: { referer }, cookie: { redirect_to } }) => {

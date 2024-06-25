@@ -4,6 +4,8 @@ import type { DB } from "../_worker";
 import type { Env } from "../db/db";
 import { comments, feeds, users } from "../db/schema";
 import { setup } from "../setup";
+import { ServerConfig } from "../utils/cache";
+import { Config } from "../utils/config";
 import { getDB, getEnv } from "../utils/di";
 import { notify } from "../utils/webhook";
 
@@ -11,7 +13,7 @@ export function CommentService() {
     const db: DB = getDB();
     const env: Env = getEnv();
     return new Elysia({ aot: false })
-        .use(setup(db, env))
+        .use(setup())
         .group('/feed/comment', (group) =>
             group
                 .get('/:feed', async ({ params: { feed } }) => {
@@ -56,9 +58,9 @@ export function CommentService() {
                         content
                     });
 
+                    const webhookUrl = ServerConfig().get(Config.webhookUrl) || env.WEBHOOK_URL;
                     // notify
-                    await notify(env.WEBHOOK_URL, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
-
+                    await notify(webhookUrl, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
                     return 'OK';
                 }, {
                     body: t.Object({

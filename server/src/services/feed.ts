@@ -3,19 +3,17 @@ import Elysia, { t } from "elysia";
 import { XMLParser } from "fast-xml-parser";
 import html2md from 'html-to-md';
 import type { DB } from "../_worker";
-import type { Env } from "../db/db";
 import { feeds } from "../db/schema";
 import { setup } from "../setup";
-import { getDB, getEnv } from "../utils/di";
+import { PublicCache } from "../utils/cache";
+import { getDB } from "../utils/di";
 import { extractImage } from "../utils/image";
 import { bindTagToPost } from "./tag";
-import { PublicCache } from "../utils/cache";
 
 export function FeedService() {
     const db: DB = getDB();
-    const env: Env = getEnv();
     return new Elysia({ aot: false })
-        .use(setup(db, env))
+        .use(setup())
         .group('/feed', (group) =>
             group
                 .get('/', async ({ admin, set, query: { page, limit, type } }) => {

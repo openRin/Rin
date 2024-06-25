@@ -4,11 +4,14 @@ import { oauth2 } from "elysia-oauth2";
 import type { DB } from "./_worker";
 import type { Env } from "./db/db";
 import { users } from "./db/schema";
+import { getDB, getEnv } from "./utils/di";
 import jwt from "./utils/jwt";
 
 
 const anyUser = async (db: DB) => (await db.query.users.findMany())?.length > 0
-export const setup = (db: DB, env: Env) => {
+export function setup() {
+    const db: DB = getDB();
+    const env: Env = getEnv();
     let gh_client_id = env.RIN_GITHUB_CLIENT_ID || env.GITHUB_CLIENT_ID;
     let gh_client_secret = env.RIN_GITHUB_CLIENT_SECRET || env.GITHUB_CLIENT_SECRET;
     let jwt_secret = env.JWT_SECRET;
