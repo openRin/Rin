@@ -24,7 +24,7 @@ export class CacheImpl {
         this.db = getDB();
         this.env = getEnv();
         this.cache = new Map<string, any>();
-        const slash = this.env.S3_ENDPOINT.endsWith('/') ? '' : '/';
+        const slash = this.env.S3_ACCESS_HOST.endsWith('/') ? '' : '/';
         this.cacheUrl = this.env.S3_ACCESS_HOST + slash + path.join(this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
     }
 
