@@ -5,6 +5,7 @@ import type { Env } from "../db/db";
 import { getDB, getEnv } from "./di";
 import { createS3Client } from "./s3";
 import Container, { Service } from "typedi";
+
 // Cache Utils for storing data in memory and persisting to S3
 // DO NOT USE THIS TO STORE SENSITIVE DATA
 export const PublicCache = () => Container.get(CacheImpl);
@@ -24,17 +25,6 @@ class CacheImpl {
                 this.cache.set(key, data[key]);
             }
         });
-
-        const destructor = this.destructor.bind(this);
-        const weakRef = new WeakRef(this);
-        // add a cleanup callback to the global object
-        const cleanupCallback = () => {
-            const object = weakRef.deref();
-            if (object) {
-                destructor();
-            }
-        };
-        (globalThis as any).gc?.(cleanupCallback);
     }
     get(key: string) {
         return this.cache.get(key);
@@ -45,24 +35,34 @@ class CacheImpl {
             return cached as T;
         }
         const newValue = await value();
-        this.cache.set(key, newValue);
+        this.set(key, newValue);
         return newValue;
     }
+    
     set(key: string, value: any) {
         this.cache.set(key, value);
+        this.save();
     }
-    delete(key: string) {
+
+    delete(key: string, save: boolean = true) {
         this.cache.delete(key);
+        if (save) {
+            this.save();
+        }
     }
+
     deletePrefix(prefix: string) {
         for (let key of this.cache.keys()) {
             if (key.startsWith(prefix)) {
-                this.cache.delete(key);
+                this.delete(key, false);
             }
         }
+        this.save();
     }
+
     clear() {
         this.cache.clear();
+        this.save();
     }
 
     async save() {
