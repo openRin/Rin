@@ -24,16 +24,22 @@ export class CacheImpl {
         this.db = getDB();
         this.env = getEnv();
         this.cache = new Map<string, any>();
-        this.cacheUrl = path.join(this.env.S3_ACCESS_HOST, this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
+        const slash = this.env.S3_ENDPOINT.endsWith('/') ? '' : '/';
+        this.cacheUrl = this.env.S3_ACCESS_HOST + slash + path.join(this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
     }
 
     async load() {
-        fetch(this.cacheUrl).then(response => response.json<any>()).then(data => {
+        try {
+            const response = await fetch(new Request(this.cacheUrl))
+            const data = await response.json<any>()
             for (let key in data) {
                 this.cache.set(key, data[key]);
             }
             this.loaded = true;
-        });
+        } catch (e: any) {
+            console.error('Cache load failed');
+            console.error(e.message);
+        }
     }
     async all() {
         if (!this.loaded) {
