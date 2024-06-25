@@ -15,6 +15,18 @@
     U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 body {
   @apply bg-background-light dark:bg-background-dark text-gray-800;
   font-family: Cantarell, "Source Han Serif CN VF" !important;
