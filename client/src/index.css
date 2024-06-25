@@ -85,7 +85,7 @@ ul {
 }
 
 .writeauto {
-  @apply w-full md:w-7/12 lg:w-8/12 xl:w-10/12 2xl:w-full duration-300;
+  @apply w-full md:w-7/12 lg:w-8/12 duration-300;
 }
 
 .wmde-markdown code {

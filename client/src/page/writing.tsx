@@ -259,8 +259,8 @@ export function WritingPage({ id }: { id?: number }) {
         <meta property="og:url" content={document.URL} />
       </Helmet>
       <div className="flex flex-row justify-start t-primary mt-2">
-        <div className="xl:basis-1/4 transition-all duration-300" />
-        <div className="writeauto xl:basis-11/12 pb-8">
+        <div className="xl:grow-[1] basis-0 transition-all duration-300" />
+        <div className="writeauto grow-[2] pb-8 basis-0">
           <div className="bg-w rounded-2xl shadow-xl shadow-light p-4">
             <div className="visible md:hidden mb-8">
               <Input
@@ -346,10 +346,10 @@ export function WritingPage({ id }: { id?: number }) {
                   });
                 }
               }}
-              className="mx-4 my-2 md:mx-0 md:my-0 flex gap-2  flex-col sm:flex-row"
+              className="mx-4 my-2 md:mx-0 md:my-0 gap-2 grid sm:flex sm:flex-row"
             >
               <MDEditor
-                height="800px"
+                height="600px"
                 className="flex-1 dark:border dark:border-gray-500"
                 value={content}
                 onPaste={handlePaste}
@@ -361,7 +361,7 @@ export function WritingPage({ id }: { id?: number }) {
                 preview="edit"
                 extraCommands={[]}
               />
-              <div className="border rounded border-[#d0d7de] dark:border-gray-500 px-4 flex-1 shadow h-[800px] overflow-y-scroll">
+              <div className="border rounded border-[#d0d7de] dark:border-gray-500 px-4 flex-1 shadow h-[600px] overflow-y-scroll">
                 <Markdown content={content ? content : "> No content now. Write on the left side."} />
               </div>
 
@@ -383,7 +383,7 @@ export function WritingPage({ id }: { id?: number }) {
             </button>
           </div>
         </div>
-        <div className="hidden md:visible basis-1/2 md:basis-1/4 md:flex flex-col">
+        <div className="hidden md:visible grow-[1] md:flex flex-col">
           <div className="fixed">
             <div className="bg-w rounded-2xl shadow-xl shadow-light p-4 my-8 mx-8">
               <Input

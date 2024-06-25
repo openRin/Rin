@@ -41,7 +41,7 @@ export function Settings() {
                 <div className="flex flex-col items-start mt-4">
                     <ItemSwitch title="启用评论" description="启用评论功能" checked={checked} onChange={() => {
                         setChecked(!checked);
-                     }} />
+                    }} />
                     <ItemWithUpload title="从 WordPress 导入" description="上传 WordPress 导出的 XML 文件"
                         onFileChange={onFileChange} />
                 </div>

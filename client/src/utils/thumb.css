@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* reset */
-button {
-    all: unset;
-}
-
 .SwitchRoot[data-state='checked'] {
     @apply bg-theme;
 }
