@@ -16,24 +16,35 @@ export class CacheImpl {
     env: Env;
     cacheUrl: string;
     type: string;
+    loaded: boolean = false;
     s3 = createS3Client();
+
     constructor(type: string = "cache") {
         this.type = type;
         this.db = getDB();
         this.env = getEnv();
         this.cache = new Map<string, any>();
-        console.log('Cache created', type);
         this.cacheUrl = path.join(this.env.S3_ACCESS_HOST, this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
+    }
+
+    async load() {
         fetch(this.cacheUrl).then(response => response.json<any>()).then(data => {
             for (let key in data) {
                 this.cache.set(key, data[key]);
             }
+            this.loaded = true;
         });
     }
-    all() {
+    async all() {
+        if (!this.loaded) {
+            await this.load();
+        }
         return this.cache;
     }
-    get(key: string) {
+    async get(key: string) {
+        if (!this.loaded) {
+            await this.load();
+        }
         return this.cache.get(key);
     }
     async getOrSet<T>(key: string, value: () => Promise<T>) {
@@ -44,11 +55,13 @@ export class CacheImpl {
         }
         console.log('Cache miss', key);
         const newValue = await value();
-        this.set(key, newValue);
+        await this.set(key, newValue);
         return newValue;
     }
 
-    set(key: string, value: any, save: boolean = true) {
+    async set(key: string, value: any, save: boolean = true) {
+        if (this.loaded)
+            await this.load();
         this.cache.set(key, value);
         console.log('Cache set', key);
         if (save) {
@@ -56,17 +69,19 @@ export class CacheImpl {
         }
     }
 
-    delete(key: string, save: boolean = true) {
+    async delete(key: string, save: boolean = true) {
+        if (this.loaded)
+            await this.load();
         this.cache.delete(key);
         if (save) {
             this.save();
         }
     }
 
-    deletePrefix(prefix: string) {
+    async deletePrefix(prefix: string) {
         for (let key of this.cache.keys()) {
             if (key.startsWith(prefix)) {
-                this.delete(key, false);
+                await this.delete(key, false);
             }
         }
         this.save();
@@ -89,10 +104,6 @@ export class CacheImpl {
             console.error('Cache save failed')
             console.error(e.message);
         });
-    }
-
-    destructor() {
-        this.save();
     }
 }
 

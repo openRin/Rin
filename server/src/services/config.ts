@@ -15,7 +15,7 @@ export function ConfigService() {
                         return 'Unauthorized';
                     }
                     const config = type === 'server' ? ServerConfig() : ClientConfig();
-                    return Object.fromEntries(config.all());
+                    return Object.fromEntries(await config.all());
                 })
                 .post('/:type', async ({ admin, body, params: { type } }) => {
                     if (type !== 'server' && type !== 'client') {
@@ -26,7 +26,7 @@ export function ConfigService() {
                     }
                     const config = type === 'server' ? ServerConfig() : ClientConfig();
                     for (const key in body) {
-                        config.set(key, body[key], false);
+                        await config.set(key, body[key], false);
                     }
                     await config.save();
                     return 'OK';

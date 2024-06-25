@@ -58,7 +58,7 @@ export function CommentService() {
                         content
                     });
 
-                    const webhookUrl = ServerConfig().get(Config.webhookUrl) || env.WEBHOOK_URL;
+                    const webhookUrl = await ServerConfig().get(Config.webhookUrl) || env.WEBHOOK_URL;
                     // notify
                     await notify(webhookUrl, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
                     return 'OK';

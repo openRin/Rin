@@ -25,7 +25,7 @@ export function FeedService() {
                     const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
                     const limit_num = limit ? +limit > 50 ? 50 : +limit : 20;
                     const cacheKey = `feeds_${type}_${page_num}_${limit_num}`;
-                    const cached = cache.get(cacheKey);
+                    const cached = await cache.get(cacheKey);
                     if (cached) {
                         return cached;
                     }
@@ -78,7 +78,7 @@ export function FeedService() {
                         hasNext: feed_list.length === limit_num + 1
                     }
                     if (type === undefined || type === 'normal' || type === '')
-                        cache.set(cacheKey, data);
+                        await cache.set(cacheKey, data);
                     return data
                 }, {
                     query: t.Object({
@@ -133,7 +133,7 @@ export function FeedService() {
                         draft: draft ? 1 : 0
                     }).returning({ insertedId: feeds.id });
                     await bindTagToPost(db, result[0].insertedId, tags);
-                    PublicCache().deletePrefix('feeds_');
+                    await PublicCache().deletePrefix('feeds_');
                     if (result.length === 0) {
                         set.status = 500;
                         return 'Failed to insert';
@@ -170,7 +170,7 @@ export function FeedService() {
                             }
                         }
                     })));
-                    cache.set(cacheKey, feed);
+                    await cache.set(cacheKey, feed);
                     if (!feed) {
                         set.status = 404;
                         return 'Not found';
@@ -221,8 +221,8 @@ export function FeedService() {
                         await bindTagToPost(db, id_num, tags);
                     }
                     const cache = PublicCache()
-                    cache.deletePrefix('feeds_');
-                    cache.delete(`feed_${id_num}`);
+                    await cache.deletePrefix('feeds_');
+                    await cache.delete(`feed_${id_num}`);
                     return 'Updated';
                 }, {
                     body: t.Object({
@@ -250,8 +250,8 @@ export function FeedService() {
                     }
                     await db.delete(feeds).where(eq(feeds.id, id_num));
                     const cache = PublicCache()
-                    cache.deletePrefix('feeds_');
-                    cache.delete(`feed_${id_num}`);
+                    await cache.deletePrefix('feeds_');
+                    await cache.delete(`feed_${id_num}`);
                     return 'Deleted';
                 })
         )
