@@ -19,7 +19,7 @@ class CacheImpl {
         this.db = getDB();
         this.env = getEnv();
         this.cache = new Map<string, any>();
-        this.cacheUrl = path.join(this.env.S3_ACCESS_HOST, this.env.S3_CACHE_FOLDER || 'cache/', 'cache.json');
+        this.cacheUrl = path.join(this.env.S3_ACCESS_HOST, this.env.S3_CACHE_FOLDER || 'cache', 'cache.json');
         fetch(this.cacheUrl).then(response => response.json<any>()).then(data => {
             for (let key in data) {
                 this.cache.set(key, data[key]);
@@ -38,7 +38,7 @@ class CacheImpl {
         this.set(key, newValue);
         return newValue;
     }
-    
+
     set(key: string, value: any) {
         this.cache.set(key, value);
         this.save();
@@ -67,9 +67,10 @@ class CacheImpl {
 
     async save() {
         const s3 = createS3Client();
+        const cacheKey = path.join(this.env.S3_CACHE_FOLDER, 'cache.json');
         s3.send(new PutObjectCommand({
             Bucket: this.env.S3_BUCKET,
-            Key: this.env.S3_CACHE_FOLDER + '/cache.json',
+            Key: cacheKey,
             Body: JSON.stringify(Object.fromEntries(this.cache))
         })).then(() => {
             console.log('Cache saved');
