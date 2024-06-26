@@ -324,7 +324,7 @@ export function WritingPage({ id }: { id?: number }) {
             <p>
               发布时间
             </p>
-            <Calendar value={createdAt} onChange={(e) => setCreatedAt(e.value || undefined)} showTime hourFormat="24" />
+            <Calendar value={createdAt} onChange={(e) => setCreatedAt(e.value || undefined)} showTime touchUI hourFormat="24" />
           </div>
         </div>
       </>
