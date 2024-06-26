@@ -7,6 +7,7 @@ import * as schema from "../db/schema";
 import { friends } from "../db/schema";
 import { setup } from "../setup";
 import { getDB } from "../utils/di";
+import { ServerConfig } from "../utils/cache";
 
 export function FriendService() {
     const db: DB = getDB();
@@ -123,6 +124,13 @@ export function FriendService() {
 }
 
 export async function friendCrontab(env: Env, ctx: ExecutionContext) {
+    const config = ServerConfig()
+    const enable = await config.getOrSet('friend_crontab', async () => true)
+    const ua = await config.get('friend_ua') || 'Rin-Check/0.1.0'
+    if (!enable) {
+        console.info('friend crontab disabled')
+        return
+    }
     const db = drizzle(env.DB, { schema: schema })
     const friend_list = await db.query.friends.findMany()
     console.info(`total friends: ${friend_list.length}`)
@@ -131,7 +139,7 @@ export async function friendCrontab(env: Env, ctx: ExecutionContext) {
     for (const friend of friend_list) {
         console.info(`checking ${friend.name}: ${friend.url}`)
         try {
-            const response = await fetch(friend.url)
+            const response = await fetch(new Request(friend.url, { method: 'GET', headers: { 'User-Agent': ua } }))
             console.info(`response status: ${response.status}`)
             console.info(`response statusText: ${response.statusText}`)
             if (response.ok) {

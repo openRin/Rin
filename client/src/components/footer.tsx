@@ -1,10 +1,10 @@
 import { useContext, useEffect, useState } from 'react';
 import Popup from 'reactjs-popup';
-import { ConfigContext } from '../state/config';
+import { ClientConfigContext } from '../state/config';
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
-    const config = useContext(ConfigContext);
+    const config = useContext(ClientConfigContext);
     useEffect(() => {
         const mode = localStorage.getItem('theme') as ThemeMode || 'system';
         setModeState(mode);

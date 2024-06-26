@@ -1,3 +1,4 @@
 import { createContext } from "react";
 
-export const ConfigContext = createContext<any | undefined>(undefined);
+export const ClientConfigContext = createContext<any | undefined>(undefined);
+export const ServerConfigContext = createContext<any | undefined>(undefined);

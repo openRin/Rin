@@ -15,7 +15,7 @@ import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
 import { Settings } from "./page/settings.tsx";
-import { ConfigContext } from './state/config.tsx'
+import { ClientConfigContext } from './state/config.tsx'
 
 function App() {
   const ref = useRef(false)
@@ -52,7 +52,7 @@ function App() {
   }, [])
   return (
     <>
-      <ConfigContext.Provider value={config}>
+      <ClientConfigContext.Provider value={config}>
         <ProfileContext.Provider value={profile}>
           <Switch>
             <RouteMe path="/">
@@ -108,7 +108,7 @@ function App() {
             <Route>404: No such page!</Route>
           </Switch>
         </ProfileContext.Provider>
-      </ConfigContext.Provider>
+      </ClientConfigContext.Provider>
     </>
   )
 }
