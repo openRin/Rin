@@ -162,6 +162,8 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
         }
     }, [config]);
     function updateConfig(type: 'client' | 'server', key: string, value: any) {
+        const checkedValue = checked
+        setChecked(!checkedValue);
         setLoading(true);
         client.config({
             type
@@ -169,7 +171,10 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
             [key]: value
         }, {
             headers: headersWithAuth()
-        }).then(() => {
+        }).then(({error}:{error:any}) => {
+            if (error) {
+                setChecked(checkedValue);
+            }
             if (type === 'client') {
                 const config = sessionStorage.getItem('config')
                 if (config) {
@@ -181,7 +186,7 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
             setLoading(false);
         }).catch((err) => {
             alert(`更新失败: ${err.message}`)
-            setChecked(!checked);
+            setChecked(checkedValue);
             setLoading(false);
         })
     }
@@ -199,7 +204,6 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
                 <div className="flex flex-row items-center justify-center space-x-4">
                     {loading && <ReactLoading width="1em" height="1em" type="spin" color="#FC466B" />}
                     <Switch.Root className="SwitchRoot" checked={checked} onCheckedChange={() => {
-                        setChecked(!checked);
                         updateConfig(type, configKey, !checked);
                     }}>
                         <Switch.Thumb className="SwitchThumb" />
