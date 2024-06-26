@@ -56,8 +56,8 @@ export class CacheImpl {
         return this.cache.get(key);
     }
     async getOrSet<T>(key: string, value: () => Promise<T>) {
-        const cached = this.cache.get(key)
-        if (cached) {
+        const cached = await this.get(key)
+        if (cached !== undefined) {
             console.log('Cache hit', key);
             return cached as T;
         }

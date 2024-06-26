@@ -7,6 +7,7 @@ import * as schema from "../db/schema";
 import { friends } from "../db/schema";
 import { setup } from "../setup";
 import { getDB } from "../utils/di";
+import { ClientConfig, ServerConfig } from "../utils/cache";
 
 export function FriendService() {
     const db: DB = getDB();
@@ -16,11 +17,18 @@ export function FriendService() {
             group.get('/', async ({ admin, uid }) => {
                 const friend_list = await (admin ? db.query.friends.findMany() : db.query.friends.findMany({ where: eq(friends.accepted, 1) }));
                 console.log(friend_list);
-                const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid ?? null) });
+                const uid_num = parseInt(uid);
+                const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid_num ?? null) });
                 console.log(apply_list);
                 return { friend_list, apply_list };
             })
                 .post('/', async ({ admin, uid, set, body: { name, desc, avatar, url } }) => {
+                    const config = ClientConfig()
+                    const enable = await config.getOrSet('friend_apply_enable', async () => true)
+                    if (!enable) {
+                        set.status = 403;
+                        return 'Friend Link Apply Disabled';
+                    }
                     if (name.length > 20 || desc.length > 100 || avatar.length > 100 || url.length > 100) {
                         set.status = 400;
                         return 'Invalid input';
@@ -62,6 +70,12 @@ export function FriendService() {
                     })
                 })
                 .put('/:id', async ({ admin, uid, set, params: { id }, body: { name, desc, avatar, url, accepted } }) => {
+                    const config = ClientConfig()
+                    const enable = await config.getOrSet('friend_apply_enable', async () => true)
+                    if (!enable) {
+                        set.status = 403;
+                        return 'Friend Link Apply Disabled';
+                    }
                     if (!uid) {
                         set.status = 401;
                         return 'Unauthorized';
@@ -123,6 +137,13 @@ export function FriendService() {
 }
 
 export async function friendCrontab(env: Env, ctx: ExecutionContext) {
+    const config = ServerConfig()
+    const enable = await config.getOrSet('friend_crontab', async () => true)
+    const ua = await config.get('friend_ua') || 'Rin-Check/0.1.0'
+    if (!enable) {
+        console.info('friend crontab disabled')
+        return
+    }
     const db = drizzle(env.DB, { schema: schema })
     const friend_list = await db.query.friends.findMany()
     console.info(`total friends: ${friend_list.length}`)
@@ -131,7 +152,7 @@ export async function friendCrontab(env: Env, ctx: ExecutionContext) {
     for (const friend of friend_list) {
         console.info(`checking ${friend.name}: ${friend.url}`)
         try {
-            const response = await fetch(friend.url)
+            const response = await fetch(new Request(friend.url, { method: 'GET', headers: { 'User-Agent': ua } }))
             console.info(`response status: ${response.status}`)
             console.info(`response statusText: ${response.statusText}`)
             if (response.ok) {

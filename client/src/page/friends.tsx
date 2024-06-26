@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
 import Modal from 'react-modal';
+import Select from 'react-select';
 import { Input } from "../components/input";
 import { Waiting } from "../components/loading";
 import { client } from "../main";
@@ -8,6 +9,7 @@ import { ProfileContext } from "../state/profile";
 import { shuffleArray } from "../utils/array";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
+import { ClientConfigContext } from "../state/config";
 
 
 type FriendItem = {
@@ -15,18 +17,6 @@ type FriendItem = {
     id: number;
     uid: number;
     avatar: string;
-    createdAt: Date;
-    updatedAt: Date;
-    desc: string | null;
-    url: string;
-    accepted: number;
-    health: string;
-};
-type ApplyItem = {
-    name: string;
-    id: number;
-    uid: number;
-    avatar: string | null;
     createdAt: Date;
     updatedAt: Date;
     desc: string | null;
@@ -53,26 +43,35 @@ async function publish({ name, avatar, desc, url }: { name: string, avatar: stri
 }
 
 export function FriendsPage() {
-    let [_, setApply] = useState<ApplyItem>()
+    const config = useContext(ClientConfigContext)
+    let [apply, setApply] = useState<FriendItem>()
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
     const [avatar, setAvatar] = useState("")
     const [url, setUrl] = useState("")
     const profile = useContext(ProfileContext);
     const [friendsAvailable, setFriendsAvailable] = useState<FriendItem[]>([])
+    const [waitList, setWaitList] = useState<FriendItem[]>([])
+    const [refusedList, setRefusedList] = useState<FriendItem[]>([])
     const [friendsUnavailable, setFriendsUnavailable] = useState<FriendItem[]>([])
     const [status, setStatus] = useState<'idle' | 'loading'>('loading')
     const ref = useRef(false)
     useEffect(() => {
         if (ref.current) return
-        client.friend.index.get().then(({ data }) => {
+        client.friend.index.get({
+            headers: headersWithAuth()
+        }).then(({ data }) => {
             if (data) {
-                const friends_available = data.friend_list?.filter(({ health }) => health.length === 0) || []
+                const friends_available = data.friend_list?.filter(({ health, accepted }) => health.length === 0 && accepted === 1) || []
                 shuffleArray(friends_available)
                 setFriendsAvailable(friends_available)
-                const friends_unavailable = data.friend_list?.filter(({ health }) => health.length > 0) || []
+                const friends_unavailable = data.friend_list?.filter(({ health, accepted }) => health.length > 0 && accepted === 1) || []
                 shuffleArray(friends_unavailable)
                 setFriendsUnavailable(friends_unavailable)
+                const waitList = data.friend_list?.filter(({ accepted }) => accepted === 0) || []
+                setWaitList(waitList)
+                const refuesdList = data.friend_list?.filter(({ accepted }) => accepted === -1) || []
+                setRefusedList(refuesdList)
                 if (data.apply_list)
                     setApply(data.apply_list)
             }
@@ -80,7 +79,6 @@ export function FriendsPage() {
         })
         ref.current = true
     }, [])
-
     function publishButton() {
         publish({ name, desc, avatar, url })
     }
@@ -95,42 +93,16 @@ export function FriendsPage() {
         </Helmet>
         <Waiting for={friendsAvailable.length != 0 || friendsUnavailable.length != 0 || status === "idle"}>
             <main className="w-full flex flex-col justify-center items-center mb-8 t-primary">
-                {friendsAvailable.length > 0 &&
-                    <>
-                        <div className="wauto text-start py-4 text-4xl font-bold ani-show">
-                            <p>
-                                朋友们
-                            </p>
-                            <p className="text-sm mt-4 text-neutral-500 font-normal">
-                                梦想的同行者
-                            </p>
-                        </div>
-                        <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {friendsAvailable.map((friend) => (
-                                <Friend key={friend.id} friend={friend} />
-                            ))}
-                        </div>
-                    </>
-                }
-                {friendsUnavailable.length > 0 &&
-                    <>
-                        <div className="wauto text-start py-4">
-                            <p className="text-sm mt-4 text-neutral-500 font-normal">
-                                暂时离开
-                            </p>
-                        </div>
-                        <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {friendsUnavailable.map((friend) => (
-                                <Friend key={friend.id} friend={friend} />
-                            ))}
-                        </div>
-                    </>
-                }
-                {profile && profile.permission &&
+                <FriendList title="朋友们" show={friendsAvailable.length > 0} friends={friendsAvailable} />
+                <FriendList title="暂时离开" show={friendsUnavailable.length > 0} friends={friendsUnavailable} />
+                <FriendList title="待审核" show={waitList.length > 0} friends={waitList} />
+                <FriendList title="已拒绝" show={refusedList.length > 0} friends={refusedList} />
+                <FriendList title="我的申请" show={profile?.permission != true && apply != undefined} friends={apply ? [apply] : []} />
+                {profile && (profile.permission || config.getOrDefault("friend_apply_enable", true)) &&
                     <div className="wauto t-primary flex text-start text-black text-2xl font-bold mt-8 ani-show">
                         <div className="md:basis-1/2 bg-w rounded-xl p-4">
                             <p>
-                                创建友链
+                                {profile.permission ? "创建友链" : "申请友链"}
                             </p>
                             <div className="text-sm mt-4 text-neutral-500 font-normal">
                                 <Input value={name} setValue={setName} placeholder="站点名称" />
@@ -149,12 +121,32 @@ export function FriendsPage() {
     </>)
 }
 
+function FriendList({ title, show, friends }: { title: string, show: boolean, friends: FriendItem[] }) {
+    return (<>
+        {
+            show && <>
+                <div className="wauto text-start py-4">
+                    <p className="text-sm mt-4 text-neutral-500 font-normal">
+                        {title}
+                    </p>
+                </div>
+                <div className="wauto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {friends.map((friend) => (
+                        <Friend key={friend.id} friend={friend} />
+                    ))}
+                </div>
+            </>
+        }
+    </>)
+}
+
 function Friend({ friend }: { friend: FriendItem }) {
     const profile = useContext(ProfileContext)
     const [avatar, setAvatar] = useState(friend.avatar)
     const [name, setName] = useState(friend.name)
     const [desc, setDesc] = useState(friend.desc || "")
     const [url, setUrl] = useState(friend.url)
+    const [status, setStatus] = useState(friend.accepted)
     const [modalIsOpen, setIsOpen] = useState(false);
     function deleteFriend() {
         if (confirm("确定删除吗？")) {
@@ -175,7 +167,8 @@ function Friend({ friend }: { friend: FriendItem }) {
             avatar,
             name,
             desc,
-            url
+            url,
+            accepted: status
         }, {
             headers: headersWithAuth()
         }).then(({ error }) => {
@@ -187,16 +180,23 @@ function Friend({ friend }: { friend: FriendItem }) {
             }
         })
     }
+
+    const statusOption = [
+        { value: -1, label: '拒绝' },
+        { value: 0, label: '待审核' },
+        { value: 1, label: '通过' }
+    ]
     return (
         <>
-            <div title={friend.health} onClick={(e) => { console.log(e); window.open(friend.url) }} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-start items-center relative ani-show">
+            <div title={friend.health} onClick={(e) => { console.log(e); window.open(friend.url) }} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative ani-show">
                 <div className="w-16 h-16">
                     <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
                 <p className="text-base text-center">{friend.name}</p>
                 {friend.health.length == 0 && <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>}
+                {friend.accepted != 1 && <p className={`${friend.accepted === 0 ? "t-primary" : "text-theme"}`}>{statusOption[friend.accepted + 1].label}</p>}
                 {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
-                {profile?.permission && <>
+                {(profile?.permission || profile?.id === friend.uid) && <>
                     <button onClick={(e) => { e.stopPropagation(); setIsOpen(true) }} className="absolute top-0 right-0 m-2 px-2 py-1 bg-secondary t-primary rounded-full bg-hover">
                         <i className="ri-settings-line"></i>
                     </button></>}
@@ -234,6 +234,27 @@ function Friend({ friend }: { friend: FriendItem }) {
                     <div className="w-16 h-16">
                         <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                     </div>
+                    {profile?.permission &&
+                        <div className="flex flex-col w-full items-start mt-4 px-4">
+                            <div className="flex flex-row justify-between w-full items-center">
+                                <div className="flex flex-col">
+                                    <p className="text-lg dark:text-white">
+                                        状态
+                                    </p>
+                                </div>
+                                <div className="flex flex-row items-center justify-center space-x-4">
+                                    <Select options={statusOption} required defaultValue={statusOption[friend.accepted + 1]}
+                                        onChange={(newValue, _) => {
+                                            const value = newValue?.value
+                                            if (value != undefined) {
+                                                setStatus(value)
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    }
                     <Input value={name} setValue={setName} placeholder="站点名称" className="mt-4" />
                     <Input value={desc} setValue={setDesc} placeholder="描述" className="mt-2" />
                     <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />

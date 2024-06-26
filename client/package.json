@@ -24,6 +24,7 @@
     "react-helmet": "^6.1.0",
     "react-loading": "^2.0.3",
     "react-modal": "^3.16.1",
+    "react-select": "^5.8.0",
     "reactjs-popup": "^2.0.6",
     "remixicon": "^4.2.0",
     "rin-server": "workspace:rin-server@latest",

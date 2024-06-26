@@ -15,12 +15,12 @@ import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
 import { Settings } from "./page/settings.tsx";
-import { ConfigContext } from './state/config.tsx'
-
+import { ClientConfigContext, ConfigWrapper } from './state/config.tsx'
+ 
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
-  const [config, setConfig] = useState<any>()
+  const [config, setConfig] = useState<ConfigWrapper>(new ConfigWrapper({}))
   useEffect(() => {
     if (ref.current) return
     if (getCookie('token')?.length ?? 0 > 0) {
@@ -39,12 +39,15 @@ function App() {
     }
     const config = sessionStorage.getItem('config')
     if (config) {
-      setConfig(JSON.parse(config))
+      const configObj = JSON.parse(config)
+      const configWrapper = new ConfigWrapper(configObj)
+      setConfig(configWrapper)
     } else {
       client.config({ type: "client" }).get().then(({ data }) => {
         if (data && typeof data != 'string') {
           sessionStorage.setItem('config', JSON.stringify(data))
-          setConfig(data)
+          const config = new ConfigWrapper(data)
+          setConfig(config)
         }
       })
     }
@@ -52,7 +55,7 @@ function App() {
   }, [])
   return (
     <>
-      <ConfigContext.Provider value={config}>
+      <ClientConfigContext.Provider value={config}>
         <ProfileContext.Provider value={profile}>
           <Switch>
             <RouteMe path="/">
@@ -108,7 +111,7 @@ function App() {
             <Route>404: No such page!</Route>
           </Switch>
         </ProfileContext.Provider>
-      </ConfigContext.Provider>
+      </ClientConfigContext.Provider>
     </>
   )
 }
