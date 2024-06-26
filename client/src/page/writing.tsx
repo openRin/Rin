@@ -5,13 +5,16 @@ import MDEditor, {
   TextAreaTextApi,
 } from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
-import { useEffect, useRef, useState } from "react";
+import { Calendar } from 'primereact/calendar';
+import 'primereact/resources/primereact.css';
+import 'primereact/resources/themes/lara-light-indigo/theme.css';
+import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Checkbox, Input } from "../components/input";
+import { Markdown } from "../components/markdown";
 import { client } from "../main";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
-import { Markdown } from "../components/markdown";
 
 async function publish({
   title,
@@ -21,6 +24,7 @@ async function publish({
   summary,
   tags,
   draft,
+  createdAt,
 }: {
   title: string;
   listed: boolean;
@@ -29,6 +33,7 @@ async function publish({
   tags: string[];
   draft: boolean;
   alias?: string;
+  createdAt?: Date;
 }) {
   const { data, error } = await client.feed.index.post(
     {
@@ -39,6 +44,7 @@ async function publish({
       tags,
       listed,
       draft,
+      createdAt,
     },
     {
       headers: headersWithAuth(),
@@ -63,6 +69,7 @@ async function update({
   tags,
   listed,
   draft,
+  createdAt,
 }: {
   id: number;
   listed: boolean;
@@ -72,6 +79,7 @@ async function update({
   summary?: string;
   tags?: string[];
   draft?: boolean;
+  createdAt?: Date;
 }) {
   const { error } = await client.feed({ id }).post(
     {
@@ -82,6 +90,7 @@ async function update({
       tags,
       listed,
       draft,
+      createdAt,
     },
     {
       headers: headersWithAuth(),
@@ -188,6 +197,7 @@ export function WritingPage({ id }: { id?: number }) {
   const [draft, setDraft] = useState(false);
   const [listed, setListed] = useState(true);
   const [content, setContent] = useState<string>(cache.get("content") ?? "");
+  const [createdAt, setCreatedAt] = useState<Date | undefined>(new Date());
   function publishButton() {
     const tagsplit =
       tags
@@ -204,6 +214,7 @@ export function WritingPage({ id }: { id?: number }) {
         tags: tagsplit,
         draft,
         listed,
+        createdAt
       });
     } else {
       if (!title) {
@@ -222,6 +233,7 @@ export function WritingPage({ id }: { id?: number }) {
         draft,
         alias,
         listed,
+        createdAt
       });
     }
   }
@@ -243,11 +255,82 @@ export function WritingPage({ id }: { id?: number }) {
             if (summary == "") setSummary(data.summary);
             setListed(data.listed === 1);
             setDraft(data.draft === 1);
+            setCreatedAt(new Date(data.createdAt));
           }
         });
     }
   }, []);
   const [drag, setDrag] = useState(false);
+  function MetaInput({ className }: { className?: string }) {
+    return (
+      <>
+        <div className={className}>
+          <Input
+            id={id}
+            name="title"
+            value={title}
+            setValue={setTitle}
+            placeholder="标题"
+          />
+          <Input
+            id={id}
+            name="summary"
+            value={summary}
+            setValue={setSummary}
+            placeholder="摘要"
+            className="mt-4"
+          />
+          <Input
+            id={id}
+            name="tags"
+            value={tags}
+            setValue={setTags}
+            placeholder="标签"
+            className="mt-4"
+          />
+          <Input
+            id={id}
+            name="alias"
+            value={alias}
+            setValue={setAlias}
+            placeholder="别名"
+            className="mt-4"
+          />
+          <div
+            className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
+            onClick={() => setDraft(!draft)}
+          >
+            <p>仅自己可见</p>
+            <Checkbox
+              id="draft"
+              value={draft}
+              setValue={setDraft}
+              placeholder="草稿"
+            />
+          </div>
+          <div
+            className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
+            onClick={() => setListed(!listed)}
+          >
+            <p>列出在文章中</p>
+            <Checkbox
+              id="listed"
+              value={listed}
+              setValue={setListed}
+              placeholder="列出"
+            />
+          </div>
+          <div className="select-none flex flex-row justify-between items-center mt-4 mb-2 pl-4">
+            <p>
+              发布时间
+            </p>
+            <Calendar value={createdAt} onChange={(e) => setCreatedAt(e.value || undefined)} showTime touchUI hourFormat="24" />
+          </div>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <Helmet>
@@ -262,63 +345,7 @@ export function WritingPage({ id }: { id?: number }) {
         <div className="xl:grow-[1] basis-0 transition-all duration-300" />
         <div className="writeauto grow-[2] pb-8 basis-0">
           <div className="bg-w rounded-2xl shadow-xl shadow-light p-4">
-            <div className="visible md:hidden mb-8">
-              <Input
-                id={id}
-                name="title"
-                value={title}
-                setValue={setTitle}
-                placeholder="标题"
-              />
-              <Input
-                id={id}
-                name="summary"
-                value={summary}
-                setValue={setSummary}
-                placeholder="摘要"
-                className="mt-4"
-              />
-              <Input
-                id={id}
-                name="tags"
-                value={tags}
-                setValue={setTags}
-                placeholder="标签"
-                className="mt-4"
-              />
-              <Input
-                id={id}
-                name="alias"
-                value={alias}
-                setValue={setAlias}
-                placeholder="别名"
-                className="mt-4"
-              />
-              <div
-                className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
-                onClick={() => setDraft(!draft)}
-              >
-                <p>仅自己可见</p>
-                <Checkbox
-                  id="draft"
-                  value={draft}
-                  setValue={setDraft}
-                  placeholder="草稿"
-                />
-              </div>
-              <div
-                className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
-                onClick={() => setListed(!listed)}
-              >
-                <p>列出在文章中</p>
-                <Checkbox
-                  id="listed"
-                  value={listed}
-                  setValue={setListed}
-                  placeholder="列出"
-                />
-              </div>
-            </div>
+            {MetaInput({ className: "visible md:hidden mb-8" })}
             <div
               onDragOver={(e) => {
                 e.preventDefault();
@@ -346,7 +373,7 @@ export function WritingPage({ id }: { id?: number }) {
                   });
                 }
               }}
-              className="mx-4 my-2 md:mx-0 md:my-0 gap-2 grid sm:flex sm:flex-row"
+              className="mx-4 my-2 md:mx-0 md:my-0 gap-2 grid sm:flex sm:flex-row relative"
             >
               <MDEditor
                 height="600px"
@@ -366,9 +393,8 @@ export function WritingPage({ id }: { id?: number }) {
               </div>
 
               <div
-                className={`absolute bg-theme/10 t-secondary text-xl top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center ${
-                  drag ? "" : "hidden"
-                }`}
+                className={`absolute bg-theme/10 t-secondary text-xl top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center ${drag ? "" : "hidden"
+                  }`}
               >
                 拖拽图片到这里上传
               </div>
@@ -385,63 +411,7 @@ export function WritingPage({ id }: { id?: number }) {
         </div>
         <div className="hidden md:visible grow-[1] md:flex flex-col">
           <div className="fixed">
-            <div className="bg-w rounded-2xl shadow-xl shadow-light p-4 my-8 mx-8">
-              <Input
-                id={id}
-                name="title"
-                value={title}
-                setValue={setTitle}
-                placeholder="标题"
-              />
-              <Input
-                id={id}
-                name="summary"
-                value={summary}
-                setValue={setSummary}
-                placeholder="摘要"
-                className="mt-4"
-              />
-              <Input
-                id={id}
-                name="tags"
-                value={tags}
-                setValue={setTags}
-                placeholder="标签"
-                className="mt-4"
-              />
-              <Input
-                id={id}
-                name="alias"
-                value={alias}
-                setValue={setAlias}
-                placeholder="别名"
-                className="mt-4"
-              />
-              <div
-                className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
-                onClick={() => setDraft(!draft)}
-              >
-                <p>仅自己可见</p>
-                <Checkbox
-                  id="draft"
-                  value={draft}
-                  setValue={setDraft}
-                  placeholder="草稿"
-                />
-              </div>
-              <div
-                className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
-                onClick={() => setListed(!listed)}
-              >
-                <p>列出在文章中</p>
-                <Checkbox
-                  id="listed"
-                  value={listed}
-                  setValue={setListed}
-                  placeholder="列出"
-                />
-              </div>
-            </div>
+            {MetaInput({ className: "bg-w rounded-2xl shadow-xl shadow-light p-4 my-8 mx-8" })}
             <div className="flex flex-row justify-center">
               <button
                 onClick={publishButton}
