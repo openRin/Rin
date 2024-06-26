@@ -7,22 +7,26 @@ export function ConfigService() {
         .use(setup())
         .group('/config', (group) =>
             group
-                .get('/:type', async ({ admin, params: { type } }) => {
+                .get('/:type', async ({ set, admin, params: { type } }) => {
                     if (type !== 'server' && type !== 'client') {
+                        set.status = 400;
                         return 'Invalid type';
                     }
                     if (type === 'server' && !admin) {
+                        set.status = 401;
                         return 'Unauthorized';
                     }
                     const config = type === 'server' ? ServerConfig() : ClientConfig();
                     const all = await config.all();
                     return Object.fromEntries(all);
                 })
-                .post('/:type', async ({ admin, body, params: { type } }) => {
+                .post('/:type', async ({ set, admin, body, params: { type } }) => {
                     if (type !== 'server' && type !== 'client') {
+                        set.status = 400;
                         return 'Invalid type';
                     }
                     if (!admin) {
+                        set.status = 401;
                         return 'Unauthorized';
                     }
                     const config = type === 'server' ? ServerConfig() : ClientConfig();
