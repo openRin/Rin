@@ -99,7 +99,7 @@ export function FeedService() {
                         orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
                     }))
                 })
-                .post('/', async ({ admin, set, uid, body: { title, alias, listed, content, summary, draft, tags } }) => {
+                .post('/', async ({ admin, set, uid, body: { title, alias, listed, content, summary, draft, tags, createdAt } }) => {
                     if (!admin) {
                         set.status = 403;
                         return 'Permission denied';
@@ -122,7 +122,7 @@ export function FeedService() {
                         set.status = 400;
                         return 'Content already exists';
                     }
-
+                    const date = createdAt ? new Date(createdAt) : new Date();
                     const result = await db.insert(feeds).values({
                         title,
                         content,
@@ -130,7 +130,9 @@ export function FeedService() {
                         uid,
                         alias,
                         listed: listed ? 1 : 0,
-                        draft: draft ? 1 : 0
+                        draft: draft ? 1 : 0,
+                        createdAt: date,
+                        updatedAt: date
                     }).returning({ insertedId: feeds.id });
                     await bindTagToPost(db, result[0].insertedId, tags);
                     await PublicCache().deletePrefix('feeds_');
@@ -148,6 +150,7 @@ export function FeedService() {
                         alias: t.Optional(t.String()),
                         draft: t.Boolean(),
                         listed: t.Boolean(),
+                        createdAt: t.Optional(t.Date()),
                         tags: t.Array(t.String())
                     })
                 })
@@ -194,7 +197,7 @@ export function FeedService() {
                     set,
                     uid,
                     params: { id },
-                    body: { title, listed, content, summary, alias, draft, tags }
+                    body: { title, listed, content, summary, alias, draft, tags, createdAt }
                 }) => {
                     const id_num = parseInt(id);
                     const feed = await db.query.feeds.findFirst({
@@ -215,6 +218,7 @@ export function FeedService() {
                         alias,
                         listed: listed ? 1 : 0,
                         draft: draft ? 1 : 0,
+                        createdAt: createdAt ? new Date(createdAt) : undefined,
                         updatedAt: new Date()
                     }).where(eq(feeds.id, id_num));
                     if (tags) {
@@ -232,6 +236,7 @@ export function FeedService() {
                         summary: t.Optional(t.String()),
                         listed: t.Boolean(),
                         draft: t.Optional(t.Boolean()),
+                        createdAt: t.Optional(t.Date()),
                         tags: t.Optional(t.Array(t.String()))
                     })
                 })

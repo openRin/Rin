@@ -114,6 +114,10 @@ ul {
   @apply !mb-2 !text-inherit !font-bold;
 }
 
+.p-inputtext {
+  @apply bg-secondary text-end px-2 py-2;
+}
+
 /* animation */
 
 @keyframes anvil {

@@ -36,7 +36,7 @@ export function RSSService() {
                     const url = `${accessHost}/${key}`;
                     console.log(`Fetching ${url}`);
                     const response = await fetch(new Request(url))
-                    const contentType = name === 'rss.xml' ? 'application/rss+xml' : name === 'atom.xml' ? 'application/atom+xml' : 'application/feed+json';
+                    const contentType = name === 'rss.xml' ? 'application/rss+xml; charset=UTF-8' : name === 'atom.xml' ? 'application/atom+xml; charset=UTF-8' : 'application/feed+json; charset=UTF-8';
                     return new Response(response.body, {
                         status: response.status,
                         statusText: response.statusText,

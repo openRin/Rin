@@ -1,6 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
 import Popup from 'reactjs-popup';
 import { ClientConfigContext } from '../state/config';
+import { Helmet } from "react-helmet";
+import { siteName } from '../utils/constants';
+
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
@@ -30,12 +33,17 @@ function Footer() {
 
     return (
         <footer>
+            <Helmet>
+                <link rel="alternate" type="application/rss+xml" title={siteName} href="/sub/rss.xml" />
+                <link rel="alternate" type="application/atom+xml" title={siteName} href="/sub/atom.xml" />
+                <link rel="alternate" type="application/json" title={siteName} href="/sub/rss.json" />
+            </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center h-16 t-primary ani-show">
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span>
                         © 2024 Powered by <a className='hover:underline' href="https://github.com/OXeu/Rin" target="_blank">Rin</a>
                     </span>
-                    {config.getOrDefault('rss',false) && <>
+                    {config.getOrDefault('rss', false) && <>
                         <Spliter />
                         <Popup trigger={
                             <button className="hover:underline" type="button">
