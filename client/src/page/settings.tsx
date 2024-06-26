@@ -5,7 +5,7 @@ import Modal from "react-modal";
 import * as Switch from '@radix-ui/react-switch';
 import '../utils/thumb.css';
 import ReactLoading from "react-loading";
-import { ClientConfigContext, ServerConfigContext } from "../state/config.tsx";
+import { ClientConfigContext, ConfigWrapper, ServerConfigContext } from "../state/config.tsx";
 
 
 export function Settings() {
@@ -14,8 +14,8 @@ export function Settings() {
     const [msgList, setMsgList] = useState<{ title: string, reason: string }[]>([]);
     const [clientLoading, setClientLoading] = useState(true);
     const [serverLoading, setServerLoading] = useState(true);
-    const [clientConfig, setClientConfig] = useState<any>({})
-    const [serverConfig, setServerConfig] = useState<any>({})
+    const [clientConfig, setClientConfig] = useState<ConfigWrapper>(new ConfigWrapper({}));
+    const [serverConfig, setServerConfig] = useState<ConfigWrapper>(new ConfigWrapper({}));
     const ref = useRef(false);
 
 
@@ -28,7 +28,8 @@ export function Settings() {
         }).then(({ data }) => {
             if (data && typeof data != 'string') {
                 sessionStorage.setItem('config', JSON.stringify(data));
-                setClientConfig(data)
+                const config = new ConfigWrapper(data)
+                setClientConfig(config)
             }
         }).catch((err) => {
             alert(`获取配置失败: ${err.message}`)
@@ -41,7 +42,8 @@ export function Settings() {
             headers: headersWithAuth()
         }).then(({ data }) => {
             if (data && typeof data != 'string') {
-                setServerConfig(data)
+                const config = new ConfigWrapper(data)
+                setServerConfig(config)
             }
         }).catch((err) => {
             alert(`获取配置失败: ${err.message}`)
@@ -83,6 +85,7 @@ export function Settings() {
                         </div>
                         <div className="flex flex-col items-start mt-4">
                             <ItemSwitch title="RSS 订阅链接" description="启用站点底部 RSS 订阅链接" type="client" configKey="rss" />
+                            <ItemSwitch title="友链申请" description="允许其他用户申请友链（需审核）" type="client" configKey="friend_apply_enable" defaultValue={true} />
                             <ItemSwitch title="友链健康监测" description="启用朋友们链接可访问性检查" type="server" configKey="friend_crontab" defaultValue={true} />
                             <ItemInput title="友链健康监测 User-Agent" description="设置友链可访问性检查时使用的 User-Agent" type="server" configKey="friend_ua" configKeyTitle="User-Agent" defaultValue="Rin-Check/0.1.0" />
                             <ItemWithUpload title="从 WordPress 导入" description="上传 WordPress 导出的 XML 文件"
@@ -153,7 +156,7 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
     const [checked, setChecked] = useState(defaultValue);
     const [loading, setLoading] = useState(false);
     useEffect(() => {
-        const value = config[configKey];
+        const value = config?.get(configKey);
         if (value !== undefined) {
             setChecked(value);
         }
@@ -213,7 +216,7 @@ function ItemInput({ title, configKeyTitle, description, type, defaultValue, con
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     useEffect(() => {
-        const value = config[configKey];
+        const value = config?.get(configKey);
         if (value !== undefined) {
             setValue(value);
         }
@@ -238,7 +241,7 @@ function ItemInput({ title, configKeyTitle, description, type, defaultValue, con
             setLoading(false);
         }).catch((err) => {
             alert(`更新失败: ${err.message}`)
-            setValue(config[configKey] || defaultValue);
+            setValue(config?.get(configKey) || defaultValue);
             setLoading(false);
         })
     }

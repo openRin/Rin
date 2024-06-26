@@ -35,7 +35,7 @@ function Footer() {
                     <span>
                         © 2024 Powered by <a className='hover:underline' href="https://github.com/OXeu/Rin" target="_blank">Rin</a>
                     </span>
-                    {config?.['rss'] && <>
+                    {config.getOrDefault('rss',false) && <>
                         <Spliter />
                         <Popup trigger={
                             <button className="hover:underline" type="button">

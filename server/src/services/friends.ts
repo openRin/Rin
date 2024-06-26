@@ -7,7 +7,7 @@ import * as schema from "../db/schema";
 import { friends } from "../db/schema";
 import { setup } from "../setup";
 import { getDB } from "../utils/di";
-import { ServerConfig } from "../utils/cache";
+import { ClientConfig, ServerConfig } from "../utils/cache";
 
 export function FriendService() {
     const db: DB = getDB();
@@ -23,6 +23,12 @@ export function FriendService() {
                 return { friend_list, apply_list };
             })
                 .post('/', async ({ admin, uid, set, body: { name, desc, avatar, url } }) => {
+                    const config = ClientConfig()
+                    const enable = await config.getOrSet('friend_apply_enable', async () => true)
+                    if (!enable) {
+                        set.status = 403;
+                        return 'Friend Link Apply Disabled';
+                    }
                     if (name.length > 20 || desc.length > 100 || avatar.length > 100 || url.length > 100) {
                         set.status = 400;
                         return 'Invalid input';
@@ -64,6 +70,12 @@ export function FriendService() {
                     })
                 })
                 .put('/:id', async ({ admin, uid, set, params: { id }, body: { name, desc, avatar, url, accepted } }) => {
+                    const config = ClientConfig()
+                    const enable = await config.getOrSet('friend_apply_enable', async () => true)
+                    if (!enable) {
+                        set.status = 403;
+                        return 'Friend Link Apply Disabled';
+                    }
                     if (!uid) {
                         set.status = 401;
                         return 'Unauthorized';

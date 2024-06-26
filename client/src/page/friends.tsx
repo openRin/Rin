@@ -9,6 +9,7 @@ import { ProfileContext } from "../state/profile";
 import { shuffleArray } from "../utils/array";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
+import { ClientConfigContext } from "../state/config";
 
 
 type FriendItem = {
@@ -42,6 +43,7 @@ async function publish({ name, avatar, desc, url }: { name: string, avatar: stri
 }
 
 export function FriendsPage() {
+    const config = useContext(ClientConfigContext)
     let [apply, setApply] = useState<FriendItem>()
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
@@ -77,7 +79,6 @@ export function FriendsPage() {
         })
         ref.current = true
     }, [])
-
     function publishButton() {
         publish({ name, desc, avatar, url })
     }
@@ -97,7 +98,7 @@ export function FriendsPage() {
                 <FriendList title="待审核" show={waitList.length > 0} friends={waitList} />
                 <FriendList title="已拒绝" show={refusedList.length > 0} friends={refusedList} />
                 <FriendList title="我的申请" show={profile?.permission != true && apply != undefined} friends={apply ? [apply] : []} />
-                {profile &&
+                {profile && (profile.permission || config.getOrDefault("friend_apply_enable", true)) &&
                     <div className="wauto t-primary flex text-start text-black text-2xl font-bold mt-8 ani-show">
                         <div className="md:basis-1/2 bg-w rounded-xl p-4">
                             <p>
