@@ -69,13 +69,15 @@ export function FeedService() {
                             ...other
                         }
                     });
+                    let hasNext = false
                     if (feed_list.length === limit_num + 1) {
                         feed_list.pop();
+                        hasNext = true;
                     }
                     const data = {
                         size: size[0].count,
                         data: feed_list,
-                        hasNext: feed_list.length === limit_num + 1
+                        hasNext
                     }
                     if (type === undefined || type === 'normal' || type === '')
                         await cache.set(cacheKey, data);
