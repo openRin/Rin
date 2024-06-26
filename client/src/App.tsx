@@ -16,7 +16,7 @@ import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
 import { Settings } from "./page/settings.tsx";
 import { ClientConfigContext, ConfigWrapper } from './state/config.tsx'
-
+ 
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
