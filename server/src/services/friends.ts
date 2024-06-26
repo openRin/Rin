@@ -17,7 +17,8 @@ export function FriendService() {
             group.get('/', async ({ admin, uid }) => {
                 const friend_list = await (admin ? db.query.friends.findMany() : db.query.friends.findMany({ where: eq(friends.accepted, 1) }));
                 console.log(friend_list);
-                const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid ?? null) });
+                const uid_num = parseInt(uid);
+                const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid_num ?? null) });
                 console.log(apply_list);
                 return { friend_list, apply_list };
             })
