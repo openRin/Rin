@@ -10,6 +10,7 @@ import { shuffleArray } from "../utils/array";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { ClientConfigContext } from "../state/config";
+import { useTranslation } from "react-i18next";
 
 
 type FriendItem = {
@@ -43,6 +44,7 @@ async function publish({ name, avatar, desc, url }: { name: string, avatar: stri
 }
 
 export function FriendsPage() {
+    const { t } = useTranslation()
     const config = useContext(ClientConfigContext)
     let [apply, setApply] = useState<FriendItem>()
     const [name, setName] = useState("")
@@ -84,33 +86,33 @@ export function FriendsPage() {
     }
     return (<>
         <Helmet>
-            <title>{`${"朋友们"} - ${process.env.NAME}`}</title>
+            <title>{`${t('friends.title')} - ${process.env.NAME}`}</title>
             <meta property="og:site_name" content={siteName} />
-            <meta property="og:title" content={"朋友们"} />
+            <meta property="og:title" content={t('friends.title')} />
             <meta property="og:image" content={process.env.AVATAR} />
             <meta property="og:type" content="article" />
             <meta property="og:url" content={document.URL} />
         </Helmet>
         <Waiting for={friendsAvailable.length != 0 || friendsUnavailable.length != 0 || status === "idle"}>
             <main className="w-full flex flex-col justify-center items-center mb-8 t-primary">
-                <FriendList title="朋友们" show={friendsAvailable.length > 0} friends={friendsAvailable} />
-                <FriendList title="暂时离开" show={friendsUnavailable.length > 0} friends={friendsUnavailable} />
-                <FriendList title="待审核" show={waitList.length > 0} friends={waitList} />
-                <FriendList title="已拒绝" show={refusedList.length > 0} friends={refusedList} />
-                <FriendList title="我的申请" show={profile?.permission != true && apply != undefined} friends={apply ? [apply] : []} />
+                <FriendList title={t('friends.title')} show={friendsAvailable.length > 0} friends={friendsAvailable} />
+                <FriendList title={t('friends.left')} show={friendsUnavailable.length > 0} friends={friendsUnavailable} />
+                <FriendList title={t('friends.review.waiting')} show={waitList.length > 0} friends={waitList} />
+                <FriendList title={t('friends.review.rejected')} show={refusedList.length > 0} friends={refusedList} />
+                <FriendList title={t('friends.my_apply')} show={profile?.permission != true && apply != undefined} friends={apply ? [apply] : []} />
                 {profile && (profile.permission || config.getOrDefault("friend_apply_enable", true)) &&
                     <div className="wauto t-primary flex text-start text-black text-2xl font-bold mt-8 ani-show">
                         <div className="md:basis-1/2 bg-w rounded-xl p-4">
                             <p>
-                                {profile.permission ? "创建友链" : "申请友链"}
+                                {profile.permission ? t('friends.create') : t('friends.apply')}
                             </p>
                             <div className="text-sm mt-4 text-neutral-500 font-normal">
-                                <Input value={name} setValue={setName} placeholder="站点名称" />
-                                <Input value={desc} setValue={setDesc} placeholder="描述" className="mt-2" />
-                                <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />
-                                <Input value={url} setValue={setUrl} placeholder="地址" className="my-2" />
+                                <Input value={name} setValue={setName} placeholder={t('sitename')} />
+                                <Input value={desc} setValue={setDesc} placeholder={t('description')} className="mt-2" />
+                                <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
+                                <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
                                 <div className='flex flex-row justify-center'>
-                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>创建</button>
+                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>{t('create')}</button>
                                 </div>
                             </div>
                         </div>
@@ -141,6 +143,7 @@ function FriendList({ title, show, friends }: { title: string, show: boolean, fr
 }
 
 function Friend({ friend }: { friend: FriendItem }) {
+    const { t } = useTranslation()
     const profile = useContext(ProfileContext)
     const [avatar, setAvatar] = useState(friend.avatar)
     const [name, setName] = useState(friend.name)
@@ -149,14 +152,14 @@ function Friend({ friend }: { friend: FriendItem }) {
     const [status, setStatus] = useState(friend.accepted)
     const [modalIsOpen, setIsOpen] = useState(false);
     function deleteFriend() {
-        if (confirm("确定删除吗？")) {
+        if (confirm(t('delete.confirm'))) {
             client.friend({ id: friend.id }).delete(friend.id, {
                 headers: headersWithAuth()
             }).then(({ error }) => {
                 if (error) {
                     alert(error.value)
                 } else {
-                    alert("删除成功")
+                    alert(t('delete.success'))
                     window.location.reload()
                 }
             })
@@ -175,16 +178,16 @@ function Friend({ friend }: { friend: FriendItem }) {
             if (error) {
                 alert(error.value)
             } else {
-                alert("更新成功")
+                alert(t('update.success'))
                 window.location.reload()
             }
         })
     }
 
     const statusOption = [
-        { value: -1, label: '拒绝' },
-        { value: 0, label: '待审核' },
-        { value: 1, label: '通过' }
+        { value: -1, label: t('friends.review.rejected') },
+        { value: 0, label: t('friends.review.waiting') },
+        { value: 1, label: t('friends.review.accepted') }
     ]
     return (
         <>
@@ -228,7 +231,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                 }
                 }
                 onRequestClose={() => setIsOpen(false)}
-                contentLabel={`编辑${friend.name}`}
+                contentLabel={t('update$sth', { sth: friend.name })}
             >
                 <div className="w-[80vw] sm:w-[60vw] md:w-[50vw] lg:w-[40vw] xl:w-[30vw] bg-w rounded-xl p-4 flex flex-col justify-start items-center relative">
                     <div className="w-16 h-16">
@@ -239,7 +242,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                             <div className="flex flex-row justify-between w-full items-center">
                                 <div className="flex flex-col">
                                     <p className="text-lg dark:text-white">
-                                        状态
+                                        {t('status')}
                                     </p>
                                 </div>
                                 <div className="flex flex-row items-center justify-center space-x-4">
@@ -255,13 +258,13 @@ function Friend({ friend }: { friend: FriendItem }) {
                             </div>
                         </div>
                     }
-                    <Input value={name} setValue={setName} placeholder="站点名称" className="mt-4" />
-                    <Input value={desc} setValue={setDesc} placeholder="描述" className="mt-2" />
-                    <Input value={avatar} setValue={setAvatar} placeholder="头像地址" className="mt-2" />
-                    <Input value={url} setValue={setUrl} placeholder="地址" className="my-2" />
+                    <Input value={name} setValue={setName} placeholder={t('sitename')} className="mt-4" />
+                    <Input value={desc} setValue={setDesc} placeholder={t('description')} className="mt-2" />
+                    <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
+                    <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
                     <div className='flex flex-row justify-center space-x-2'>
-                        <button onClick={deleteFriend} className="bg-secondary text-theme rounded-full bg-hover px-4 py-2 mt-2">删除</button>
-                        <button onClick={updateFriend} className="bg-secondary t-primary rounded-full bg-hover px-4 py-2 mt-2">保存</button>
+                        <button onClick={deleteFriend} className="bg-secondary text-theme rounded-full bg-hover px-4 py-2 mt-2">{t('delete.title')}</button>
+                        <button onClick={updateFriend} className="bg-secondary t-primary rounded-full bg-hover px-4 py-2 mt-2">{t('save')}</button>
                     </div>
                 </div >
             </Modal>

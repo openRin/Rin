@@ -1,0 +1,160 @@
+{
+  "about": "About",
+  "alias": "Alias",
+  "article": {
+    "delete": {
+      "confirm": "Are you sure you want to delete this article?"
+    },
+    "title": "Article",
+    "total_short$count_one": "{{count}} articles",
+    "total_short$count_other": "{{count}} articles",
+    "total$count_one": "{{count}} articles in total",
+    "total$count_other": "{{count}} articles in total"
+  },
+  "avatar": {
+    "url": "Avatar URL"
+  },
+  "cancel": "Cancel",
+  "clear": "Clear",
+  "close": "Close",
+  "comment": {
+    "empty": "Comment cannot be empty",
+    "placeholder": {
+      "title": "Say something..."
+    },
+    "submit": "Submit Comment",
+    "success": "Comment successful",
+    "title": "Comment"
+  },
+  "confirm": "Confirm",
+  "content": {
+    "empty": "Content cannot be empty"
+  },
+  "create": "Create",
+  "created_at": "Published at",
+  "delete": {
+    "comment": {
+      "confirm": "Are you sure you want to delete this comment?",
+      "title": "Delete Comment"
+    },
+    "confirm": "Are you sure you want to delete?",
+    "success": "Deleted successfully",
+    "title": "Delete"
+  },
+  "description": "Description",
+  "draft": "Draft",
+  "draft_bin": "Draft Bin",
+  "drop": {
+    "image": "Drag and drop image here to upload"
+  },
+  "edit": "Edit",
+  "feed_card": {
+    "published$time": "Published at {{time}}",
+    "updated$time": "Updated at {{time}}"
+  },
+  "footer": {
+    "rss": "RSS Subscription Link"
+  },
+  "friends": {
+    "apply": "Apply for Friend Link",
+    "create": "Create Friend Link",
+    "left": "Left temporarily",
+    "my_apply": "My Applications",
+    "review": {
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "waiting": "Pending review"
+    },
+    "title": "Friends"
+  },
+  "github_login": "Github Login",
+  "home": "Home",
+  "index": {
+    "back": "Back to Home",
+    "empty": {
+      "title": "Index is empty"
+    },
+    "title": "Index"
+  },
+  "listed": "Listed in articles",
+  "login": {
+    "required": "Login required"
+  },
+  "logout": "Logout",
+  "next": "Next Page",
+  "previous": "Previous Page",
+  "publish": {
+    "success": "Publish successful",
+    "title": "Publish"
+  },
+  "reload": "Retry",
+  "save": "Save",
+  "settings": {
+    "cache": {
+      "clear": {
+        "confirm": {
+          "desc": "Cache is used to reduce database access frequency, please try clearing cache only if there are cache errors.",
+          "title": "Confirm to clear cache?"
+        },
+        "desc": "Clear all cache files",
+        "title": "Clear Cache"
+      },
+      "clear_failed$message": "Failed to clear cache: {{message}}"
+    },
+    "friend": {
+      "apply": {
+        "desc": "Allow other users to apply for friend links (requires review)",
+        "title": "Friend Link Application"
+      },
+      "health": {
+        "desc": "Enable accessibility check for friends' links",
+        "title": "Friend Link Health Monitoring",
+        "ua": {
+          "desc": "Set the User-Agent used for friend link accessibility check, default 'Rin-Check/1.0'",
+          "title": "Friend Link Health Monitoring User-Agent"
+        }
+      }
+    },
+    "get_config_failed$message": "Failed to get configuration, {{message}}",
+    "import_failed$message": "Import failed, {{message}}",
+    "import_result": "Import Result",
+    "import_skipped": "Import Skipped",
+    "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
+    "import_success$success$skipped": "Import successful, {{success}} articles imported, {{skipped}} articles skipped",
+    "rss": {
+      "desc": "Enable RSS subscription link at the site footer",
+      "title": "RSS Subscription Link"
+    },
+    "title": "Settings",
+    "update_failed$message": "Update failed: {{message}}",
+    "wordpress": {
+      "desc": "Upload the XML file exported from WordPress",
+      "title": "Import from WordPress"
+    }
+  },
+  "sitename": "Site Name",
+  "status": "Status",
+  "summary": "Summary",
+  "tags": "Tags",
+  "timeline": "Timeline",
+  "title": "Title",
+  "title_empty": "Title cannot be empty",
+  "unlisted": "Unlisted",
+  "untitled": "Untitled",
+  "update": {
+    "success": "Update successful",
+    "title": "Update"
+  },
+  "update$sth": "Update {{sth}}",
+  "upload": {
+    "failed": "Upload failed",
+    "failed$size": "Upload failed, file size cannot exceed {{size}} MB",
+    "title": "Upload"
+  },
+  "url": "Site URL",
+  "visible": {
+    "self_only": "Visible to self only"
+  },
+  "writing": "Writing",
+  "year$year": "{{year}}"
+}

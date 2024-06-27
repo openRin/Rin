@@ -1,0 +1,160 @@
+{
+  "about": "关于",
+  "alias": "别名",
+  "article": {
+    "delete": {
+      "confirm": "确定删除这篇文章吗？"
+    },
+    "title": "文章",
+    "total_short$count_one": "{{count}} 篇",
+    "total_short$count_other": "{{count}} 篇",
+    "total$count_one": "共有 {{count}} 篇文章",
+    "total$count_other": "共有 {{count}} 篇文章"
+  },
+  "avatar": {
+    "url": "头像 URL"
+  },
+  "cancel": "取消",
+  "clear": "清除",
+  "close": "关闭",
+  "comment": {
+    "empty": "评论内容不能为空",
+    "placeholder": {
+      "title": "说点什么吧"
+    },
+    "submit": "发表评论",
+    "success": "评论成功",
+    "title": "评论"
+  },
+  "confirm": "确认",
+  "content": {
+    "empty": "内容不能为空"
+  },
+  "create": "创建",
+  "created_at": "发布时间",
+  "delete": {
+    "comment": {
+      "confirm": "确定要删除这条评论吗？",
+      "title": "删除评论"
+    },
+    "confirm": "确定要删除吗？",
+    "success": "删除成功",
+    "title": "删除"
+  },
+  "description": "描述",
+  "draft": "草稿",
+  "draft_bin": "草稿箱",
+  "drop": {
+    "image": "图片拖拽到此上传"
+  },
+  "edit": "编辑",
+  "feed_card": {
+    "published$time": "{{time}} 发布",
+    "updated$time": "{{time}} 更新"
+  },
+  "footer": {
+    "rss": "RSS 订阅链接"
+  },
+  "friends": {
+    "apply": "申请友链",
+    "create": "创建友链",
+    "left": "暂时离开",
+    "my_apply": "我的申请",
+    "review": {
+      "accepted": "接收",
+      "rejected": "拒绝",
+      "waiting": "待审核"
+    },
+    "title": "朋友们"
+  },
+  "github_login": "Github 登录",
+  "home": "首页",
+  "index": {
+    "back": "返回首页",
+    "empty": {
+      "title": "目录为空"
+    },
+    "title": "目录"
+  },
+  "listed": "列出在文章中",
+  "login": {
+    "required": "需要登录"
+  },
+  "logout": "退出登录",
+  "next": "下一页",
+  "previous": "上一页",
+  "publish": {
+    "success": "发布成功",
+    "title": "发布"
+  },
+  "reload": "重试",
+  "save": "保存",
+  "settings": {
+    "cache": {
+      "clear": {
+        "confirm": {
+          "desc": "缓存用于减少访问数据库频率，请仅在缓存错误时尝试清空缓存。",
+          "title": "确认清空缓存吗？"
+        },
+        "desc": "清除所有缓存文件",
+        "title": "清除缓存"
+      },
+      "clear_failed$message": "清除缓存失败: {{message}}"
+    },
+    "friend": {
+      "apply": {
+        "desc": "允许其他用户申请友链（需审核）",
+        "title": "友链申请"
+      },
+      "health": {
+        "desc": "启用朋友们链接可访问性检查",
+        "title": "友链健康监测",
+        "ua": {
+          "desc": "设置友链可访问性检查时使用的 User-Agent, 默认 'Rin-Check/1.0'",
+          "title": "友链健康监测 User-Agent"
+        }
+      }
+    },
+    "get_config_failed$message": "获取配置失败，{{message}}",
+    "import_failed$message": "导入失败，{{message}}",
+    "import_result": "导入结果",
+    "import_skipped": "跳过导入",
+    "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
+    "import_success$success$skipped": "导入成功，{{success}} 篇文章导入成功，{{skipped}} 篇文章跳过",
+    "rss": {
+      "desc": "启用站点底部 RSS 订阅链接",
+      "title": "RSS 订阅链接"
+    },
+    "title": "设置",
+    "update_failed$message": "更新失败: {{message}}",
+    "wordpress": {
+      "desc": "上传 WordPress 导出的 XML 文件",
+      "title": "从 WordPress 导入"
+    }
+  },
+  "sitename": "站点名称",
+  "status": "状态",
+  "summary": "简介",
+  "tags": "标签",
+  "timeline": "时间轴",
+  "title": "标题",
+  "title_empty": "标题不能为空",
+  "unlisted": "未列出",
+  "untitled": "未列出",
+  "update": {
+    "success": "更新成功",
+    "title": "更新"
+  },
+  "update$sth": "更新 {{sth}}",
+  "upload": {
+    "failed": "上传失败",
+    "failed$size": "上传失败，文件大小不能超过 {{size}} MB",
+    "title": "上传"
+  },
+  "url": "站点 URL",
+  "visible": {
+    "self_only": "仅自己可见"
+  },
+  "writing": "写作",
+  "year$year": "{{year}} 年"
+}

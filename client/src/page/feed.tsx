@@ -11,6 +11,8 @@ import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { Markdown } from "../components/markdown";
+import { useTranslation } from "react-i18next";
+
 
 type Feed = {
   id: number;
@@ -31,6 +33,7 @@ type Feed = {
 };
 
 export function FeedPage({ id }: { id: string }) {
+  const { t } = useTranslation();
   const profile = useContext(ProfileContext);
   const [feed, setFeed] = useState<Feed>();
   const [error, setError] = useState<string>();
@@ -39,8 +42,8 @@ export function FeedPage({ id }: { id: string }) {
   const [_, setLocation] = useLocation();
   const [empty, setEmpty] = useState(true);
   function deleteFeed() {
-    // 询问
-    if (!confirm("确定要删除这篇文章吗？")) return;
+    // Confirm
+    if (!confirm(t('article.delete.confirm'))) return;
     if (!feed) return;
     client
       .feed({ id: feed.id })
@@ -51,7 +54,7 @@ export function FeedPage({ id }: { id: string }) {
         if (error) {
           alert(error.value);
         } else {
-          alert("删除成功");
+          alert(t('delete.success'));
           setLocation("/");
         }
       });
@@ -82,14 +85,14 @@ export function FeedPage({ id }: { id: string }) {
         } else if (data && typeof data !== "string") {
           setTimeout(() => {
             setFeed(data);
-            // 提取首图
+            // Extract head image
             const img_reg = /!\[.*?\]\((.*?)\)/;
             const img_match = img_reg.exec(data.content);
             if (img_match) {
               setHeadImage(img_match[1]);
             }
             setTimeout(() => {
-              // 在渲染完成后刷新目录
+              // Refresh toc
               tocbot.refresh();
             }, 0);
           }, 0);
@@ -139,7 +142,7 @@ export function FeedPage({ id }: { id: string }) {
                 className="mt-2 bg-theme text-white px-4 py-2 rounded-full"
                 onClick={() => (window.location.href = "/")}
               >
-                返回首页
+                {t('index.back')}
               </button>
             </div>
           </>
@@ -164,14 +167,14 @@ export function FeedPage({ id }: { id: string }) {
                     >
                       <div className="flex flex-col self-end t-secondary mt-2 space-y-2">
                         <Link
-                          aria-label="编辑"
+                          aria-label={t('edit')}
                           href={`/writing/${feed.id}`}
                           className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary rounded-full"
                         >
                           <i className="ri-edit-2-line" />
                         </Link>
                         <button
-                          aria-label="删除"
+                          aria-label={t('delete.title')}
                           onClick={deleteFeed}
                           className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary rounded-full"
                         >
@@ -186,14 +189,14 @@ export function FeedPage({ id }: { id: string }) {
                     className="text-gray-400 text-sm"
                     title={new Date(feed.createdAt).toLocaleString()}
                   >
-                    发布于 {format(feed.createdAt)}
+                    {t('feed_card.published$time', { time: format(feed.createdAt) })}
                   </p>
                   {feed.createdAt !== feed.updatedAt && (
                     <p
                       className="text-gray-400 text-sm"
                       title={new Date(feed.updatedAt).toLocaleString()}
                     >
-                      更新于 {format(feed.updatedAt)}
+                      {t('feed_card.updated$time', { time: format(feed.updatedAt) })}
                     </p>
                   )}
                 </div>
@@ -238,6 +241,7 @@ export function FeedPage({ id }: { id: string }) {
 export function TOCHeader() {
   const [isOpened, setIsOpened] = useState(false);
   const [empty, setEmpty] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isOpened) {
@@ -300,8 +304,8 @@ export function TOCHeader() {
         onRequestClose={() => setIsOpened(false)}
       >
         <div className="rounded-2xl bg-w py-4 px-4 fixed w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
-          <h1 className="text-xl font-bold">目录</h1>
-          {empty && <p className="text-gray-400 text-sm mt-2">目录为空</p>}
+          <h1 className="text-xl font-bold">{t('index.title')}</h1>
+          {empty && <p className="text-gray-400 text-sm mt-2">{t('index.empty.title')}</p>}
           <div className="toc toc2 mt-2"></div>
         </div>
       </ReactModal>
@@ -310,6 +314,7 @@ export function TOCHeader() {
 }
 
 export function TOC({ empty }: { empty: boolean }) {
+  const { t } = useTranslation()
   useEffect(() => {
     tocbot.init({
       tocSelector: ".toc",
@@ -327,8 +332,8 @@ export function TOC({ empty }: { empty: boolean }) {
     <div
       className={`ml-2 rounded-2xl bg-w py-4 px-4 fixed start-0 end-0 top-[5.5rem] sticky t-primary`}
     >
-      <h1 className="text-xl font-bold">目录</h1>
-      {empty && <p className="text-gray-400 text-sm mt-2">目录为空</p>}
+      <h1 className="text-xl font-bold">{t('index.title')}</h1>
+      {empty && <p className="text-gray-400 text-sm mt-2">{t('index.empty.title')}</p>}
       <div className="toc mt-2"></div>
     </div>
   );
@@ -341,11 +346,12 @@ function CommentInput({
   id: string;
   onRefresh: () => void;
 }) {
+  const { t } = useTranslation();
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
   function errorHumanize(error: string) {
-    if (error === "Unauthorized") return "请先登录";
-    else if (error === "Content is required") return "评论内容不能为空";
+    if (error === "Unauthorized") return t('login.required');
+    else if (error === "Content is required") return t('comment.empty');
     return error;
   }
   function submit() {
@@ -363,7 +369,7 @@ function CommentInput({
         } else {
           setContent("");
           setError("");
-          alert("评论成功");
+          alert(t('comment.success'));
           onRefresh();
         }
       });
@@ -371,10 +377,10 @@ function CommentInput({
   return (
     <div className="w-full rounded-2xl bg-w t-primary m-2 p-6 items-end flex flex-col">
       <div className="flex flex-col w-full items-start space-y-4">
-        <label htmlFor="comment">评论</label>
+        <label htmlFor="comment">{t('comment.title')}</label>
         <textarea
           id="comment"
-          placeholder="说点什么吧"
+          placeholder={t('comment.placeholder.title')}
           className="bg-w w-full h-24 rounded-lg"
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -384,7 +390,7 @@ function CommentInput({
         className="mt-2 bg-theme text-white px-4 py-2 rounded-full"
         onClick={submit}
       >
-        发表评论
+        {t('comment.submit')}
       </button>
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
@@ -408,6 +414,7 @@ function Comments({ id }: { id: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [error, setError] = useState<string>();
   const ref = useRef("");
+  const { t } = useTranslation();
 
   function loadComments() {
     client.feed
@@ -440,7 +447,7 @@ function Comments({ id }: { id: string }) {
                 className="mt-2 bg-theme text-white px-4 py-2 rounded-full"
                 onClick={loadComments}
               >
-                重新加载
+                {t('reload')}
               </button>
             </div>
           </>
@@ -468,10 +475,10 @@ function CommentItem({
   comment: Comment;
   onRefresh: () => void;
 }) {
+  const { t } = useTranslation();
   const profile = useContext(ProfileContext);
   function deleteComment() {
-    // 询问
-    if (!confirm("确定要删除这条评论吗？")) return;
+    if (!confirm(t('delete.comment.confirm'))) return;
     client
       .comment({ id: comment.id })
       .delete(null, {
@@ -481,7 +488,7 @@ function CommentItem({
         if (error) {
           alert(error.value);
         } else {
-          alert("删除成功");
+          alert(t('delete.success'))
           onRefresh();
         }
       });
@@ -520,7 +527,7 @@ function CommentItem({
               <div className="flex flex-row self-end mr-2">
                 <button
                   onClick={deleteComment}
-                  aria-label="删除评论"
+                  aria-label={t('delete.comment.title')}
                   className="px-2 py bg-secondary rounded-full"
                 >
                   <i className="ri-delete-bin-2-line t-secondary"></i>
