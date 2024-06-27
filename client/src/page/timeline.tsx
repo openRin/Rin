@@ -5,11 +5,14 @@ import { Waiting } from "../components/loading"
 import { client } from "../main"
 import { headersWithAuth } from "../utils/auth"
 import { siteName } from "../utils/constants"
+import { useTranslation } from "react-i18next";
+
 
 export function TimelinePage() {
     const [feeds, setFeeds] = useState<Partial<Record<number, { id: number; title: string | null; createdAt: Date; }[]>>>()
     const [length, setLength] = useState(0)
     const ref = useRef(false)
+    const { t } = useTranslation()
     function fetchFeeds() {
         client.feed.timeline.get({
             headers: headersWithAuth()
@@ -29,9 +32,9 @@ export function TimelinePage() {
     return (
         <>
             <Helmet>
-                <title>{`${"时间线"} - ${process.env.NAME}`}</title>
+                <title>{`${t('timeline')} - ${process.env.NAME}`}</title>
                 <meta property="og:site_name" content={siteName} />
-                <meta property="og:title" content={"时间线"} />
+                <meta property="og:title" content={t('timeline')} />
                 <meta property="og:image" content={process.env.AVATAR} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
@@ -40,11 +43,11 @@ export function TimelinePage() {
                 <main className="w-full flex flex-col justify-center items-center mb-8 ani-show">
                     <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
                         <p>
-                            时间轴
+                            {t('timeline')}
                         </p>
                         <div className="flex flex-row justify-between">
                             <p className="text-sm mt-4 text-neutral-500 font-normal">
-                                共有 {length} 篇文章
+                                {t('article.total$count', { count: length })}
                             </p>
                         </div>
                     </div>
@@ -52,13 +55,15 @@ export function TimelinePage() {
                         <div key={year} className="wauto flex flex-col justify-center items-start">
                             <h1 className="flex flex-row items-center space-x-2">
                                 <span className="text-2xl font-bold t-primary ">
-                                    {year} 年
+                                    {t('year$year', { year: year })}
                                 </span>
-                                <span className="text-sm t-secondary">{feeds[+year]?.length} 篇</span>
+                                <span className="text-sm t-secondary">
+                                    {t('article.total_short$count', { count: feeds[+year]?.length })}
+                                    </span>
                             </h1>
                             <div className="w-full flex flex-col justify-center items-start my-4">
                                 {feeds[+year]?.map(({ id, title, createdAt }) => (
-                                    <FeedItem key={id} id={id.toString()} title={title || "无标题"} createdAt={new Date(createdAt)} />
+                                    <FeedItem key={id} id={id.toString()} title={title || t('untitled')} createdAt={new Date(createdAt)} />
                                 ))}
                             </div>
                         </div>

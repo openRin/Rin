@@ -1,7 +1,8 @@
 import { format } from "@astroimg/timeago";
 import { Link } from "wouter";
-
+import { useTranslation } from "react-i18next";
 export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, createdAt, updatedAt }: { id: string, avatar?: string, draft?: number, listed?: number, title: string, summary: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
+    const { t } = useTranslation()
     return (
         <>
             <Link href={`/feed/${id}`} target="_blank" className="wauto rounded-2xl bg-w bg-hover m-2 p-6 duration-300 ani-show">
@@ -15,11 +16,11 @@ export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, 
                 </h1>
                 <div className="space-x-2">
                     <span className="text-gray-400 text-sm" title={new Date(createdAt).toLocaleString()}>
-                        {format(createdAt) + (createdAt === updatedAt ? '' : '发布')}
+                        {createdAt === updatedAt ? format(createdAt) : t('feed_card.published$time', { time: format(createdAt) })}
                     </span>
                     {createdAt !== updatedAt &&
                         <span className="text-gray-400 text-sm" title={new Date(updatedAt).toLocaleString()}>
-                            {format(updatedAt) + '更新'}
+                            {t('feed_card.updated$time', { time: format(updatedAt) })}
                         </span>
                     }
                     {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}

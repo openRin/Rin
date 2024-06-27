@@ -3,9 +3,11 @@ import Popup from 'reactjs-popup';
 import { ClientConfigContext } from '../state/config';
 import { Helmet } from "react-helmet";
 import { siteName } from '../utils/constants';
+import { useTranslation } from "react-i18next";
 
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
+    const { t } = useTranslation()
     const [modeState, setModeState] = useState<ThemeMode>('system');
     const config = useContext(ClientConfigContext);
     useEffect(() => {
@@ -55,7 +57,7 @@ function Footer() {
                             closeOnDocumentClick>
                             <div className="rounded-xl p-4 bg-w text-sm t-secondary font-normal">
                                 <p className='font-bold t-primary'>
-                                    RSS 订阅地址
+                                    {t('footer.rss')}
                                 </p>
                                 <a href='/sub/rss.xml'>
                                     RSS

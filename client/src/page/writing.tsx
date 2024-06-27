@@ -15,6 +15,7 @@ import { Markdown } from "../components/markdown";
 import { client } from "../main";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
+import { useTranslation } from "react-i18next";
 
 async function publish({
   title,
@@ -35,6 +36,7 @@ async function publish({
   alias?: string;
   createdAt?: Date;
 }) {
+  const { t } = useTranslation();
   const { data, error } = await client.feed.index.post(
     {
       title,
@@ -54,7 +56,7 @@ async function publish({
     alert(error.value);
   }
   if (data && typeof data != "string") {
-    alert("发布成功");
+    alert(t("publish.success"));
     Cache.with().clear();
     window.location.href = "/feed/" + data.insertedId;
   }
@@ -81,6 +83,7 @@ async function update({
   draft?: boolean;
   createdAt?: Date;
 }) {
+  const { t } = useTranslation();
   const { error } = await client.feed({ id }).post(
     {
       title,
@@ -99,13 +102,14 @@ async function update({
   if (error) {
     alert(error.value);
   } else {
-    alert("更新成功");
+    alert(t("update.success"));
     Cache.with(id).clear();
     window.location.href = "/feed/" + id;
   }
 }
 
 function uploadImage(file: File, onSuccess: (url: string) => void) {
+  const { t } = useTranslation();
   client.storage.index
     .post(
       {
@@ -118,7 +122,7 @@ function uploadImage(file: File, onSuccess: (url: string) => void) {
     )
     .then(({ data, error }) => {
       if (error) {
-        alert("上传失败" + error.value);
+        alert(t("upload.failed", { error: error.value }));
       }
       if (data) {
         onSuccess(data);
@@ -126,7 +130,7 @@ function uploadImage(file: File, onSuccess: (url: string) => void) {
     })
     .catch((e: any) => {
       console.error(e);
-      alert("上传失败" + e.message);
+      alert(t("upload.failed", { error: e.message }));
     });
 }
 
@@ -145,10 +149,11 @@ const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
 
 function uploadImageButton() {
   const uploadRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
   const upChange = (event: any) => {
     let imgfile = event.currentTarget.files[0]; ///获得input的第一个图片
     if (imgfile.size > 5 * 1024000) {
-      alert("图片不能超过 5MB");
+      alert(t("upload.failed$size", { size: 5 }))
       uploadRef.current!.value = "";
     } else {
       uploadImage(imgfile, (url) => {
@@ -189,6 +194,7 @@ function uploadImageButton() {
 
 // 写作页面
 export function WritingPage({ id }: { id?: number }) {
+  const { t } = useTranslation();
   const cache = Cache.with(id);
   const [title, setTitle] = useState(cache.get("title"));
   const [summary, setSummary] = useState(cache.get("summary"));
@@ -218,11 +224,11 @@ export function WritingPage({ id }: { id?: number }) {
       });
     } else {
       if (!title) {
-        alert("标题不能为空");
+        alert(t("title_empty"))
         return;
       }
       if (!content) {
-        alert("内容不能为空");
+        alert(t("content.empty"))        
         return;
       }
       publish({
@@ -270,14 +276,14 @@ export function WritingPage({ id }: { id?: number }) {
             name="title"
             value={title}
             setValue={setTitle}
-            placeholder="标题"
+            placeholder={t("title")}
           />
           <Input
             id={id}
             name="summary"
             value={summary}
             setValue={setSummary}
-            placeholder="摘要"
+            placeholder={t("summary")}
             className="mt-4"
           />
           <Input
@@ -285,7 +291,7 @@ export function WritingPage({ id }: { id?: number }) {
             name="tags"
             value={tags}
             setValue={setTags}
-            placeholder="标签"
+            placeholder={t("tags")}
             className="mt-4"
           />
           <Input
@@ -293,36 +299,36 @@ export function WritingPage({ id }: { id?: number }) {
             name="alias"
             value={alias}
             setValue={setAlias}
-            placeholder="别名"
+            placeholder={t("alias")}
             className="mt-4"
           />
           <div
             className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
             onClick={() => setDraft(!draft)}
           >
-            <p>仅自己可见</p>
+            <p>{t('visible.self_only')}</p>
             <Checkbox
               id="draft"
               value={draft}
               setValue={setDraft}
-              placeholder="草稿"
+              placeholder={t('draft')}
             />
           </div>
           <div
             className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
             onClick={() => setListed(!listed)}
           >
-            <p>列出在文章中</p>
+            <p>{t('listed')}</p>
             <Checkbox
               id="listed"
               value={listed}
               setValue={setListed}
-              placeholder="列出"
+              placeholder={t('listed')}
             />
           </div>
           <div className="select-none flex flex-row justify-between items-center mt-4 mb-2 pl-4">
             <p>
-              发布时间
+              {t('created_at')}
             </p>
             <Calendar value={createdAt} onChange={(e) => setCreatedAt(e.value || undefined)} showTime touchUI hourFormat="24" />
           </div>
@@ -334,9 +340,9 @@ export function WritingPage({ id }: { id?: number }) {
   return (
     <>
       <Helmet>
-        <title>{`${"写作"} - ${process.env.NAME}`}</title>
+        <title>{`${t('writing')} - ${process.env.NAME}`}</title>
         <meta property="og:site_name" content={siteName} />
-        <meta property="og:title" content={"写作"} />
+        <meta property="og:title" content={t('writing')} />
         <meta property="og:image" content={process.env.AVATAR} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={document.URL} />
@@ -396,7 +402,7 @@ export function WritingPage({ id }: { id?: number }) {
                 className={`absolute bg-theme/10 t-secondary text-xl top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center ${drag ? "" : "hidden"
                   }`}
               >
-                拖拽图片到这里上传
+                {t('drop.image')}
               </div>
             </div>
           </div>
@@ -405,7 +411,7 @@ export function WritingPage({ id }: { id?: number }) {
               onClick={publishButton}
               className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light"
             >
-              发布
+              {t('publish.title')}
             </button>
           </div>
         </div>
@@ -417,7 +423,7 @@ export function WritingPage({ id }: { id?: number }) {
                 onClick={publishButton}
                 className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light"
               >
-                发布
+                {t('publish.title')}
               </button>
             </div>
           </div>
