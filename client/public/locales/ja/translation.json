@@ -1,0 +1,160 @@
+{
+  "feed_card": {
+    "published$time": "{{time}} に公開",
+    "updated$time": "{{time}} に更新"
+  },
+  "footer": {
+    "rss": "RSS 購読リンク"
+  },
+  "home": "ホーム",
+  "github_login": "Github ログイン",
+  "logout": "ログアウト",
+  "article": {
+    "title": "記事",
+    "delete": {
+      "confirm": "この記事を削除してもよろしいですか？"
+    },
+    "total$count_one": "合計 {{count}} 記事",
+    "total$count_other": "合計 {{count}} 記事",
+    "total_short$count_one": "{{count}} 記事",
+    "total_short$count_other": "{{count}} 記事"
+  },
+  "timeline": "タイムライン",
+  "writing": "執筆",
+  "friends": {
+    "title": "友人",
+    "left": "一時的に離脱",
+    "review": {
+      "waiting": "審査待ち",
+      "rejected": "拒否されました",
+      "accepted": "承認されました"
+    },
+    "my_apply": "私の申請",
+    "create": "友人リンクを作成",
+    "apply": "友人リンクを申請"
+  },
+  "about": "概要",
+  "settings": {
+    "title": "設定",
+    "get_config_failed$message": "設定の取得に失敗しました: {{message}}",
+    "import_success$success$skipped": "インポートに成功しました。{{success}} 記事がインポートされ、{{skipped}} 記事がスキップされました",
+    "import_failed$message": "インポートに失敗しました: {{message}}",
+    "rss": {
+      "title": "RSS 購読リンク",
+      "desc": "サイトフッターにRSS購読リンクを有効にする"
+    },
+    "friend": {
+      "apply": {
+        "title": "友人リンク申請",
+        "desc": "他のユーザーが友人リンクを申請できるようにする（審査が必要）"
+      },
+      "health": {
+        "title": "友人リンクの健康モニタリング",
+        "desc": "友人リンクのアクセスチェックを有効にする",
+        "ua": {
+          "title": "友人リンクの健康モニタリング User-Agent",
+          "desc": "友人リンクのアクセスチェックに使用するUser-Agentを設定します。デフォルトは 'Rin-Check/1.0'"
+        }
+      }
+    },
+    "cache": {
+      "clear": {
+        "title": "キャッシュをクリア",
+        "desc": "すべてのキャッシュファイルをクリアする",
+        "confirm": {
+          "title": "キャッシュをクリアしてもよろしいですか？",
+          "desc": "キャッシュはデータベースへのアクセス頻度を減らすために使用されます。キャッシュエラーが発生した場合のみクリアしてください。"
+        }
+      },
+      "clear_failed$message": "キャッシュのクリアに失敗しました: {{message}}"
+    },
+    "wordpress": {
+      "title": "WordPressからインポート",
+      "desc": "WordPressからエクスポートされたXMLファイルをアップロードする"
+    },
+    "import_result": "インポート結果",
+    "import_skipped": "インポートをスキップ",
+    "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
+    "update_failed$message": "更新に失敗しました: {{message}}"
+  },
+  "delete": {
+    "success": "削除に成功しました",
+    "title": "削除",
+    "comment": {
+      "confirm": "このコメントを削除してもよろしいですか？",
+      "title": "コメントを削除"
+    },
+    "confirm": "削除してもよろしいですか？"
+  },
+  "index": {
+    "back": "ホームに戻る",
+    "title": "目次",
+    "empty": {
+      "title": "目次は空です"
+    }
+  },
+  "edit": "編集",
+  "login": {
+    "required": "ログインが必要です"
+  },
+  "comment": {
+    "empty": "コメント内容は空にできません",
+    "success": "コメントに成功しました",
+    "title": "コメント",
+    "placeholder": {
+      "title": "何か言ってください..."
+    },
+    "submit": "コメントを投稿"
+  },
+  "reload": "再試行",
+  "draft_bin": "下書き",
+  "unlisted": "リストされていない",
+  "previous": "前のページ",
+  "next": "次のページ",
+  "sitename": "サイト名",
+  "description": "説明",
+  "avatar": {
+    "url": "アバターURL"
+  },
+  "url": "サイトURL",
+  "create": "作成",
+  "update": {
+    "success": "更新に成功しました",
+    "title": "更新"
+  },
+  "update$sth": "{{sth}} を更新",
+  "status": "ステータス",
+  "save": "保存",
+  "clear": "クリア",
+  "close": "閉じる",
+  "confirm": "確認",
+  "cancel": "キャンセル",
+  "upload": {
+    "title": "アップロード",
+    "failed": "アップロードに失敗しました",
+    "failed$size": "アップロードに失敗しました。ファイルサイズは{{size}} MBを超えてはなりません"
+  },
+  "year$year": "{{year}} 年",
+  "untitled": "無題",
+  "publish": {
+    "success": "公開に成功しました",
+    "title": "公開"
+  },
+  "title_empty": "タイトルは空にできません",
+  "content": {
+    "empty": "内容は空にできません"
+  },
+  "title": "タイトル",
+  "summary": "概要",
+  "tags": "タグ",
+  "alias": "エイリアス",
+  "visible": {
+    "self_only": "自分のみ可視"
+  },
+  "draft": "下書き",
+  "listed": "記事にリスト",
+  "created_at": "公開日",
+  "drop": {
+    "image": "ここに画像をドラッグしてアップロード"
+  }
+}

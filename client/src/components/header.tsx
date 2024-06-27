@@ -179,8 +179,12 @@ function NavBar({ menu, onClick }: { menu: boolean, onClick?: () => void }) {
 
 function LanguageSwitch({ className }: { className?: string }) {
     const { i18n } = useTranslation()
-    const { t } = useTranslation()
-    const label = t('language')
+    const label = 'Languages'
+    const languages = [
+        { code: 'en', name: 'English' },
+        { code: 'zh', name: '简体中文' },
+        { code: 'ja', name: '日本語' }
+    ]
     return (
         <div className={className + " flex flex-row items-center"}>
             <Popup trigger={
@@ -197,12 +201,11 @@ function LanguageSwitch({ className }: { className?: string }) {
                     <p className='font-bold t-primary'>
                         Languages
                     </p>
-                    <button onClick={() => i18n.changeLanguage('en')}>
-                        English
-                    </button>
-                    <button onClick={() => i18n.changeLanguage('zh')}>
-                        简体中文
-                    </button>
+                    {languages.map(({ code, name }) => (
+                        <button onClick={() => i18n.changeLanguage(code)}>
+                            {name}
+                        </button>
+                    ))}
                 </div>
             </Popup>
         </div>
