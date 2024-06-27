@@ -16,7 +16,7 @@ import { client } from "../main";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { useTranslation } from "react-i18next";
-
+import i18n from 'i18next';
 async function publish({
   title,
   alias,
@@ -36,7 +36,7 @@ async function publish({
   alias?: string;
   createdAt?: Date;
 }) {
-  const { t } = useTranslation();
+  const t = i18n.t
   const { data, error } = await client.feed.index.post(
     {
       title,
@@ -83,7 +83,7 @@ async function update({
   draft?: boolean;
   createdAt?: Date;
 }) {
-  const { t } = useTranslation();
+  const t = i18n.t
   const { error } = await client.feed({ id }).post(
     {
       title,
@@ -109,7 +109,7 @@ async function update({
 }
 
 function uploadImage(file: File, onSuccess: (url: string) => void) {
-  const { t } = useTranslation();
+  const t = i18n.t
   client.storage.index
     .post(
       {
@@ -149,7 +149,7 @@ const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
 
 function uploadImageButton() {
   const uploadRef = useRef<HTMLInputElement>(null);
-  const { t } = useTranslation();
+  const t = i18n.t
   const upChange = (event: any) => {
     let imgfile = event.currentTarget.files[0]; ///获得input的第一个图片
     if (imgfile.size > 5 * 1024000) {
@@ -228,7 +228,7 @@ export function WritingPage({ id }: { id?: number }) {
         return;
       }
       if (!content) {
-        alert(t("content.empty"))        
+        alert(t("content.empty"))
         return;
       }
       publish({

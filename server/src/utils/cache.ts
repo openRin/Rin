@@ -67,7 +67,7 @@ export class CacheImpl {
     }
 
     async set(key: string, value: any, save: boolean = true) {
-        if (this.loaded)
+        if (!this.loaded)
             await this.load();
         this.cache.set(key, value);
         if (save) {
@@ -76,7 +76,7 @@ export class CacheImpl {
     }
 
     async delete(key: string, save: boolean = true) {
-        if (this.loaded)
+        if (!this.loaded)
             await this.load();
         this.cache.delete(key);
         if (save) {
