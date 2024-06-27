@@ -246,7 +246,6 @@ export function TOCHeader() {
   useEffect(() => {
     if (isOpened) {
       setTimeout(() => {
-        console.log("refresh");
         tocbot.init({
           tocSelector: ".toc2",
           contentSelector: ".toc-content",

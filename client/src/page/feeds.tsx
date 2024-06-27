@@ -56,7 +56,6 @@ export function FeedsPage() {
     }
     useEffect(() => {
         const key = `${query.get("page")} ${query.get("type")}`
-        console.log(key)
         if (ref.current == key) return
         const type = query.get("type") as FeedType || 'normal'
         if (type !== listState) {

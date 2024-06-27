@@ -120,7 +120,6 @@ function Menu() {
     const [isOpen, setOpen] = useState(false)
 
     function onClose() {
-        console.log("close")
         document.body.style.overflow = "auto"
         setOpen(false)
     }

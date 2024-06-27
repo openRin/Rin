@@ -244,7 +244,6 @@ export function WritingPage({ id }: { id?: number }) {
     }
   }
   useEffect(() => {
-    console.log(id);
     if (id) {
       client
         .feed({ id })
