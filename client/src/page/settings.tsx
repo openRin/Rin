@@ -88,6 +88,17 @@ export function Settings() {
                             <ItemSwitch title="友链申请" description="允许其他用户申请友链（需审核）" type="client" configKey="friend_apply_enable" defaultValue={true} />
                             <ItemSwitch title="友链健康监测" description="启用朋友们链接可访问性检查" type="server" configKey="friend_crontab" defaultValue={true} />
                             <ItemInput title="友链健康监测 User-Agent" description="设置友链可访问性检查时使用的 User-Agent" type="server" configKey="friend_ua" configKeyTitle="User-Agent" defaultValue="Rin-Check/0.1.0" />
+                            <ItemButton title="清空缓存" description="清空全站缓存" buttonTitle={"清除"} onConfirm={async () => {
+                                await client.config.cache.delete(undefined, {
+                                    headers: headersWithAuth()
+                                })
+                                    .then(({ error }: { error: any }) => {
+                                        if (error) {
+                                            alert(`清空缓存失败: ${error.message}`)
+                                        }
+                                    })
+                            }} alertTitle={"确认清空缓存吗？"} alertDescription={"缓存用于减少访问数据库频率，请仅在缓存错误时尝试清空缓存。"}
+                            />
                             <ItemWithUpload title="从 WordPress 导入" description="上传 WordPress 导出的 XML 文件"
                                 onFileChange={onFileChange} />
                         </div>
@@ -171,7 +182,7 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
             [key]: value
         }, {
             headers: headersWithAuth()
-        }).then(({error}:{error:any}) => {
+        }).then(({ error }: { error: any }) => {
             if (error) {
                 setChecked(checkedValue);
             }
@@ -307,6 +318,94 @@ function ItemInput({ title, configKeyTitle, description, type, defaultValue, con
                         <Button onClick={() => {
                             setIsOpen(false);
                             updateConfig(type, configKey, value);
+                        }} title="确定" />
+                        <Button secondary onClick={() => {
+                            setIsOpen(false);
+                        }} title="取消" />
+                    </div>
+                </div>
+            </Modal>
+        </div >
+    );
+}
+
+function ItemButton({
+    title,
+    description,
+    buttonTitle,
+    onConfirm,
+    alertTitle,
+    alertDescription
+}:
+    {
+        title: string,
+        description: string,
+        buttonTitle: string,
+        onConfirm: () => Promise<void>,
+        alertTitle: string,
+        alertDescription: string,
+    }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    return (
+        <div className="flex flex-col w-full items-start mt-4">
+            <div className="flex flex-row justify-between w-full items-center">
+                <div className="flex flex-col">
+                    <p className="text-lg font-bold dark:text-white">
+                        {title}
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                        {description}
+                    </p>
+                </div>
+                <div className="flex flex-row items-center justify-center space-x-4">
+                    {loading && <ReactLoading width="1em" height="1em" type="spin" color="#FC466B" />}
+                    <Button title={buttonTitle} onClick={() => {
+                        setIsOpen(true);
+                    }} />
+                </div>
+            </div>
+            <Modal isOpen={isOpen}
+                shouldCloseOnOverlayClick={true}
+                shouldCloseOnEsc={true}
+                onRequestClose={() => { setIsOpen(false); }}
+                style={{
+                    content: {
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        marginRight: '-50%',
+                        transform: 'translate(-50%, -50%)',
+                        padding: '0',
+                        border: 'none',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        background: 'transparent',
+                        maxWidth: '40em'
+                    },
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                        zIndex: 1000
+                    }
+                }}
+            >
+                <div className="flex flex-col items-start p-4 bg-w space-y-4 w-full">
+                    <h1 className="text-2xl font-bold t-primary">
+                        {alertTitle}
+                    </h1>
+                    <p className="text-base t-primary">
+                        {alertDescription}
+                    </p>
+                    <div className="w-full flex flex-row items-center justify-center space-x-2 mt-4">
+                        <Button onClick={async () => {
+                            setIsOpen(false);
+                            setLoading(true);
+                            await onConfirm();
+                            setLoading(false);
                         }} title="确定" />
                         <Button secondary onClick={() => {
                             setIsOpen(false);

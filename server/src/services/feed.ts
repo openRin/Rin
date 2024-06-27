@@ -175,7 +175,6 @@ export function FeedService() {
                             }
                         }
                     })));
-                    await cache.set(cacheKey, feed);
                     if (!feed) {
                         set.status = 404;
                         return 'Not found';
