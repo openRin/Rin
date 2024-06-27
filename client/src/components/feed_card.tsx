@@ -1,6 +1,6 @@
-import { format } from "@astroimg/timeago";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
+import { timeago } from "../utils/timeago";
 export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, createdAt, updatedAt }: { id: string, avatar?: string, draft?: number, listed?: number, title: string, summary: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
     const { t } = useTranslation()
     return (
@@ -16,11 +16,11 @@ export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, 
                 </h1>
                 <div className="space-x-2">
                     <span className="text-gray-400 text-sm" title={new Date(createdAt).toLocaleString()}>
-                        {createdAt === updatedAt ? format(createdAt) : t('feed_card.published$time', { time: format(createdAt) })}
+                        {createdAt === updatedAt ? timeago(createdAt) : t('feed_card.published$time', { time: timeago(createdAt) })}
                     </span>
                     {createdAt !== updatedAt &&
                         <span className="text-gray-400 text-sm" title={new Date(updatedAt).toLocaleString()}>
-                            {t('feed_card.updated$time', { time: format(updatedAt) })}
+                            {t('feed_card.updated$time', { time: timeago(updatedAt) })}
                         </span>
                     }
                     {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}

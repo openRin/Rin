@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "check": "tsc",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "i18n": "i18next"
   },
   "dependencies": {
     "@astroimg/timeago": "^1.1.6",

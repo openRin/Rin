@@ -16,12 +16,14 @@
     "t": "turbo t",
     "g": "turbo run g",
     "m": "bun scripts/dev-migrator.ts",
+    "i18n": "bun --filter './client' i18n",
     "clean": "rm -rf dist node_modules client/node_modules server/node_modules",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",
+    "i18next-parser": "^9.0.0",
     "postcss": "^8.4.38",
     "puppeteer": "^22.10.0",
     "tailwindcss": "^3.4.3",
