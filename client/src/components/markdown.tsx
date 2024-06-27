@@ -26,7 +26,6 @@ const countNewlinesBeforeNode = (text: string, offset: number) => {
 
 export function Markdown({ content }: { content: string }) {
   const colorMode = useColorMode();
-  //   console.log(colorMode);
 
   return (
     <ReactMarkdown
