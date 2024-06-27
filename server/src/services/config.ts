@@ -1,6 +1,6 @@
 import Elysia, { t } from "elysia";
 import { setup } from "../setup";
-import { ClientConfig, ServerConfig } from "../utils/cache";
+import { ClientConfig, PublicCache, ServerConfig } from "../utils/cache";
 
 export function ConfigService() {
     return new Elysia({ aot: false })
@@ -37,6 +37,14 @@ export function ConfigService() {
                     return 'OK';
                 }, {
                     body: t.Record(t.String(), t.Any())
+                })
+                .delete('/cache', async ({ set, admin }) => {
+                    if (!admin) {
+                        set.status = 401;
+                        return 'Unauthorized';
+                    }
+                    await PublicCache().clear();
+                    return 'OK';
                 })
         )
 }

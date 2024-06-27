@@ -32,7 +32,6 @@ export class CacheImpl {
         console.log('Cache load', this.cacheUrl);
         try {
             const response = await fetch(new Request(this.cacheUrl))
-            console.log(response);
             const data = await response.json<any>()
             for (let key in data) {
                 this.cache.set(key, data[key]);
@@ -71,9 +70,8 @@ export class CacheImpl {
         if (this.loaded)
             await this.load();
         this.cache.set(key, value);
-        console.log('Cache set', key);
         if (save) {
-            this.save();
+            await this.save();
         }
     }
 
@@ -82,22 +80,24 @@ export class CacheImpl {
             await this.load();
         this.cache.delete(key);
         if (save) {
-            this.save();
+            await this.save();
         }
     }
 
     async deletePrefix(prefix: string) {
         for (let key of this.cache.keys()) {
+            console.log('Cache key', key);
             if (key.startsWith(prefix)) {
+                console.log('Cache delete', key);
                 await this.delete(key, false);
             }
         }
-        this.save();
+        await this.save();
     }
 
-    clear() {
+    async clear() {
         this.cache.clear();
-        this.save();
+        await this.save();
     }
 
     async save() {
