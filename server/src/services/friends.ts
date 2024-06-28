@@ -24,7 +24,7 @@ export function FriendService() {
             })
                 .post('/', async ({ admin, uid, set, body: { name, desc, avatar, url } }) => {
                     const config = ClientConfig()
-                    const enable = await config.getOrSet('friend_apply_enable', async () => true)
+                    const enable = await config.getOrDefault('friend_apply_enable', true)
                     if (!enable) {
                         set.status = 403;
                         return 'Friend Link Apply Disabled';
@@ -71,7 +71,7 @@ export function FriendService() {
                 })
                 .put('/:id', async ({ admin, uid, set, params: { id }, body: { name, desc, avatar, url, accepted } }) => {
                     const config = ClientConfig()
-                    const enable = await config.getOrSet('friend_apply_enable', async () => true)
+                    const enable = await config.getOrDefault('friend_apply_enable', true)
                     if (!enable) {
                         set.status = 403;
                         return 'Friend Link Apply Disabled';
@@ -138,7 +138,7 @@ export function FriendService() {
 
 export async function friendCrontab(env: Env, ctx: ExecutionContext) {
     const config = ServerConfig()
-    const enable = await config.getOrSet('friend_crontab', async () => true)
+    const enable = await config.getOrDefault('friend_crontab', true)
     const ua = await config.get('friend_ua') || 'Rin-Check/0.1.0'
     if (!enable) {
         console.info('friend crontab disabled')
