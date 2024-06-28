@@ -66,6 +66,11 @@ export class CacheImpl {
         return newValue;
     }
 
+    async getOrDefault<T>(key: string, defaultValue: T) {
+        return this.getOrSet(key, async () => defaultValue);
+    }
+    
+
     async set(key: string, value: any, save: boolean = true) {
         if (!this.loaded)
             await this.load();

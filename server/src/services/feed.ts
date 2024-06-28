@@ -159,7 +159,7 @@ export function FeedService() {
                 .get('/:id', async ({ uid, admin, set, params: { id } }) => {
                     const id_num = parseInt(id);
                     const cache = PublicCache();
-                    const cacheKey = `feed_${id_num}`;
+                    const cacheKey = `feed_${id}`;
                     const feed = await cache.getOrSet(cacheKey, () => (db.query.feeds.findFirst({
                         where: or(eq(feeds.id, id_num), eq(feeds.alias, id)),
                         with: {
