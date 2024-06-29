@@ -225,9 +225,7 @@ export function FeedService() {
                     if (tags) {
                         await bindTagToPost(db, id_num, tags);
                     }
-                    const cache = PublicCache()
-                    await cache.deletePrefix('feeds_');
-                    await cache.delete(`feed_${id_num}`);
+                    await clearFeedCache(id_num, feed.alias, alias || null);
                     return 'Updated';
                 }, {
                     body: t.Object({
@@ -255,9 +253,7 @@ export function FeedService() {
                         return 'Permission denied';
                     }
                     await db.delete(feeds).where(eq(feeds.id, id_num));
-                    const cache = PublicCache()
-                    await cache.deletePrefix('feeds_');
-                    await cache.delete(`feed_${id_num}`);
+                    await clearFeedCache(id_num, feed.alias, null);
                     return 'Deleted';
                 })
         )
@@ -355,4 +351,15 @@ type FeedItem = {
     createdAt: Date;
     updatedAt: Date;
     tags?: string[];
+}
+
+async function clearFeedCache(id: number, alias: string | null, newAlias: string | null) {
+    const cache = PublicCache()
+    await cache.deletePrefix('feeds_');
+    await cache.delete(`feed_${id}`, false);
+    if (alias === newAlias) return;
+    if (alias)
+        await cache.delete(`feed_${alias}`, false);
+    if (newAlias)
+        await cache.delete(`feed_${newAlias}`, false);
 }
