@@ -188,14 +188,14 @@ export function FeedPage({ id }: { id: string }) {
                     {profile?.permission && (
                       <div className="flex gap-2">
                         <Link
-                          aria-label="编辑"
+                          aria-label={t("edit")}
                           href={`/writing/${feed.id}`}
                           className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition"
                         >
                           <i className="ri-edit-2-line dark:text-gray-400" />
                         </Link>
                         <button
-                          aria-label="删除"
+                          aria-label={t("delete.title")}
                           onClick={deleteFeed}
                           className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition"
                         >
