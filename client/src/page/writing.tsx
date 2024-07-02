@@ -176,13 +176,13 @@ export function WritingPage({ id }: { id?: number }) {
   const [publishing, setPublishing] = useState(false)
   function publishButton() {
     if (publishing) return;
-    setPublishing(true)
     const tagsplit =
       tags
         .split("#")
         .filter((tag) => tag !== "")
         .map((tag) => tag.trim()) || [];
     if (id != undefined) {
+      setPublishing(true)
       update({
         id,
         title,
@@ -206,6 +206,7 @@ export function WritingPage({ id }: { id?: number }) {
         alert(t("content.empty"))
         return;
       }
+      setPublishing(true)
       publish({
         title,
         content,
