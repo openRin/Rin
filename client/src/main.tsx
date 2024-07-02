@@ -9,6 +9,7 @@ import Modal from 'react-modal'
 import { App as Server } from 'rin-server/src/server'
 import App from './App'
 import './index.css'
+import './components.css'
 import { siteName } from './utils/constants'
 import { listenSystemMode } from './utils/darkModeUtils'
 import LanguageDetector from 'i18next-browser-languagedetector';

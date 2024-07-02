@@ -343,7 +343,7 @@ export function WritingPage({ id }: { id?: number }) {
             />
           </div>
           <div className="select-none flex flex-row justify-between items-center mt-4 mb-2 pl-4">
-            <p>
+            <p className="break-keep mr-2">
               {t('created_at')}
             </p>
             <Calendar value={createdAt} onChange={(e) => setCreatedAt(e.value || undefined)} showTime touchUI hourFormat="24" />
@@ -363,9 +363,8 @@ export function WritingPage({ id }: { id?: number }) {
         <meta property="og:type" content="article" />
         <meta property="og:url" content={document.URL} />
       </Helmet>
-      <div className="flex flex-row justify-start t-primary mt-2">
-        <div className="xl:grow-[1] basis-0 transition-all duration-300" />
-        <div className="writeauto grow-[2] pb-8 basis-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 t-primary mt-2">
+        <div className="col-span-2 pb-8">
           <div className="bg-w rounded-2xl shadow-xl shadow-light p-4">
             {MetaInput({ className: "visible md:hidden mb-8" })}
             <div className="flex flex-col mx-4 my-2 md:mx-0 md:my-0 gap-2">
@@ -457,22 +456,20 @@ export function WritingPage({ id }: { id?: number }) {
             </button>
           </div>
         </div>
-        <div className="hidden md:visible grow-[1] md:flex flex-col">
-          <div className="fixed">
-            {MetaInput({ className: "bg-w rounded-2xl shadow-xl shadow-light p-4 my-8 mx-8" })}
-            <div className="flex flex-row justify-center">
-              <button
-                onClick={publishButton}
-                className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light flex flex-row justify-center items-center space-x-2"
-              >
-                {publishing &&
-                  <Loading type="spin" height={16} width={16} />
-                }
-                <span>
-                  {t('publish.title')}
-                </span>
-              </button>
-            </div>
+        <div className="hidden md:visible max-w-96 md:flex flex-col">
+          {MetaInput({ className: "bg-w rounded-2xl shadow-xl shadow-light p-4 mx-8" })}
+          <div className="flex flex-row justify-center mt-8">
+            <button
+              onClick={publishButton}
+              className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light flex flex-row justify-center items-center space-x-2"
+            >
+              {publishing &&
+                <Loading type="spin" height={16} width={16} />
+              }
+              <span>
+                {t('publish.title')}
+              </span>
+            </button>
           </div>
         </div>
       </div>

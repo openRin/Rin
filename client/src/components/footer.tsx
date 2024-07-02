@@ -56,19 +56,22 @@ function Footer() {
                             position="top center"
                             arrow={false}
                             closeOnDocumentClick>
-                            <div className="rounded-xl p-4 bg-w text-sm t-secondary font-normal">
+                            <div className="border-card">
                                 <p className='font-bold t-primary'>
                                     {t('footer.rss')}
                                 </p>
-                                <a href='/sub/rss.xml'>
-                                    RSS
-                                </a> <Spliter />
-                                <a href='/sub/atom.xml'>
-                                    Atom
-                                </a> <Spliter />
-                                <a href='/sub/rss.json'>
-                                    JSON
-                                </a>
+                                <p>
+                                    <a href='/sub/rss.xml'>
+                                        RSS
+                                    </a> <Spliter />
+                                    <a href='/sub/atom.xml'>
+                                        Atom
+                                    </a> <Spliter />
+                                    <a href='/sub/rss.json'>
+                                        JSON
+                                    </a>
+                                </p>
+                                    
                             </div>
                         </Popup>
                     </>}

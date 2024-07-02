@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+    .bg-w {
+      @apply bg-white dark:bg-dark;
+    }
+  
+    .bg-secondary {
+      @apply bg-neutral-100 dark:bg-neutral-700;
+    }
+  
+    .bg-hover {
+      @apply hover:bg-neutral-200 dark:hover:bg-neutral-600;
+    }
+  
+    .shadow-light {
+      @apply shadow-neutral-200/30 dark:shadow-black/10;
+    }
+  
+    .shadow-deep {
+      @apply shadow-neutral-200/70 dark:shadow-black/30;
+    }
+  
+    .t-primary {
+      @apply text-black dark:text-white;
+    }
+  
+    .t-secondary {
+      @apply text-neutral-500 dark:text-neutral-200;
+    }
+  
+    .wauto {
+      @apply w-full md:w-11/12 lg:w-10/12 xl:w-8/12 2xl:w-6/12 duration-300;
+    }
+  
+    .writeauto {
+      @apply w-full md:w-7/12 lg:w-8/12 duration-300;
+    }
+  }

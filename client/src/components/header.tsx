@@ -188,7 +188,7 @@ function LanguageSwitch({ className }: { className?: string }) {
         <div className={className + " flex flex-row items-center"}>
             <Popup trigger={
                 <button title={label} aria-label={label}
-                    className="flex rounded-full border px-2 bg-w aspect-[1] items-center justify-center t-primary bg-hover">
+                    className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-hover">
                     <i className="ri-translate-2"></i>
                 </button>
             }
@@ -196,7 +196,7 @@ function LanguageSwitch({ className }: { className?: string }) {
                 arrow={false}
                 closeOnDocumentClick
             >
-                <div className="shadow-lg border shadow-deep rounded-xl p-4 bg-w text-sm t-secondary font-normal flex flex-col items-start mt-2 space-y-2">
+                <div className="border-card">
                     <p className='font-bold t-primary'>
                         Languages
                     </p>
