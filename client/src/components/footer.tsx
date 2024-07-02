@@ -31,6 +31,7 @@ function Footer() {
                 document.documentElement.setAttribute('data-color-mode', 'light');
             }
         }
+        window.dispatchEvent(new Event("colorSchemeChange"));
     };
 
     return (

@@ -82,6 +82,7 @@
   },
   "logout": "退出登录",
   "next": "下一页",
+  "preview": "预览",
   "previous": "上一页",
   "publish": {
     "success": "发布成功",
@@ -151,6 +152,7 @@
     "failed$size": "上传失败，文件大小不能超过 {{size}} MB",
     "title": "上传"
   },
+  "uploading": "上传中",
   "url": "站点 URL",
   "visible": {
     "self_only": "仅自己可见"

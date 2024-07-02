@@ -14,12 +14,11 @@
   "dependencies": {
     "@astroimg/timeago": "^1.1.6",
     "@elysiajs/eden": "^1.0.13",
+    "@monaco-editor/react": "^4.6.0",
     "@prosemirror-adapter/react": "^0.2.6",
     "@radix-ui/react-switch": "^1.1.0",
     "@tailwindcss/typography": "^0.5.13",
     "@types/react-modal": "^3.16.3",
-    "@uiw/react-markdown-preview": "^5.1.1",
-    "@uiw/react-md-editor": "^4.0.4",
     "i18next": "^23.11.5",
     "i18next-browser-languagedetector": "^8.0.0",
     "i18next-http-backend": "^2.5.2",

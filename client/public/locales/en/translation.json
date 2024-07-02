@@ -82,6 +82,7 @@
   },
   "logout": "Logout",
   "next": "Next Page",
+  "preview": "Preview",
   "previous": "Previous Page",
   "publish": {
     "success": "Publish successful",
@@ -151,6 +152,7 @@
     "failed$size": "Upload failed, file size cannot exceed {{size}} MB",
     "title": "Upload"
   },
+  "uploading": "Uploading...",
   "url": "Site URL",
   "visible": {
     "self_only": "Visible to self only"

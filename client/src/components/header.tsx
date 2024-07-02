@@ -201,7 +201,7 @@ function LanguageSwitch({ className }: { className?: string }) {
                         Languages
                     </p>
                     {languages.map(({ code, name }) => (
-                        <button onClick={() => i18n.changeLanguage(code)}>
+                        <button key={code} onClick={() => i18n.changeLanguage(code)}>
                             {name}
                         </button>
                     ))}
