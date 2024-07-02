@@ -14,7 +14,7 @@ English | [简体中文](./README_zh_CN.md)
 
 Rin is a blog based on Cloudflare Pages + Workers + D1 + R2. It does not require a server to deploy. It can be deployed just with a domain name that resolves to Cloudflare.
 
-## Demo address
+## Demo
 
 [xeu.life](https://xeu.life)
 

@@ -1,22 +1,20 @@
-import "@uiw/react-markdown-preview/markdown.css";
-import MDEditor, {
-  ContextStore,
-  getCommands,
-  TextAreaTextApi,
-} from "@uiw/react-md-editor";
-import "@uiw/react-md-editor/markdown-editor.css";
+import Editor from '@monaco-editor/react';
+import i18n from 'i18next';
+import { editor } from 'monaco-editor';
 import { Calendar } from 'primereact/calendar';
 import 'primereact/resources/primereact.css';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
+import { useTranslation } from "react-i18next";
+import Loading from 'react-loading';
 import { Checkbox, Input } from "../components/input";
 import { Markdown } from "../components/markdown";
 import { client } from "../main";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
-import { useTranslation } from "react-i18next";
-import i18n from 'i18next';
+import { useColorMode } from "../utils/darkModeUtils";
+
 async function publish({
   title,
   alias,
@@ -26,6 +24,7 @@ async function publish({
   tags,
   draft,
   createdAt,
+  onCompleted,
 }: {
   title: string;
   listed: boolean;
@@ -35,6 +34,7 @@ async function publish({
   draft: boolean;
   alias?: string;
   createdAt?: Date;
+  onCompleted?: () => void;
 }) {
   const t = i18n.t
   const { data, error } = await client.feed.index.post(
@@ -52,6 +52,9 @@ async function publish({
       headers: headersWithAuth(),
     }
   );
+  if (onCompleted) {
+    onCompleted();
+  }
   if (error) {
     alert(error.value);
   }
@@ -72,6 +75,7 @@ async function update({
   listed,
   draft,
   createdAt,
+  onCompleted,
 }: {
   id: number;
   listed: boolean;
@@ -82,6 +86,7 @@ async function update({
   tags?: string[];
   draft?: boolean;
   createdAt?: Date;
+  onCompleted?: () => void;
 }) {
   const t = i18n.t
   const { error } = await client.feed({ id }).post(
@@ -99,6 +104,9 @@ async function update({
       headers: headersWithAuth(),
     }
   );
+  if (onCompleted) {
+    onCompleted();
+  }
   if (error) {
     alert(error.value);
   } else {
@@ -147,55 +155,14 @@ const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
   }
 };
 
-function uploadImageButton() {
-  const uploadRef = useRef<HTMLInputElement>(null);
-  const t = i18n.t
-  const upChange = (event: any) => {
-    let imgfile = event.currentTarget.files[0]; ///获得input的第一个图片
-    if (imgfile.size > 5 * 1024000) {
-      alert(t("upload.failed$size", { size: 5 }))
-      uploadRef.current!.value = "";
-    } else {
-      uploadImage(imgfile, (url) => {
-        const textInput: HTMLInputElement | null = document.querySelector(
-          ".w-md-editor-text-input"
-        );
-        if (!textInput) return;
-        textInput.focus();
-        document.execCommand(
-          "insertText",
-          false,
-          `![${imgfile.name}](${url})\n`
-        );
-      });
-    }
-  };
-  return {
-    name: "uploadImage",
-    keyCommand: "uploadImage",
-    buttonProps: { "aria-label": "Upload Image" },
-    icon: (
-      <>
-        <input
-          ref={uploadRef}
-          onChange={upChange}
-          className="hidden"
-          type="file"
-          accept="image/gif,image/jpeg,image/jpg,image/png"
-        />
-        <i className="ri-image-add-line" />
-      </>
-    ),
-    execute: (_state: ContextStore, _api: TextAreaTextApi) => {
-      uploadRef.current?.click();
-    },
-  };
-}
+
 
 // 写作页面
 export function WritingPage({ id }: { id?: number }) {
   const { t } = useTranslation();
+  const colorMode = useColorMode();
   const cache = Cache.with(id);
+  const editorRef = useRef<editor.IStandaloneCodeEditor>();
   const [title, setTitle] = useState(cache.get("title"));
   const [summary, setSummary] = useState(cache.get("summary"));
   const [tags, setTags] = useState(cache.get("tags"));
@@ -204,7 +171,12 @@ export function WritingPage({ id }: { id?: number }) {
   const [listed, setListed] = useState(true);
   const [content, setContent] = useState<string>(cache.get("content") ?? "");
   const [createdAt, setCreatedAt] = useState<Date | undefined>(new Date());
+  const [preview, setPreview] = useState(false);
+  const [uploading, setUploading] = useState(false)
+  const [publishing, setPublishing] = useState(false)
   function publishButton() {
+    if (publishing) return;
+    setPublishing(true)
     const tagsplit =
       tags
         .split("#")
@@ -220,7 +192,10 @@ export function WritingPage({ id }: { id?: number }) {
         tags: tagsplit,
         draft,
         listed,
-        createdAt
+        createdAt,
+        onCompleted: () => {
+          setPublishing(false)
+        }
       });
     } else {
       if (!title) {
@@ -239,9 +214,51 @@ export function WritingPage({ id }: { id?: number }) {
         draft,
         alias,
         listed,
-        createdAt
+        createdAt,
+        onCompleted: () => {
+          setPublishing(false)
+        }
       });
     }
+  }
+
+  function UploadImageButton() {
+    const uploadRef = useRef<HTMLInputElement>(null);
+    const t = i18n.t
+    const upChange = (event: any) => {
+      for (let i = 0; i < event.dataTransfer.files.length; i++) {
+        let file = event.currentTarget.files[i]; ///获得input的第一个图片
+        if (file.size > 5 * 1024000) {
+          alert(t("upload.failed$size", { size: 5 }))
+          uploadRef.current!.value = "";
+        } else {
+          const editor = editorRef.current;
+          if (!editor) return;
+          const selection = editor.getSelection();
+          if (!selection) return;
+          setUploading(true)
+          uploadImage(file, (url) => {
+            setUploading(false)
+            editor.executeEdits(undefined, [{
+              range: selection,
+              text: `![${file.name}](${url})\n`,
+            }]);
+          });
+        }
+      }
+    };
+    return (
+      <button onClick={() => uploadRef.current?.click()}>
+        <input
+          ref={uploadRef}
+          onChange={upChange}
+          className="hidden"
+          type="file"
+          accept="image/gif,image/jpeg,image/jpg,image/png"
+        />
+        <i className="ri-image-add-line" />
+      </button>
+    )
   }
   useEffect(() => {
     if (id) {
@@ -351,66 +368,92 @@ export function WritingPage({ id }: { id?: number }) {
         <div className="writeauto grow-[2] pb-8 basis-0">
           <div className="bg-w rounded-2xl shadow-xl shadow-light p-4">
             {MetaInput({ className: "visible md:hidden mb-8" })}
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDrag(true);
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault();
-                setDrag(false);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDrag(false);
-                for (let i = 0; i < e.dataTransfer.files.length; i++) {
-                  const file = e.dataTransfer.files[i];
-                  uploadImage(file, (url) => {
-                    const textInput: HTMLInputElement | null =
-                      document.querySelector(".w-md-editor-text-input");
-                    if (!textInput) return;
-                    textInput.focus();
-                    document.execCommand(
-                      "insertText",
-                      false,
-                      `![${file.name}](${url})\n`
-                    );
-                  });
+            <div className="flex flex-col mx-4 my-2 md:mx-0 md:my-0 gap-2">
+              <div className="flex flex-row space-x-2">
+                <button className={`${preview ? "" : "text-theme"}`} onClick={() => setPreview(false)}> {t("edit")} </button>
+                <button className={`${preview ? "text-theme" : ""}`} onClick={() => setPreview(true)}> {t("preview")} </button>
+                <div className="flex-grow" />
+                {uploading &&
+                  <div className="flex flex-row space-x-2 items-center">
+                    <Loading type="spin" color="#FC466B" height={16} width={16} />
+                    <span className="text-sm text-neutral-500">{t('uploading')}</span>
+                  </div>
                 }
-              }}
-              className="mx-4 my-2 md:mx-0 md:my-0 gap-2 grid sm:flex sm:flex-row relative"
-            >
-              <MDEditor
-                height="600px"
-                className="flex-1 dark:border dark:border-gray-500"
-                value={content}
-                onPaste={handlePaste}
-                commands={[...getCommands(), uploadImageButton()]}
-                onChange={(data) => {
-                  cache.set("content", data ?? "");
-                  setContent(data ?? "");
-                }}
-                preview="edit"
-                extraCommands={[]}
-              />
-              <div className="border rounded border-[#d0d7de] dark:border-gray-500 px-4 flex-1 shadow h-[600px] overflow-y-scroll">
-                <Markdown content={content ? content : "> No content now. Write on the left side."} />
               </div>
-
+              <div className={"flex flex-col " + (preview ? "hidden" : "")}>
+                <div className="flex flex-row justify-start mb-2">
+                  <UploadImageButton />
+                </div>
+                <div
+                  className={"relative"}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDrag(false);
+                    const editor = editorRef.current;
+                    if (!editor) return;
+                    for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                      const selection = editor.getSelection();
+                      if (!selection) return;
+                      const file = e.dataTransfer.files[i];
+                      setUploading(true)
+                      uploadImage(file, (url) => {
+                        setUploading(false)
+                        editor.executeEdits(undefined, [{
+                          range: selection,
+                          text: `![${file.name}](${url})\n`,
+                        }]);
+                      });
+                    }
+                  }}
+                  onPaste={handlePaste}
+                >
+                  <Editor
+                    onMount={(editor, _) => {
+                      editorRef.current = editor
+                    }}
+                    height="600px"
+                    defaultLanguage="markdown"
+                    className=""
+                    value={content}
+                    // onPaste={handlePaste}
+                    onChange={(data, e) => {
+                      console.log(e)
+                      cache.set("content", data ?? "");
+                      setContent(data ?? "");
+                    }}
+                    theme={colorMode === "dark" ? "vs-dark" : "light"}
+                    options={{
+                      wordWrap: "on",
+                      fontSize: 14,
+                      fontFamily: "Fira Code",
+                    }}
+                  />
+                  <div
+                    className={`absolute bg-theme/10 t-secondary text-xl top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center ${drag ? "" : "hidden"
+                      }`}
+                  >
+                    {t('drop.image')}
+                  </div>
+                </div>
+              </div>
               <div
-                className={`absolute bg-theme/10 t-secondary text-xl top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center ${drag ? "" : "hidden"
-                  }`}
+                className={"px-4 h-[600px] overflow-y-scroll " + (preview ? "" : "hidden")}
               >
-                {t('drop.image')}
+                <Markdown content={content ? content : "> No content now. Write on the left side."} />
               </div>
             </div>
           </div>
           <div className="visible md:hidden flex flex-row justify-center mt-8">
             <button
               onClick={publishButton}
-              className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light"
+              className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light flex flex-row justify-center items-center space-x-2"
             >
-              {t('publish.title')}
+              {publishing &&
+                <Loading type="spin" height={16} width={16} />
+              }
+              <span>
+                {t('publish.title')}
+              </span>
             </button>
           </div>
         </div>
@@ -420,9 +463,14 @@ export function WritingPage({ id }: { id?: number }) {
             <div className="flex flex-row justify-center">
               <button
                 onClick={publishButton}
-                className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light"
+                className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light flex flex-row justify-center items-center space-x-2"
               >
-                {t('publish.title')}
+                {publishing &&
+                  <Loading type="spin" height={16} width={16} />
+                }
+                <span>
+                  {t('publish.title')}
+                </span>
               </button>
             </div>
           </div>

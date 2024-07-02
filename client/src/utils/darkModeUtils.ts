@@ -11,8 +11,7 @@ export function listenSystemMode() {
       } else {
         document.documentElement.setAttribute("data-color-mode", "light");
       }
-      const event = new Event("colorSchemeChange");
-      window.dispatchEvent(event);
+      window.dispatchEvent(new Event("colorSchemeChange"));
     }
   }
 
