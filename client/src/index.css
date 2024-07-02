@@ -1,7 +1,7 @@
+@import "./base.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 /* cantarell-latin-400-normal */
 @font-face {
   font-family: "Cantarell";
@@ -52,42 +52,6 @@ ul {
   @apply hover:underline;
 }
 
-.bg-w {
-  @apply bg-white dark:bg-dark;
-}
-
-.bg-secondary {
-  @apply bg-neutral-100 dark:bg-neutral-700;
-}
-
-.bg-hover {
-  @apply hover:bg-neutral-200 dark:hover:bg-neutral-600;
-}
-
-.shadow-light {
-  @apply shadow-neutral-200/30 dark:shadow-black/10;
-}
-
-.shadow-deep {
-  @apply shadow-neutral-200/70 dark:shadow-black/30;
-}
-
-.t-primary {
-  @apply text-black dark:text-white;
-}
-
-.t-secondary {
-  @apply text-neutral-500 dark:text-neutral-200;
-}
-
-.wauto {
-  @apply w-full md:w-11/12 lg:w-10/12 xl:w-8/12 2xl:w-6/12 duration-300;
-}
-
-.writeauto {
-  @apply w-full md:w-7/12 lg:w-8/12 duration-300;
-}
-
 .wmde-markdown code {
   @apply text-theme bg-secondary;
 }
@@ -95,21 +59,27 @@ ul {
 .markdown-alert {
   @apply !border-l-0 border-0 rounded-lg !py-4 my-4 !px-4 !leading-snug;
 }
+
 .markdown-alert-note {
   @apply !border-indigo-100 bg-indigo-50 !text-indigo-400;
 }
+
 .markdown-alert-warning {
   @apply !border-yellow-100 bg-yellow-50 !text-yellow-400;
 }
+
 .markdown-alert-tip {
   @apply !border-green-100 bg-green-50 !text-green-400;
 }
+
 .markdown-alert-important {
   @apply !border-purple-100 bg-purple-50 !text-purple-400;
 }
+
 .markdown-alert-caution {
   @apply !border-red-100 bg-red-50 !text-red-400;
 }
+
 .markdown-alert-title {
   @apply !mb-2 !text-inherit !font-bold;
 }
@@ -126,17 +96,20 @@ ul {
     opacity: 0;
     box-shadow: 0 0 0 rgba(241, 241, 241, 0);
   }
+
   1% {
     transform: scale(0.96) translateY(10px);
     opacity: 0;
     box-shadow: 0 0 0 rgba(241, 241, 241, 0);
   }
+
   100% {
     transform: scale(1) translateY(0px);
     opacity: 1;
     box-shadow: 0 0 500px rgba(241, 241, 241, 0);
   }
 }
+
 .popup-content {
   animation: anvil 0.3s cubic-bezier(0.38, 0.1, 0.36, 0.9) forwards;
 }
@@ -144,6 +117,7 @@ ul {
 .ani-show {
   animation: anvil 0.5s cubic-bezier(0.38, 0.1, 0.36, 0.9) forwards;
 }
+
 .ani-show-fast {
   animation: anvil 0.3s cubic-bezier(0.38, 0.1, 0.36, 0.9) forwards;
 }
@@ -152,7 +126,8 @@ ul {
   @apply w-full border-collapse my-4;
 }
 
-.table th, .table td {
+.table th,
+.table td {
   @apply border border-slate-500 dark:border-slate-300 px-4 py-2;
 }
 
@@ -166,12 +141,12 @@ ul {
   overflow-y: auto;
 }
 
-.toc > .toc-list {
+.toc>.toc-list {
   overflow: hidden;
   position: relative;
 }
 
-.toc > .toc-list li {
+.toc>.toc-list li {
   list-style: none;
 }
 
