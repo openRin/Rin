@@ -105,7 +105,7 @@ function UserAvatar({ profile, className, mobile }: { className?: string, profil
         </> : <>
             <button title={githubLoginText} aria-label={githubLoginText}
                 onClick={() => window.location.href = `${oauth_url}`}
-                className={`flex rounded-xl ${mobile ? "bg-secondary" : "bg-w"} h-10 sm:h-auto px-2 py-2 bg-w bg-hover t-secondary items-center justify-center`}>
+                className={`flex rounded-xl border dark:border-neutral-600 ${mobile ? "bg-secondary" : "bg-w"} h-10 sm:h-auto px-2 py-2 bg-w bg-hover t-primary items-center justify-center`}>
                 <i className="ri-github-line ri-xl"></i>
                 <p className="text-sm ml-1">
                     {githubLoginText}
