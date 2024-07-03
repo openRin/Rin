@@ -45,13 +45,13 @@ export function Markdown({ content }: { content: string }) {
           if (newlinesBefore >= 1) {
             return (
               <div className="block w-full text-center my-4">
-                <img {...props} className="mx-auto" style={{ zoom: "0.75" }} />
+                <img {...props} className="mx-auto rounded-xl" style={{ zoom: "0.75" }} />
               </div>
             );
           } else {
             return (
               <span className="inline-block align-middle mx-1 ">
-                <img {...props} className="mb-1.5" style={{ zoom: "0.5" }} />
+                <img {...props} className="mb-1.5 rounded-xl" style={{ zoom: "0.5" }} />
               </span>
             );
           }
@@ -99,7 +99,7 @@ export function Markdown({ content }: { content: string }) {
             return (
               <code
                 {...rest}
-                className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-slate-800 dark:text-slate-300 ${
+                className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-neutral-800 dark:text-neutral-300 ${
                   className || ""
                 }`}
                 style={inlineCodeStyle}
@@ -177,9 +177,8 @@ export function Markdown({ content }: { content: string }) {
         },
         h2({ children, ...props }) {
           return (
-            <h2 id={children?.toString()} className="text-2xl font-bold mt-8" {...props}>
+            <h2 id={children?.toString()} className="text-2xl font-bold mt-4" {...props}>
               {children}
-              <div className="h-[2px] border-b" />
             </h2>
           );
         },

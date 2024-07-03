@@ -152,7 +152,7 @@ export function FeedPage({ id }: { id: string }) {
             <main className="wauto">
               <article
                 className="rounded-2xl bg-w m-2 px-6 py-4"
-                aria-label="正文"
+                aria-label={feed.title ?? "Unnamed"}
               >
                 <div className="flex justify-between">
                   <div>
