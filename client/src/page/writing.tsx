@@ -426,6 +426,8 @@ export function WritingPage({ id }: { id?: number }) {
                       wordWrap: "on",
                       fontSize: 14,
                       fontFamily: "Fira Code",
+                      lineNumbers: "off",
+                      dragAndDrop: true,
                     }}
                   />
                   <div

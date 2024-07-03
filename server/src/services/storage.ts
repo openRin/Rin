@@ -55,7 +55,7 @@ export function StorageService() {
                     const hash = buf2hex(hashArray)
                     const hashkey = path.join(folder, hash + "." + suffix);
                     try {
-                        const response = await s3.send(new PutObjectCommand({ Bucket: bucket, Key: hashkey, Body: file }))
+                        const response = await s3.send(new PutObjectCommand({ Bucket: bucket, Key: hashkey, Body: file, ContentType: file.type }))
                         console.info(response);
                         return `${accessHost}/${hashkey}`
                     } catch (e: any) {
