@@ -227,7 +227,7 @@ export function WritingPage({ id }: { id?: number }) {
     const uploadRef = useRef<HTMLInputElement>(null);
     const t = i18n.t
     const upChange = (event: any) => {
-      for (let i = 0; i < event.dataTransfer.files.length; i++) {
+      for (let i = 0; i < event.currentTarget.files.length; i++) {
         let file = event.currentTarget.files[i]; ///获得input的第一个图片
         if (file.size > 5 * 1024000) {
           alert(t("upload.failed$size", { size: 5 }))
