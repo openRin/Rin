@@ -142,19 +142,6 @@ function uploadImage(file: File, onSuccess: (url: string) => void) {
     });
 }
 
-const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
-  // Access the clipboard data using event.clipboardData
-  const clipboardData = event.clipboardData;
-  // only if clipboard payload is file
-  if (clipboardData.files.length === 1) {
-    const myfile = clipboardData.files[0] as File;
-    uploadImage(myfile, (url) => {
-      document.execCommand("insertText", false, `![${myfile.name}](${url})\n`);
-    });
-    event.preventDefault();
-  }
-};
-
 
 
 // 写作页面
@@ -222,6 +209,29 @@ export function WritingPage({ id }: { id?: number }) {
       });
     }
   }
+
+
+  const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
+    // Access the clipboard data using event.clipboardData
+    const clipboardData = event.clipboardData;
+    // only if clipboard payload is file
+    if (clipboardData.files.length === 1) {
+      const editor = editorRef.current;
+      if (!editor) return;
+      editor.trigger(undefined,"undo",undefined);
+      setUploading(true)
+      const myfile = clipboardData.files[0] as File;
+      uploadImage(myfile, (url) => {
+        const selection = editor.getSelection();
+        if (!selection) return;
+        editor.executeEdits(undefined, [{
+          range: selection,
+          text: `![${myfile.name}](${url})\n`,
+        }]);
+        setUploading(false)
+      });
+    }
+  };
 
   function UploadImageButton() {
     const uploadRef = useRef<HTMLInputElement>(null);
@@ -428,6 +438,7 @@ export function WritingPage({ id }: { id?: number }) {
                       fontFamily: "Fira Code",
                       lineNumbers: "off",
                       dragAndDrop: true,
+                      pasteAs: { enabled: false }
                     }}
                   />
                   <div
