@@ -158,7 +158,7 @@ export function WritingPage({ id }: { id?: number }) {
   const [listed, setListed] = useState(true);
   const [content, setContent] = useState<string>(cache.get("content") ?? "");
   const [createdAt, setCreatedAt] = useState<Date | undefined>(new Date());
-  const [preview, setPreview] = useState(false);
+  const [preview, setPreview] = useState<boolean | 'comparison'>(false);
   const [uploading, setUploading] = useState(false)
   const [publishing, setPublishing] = useState(false)
   function publishButton() {
@@ -218,7 +218,7 @@ export function WritingPage({ id }: { id?: number }) {
     if (clipboardData.files.length === 1) {
       const editor = editorRef.current;
       if (!editor) return;
-      editor.trigger(undefined,"undo",undefined);
+      editor.trigger(undefined, "undo", undefined);
       setUploading(true)
       const myfile = clipboardData.files[0] as File;
       uploadImage(myfile, (url) => {
@@ -293,7 +293,6 @@ export function WritingPage({ id }: { id?: number }) {
         });
     }
   }, []);
-  const [drag, setDrag] = useState(false);
   function MetaInput({ className }: { className?: string }) {
     return (
       <>
@@ -380,8 +379,9 @@ export function WritingPage({ id }: { id?: number }) {
             {MetaInput({ className: "visible md:hidden mb-8" })}
             <div className="flex flex-col mx-4 my-2 md:mx-0 md:my-0 gap-2">
               <div className="flex flex-row space-x-2">
-                <button className={`${preview ? "" : "text-theme"}`} onClick={() => setPreview(false)}> {t("edit")} </button>
-                <button className={`${preview ? "text-theme" : ""}`} onClick={() => setPreview(true)}> {t("preview")} </button>
+                <button className={`${preview === false ? "text-theme" : ""}`} onClick={() => setPreview(false)}> {t("edit")} </button>
+                <button className={`${preview === true ? "text-theme" : ""}`} onClick={() => setPreview(true)}> {t("preview")} </button>
+                <button className={`${preview === 'comparison' ? "text-theme" : ""}`} onClick={() => setPreview('comparison')}> {t("comparison")} </button>
                 <div className="flex-grow" />
                 {uploading &&
                   <div className="flex flex-row space-x-2 items-center">
@@ -390,69 +390,64 @@ export function WritingPage({ id }: { id?: number }) {
                   </div>
                 }
               </div>
-              <div className={"flex flex-col " + (preview ? "hidden" : "")}>
-                <div className="flex flex-row justify-start mb-2">
-                  <UploadImageButton />
-                </div>
-                <div
-                  className={"relative"}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDrag(false);
-                    const editor = editorRef.current;
-                    if (!editor) return;
-                    for (let i = 0; i < e.dataTransfer.files.length; i++) {
-                      const selection = editor.getSelection();
-                      if (!selection) return;
-                      const file = e.dataTransfer.files[i];
-                      setUploading(true)
-                      uploadImage(file, (url) => {
-                        setUploading(false)
-                        editor.executeEdits(undefined, [{
-                          range: selection,
-                          text: `![${file.name}](${url})\n`,
-                        }]);
-                      });
-                    }
-                  }}
-                  onPaste={handlePaste}
-                >
-                  <Editor
-                    onMount={(editor, _) => {
-                      editorRef.current = editor
-                    }}
-                    height="600px"
-                    defaultLanguage="markdown"
-                    className=""
-                    value={content}
-                    // onPaste={handlePaste}
-                    onChange={(data, e) => {
-                      console.log(e)
-                      cache.set("content", data ?? "");
-                      setContent(data ?? "");
-                    }}
-                    theme={colorMode === "dark" ? "vs-dark" : "light"}
-                    options={{
-                      wordWrap: "on",
-                      fontSize: 14,
-                      fontFamily: "Fira Code",
-                      lineNumbers: "off",
-                      dragAndDrop: true,
-                      pasteAs: { enabled: false }
-                    }}
-                  />
+              <div className={`grid grid-cols-1 ${preview === 'comparison' ? "sm:grid-cols-2" : ""}`}>
+                <div className={"flex flex-col " + (preview === true ? "hidden" : "")}>
+                  <div className="flex flex-row justify-start mb-2">
+                    <UploadImageButton />
+                  </div>
                   <div
-                    className={`absolute bg-theme/10 t-secondary text-xl top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center ${drag ? "" : "hidden"
-                      }`}
+                    className={"relative"}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const editor = editorRef.current;
+                      if (!editor) return;
+                      for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                        const selection = editor.getSelection();
+                        if (!selection) return;
+                        const file = e.dataTransfer.files[i];
+                        setUploading(true)
+                        uploadImage(file, (url) => {
+                          setUploading(false)
+                          editor.executeEdits(undefined, [{
+                            range: selection,
+                            text: `![${file.name}](${url})\n`,
+                          }]);
+                        });
+                      }
+                    }}
+                    onPaste={handlePaste}
                   >
-                    {t('drop.image')}
+                    <Editor
+                      onMount={(editor, _) => {
+                        editorRef.current = editor
+                      }}
+                      height="600px"
+                      defaultLanguage="markdown"
+                      className=""
+                      value={content}
+                      // onPaste={handlePaste}
+                      onChange={(data, e) => {
+                        console.log(e)
+                        cache.set("content", data ?? "");
+                        setContent(data ?? "");
+                      }}
+                      theme={colorMode === "dark" ? "vs-dark" : "light"}
+                      options={{
+                        wordWrap: "on",
+                        fontSize: 14,
+                        fontFamily: "Fira Code",
+                        lineNumbers: "off",
+                        dragAndDrop: true,
+                        pasteAs: { enabled: false }
+                      }}
+                    />
                   </div>
                 </div>
-              </div>
-              <div
-                className={"px-4 h-[600px] overflow-y-scroll " + (preview ? "" : "hidden")}
-              >
-                <Markdown content={content ? content : "> No content now. Write on the left side."} />
+                <div
+                  className={"px-4 h-[600px] overflow-y-scroll " + (preview != false ? "" : "hidden")}
+                >
+                  <Markdown content={content ? content : "> No content now. Write on the left side."} />
+                </div>
               </div>
             </div>
           </div>

@@ -26,6 +26,7 @@
     "success": "Comment successful",
     "title": "Comment"
   },
+  "comparison": "Comparison",
   "confirm": "Confirm",
   "content": {
     "empty": "Content cannot be empty"
