@@ -107,6 +107,9 @@ export function TableOfContents({ selector, maxDepth = 3 }: { selector: string, 
         <div>
             <h2 className="text-lg font-bold">{t("index.title")}</h2>
             <ul>
+                {toc.length === 0 &&
+                    <p className="t-secondary">{t("index.empty.title")}</p>
+                }
                 {toc.map((item) => (
                     <TOCItem key={item.id} item={item} maxDepth={maxDepth} intersecting={intersecting || []} lastIntersecting={lastIntersecting} />
                 ))}
