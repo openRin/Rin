@@ -26,6 +26,7 @@
     "success": "コメントに成功しました",
     "title": "コメント"
   },
+  "comparison": "対比",
   "confirm": "確認",
   "content": {
     "empty": "内容は空にできません"
