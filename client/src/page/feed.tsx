@@ -1,17 +1,17 @@
 import { format } from "@astroimg/timeago";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
+import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
-import tocbot from "tocbot";
 import { Link, useLocation } from "wouter";
 import { Waiting } from "../components/loading";
+import { Markdown } from "../components/markdown";
+import { TableOfContents } from "../components/toc";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
-import { Markdown } from "../components/markdown";
-import { useTranslation } from "react-i18next";
 
 type Feed = {
   id: number;
@@ -39,7 +39,6 @@ export function FeedPage({ id }: { id: string }) {
   const [headImage, setHeadImage] = useState<string>();
   const ref = useRef("");
   const [_, setLocation] = useLocation();
-  const [empty, setEmpty] = useState(true);
   function deleteFeed() {
     // Confirm
     if (!confirm(t("article.delete.confirm"))) return;
@@ -60,16 +59,6 @@ export function FeedPage({ id }: { id: string }) {
   }
   useEffect(() => {
     if (ref.current == id) return;
-    tocbot.init({
-      tocSelector: ".toc",
-      contentSelector: ".toc-content",
-      headingSelector: "h1, h2, h3, h4, h5, h6",
-      collapseDepth: 2,
-      headingLabelCallback(headingLabel) {
-        setEmpty(false);
-        return headingLabel;
-      },
-    });
     setFeed(undefined);
     setError(undefined);
     setHeadImage(undefined);
@@ -90,10 +79,6 @@ export function FeedPage({ id }: { id: string }) {
             if (img_match) {
               setHeadImage(img_match[1]);
             }
-            setTimeout(() => {
-              // Refresh toc
-              tocbot.refresh();
-            }, 0);
           }, 0);
         }
       });
@@ -152,7 +137,7 @@ export function FeedPage({ id }: { id: string }) {
             <main className="wauto">
               <article
                 className="rounded-2xl bg-w m-2 px-6 py-4"
-                aria-label="正文"
+                aria-label={feed.title ?? "Unnamed"}
               >
                 <div className="flex justify-between">
                   <div>
@@ -236,7 +221,7 @@ export function FeedPage({ id }: { id: string }) {
               <div className="h-16" />
             </main>
             <div className="w-80 hidden lg:block relative">
-              <TOC empty={empty} />
+              <TOC />
             </div>
           </>
         )}
@@ -247,33 +232,6 @@ export function FeedPage({ id }: { id: string }) {
 
 export function TOCHeader() {
   const [isOpened, setIsOpened] = useState(false);
-  const [empty, setEmpty] = useState(true);
-  const { t } = useTranslation();
-
-  useEffect(() => {
-    if (isOpened) {
-      setTimeout(() => {
-        tocbot.init({
-          tocSelector: ".toc2",
-          contentSelector: ".toc-content",
-          headingSelector: "h1, h2, h3, h4, h5, h6",
-          collapseDepth: 2,
-          headingLabelCallback(headingLabel) {
-            setEmpty(false);
-            return headingLabel;
-          },
-        });
-      }, 0);
-    } else {
-      tocbot.destroy();
-    }
-
-    return () => {
-      if (isOpened) {
-        tocbot.destroy();
-      }
-    };
-  }, [isOpened]);
 
   return (
     <div className="lg:hidden">
@@ -310,43 +268,19 @@ export function TOCHeader() {
         onRequestClose={() => setIsOpened(false)}
       >
         <div className="rounded-2xl bg-w py-4 px-4 fixed w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
-          <h1 className="text-xl font-bold">{t("index.title")}</h1>
-          {empty && (
-            <p className="text-gray-400 text-sm mt-2">
-              {t("index.empty.title")}
-            </p>
-          )}
-          <div className="toc toc2 mt-2"></div>
+          <TableOfContents selector=".toc-content" />
         </div>
       </ReactModal>
     </div>
   );
 }
 
-export function TOC({ empty }: { empty: boolean }) {
-  const { t } = useTranslation();
-  useEffect(() => {
-    tocbot.init({
-      tocSelector: ".toc",
-      contentSelector: ".toc-content",
-      headingSelector: "h1, h2, h3, h4, h5, h6",
-      collapseDepth: 2,
-    });
-
-    return () => {
-      tocbot.destroy();
-    };
-  }, []);
-
+export function TOC() {
   return (
     <div
       className={`ml-2 rounded-2xl bg-w py-4 px-4 fixed start-0 end-0 top-[5.5rem] sticky t-primary`}
     >
-      <h1 className="text-xl font-bold">{t("index.title")}</h1>
-      {empty && (
-        <p className="text-gray-400 text-sm mt-2">{t("index.empty.title")}</p>
-      )}
-      <div className="toc mt-2"></div>
+      <TableOfContents selector=".toc-content" />
     </div>
   );
 }

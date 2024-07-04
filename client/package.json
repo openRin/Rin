@@ -33,7 +33,6 @@
     "reactjs-popup": "^2.0.6",
     "remixicon": "^4.2.0",
     "rin-server": "workspace:rin-server@latest",
-    "tocbot": "^4.28.2",
     "typescript-cookie": "^1.0.6",
     "wouter": "^3.1.3"
   },
