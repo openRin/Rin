@@ -119,7 +119,7 @@ export function TableOfContents({ selector, maxDepth = 3 }: { selector: string, 
 }
 
 function TOCItem({ item, maxDepth, intersecting, lastIntersecting, enabled = true }: { item: TOCItem, maxDepth?: number, intersecting: string[], lastIntersecting?: string, enabled?: boolean }) {
-    const isIntersecting = intersecting.includes(item.id) || (intersecting.length === 0 && lastIntersecting === item.id)
+    const isIntersecting = intersecting[0] === item.id || (intersecting.length === 0 && lastIntersecting === item.id)
     return (
         <li>
             <a className={isIntersecting && enabled ? "text-theme" : ""} href={`#${item.id}`}
