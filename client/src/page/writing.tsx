@@ -14,6 +14,7 @@ import { client } from "../main";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { useColorMode } from "../utils/darkModeUtils";
+import { Cache, useCache } from '../utils/cache';
 
 async function publish({
   title,
@@ -150,15 +151,15 @@ export function WritingPage({ id }: { id?: number }) {
   const colorMode = useColorMode();
   const cache = Cache.with(id);
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
-  const [title, setTitle] = useState(cache.get("title"));
-  const [summary, setSummary] = useState(cache.get("summary"));
-  const [tags, setTags] = useState(cache.get("tags"));
-  const [alias, setAlias] = useState(cache.get("alias"));
+  const [title, setTitle] = cache.useCache("title","");
+  const [summary, setSummary] = cache.useCache("summary","");
+  const [tags, setTags] = cache.useCache("tags","");
+  const [alias, setAlias] = cache.useCache("alias","");
   const [draft, setDraft] = useState(false);
   const [listed, setListed] = useState(true);
-  const [content, setContent] = useState<string>(cache.get("content") ?? "");
+  const [content, setContent] = cache.useCache("content","");
   const [createdAt, setCreatedAt] = useState<Date | undefined>(new Date());
-  const [preview, setPreview] = useState<boolean | 'comparison'>(false);
+  const [preview, setPreview] = useCache<'edit' | 'preview' | 'comparison'>("preview", 'edit');
   const [uploading, setUploading] = useState(false)
   const [publishing, setPublishing] = useState(false)
   function publishButton() {
@@ -299,14 +300,12 @@ export function WritingPage({ id }: { id?: number }) {
         <div className={className}>
           <Input
             id={id}
-            name="title"
             value={title}
             setValue={setTitle}
             placeholder={t("title")}
           />
           <Input
             id={id}
-            name="summary"
             value={summary}
             setValue={setSummary}
             placeholder={t("summary")}
@@ -314,7 +313,6 @@ export function WritingPage({ id }: { id?: number }) {
           />
           <Input
             id={id}
-            name="tags"
             value={tags}
             setValue={setTags}
             placeholder={t("tags")}
@@ -322,7 +320,6 @@ export function WritingPage({ id }: { id?: number }) {
           />
           <Input
             id={id}
-            name="alias"
             value={alias}
             setValue={setAlias}
             placeholder={t("alias")}
@@ -379,8 +376,8 @@ export function WritingPage({ id }: { id?: number }) {
             {MetaInput({ className: "visible md:hidden mb-8" })}
             <div className="flex flex-col mx-4 my-2 md:mx-0 md:my-0 gap-2">
               <div className="flex flex-row space-x-2">
-                <button className={`${preview === false ? "text-theme" : ""}`} onClick={() => setPreview(false)}> {t("edit")} </button>
-                <button className={`${preview === true ? "text-theme" : ""}`} onClick={() => setPreview(true)}> {t("preview")} </button>
+                <button className={`${preview === 'edit' ? "text-theme" : ""}`} onClick={() => setPreview('edit')}> {t("edit")} </button>
+                <button className={`${preview === 'preview' ? "text-theme" : ""}`} onClick={() => setPreview('preview')}> {t("preview")} </button>
                 <button className={`${preview === 'comparison' ? "text-theme" : ""}`} onClick={() => setPreview('comparison')}> {t("comparison")} </button>
                 <div className="flex-grow" />
                 {uploading &&
@@ -391,7 +388,7 @@ export function WritingPage({ id }: { id?: number }) {
                 }
               </div>
               <div className={`grid grid-cols-1 ${preview === 'comparison' ? "sm:grid-cols-2" : ""}`}>
-                <div className={"flex flex-col " + (preview === true ? "hidden" : "")}>
+                <div className={"flex flex-col " + (preview === 'preview' ? "hidden" : "")}>
                   <div className="flex flex-row justify-start mb-2">
                     <UploadImageButton />
                   </div>
@@ -444,7 +441,7 @@ export function WritingPage({ id }: { id?: number }) {
                   </div>
                 </div>
                 <div
-                  className={"px-4 h-[600px] overflow-y-scroll " + (preview != false ? "" : "hidden")}
+                  className={"px-4 h-[600px] overflow-y-scroll " + (preview != 'edit' ? "" : "hidden")}
                 >
                   <Markdown content={content ? content : "> No content now. Write on the left side."} />
                 </div>
@@ -487,41 +484,3 @@ export function WritingPage({ id }: { id?: number }) {
   );
 }
 
-export type Keys =
-  | "title"
-  | "content"
-  | "tags"
-  | "summary"
-  | "draft"
-  | "alias"
-  | "listed";
-const keys: Keys[] = [
-  "title",
-  "content",
-  "tags",
-  "summary",
-  "draft",
-  "alias",
-  "listed",
-];
-export class Cache {
-  static with(id?: number) {
-    return new Cache(id);
-  }
-  private id: string;
-  constructor(id?: number) {
-    this.id = `${id ?? "new"}`;
-  }
-  public get(key: Keys) {
-    return localStorage.getItem(`${this.id}/${key}`) ?? "";
-  }
-  public set(key: Keys, value: string) {
-    if (value === "") localStorage.removeItem(`${this.id}/${key}`);
-    else localStorage.setItem(`${this.id}/${key}`, value);
-  }
-  clear() {
-    keys.forEach((key) => {
-      localStorage.removeItem(`${this.id}/${key}`);
-    });
-  }
-}
