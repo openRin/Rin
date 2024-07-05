@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import { remarkAlert } from 'remark-github-blockquote-alert'
 import "katex/dist/katex.min.css";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -30,7 +31,7 @@ export function Markdown({ content }: { content: string }) {
   return (
     <ReactMarkdown
       className="toc-content dark:text-neutral-300"
-      remarkPlugins={[gfm, remarkMath]}
+      remarkPlugins={[gfm, remarkMath, remarkAlert]}
       children={content}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
       components={{
@@ -99,9 +100,8 @@ export function Markdown({ content }: { content: string }) {
             return (
               <code
                 {...rest}
-                className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-neutral-800 dark:text-neutral-300 ${
-                  className || ""
-                }`}
+                className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-neutral-800 dark:text-neutral-300 ${className || ""
+                  }`}
                 style={inlineCodeStyle}
               >
                 {children}
@@ -210,7 +210,7 @@ export function Markdown({ content }: { content: string }) {
             </h6>
           );
         },
-        p({ children, ...props }) {
+        p({ children,node, ...props }) {
           return (
             <p className="mt-2 py-1" {...props}>
               {children}
@@ -252,6 +252,18 @@ export function Markdown({ content }: { content: string }) {
           });
           return <section {...props}>{modifiedChildren}</section>;
         },
+        div({ children, node, ...props }) {
+          // if (props.className === "admonition") {
+          //   return (
+          //     <div
+          //       className="p-4 border-l-4 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-500"
+          //     >
+          //       {children}
+          //     </div>
+          //   );
+          // }
+          return <div {...props}>{children}</div>;
+        }
       }}
     />
   );
