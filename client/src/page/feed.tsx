@@ -217,7 +217,7 @@ export function FeedPage({ id }: { id: string }) {
                   </div>
                 </div>
               </article>
-              {feed && <Comments id={id} />}
+              {feed && <Comments id={`${feed.id}`} />}
               <div className="h-16" />
             </main>
             <div className="w-80 hidden lg:block relative">
