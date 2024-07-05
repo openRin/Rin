@@ -30,7 +30,7 @@ export class Cache {
         this.id = `${id ?? "new"}`;
     }
     public get(key: Keys) {
-        return localStorage.getItem(`${this.id}/${key}`) ?? "";
+        return localStorage.getItem(`${this.id}/${key}`);
     }
     public set(key: Keys, value: string) {
         if (value === "") localStorage.removeItem(`${this.id}/${key}`);
