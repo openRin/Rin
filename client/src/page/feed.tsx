@@ -1,4 +1,3 @@
-import { format } from "@astroimg/timeago";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
@@ -12,6 +11,7 @@ import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
+import { timeago } from "../utils/timeago";
 
 type Feed = {
   id: number;
@@ -147,7 +147,7 @@ export function FeedPage({ id }: { id: string }) {
                         title={new Date(feed.createdAt).toLocaleString()}
                       >
                         {t("feed_card.published$time", {
-                          time: format(feed.createdAt),
+                          time: timeago(feed.createdAt),
                         })}
                       </p>
 
@@ -157,7 +157,7 @@ export function FeedPage({ id }: { id: string }) {
                           title={new Date(feed.updatedAt).toLocaleString()}
                         >
                           {t("feed_card.updated$time", {
-                            time: format(feed.updatedAt),
+                            time: timeago(feed.updatedAt),
                           })}
                         </p>
                       )}
@@ -267,7 +267,7 @@ export function TOCHeader() {
         }}
         onRequestClose={() => setIsOpened(false)}
       >
-        <div className="rounded-2xl bg-w py-4 px-4 fixed w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
+        <div className="rounded-2xl bg-w py-4 px-4 w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
           <TableOfContents selector=".toc-content" />
         </div>
       </ReactModal>
@@ -278,7 +278,7 @@ export function TOCHeader() {
 export function TOC() {
   return (
     <div
-      className={`ml-2 rounded-2xl bg-w py-4 px-4 fixed start-0 end-0 top-[5.5rem] sticky t-primary`}
+      className={`ml-2 rounded-2xl bg-w py-4 px-4 start-0 end-0 top-[5.5rem] sticky t-primary`}
     >
       <TableOfContents selector=".toc-content" />
     </div>
@@ -455,7 +455,7 @@ function CommentItem({
             title={new Date(comment.createdAt).toLocaleString()}
             className="text-gray-400 text-sm"
           >
-            {format(comment.createdAt)}
+            {timeago(comment.createdAt)}
           </span>
         </div>
         <p className="t-primary break-words">{comment.content}</p>
