@@ -58,6 +58,7 @@ export function Markdown({ content }: { content: string }) {
           }
         },
         code(props) {
+          const [copied, setCopied] = React.useState(false);
           const { children, className, node, ...rest } = props;
           const match = /language-(\w+)/.exec(className || "");
 
@@ -81,20 +82,31 @@ export function Markdown({ content }: { content: string }) {
 
           if (isCodeBlock) {
             return (
-              <SyntaxHighlighter
-                PreTag="div"
-                className="rounded"
-                language={language}
-                style={
-                  colorMode === "dark"
-                    ? vscDarkPlus
-                    : base16AteliersulphurpoolLight
-                }
-                wrapLongLines={true}
-                codeTagProps={{ style: codeBlockStyle }}
-              >
-                {String(children).replace(/\n$/, "")}
-              </SyntaxHighlighter>
+              <div className="relative">
+                <SyntaxHighlighter
+                  PreTag="div"
+                  className="rounded"
+                  language={language}
+                  style={
+                    colorMode === "dark"
+                      ? vscDarkPlus
+                      : base16AteliersulphurpoolLight
+                  }
+                  wrapLongLines={true}
+                  codeTagProps={{ style: codeBlockStyle }}
+                >
+                  {String(children).replace(/\n$/, "")}
+                </SyntaxHighlighter>
+                <button className="absolute top-1 right-1 px-2 py-1 bg-w rounded-md text-sm bg-hover select-none"
+                  onClick={() => {
+                    navigator.clipboard.writeText(String(children));
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                >
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+              </div>
             );
           } else {
             return (
@@ -210,7 +222,7 @@ export function Markdown({ content }: { content: string }) {
             </h6>
           );
         },
-        p({ children,node, ...props }) {
+        p({ children, node, ...props }) {
           return (
             <p className="mt-2 py-1" {...props}>
               {children}
