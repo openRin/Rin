@@ -101,7 +101,7 @@ export function FriendsPage() {
                 <FriendList title={t('friends.review.rejected')} show={refusedList.length > 0} friends={refusedList} />
                 <FriendList title={t('friends.my_apply')} show={profile?.permission != true && apply != undefined} friends={apply ? [apply] : []} />
                 {profile && (profile.permission || config.getOrDefault("friend_apply_enable", true)) &&
-                    <div className="wauto t-primary flex text-start text-black text-2xl font-bold mt-8 ani-show">
+                    <div className="wauto t-primary flex text-start text-2xl font-bold mt-8 ani-show">
                         <div className="md:basis-1/2 bg-w rounded-xl p-4">
                             <p>
                                 {profile.permission ? t('friends.create') : t('friends.apply')}
