@@ -12,6 +12,7 @@ import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
+import { HashTag } from "../components/hashtag";
 
 type Feed = {
   id: number;
@@ -195,12 +196,7 @@ export function FeedPage({ id }: { id: string }) {
                   {feed.hashtags.length > 0 && (
                     <div className="flex flex-row gap-2">
                       {feed.hashtags.map(({ name }, index) => (
-                        <div className="flex gap-0.5">
-                          <div className="text-sm opacity-70 italic dark:text-gray-300">#</div>
-                          <div key={index} className="text-sm opacity-70 dark:text-gray-300">
-                            {name}
-                          </div>
-                        </div>
+                        <HashTag key={index} name={name} />
                       ))}
                     </div>
                   )}

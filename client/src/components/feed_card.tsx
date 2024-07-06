@@ -1,15 +1,16 @@
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { timeago } from "../utils/timeago";
+import { HashTag } from "./hashtag";
 export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, createdAt, updatedAt }: { id: string, avatar?: string, draft?: number, listed?: number, title: string, summary: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
     const { t } = useTranslation()
     return (
         <>
-            <Link href={`/feed/${id}`} target="_blank" className="wauto rounded-2xl bg-w bg-hover m-2 p-6 duration-300 ani-show">
+            <Link href={`/feed/${id}`} target="_blank" className="w-full rounded-2xl bg-w m-2 p-6 duration-300 ani-show bg-active">
                 {avatar &&
-                    <div className="flex flex-row items-center mb-2">
+                    <div className="flex flex-row items-center mb-2 rounded-xl overflow-clip">
                         <img src={avatar} alt=""
-                            className="object-cover object-center w-full max-h-96 rounded-xl" />
+                            className="object-cover object-center w-full max-h-96 hover:scale-105 translation duration-300" />
                     </div>}
                 <h1 className="text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden">
                     {title}
@@ -30,11 +31,9 @@ export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, 
                     {summary}
                 </p>
                 {hashtags.length > 0 &&
-                    <div className="mt-2 flex flex-row">
+                    <div className="mt-2 flex flex-row space-x-2">
                         {hashtags.map(({ name }, index) => (
-                            <div key={index} className="bg-neutral-100 dark:bg-neutral-600 dark:text-neutral-300 py-1 px-2 m-1 rounded-lg">
-                                {name}
-                            </div>
+                            <HashTag key={index} name={name} />
                         ))}
                     </div>
                 }

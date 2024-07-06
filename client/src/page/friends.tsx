@@ -191,19 +191,19 @@ function Friend({ friend }: { friend: FriendItem }) {
     ]
     return (
         <>
-            <div title={friend.health} onClick={(e) => { console.log(e); window.open(friend.url) }} className="bg-hover w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative ani-show">
+            <a title={friend.name} href={friend.url} target="_blank" className="bg-active w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative ani-show">
                 <div className="w-16 h-16">
-                    <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
+                    <img className={"rounded-full " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>
                 <p className="text-base text-center">{friend.name}</p>
                 {friend.health.length == 0 && <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>}
                 {friend.accepted != 1 && <p className={`${friend.accepted === 0 ? "t-primary" : "text-theme"}`}>{statusOption[friend.accepted + 1].label}</p>}
                 {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
                 {(profile?.permission || profile?.id === friend.uid) && <>
-                    <button onClick={(e) => { e.stopPropagation(); setIsOpen(true) }} className="absolute top-0 right-0 m-2 px-2 py-1 bg-secondary t-primary rounded-full bg-hover">
+                    <button onClick={(e) => { e.preventDefault(); setIsOpen(true) }} className="absolute top-0 right-0 m-2 px-2 py-1 bg-secondary t-primary rounded-full bg-active">
                         <i className="ri-settings-line"></i>
                     </button></>}
-            </div >
+            </a>
 
             <Modal
                 isOpen={modalIsOpen}
@@ -263,8 +263,8 @@ function Friend({ friend }: { friend: FriendItem }) {
                     <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
                     <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
                     <div className='flex flex-row justify-center space-x-2'>
-                        <button onClick={deleteFriend} className="bg-secondary text-theme rounded-full bg-hover px-4 py-2 mt-2">{t('delete.title')}</button>
-                        <button onClick={updateFriend} className="bg-secondary t-primary rounded-full bg-hover px-4 py-2 mt-2">{t('save')}</button>
+                        <button onClick={deleteFriend} className="bg-secondary text-theme rounded-full bg-active px-4 py-2 mt-2">{t('delete.title')}</button>
+                        <button onClick={updateFriend} className="bg-secondary t-primary rounded-full bg-active px-4 py-2 mt-2">{t('save')}</button>
                     </div>
                 </div >
             </Modal>
