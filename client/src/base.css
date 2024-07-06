@@ -10,8 +10,8 @@
       @apply bg-neutral-100 dark:bg-neutral-700;
     }
   
-    .bg-hover {
-      @apply hover:bg-neutral-200 dark:hover:bg-neutral-600;
+    .bg-active {
+      @apply active:bg-neutral-200 dark:active:bg-neutral-600;
     }
   
     .shadow-light {
