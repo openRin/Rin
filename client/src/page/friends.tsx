@@ -1,16 +1,18 @@
+import i18next from "i18next";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
+import { useTranslation } from "react-i18next";
 import Modal from 'react-modal';
 import Select from 'react-select';
+import { ShowAlertType, useAlert, useConfirm } from "../components/dialog";
 import { Input } from "../components/input";
 import { Waiting } from "../components/loading";
 import { client } from "../main";
+import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
 import { shuffleArray } from "../utils/array";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
-import { ClientConfigContext } from "../state/config";
-import { useTranslation } from "react-i18next";
 
 
 type FriendItem = {
@@ -26,7 +28,8 @@ type FriendItem = {
     health: string;
 };
 
-async function publish({ name, avatar, desc, url }: { name: string, avatar: string, desc: string, url: string }) {
+async function publish({ name, avatar, desc, url, showAlert }: { name: string, avatar: string, desc: string, url: string, showAlert: ShowAlertType }) {
+    const t = i18next.t
     const { error } = await client.friend.index.post({
         avatar,
         name,
@@ -36,10 +39,11 @@ async function publish({ name, avatar, desc, url }: { name: string, avatar: stri
         headers: headersWithAuth()
     })
     if (error) {
-        alert(error.value)
+        showAlert(error.value as string)
     } else {
-        alert("创建成功")
-        window.location.reload()
+        showAlert(t('create.success'), () => {
+            window.location.reload()
+        })
     }
 }
 
@@ -58,6 +62,7 @@ export function FriendsPage() {
     const [friendsUnavailable, setFriendsUnavailable] = useState<FriendItem[]>([])
     const [status, setStatus] = useState<'idle' | 'loading'>('loading')
     const ref = useRef(false)
+    const { showAlert, AlertUI } = useAlert()
     useEffect(() => {
         if (ref.current) return
         client.friend.index.get({
@@ -82,7 +87,7 @@ export function FriendsPage() {
         ref.current = true
     }, [])
     function publishButton() {
-        publish({ name, desc, avatar, url })
+        publish({ name, desc, avatar, url, showAlert})
     }
     return (<>
         <Helmet>
@@ -112,7 +117,7 @@ export function FriendsPage() {
                                 <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
                                 <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
                                 <div className='flex flex-row justify-center'>
-                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>{t('create')}</button>
+                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>{t('create.title')}</button>
                                 </div>
                             </div>
                         </div>
@@ -120,6 +125,7 @@ export function FriendsPage() {
                 }
             </main>
         </Waiting>
+        <AlertUI />
     </>)
 }
 
@@ -151,19 +157,25 @@ function Friend({ friend }: { friend: FriendItem }) {
     const [url, setUrl] = useState(friend.url)
     const [status, setStatus] = useState(friend.accepted)
     const [modalIsOpen, setIsOpen] = useState(false);
+    const { showConfirm, ConfirmUI } = useConfirm()
+    const { showAlert, AlertUI } = useAlert()
     function deleteFriend() {
-        if (confirm(t('delete.confirm'))) {
-            client.friend({ id: friend.id }).delete(friend.id, {
-                headers: headersWithAuth()
-            }).then(({ error }) => {
-                if (error) {
-                    alert(error.value)
-                } else {
-                    alert(t('delete.success'))
-                    window.location.reload()
-                }
+        showConfirm(
+            t('delete.title'),
+            t('delete.confirm'),
+            () => {
+                client.friend({ id: friend.id }).delete(friend.id, {
+                    headers: headersWithAuth()
+                }).then(({ error }) => {
+                    if (error) {
+                        showAlert(error.value as string)
+                    } else {
+                        showAlert(t('delete.success'), () => {
+                            window.location.reload()
+                        })
+                    }
+                })
             })
-        }
     }
     function updateFriend() {
         client.friend({ id: friend.id }).put({
@@ -176,10 +188,11 @@ function Friend({ friend }: { friend: FriendItem }) {
             headers: headersWithAuth()
         }).then(({ error }) => {
             if (error) {
-                alert(error.value)
+                showAlert(error.value as string)
             } else {
-                alert(t('update.success'))
-                window.location.reload()
+                showAlert(t('update.success'), () => {
+                    window.location.reload()
+                })
             }
         })
     }
@@ -268,6 +281,8 @@ function Friend({ friend }: { friend: FriendItem }) {
                     </div>
                 </div >
             </Modal>
+            <ConfirmUI />
+            <AlertUI />
         </>
     )
 }

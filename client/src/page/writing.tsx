@@ -8,13 +8,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import Loading from 'react-loading';
+import { ShowAlertType, useAlert } from '../components/dialog';
 import { Checkbox, Input } from "../components/input";
 import { Markdown } from "../components/markdown";
 import { client } from "../main";
 import { headersWithAuth } from "../utils/auth";
+import { Cache, useCache } from '../utils/cache';
 import { siteName } from "../utils/constants";
 import { useColorMode } from "../utils/darkModeUtils";
-import { Cache, useCache } from '../utils/cache';
 
 async function publish({
   title,
@@ -26,6 +27,7 @@ async function publish({
   draft,
   createdAt,
   onCompleted,
+  showAlert
 }: {
   title: string;
   listed: boolean;
@@ -36,6 +38,7 @@ async function publish({
   alias?: string;
   createdAt?: Date;
   onCompleted?: () => void;
+  showAlert: ShowAlertType;
 }) {
   const t = i18n.t
   const { data, error } = await client.feed.index.post(
@@ -57,10 +60,10 @@ async function publish({
     onCompleted();
   }
   if (error) {
-    alert(error.value);
+    showAlert(error.value as string);
   }
   if (data && typeof data != "string") {
-    alert(t("publish.success"));
+    showAlert(t("publish.success"));
     Cache.with().clear();
     window.location.href = "/feed/" + data.insertedId;
   }
@@ -77,6 +80,7 @@ async function update({
   draft,
   createdAt,
   onCompleted,
+  showAlert
 }: {
   id: number;
   listed: boolean;
@@ -88,6 +92,7 @@ async function update({
   draft?: boolean;
   createdAt?: Date;
   onCompleted?: () => void;
+  showAlert: ShowAlertType;
 }) {
   const t = i18n.t
   const { error } = await client.feed({ id }).post(
@@ -109,15 +114,16 @@ async function update({
     onCompleted();
   }
   if (error) {
-    alert(error.value);
+    showAlert(error.value as string);
   } else {
-    alert(t("update.success"));
-    Cache.with(id).clear();
-    window.location.href = "/feed/" + id;
+    showAlert(t("update.success"), () => {
+      Cache.with(id).clear();
+      window.location.href = "/feed/" + id;
+    });
   }
 }
 
-function uploadImage(file: File, onSuccess: (url: string) => void) {
+function uploadImage(file: File, onSuccess: (url: string) => void, showAlert: ShowAlertType) {
   const t = i18n.t
   client.storage.index
     .post(
@@ -131,7 +137,7 @@ function uploadImage(file: File, onSuccess: (url: string) => void) {
     )
     .then(({ data, error }) => {
       if (error) {
-        alert(t("upload.failed", { error: error.value }));
+        showAlert(t("upload.failed", { error: error.value }));
       }
       if (data) {
         onSuccess(data);
@@ -139,7 +145,7 @@ function uploadImage(file: File, onSuccess: (url: string) => void) {
     })
     .catch((e: any) => {
       console.error(e);
-      alert(t("upload.failed", { error: e.message }));
+      showAlert(t("upload.failed", { error: e.message }));
     });
 }
 
@@ -151,17 +157,18 @@ export function WritingPage({ id }: { id?: number }) {
   const colorMode = useColorMode();
   const cache = Cache.with(id);
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
-  const [title, setTitle] = cache.useCache("title","");
-  const [summary, setSummary] = cache.useCache("summary","");
-  const [tags, setTags] = cache.useCache("tags","");
-  const [alias, setAlias] = cache.useCache("alias","");
+  const [title, setTitle] = cache.useCache("title", "");
+  const [summary, setSummary] = cache.useCache("summary", "");
+  const [tags, setTags] = cache.useCache("tags", "");
+  const [alias, setAlias] = cache.useCache("alias", "");
   const [draft, setDraft] = useState(false);
   const [listed, setListed] = useState(true);
-  const [content, setContent] = cache.useCache("content","");
+  const [content, setContent] = cache.useCache("content", "");
   const [createdAt, setCreatedAt] = useState<Date | undefined>(new Date());
   const [preview, setPreview] = useCache<'edit' | 'preview' | 'comparison'>("preview", 'edit');
   const [uploading, setUploading] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const { showAlert, AlertUI } = useAlert()
   function publishButton() {
     if (publishing) return;
     const tagsplit =
@@ -183,15 +190,16 @@ export function WritingPage({ id }: { id?: number }) {
         createdAt,
         onCompleted: () => {
           setPublishing(false)
-        }
+        },
+        showAlert
       });
     } else {
       if (!title) {
-        alert(t("title_empty"))
+        showAlert(t("title_empty"))
         return;
       }
       if (!content) {
-        alert(t("content.empty"))
+        showAlert(t("content.empty"))
         return;
       }
       setPublishing(true)
@@ -206,7 +214,8 @@ export function WritingPage({ id }: { id?: number }) {
         createdAt,
         onCompleted: () => {
           setPublishing(false)
-        }
+        },
+        showAlert
       });
     }
   }
@@ -230,18 +239,19 @@ export function WritingPage({ id }: { id?: number }) {
           text: `![${myfile.name}](${url})\n`,
         }]);
         setUploading(false)
-      });
+      }, showAlert);
     }
   };
 
   function UploadImageButton() {
+    const { showAlert, AlertUI } = useAlert();
     const uploadRef = useRef<HTMLInputElement>(null);
     const t = i18n.t
     const upChange = (event: any) => {
       for (let i = 0; i < event.currentTarget.files.length; i++) {
         let file = event.currentTarget.files[i]; ///获得input的第一个图片
         if (file.size > 5 * 1024000) {
-          alert(t("upload.failed$size", { size: 5 }))
+          showAlert(t("upload.failed$size", { size: 5 }))
           uploadRef.current!.value = "";
         } else {
           const editor = editorRef.current;
@@ -255,7 +265,7 @@ export function WritingPage({ id }: { id?: number }) {
               range: selection,
               text: `![${file.name}](${url})\n`,
             }]);
-          });
+          }, showAlert);
         }
       }
     };
@@ -269,6 +279,7 @@ export function WritingPage({ id }: { id?: number }) {
           accept="image/gif,image/jpeg,image/jpg,image/png"
         />
         <i className="ri-image-add-line" />
+        <AlertUI />
       </button>
     )
   }
@@ -409,7 +420,7 @@ export function WritingPage({ id }: { id?: number }) {
                             range: selection,
                             text: `![${file.name}](${url})\n`,
                           }]);
-                        });
+                        }, showAlert);
                       }
                     }}
                     onPaste={handlePaste}
@@ -479,6 +490,7 @@ export function WritingPage({ id }: { id?: number }) {
           </div>
         </div>
       </div>
+      <AlertUI />
     </>
 
   );

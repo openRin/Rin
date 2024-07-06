@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
 import { Link, useLocation } from "wouter";
+import { useAlert, useConfirm } from "../components/dialog";
+import { HashTag } from "../components/hashtag";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
 import { TableOfContents } from "../components/toc";
@@ -12,7 +14,6 @@ import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
-import { HashTag } from "../components/hashtag";
 
 type Feed = {
   id: number;
@@ -40,23 +41,29 @@ export function FeedPage({ id }: { id: string }) {
   const [headImage, setHeadImage] = useState<string>();
   const ref = useRef("");
   const [_, setLocation] = useLocation();
+  const { showAlert, AlertUI } = useAlert();
+  const { showConfirm, ConfirmUI } = useConfirm();
   function deleteFeed() {
     // Confirm
-    if (!confirm(t("article.delete.confirm"))) return;
-    if (!feed) return;
-    client
-      .feed({ id: feed.id })
-      .delete(null, {
-        headers: headersWithAuth(),
+    showConfirm(
+      t("article.delete.title"),
+      t("article.delete.confirm"),
+      () => {
+        if (!feed) return;
+        client
+          .feed({ id: feed.id })
+          .delete(null, {
+            headers: headersWithAuth(),
+          })
+          .then(({ error }) => {
+            if (error) {
+              showAlert(error.value as string);
+            } else {
+              showAlert(t("delete.success"));
+              setLocation("/");
+            }
+          });
       })
-      .then(({ error }) => {
-        if (error) {
-          alert(error.value);
-        } else {
-          alert(t("delete.success"));
-          setLocation("/");
-        }
-      });
   }
   useEffect(() => {
     if (ref.current == id) return;
@@ -222,6 +229,8 @@ export function FeedPage({ id }: { id: string }) {
           </>
         )}
       </div>
+      <AlertUI />
+      <ConfirmUI />
     </Waiting>
   );
 }
@@ -291,6 +300,7 @@ function CommentInput({
   const { t } = useTranslation();
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
+  const { showAlert, AlertUI } = useAlert();
   function errorHumanize(error: string) {
     if (error === "Unauthorized") return t("login.required");
     else if (error === "Content is required") return t("comment.empty");
@@ -311,8 +321,9 @@ function CommentInput({
         } else {
           setContent("");
           setError("");
-          alert(t("comment.success"));
-          onRefresh();
+          showAlert(t("comment.success"), () => {
+            onRefresh();
+          });
         }
       });
   }
@@ -335,6 +346,7 @@ function CommentInput({
         {t("comment.submit")}
       </button>
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      <AlertUI />
     </div>
   );
 }
@@ -417,23 +429,30 @@ function CommentItem({
   comment: Comment;
   onRefresh: () => void;
 }) {
+  const { showConfirm, ConfirmUI } = useConfirm();
+  const { showAlert, AlertUI } = useAlert();
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
   function deleteComment() {
-    if (!confirm(t("delete.comment.confirm"))) return;
-    client
-      .comment({ id: comment.id })
-      .delete(null, {
-        headers: headersWithAuth(),
+    showConfirm(
+      t("delete.comment.title"),
+      t("delete.comment.confirm"),
+      async () => {
+        client
+          .comment({ id: comment.id })
+          .delete(null, {
+            headers: headersWithAuth(),
+          })
+          .then(({ error }) => {
+            if (error) {
+              showAlert(error.value as string);
+            } else {
+              showAlert(t("delete.success"), () => {
+                onRefresh();
+              });
+            }
+          });
       })
-      .then(({ error }) => {
-        if (error) {
-          alert(error.value);
-        } else {
-          alert(t("delete.success"));
-          onRefresh();
-        }
-      });
   }
   return (
     <div className="flex flex-row items-start rounded-xl mt-2">
@@ -479,6 +498,8 @@ function CommentItem({
           )}
         </div>
       </div>
+      <ConfirmUI />
+      <AlertUI />
     </div>
   );
 }
