@@ -45,9 +45,6 @@
   "description": "描述",
   "draft": "草稿",
   "draft_bin": "草稿箱",
-  "drop": {
-    "image": "图片拖拽到此上传"
-  },
   "edit": "编辑",
   "feed_card": {
     "published$time": "{{time}} 发布",
@@ -69,6 +66,7 @@
     "title": "朋友们"
   },
   "github_login": "Github 登录",
+  "hashtags": "标签",
   "home": "首页",
   "index": {
     "back": "返回首页",

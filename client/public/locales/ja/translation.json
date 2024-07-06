@@ -45,9 +45,6 @@
   "description": "説明",
   "draft": "下書き",
   "draft_bin": "下書き",
-  "drop": {
-    "image": "ここに画像をドラッグしてアップロード"
-  },
   "edit": "編集",
   "feed_card": {
     "published$time": "{{time}} に公開",
@@ -69,6 +66,7 @@
     "title": "友人"
   },
   "github_login": "Github ログイン",
+  "hashtags": "ラベル",
   "home": "ホーム",
   "index": {
     "back": "ホームに戻る",
