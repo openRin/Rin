@@ -6,7 +6,7 @@ export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, 
     const { t } = useTranslation()
     return (
         <>
-            <Link href={`/feed/${id}`} target="_blank" className="w-full rounded-2xl bg-w m-2 p-6 duration-300 ani-show bg-active">
+            <Link href={`/feed/${id}`} target="_blank" className="w-full rounded-2xl bg-w my-2 p-6 duration-300 ani-show bg-active">
                 {avatar &&
                     <div className="flex flex-row items-center mb-2 rounded-xl overflow-clip">
                         <img src={avatar} alt=""
