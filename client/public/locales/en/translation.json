@@ -45,9 +45,6 @@
   "description": "Description",
   "draft": "Draft",
   "draft_bin": "Draft Bin",
-  "drop": {
-    "image": "Drag and drop image here to upload"
-  },
   "edit": "Edit",
   "feed_card": {
     "published$time": "Published at {{time}}",
@@ -69,6 +66,7 @@
     "title": "Friends"
   },
   "github_login": "Github Login",
+  "hashtags": "Hashtags",
   "home": "Home",
   "index": {
     "back": "Back to Home",
