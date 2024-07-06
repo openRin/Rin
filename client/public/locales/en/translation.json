@@ -1,9 +1,11 @@
 {
   "about": "About",
+  "alert": "Alert",
   "alias": "Alias",
   "article": {
     "delete": {
-      "confirm": "Are you sure you want to delete this article?"
+      "confirm": "Are you sure you want to delete this article?",
+      "title": "Delete Article"
     },
     "title": "Articles",
     "total_short$count_one": "{{count}} articles",
@@ -31,7 +33,10 @@
   "content": {
     "empty": "Content cannot be empty"
   },
-  "create": "Create",
+  "create": {
+    "success": "Create Successfully",
+    "title": "Create"
+  },
   "created_at": "Published at",
   "delete": {
     "comment": {

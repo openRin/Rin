@@ -25,7 +25,7 @@ export function FriendService() {
                 .post('/', async ({ admin, uid, set, body: { name, desc, avatar, url } }) => {
                     const config = ClientConfig()
                     const enable = await config.getOrDefault('friend_apply_enable', true)
-                    if (!enable) {
+                    if (!enable && !admin) {
                         set.status = 403;
                         return 'Friend Link Apply Disabled';
                     }
