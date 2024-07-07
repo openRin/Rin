@@ -33,6 +33,10 @@
   "content": {
     "empty": "Content cannot be empty"
   },
+  "count": {
+    "pv": "Page View",
+    "uv": "Visitors"
+  },
   "create": {
     "success": "Create Successfully",
     "title": "Create"
@@ -106,6 +110,16 @@
       },
       "clear_failed$message": "Failed to clear cache: {{message}}"
     },
+    "counter": {
+      "enable": {
+        "desc": "Enable statistics for article PV and UV",
+        "title": "Enable traffic statistics"
+      }
+    },
+    "favicon": {
+      "desc": "Set the icon (Favicon) displayed in the browser's address bar",
+      "title": "Favicon"
+    },
     "friend": {
       "apply": {
         "desc": "Allow other users to apply for friend links (requires review)",
@@ -118,7 +132,8 @@
           "desc": "Set the User-Agent used for friend link accessibility check, default 'Rin-Check/1.0'",
           "title": "Friend Link Health Monitoring User-Agent"
         }
-      }
+      },
+      "title": "Friend Link Settings"
     },
     "get_config_failed$message": "Failed to get configuration, {{message}}",
     "import_failed$message": "Import failed, {{message}}",
@@ -126,6 +141,9 @@
     "import_skipped": "Import Skipped",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
     "import_success$success$skipped": "Import successful, {{success}} articles imported, {{skipped}} articles skipped",
+    "other": {
+      "title": "Other Settings"
+    },
     "rss": {
       "desc": "Enable RSS subscription link at the site footer",
       "title": "RSS Subscription Link"

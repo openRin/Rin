@@ -17,6 +17,13 @@ export const feeds = sqliteTable("feeds", {
     updatedAt: updated_at,
 });
 
+export const visits = sqliteTable("visits", {
+    id: integer("id").primaryKey(),
+    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
+    ip: text("ip").notNull(),
+    createdAt: created_at,
+});
+
 export const friends = sqliteTable("friends", {
     id: integer("id").primaryKey(),
     name: text("name").notNull(),

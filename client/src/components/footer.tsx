@@ -41,12 +41,12 @@ function Footer() {
                 <link rel="alternate" type="application/atom+xml" title={siteName} href="/sub/atom.xml" />
                 <link rel="alternate" type="application/json" title={siteName} href="/sub/rss.json" />
             </Helmet>
-            <div className="flex flex-col mb-8 space-y-2 justify-center items-center h-16 t-primary ani-show">
+            <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span>
                         © 2024 Powered by <a className='hover:underline' href="https://github.com/OXeu/Rin" target="_blank">Rin</a>
                     </span>
-                    {config.getOrDefault('rss', false) && <>
+                    {config.get<boolean>('rss') && <>
                         <Spliter />
                         <Popup trigger={
                             <button className="hover:underline" type="button">
@@ -71,7 +71,7 @@ function Footer() {
                                         JSON
                                     </a>
                                 </p>
-                                    
+
                             </div>
                         </Popup>
                     </>}
