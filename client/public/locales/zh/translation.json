@@ -33,6 +33,10 @@
   "content": {
     "empty": "内容不能为空"
   },
+  "count": {
+    "pv": "浏览数",
+    "uv": "访客数"
+  },
   "create": {
     "success": "创建成功",
     "title": "创建"

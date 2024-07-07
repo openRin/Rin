@@ -8,13 +8,12 @@ import { useAlert, useConfirm } from "../components/dialog";
 import { HashTag } from "../components/hashtag";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
-import { TableOfContents } from "../components/toc";
 import { client } from "../main";
+import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
-import { ClientConfigContext } from "../state/config";
 
 type Feed = {
   id: number;
@@ -36,7 +35,7 @@ type Feed = {
   uv: number;
 };
 
-export function FeedPage({ id }: { id: string }) {
+export function FeedPage({ id, TOC }: { id: string, TOC: () => JSX.Element }) {
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
   const [feed, setFeed] = useState<Feed>();
@@ -176,18 +175,18 @@ export function FeedPage({ id }: { id: string }) {
                       )}
                     </div>
                     {counterEnabled && <p className='text-[12px] text-gray-400 font-normal link-line'>
-                      <span> 浏览数 </span>
+                      <span className="font-bold"> {t("count.pv")} </span>
                       <span>
                         {feed.pv}
                       </span>
-                      <span className="w-4" />
-                      <span> 访客数 </span>
+                      <span> |</span>
+                      <span className="font-bold"> {t("count.uv")} </span>
                       <span>
                         {feed.uv}
                       </span>
                     </p>}
                     <div className="flex flex-row items-center">
-                      <h1 className="text-2xl font-bold t-primary">
+                      <h1 className="text-2xl font-bold t-primary break-all">
                         {feed.title}
                       </h1>
                       <div className="flex-1 w-0" />
@@ -217,7 +216,7 @@ export function FeedPage({ id }: { id: string }) {
                 <Markdown content={feed.content} />
                 <div className="mt-6 flex flex-col gap-2">
                   {feed.hashtags.length > 0 && (
-                    <div className="flex flex-row gap-2">
+                    <div className="flex flex-row flex-wrap gap-x-2">
                       {feed.hashtags.map(({ name }, index) => (
                         <HashTag key={index} name={name} />
                       ))}
@@ -240,7 +239,11 @@ export function FeedPage({ id }: { id: string }) {
               <div className="h-16" />
             </main>
             <div className="w-80 hidden lg:block relative">
-              <TOC />
+              <div
+                className={`ml-2 rounded-2xl bg-w py-4 px-4 start-0 end-0 top-[5.5rem] sticky t-primary`}
+              >
+                <TOC />
+              </div>
             </div>
           </>
         )}
@@ -251,7 +254,7 @@ export function FeedPage({ id }: { id: string }) {
   );
 }
 
-export function TOCHeader() {
+export function TOCHeader({ TOC }: { TOC: () => JSX.Element }) {
   const [isOpened, setIsOpened] = useState(false);
 
   return (
@@ -289,19 +292,9 @@ export function TOCHeader() {
         onRequestClose={() => setIsOpened(false)}
       >
         <div className="rounded-2xl bg-w py-4 px-4 w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
-          <TableOfContents selector=".toc-content" />
+          <TOC />
         </div>
       </ReactModal>
-    </div>
-  );
-}
-
-export function TOC() {
-  return (
-    <div
-      className={`ml-2 rounded-2xl bg-w py-4 px-4 start-0 end-0 top-[5.5rem] sticky t-primary`}
-    >
-      <TableOfContents selector=".toc-content" />
     </div>
   );
 }

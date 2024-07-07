@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { Helmet } from 'react-helmet'
 import { getCookie } from 'typescript-cookie'
 import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
 import Footer from './components/footer'
 import { Header } from './components/header'
 import { Padding } from './components/padding'
+import useTableOfContents from './hooks/useTableOfContents.tsx'
 import { client } from './main'
 import { CallbackPage } from './page/callback'
 import { FeedPage, TOCHeader } from './page/feed'
@@ -18,7 +20,6 @@ import { ClientConfigContext, ConfigWrapper, defaultClientConfig, defaultClientC
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
-import { Helmet } from 'react-helmet'
 
 function App() {
   const ref = useRef(false)
@@ -109,19 +110,19 @@ function App() {
               <CallbackPage />
             </RouteMe>
 
-            <RouteMe path="/feed/:id" headerComponent={TOCHeader()} paddingClassName='mx-4'>
-              {params => {
-                return (<FeedPage id={params.id || ""} />)
+            <RouteWithIndex path="/feed/:id">
+              {(params, TOC) => {
+                return (<FeedPage id={params.id || ""} TOC={TOC} />)
               }}
-            </RouteMe>
+            </RouteWithIndex>
 
-            <RouteMe path="/:alias" headerComponent={TOCHeader()} paddingClassName='mx-4'>
-              {params => {
+            <RouteWithIndex path="/:alias">
+              {(params, TOC) => {
                 return (
-                  <FeedPage id={params.alias || ""} />
+                  <FeedPage id={params.alias || ""} TOC={TOC} />
                 )
               }}
-            </RouteMe>
+            </RouteWithIndex>
 
             {/* Default route in a switch */}
             <Route>404: No such page!</Route>
@@ -149,6 +150,15 @@ function RouteMe({ path, children, headerComponent, paddingClassName }:
       }}
     </Route>
   )
+}
+
+
+function RouteWithIndex({ path, children }:
+  { path: PathPattern, children: (params: DefaultParams, TOC: () => JSX.Element) => React.ReactNode }) {
+  const TOC = useTableOfContents(".toc-content", "header");
+  return (<RouteMe path={path} headerComponent={TOCHeader({ TOC: TOC })} paddingClassName='mx-4'>
+    {params => children(params, TOC)}
+  </RouteMe>)
 }
 
 export default App
