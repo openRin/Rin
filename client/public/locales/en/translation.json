@@ -33,6 +33,10 @@
   "content": {
     "empty": "Content cannot be empty"
   },
+  "count": {
+    "pv": "Page View",
+    "uv": "Visitors"
+  },
   "create": {
     "success": "Create Successfully",
     "title": "Create"

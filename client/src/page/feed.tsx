@@ -176,12 +176,12 @@ export function FeedPage({ id }: { id: string }) {
                       )}
                     </div>
                     {counterEnabled && <p className='text-[12px] text-gray-400 font-normal link-line'>
-                      <span> 浏览数 </span>
+                      <span className="font-bold"> {t("count.pv")} </span>
                       <span>
                         {feed.pv}
                       </span>
-                      <span className="w-4" />
-                      <span> 访客数 </span>
+                      <span> |</span>
+                      <span className="font-bold"> {t("count.uv")} </span>
                       <span>
                         {feed.uv}
                       </span>
