@@ -1,4 +1,4 @@
-CREATE TABLE `visits` (
+CREATE TABLE IF NOT EXISTS `visits` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`feed_id` integer NOT NULL,
 	`ip` text NOT NULL,
