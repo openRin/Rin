@@ -196,7 +196,8 @@ export function FeedService() {
                     let uv = 0;
                     if (enableVisit) {
                         console.log(headers);
-                        const ip = headers['CF-Connecting-IP'] || headers['X-Real-IP'] || headers['X-Forwarded-For'] || "UNK"
+                        const ip = headers['cf-connecting-ip'] || headers['x-real-ip'] || "UNK"
+                        console.log('IP', ip);
                         await db.insert(visits).values({
                             feedId: feed.id,
                             ip: ip,
