@@ -119,7 +119,7 @@ export function Markdown({ content }: { content: string }) {
 
             if (isCodeBlock) {
               return (
-                <div className="relative">
+                <div className="relative group">
                   <SyntaxHighlighter
                     PreTag="div"
                     className="rounded"
@@ -134,7 +134,7 @@ export function Markdown({ content }: { content: string }) {
                   >
                     {String(children).replace(/\n$/, "")}
                   </SyntaxHighlighter>
-                  <button className="absolute top-1 right-1 px-2 py-1 bg-w rounded-md text-sm bg-hover select-none"
+                  <button className="absolute top-1 right-1 px-2 py-1 bg-w rounded-md text-sm bg-hover select-none invisible group-hover:visible"
                     onClick={() => {
                       navigator.clipboard.writeText(String(children));
                       setCopied(true);

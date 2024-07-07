@@ -106,6 +106,10 @@
       },
       "clear_failed$message": "Failed to clear cache: {{message}}"
     },
+    "favicon": {
+      "desc": "Set the icon (Favicon) displayed in the browser's address bar",
+      "title": "Favicon"
+    },
     "friend": {
       "apply": {
         "desc": "Allow other users to apply for friend links (requires review)",
