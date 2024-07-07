@@ -31,7 +31,7 @@ export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, 
                     {summary}
                 </p>
                 {hashtags.length > 0 &&
-                    <div className="mt-2 flex flex-row space-x-2">
+                    <div className="mt-2 flex flex-row flex-wrap justify-start gap-x-2">
                         {hashtags.map(({ name }, index) => (
                             <HashTag key={index} name={name} />
                         ))}

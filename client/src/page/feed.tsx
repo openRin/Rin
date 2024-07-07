@@ -187,7 +187,7 @@ export function FeedPage({ id }: { id: string }) {
                       </span>
                     </p>}
                     <div className="flex flex-row items-center">
-                      <h1 className="text-2xl font-bold t-primary">
+                      <h1 className="text-2xl font-bold t-primary break-all">
                         {feed.title}
                       </h1>
                       <div className="flex-1 w-0" />
@@ -217,7 +217,7 @@ export function FeedPage({ id }: { id: string }) {
                 <Markdown content={feed.content} />
                 <div className="mt-6 flex flex-col gap-2">
                   {feed.hashtags.length > 0 && (
-                    <div className="flex flex-row gap-2">
+                    <div className="flex flex-row flex-wrap gap-x-2">
                       {feed.hashtags.map(({ name }, index) => (
                         <HashTag key={index} name={name} />
                       ))}
