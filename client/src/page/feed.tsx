@@ -14,6 +14,7 @@ import { ProfileContext } from "../state/profile";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
+import { ClientConfigContext } from "../state/config";
 
 type Feed = {
   id: number;
@@ -31,6 +32,8 @@ type Feed = {
     id: number;
     username: string;
   };
+  pv: number;
+  uv: number;
 };
 
 export function FeedPage({ id }: { id: string }) {
@@ -43,6 +46,8 @@ export function FeedPage({ id }: { id: string }) {
   const [_, setLocation] = useLocation();
   const { showAlert, AlertUI } = useAlert();
   const { showConfirm, ConfirmUI } = useConfirm();
+  const config = useContext(ClientConfigContext);
+  const counterEnabled = config.get<boolean>('counter.enabled');
   function deleteFeed() {
     // Confirm
     showConfirm(
@@ -170,6 +175,17 @@ export function FeedPage({ id }: { id: string }) {
                         </p>
                       )}
                     </div>
+                    {counterEnabled && <p className='text-[12px] text-gray-400 font-normal link-line'>
+                      <span> 浏览数 </span>
+                      <span>
+                        {feed.pv}
+                      </span>
+                      <span className="w-4" />
+                      <span> 访客数 </span>
+                      <span>
+                        {feed.uv}
+                      </span>
+                    </p>}
                     <div className="flex flex-row items-center">
                       <h1 className="text-2xl font-bold t-primary">
                         {feed.title}

@@ -106,6 +106,12 @@
       },
       "clear_failed$message": "清除缓存失败: {{message}}"
     },
+    "counter": {
+      "enable": {
+        "desc": "启用统计文章 PV 与 UV 功能",
+        "title": "启用访问量统计"
+      }
+    },
     "favicon": {
       "desc": "设置显示于浏览器的地址栏的图标（Favicon）",
       "title": "网站图标"
@@ -122,7 +128,8 @@
           "desc": "设置友链可访问性检查时使用的 User-Agent, 默认 'Rin-Check/1.0'",
           "title": "友链健康监测 User-Agent"
         }
-      }
+      },
+      "title": "友链设置"
     },
     "get_config_failed$message": "获取配置失败，{{message}}",
     "import_failed$message": "导入失败，{{message}}",
@@ -130,6 +137,9 @@
     "import_skipped": "跳过导入",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
     "import_success$success$skipped": "导入成功，{{success}} 篇文章导入成功，{{skipped}} 篇文章跳过",
+    "other": {
+      "title": "其他设置"
+    },
     "rss": {
       "desc": "启用站点底部 RSS 订阅链接",
       "title": "RSS 订阅链接"

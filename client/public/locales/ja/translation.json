@@ -106,6 +106,12 @@
       },
       "clear_failed$message": "キャッシュのクリアに失敗しました: {{message}}"
     },
+    "counter": {
+      "enable": {
+        "desc": "記事の PV と UV 機能を有効にする",
+        "title": "アクセス数統計を有効にする"
+      }
+    },
     "favicon": {
       "desc": "ブラウザのアドレスバーに表示されるアイコン（ファビコン）を設定します。",
       "title": "ファビコン"
@@ -122,7 +128,8 @@
           "desc": "友人リンクのアクセスチェックに使用するUser-Agentを設定します。デフォルトは 'Rin-Check/1.0'",
           "title": "友人リンクの健康モニタリング User-Agent"
         }
-      }
+      },
+      "title": "友リンク設定"
     },
     "get_config_failed$message": "設定の取得に失敗しました: {{message}}",
     "import_failed$message": "インポートに失敗しました: {{message}}",
@@ -130,6 +137,9 @@
     "import_skipped": "インポートをスキップ",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
     "import_success$success$skipped": "インポートに成功しました。{{success}} 記事がインポートされ、{{skipped}} 記事がスキップされました",
+    "other": {
+      "title": "その他の設定"
+    },
     "rss": {
       "desc": "サイトフッターにRSS購読リンクを有効にする",
       "title": "RSS 購読リンク"

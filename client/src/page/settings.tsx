@@ -5,8 +5,8 @@ import ReactLoading from "react-loading";
 import Modal from "react-modal";
 import { Button } from "../components/button.tsx";
 import { useAlert, useConfirm } from "../components/dialog.tsx";
-import { client, defaultFavicon } from "../main.tsx";
-import { ClientConfigContext, ConfigWrapper, ServerConfigContext } from "../state/config.tsx";
+import { client } from "../main.tsx";
+import { ClientConfigContext, ConfigWrapper, defaultClientConfig, defaultClientConfigWrapper, defaultServerConfig, defaultServerConfigWrapper, ServerConfigContext } from "../state/config.tsx";
 import { headersWithAuth } from "../utils/auth.ts";
 import '../utils/thumb.css';
 
@@ -18,8 +18,8 @@ export function Settings() {
     const [msgList, setMsgList] = useState<{ title: string, reason: string }[]>([]);
     const [clientLoading, setClientLoading] = useState(true);
     const [serverLoading, setServerLoading] = useState(true);
-    const [clientConfig, setClientConfig] = useState<ConfigWrapper>(new ConfigWrapper({}));
-    const [serverConfig, setServerConfig] = useState<ConfigWrapper>(new ConfigWrapper({}));
+    const [clientConfig, setClientConfig] = useState<ConfigWrapper>(defaultClientConfigWrapper);
+    const [serverConfig, setServerConfig] = useState<ConfigWrapper>(defaultServerConfigWrapper);
     const ref = useRef(false);
     const { showAlert, AlertUI } = useAlert();
 
@@ -33,7 +33,7 @@ export function Settings() {
         }).then(({ data }) => {
             if (data && typeof data != 'string') {
                 sessionStorage.setItem('config', JSON.stringify(data));
-                const config = new ConfigWrapper(data)
+                const config = new ConfigWrapper(data, defaultClientConfig)
                 setClientConfig(config)
             }
         }).catch((err: any) => {
@@ -47,7 +47,7 @@ export function Settings() {
             headers: headersWithAuth()
         }).then(({ data }) => {
             if (data && typeof data != 'string') {
-                const config = new ConfigWrapper(data)
+                const config = new ConfigWrapper(data, defaultServerConfig)
                 setServerConfig(config)
             }
         }).catch((err) => {
@@ -88,12 +88,15 @@ export function Settings() {
                             </h1>
                             {(clientLoading || serverLoading) && <ReactLoading width="1em" height="1em" type="spin" color="#FC466B" />}
                         </div>
-                        <div className="flex flex-col items-start mt-4">
+                        <div className="flex flex-col items-start space-y-2">
+                            <ItemTitle title={t('settings.friend.title')} />
+                            <ItemSwitch title={t('settings.friend.apply.title')} description={t('settings.friend.apply.desc')} type="client" configKey="friend_apply_enable" />
+                            <ItemSwitch title={t('settings.friend.health.title')} description={t('settings.friend.health.desc')} type="server" configKey="friend_crontab" />
+                            <ItemInput title={t('settings.friend.health.ua.title')} description={t('settings.friend.health.ua.desc')} type="server" configKey="friend_ua" configKeyTitle="User-Agent" />
+                            <ItemTitle title={t('settings.other.title')} />
+                            <ItemSwitch title={t('settings.counter.enable.title')} description={t('settings.counter.enable.desc')} type="client" configKey="counter.enabled" />
                             <ItemSwitch title={t('settings.rss.title')} description={t('settings.rss.desc')} type="client" configKey="rss" />
-                            <ItemSwitch title={t('settings.friend.apply.title')} description={t('settings.friend.apply.desc')} type="client" configKey="friend_apply_enable" defaultValue={true} />
-                            <ItemSwitch title={t('settings.friend.health.title')} description={t('settings.friend.health.desc')} type="server" configKey="friend_crontab" defaultValue={true} />
-                            <ItemInput title={t('settings.friend.health.ua.title')} description={t('settings.friend.health.ua.desc')} type="server" configKey="friend_ua" configKeyTitle="User-Agent" defaultValue="Rin-Check/0.1.0" />
-                            <ItemInput title={t('settings.favicon.title')} description={t('settings.favicon.desc')} type="client" configKey="favicon" configKeyTitle="Favicon" defaultValue={defaultFavicon} />
+                            <ItemInput title={t('settings.favicon.title')} description={t('settings.favicon.desc')} type="client" configKey="favicon" configKeyTitle="Favicon" />
                             <ItemButton title={t('settings.cache.clear.title')} description={t('settings.cache.clear.desc')} buttonTitle={t('clear')} onConfirm={async () => {
                                 await client.config.cache.delete(undefined, {
                                     headers: headersWithAuth()
@@ -168,14 +171,23 @@ export function Settings() {
     );
 }
 
-function ItemSwitch({ title, description, type, defaultValue = false, configKey }: { title: string, description: string, defaultValue?: boolean, configKey: string, type: 'client' | 'server' }) {
+function ItemTitle({ title }: { title: string }) {
+    return (
+        <h1 className="text-sm t-primary pt-4">
+            {title}
+        </h1>
+    );
+}
+
+function ItemSwitch({ title, description, type, configKey }: { title: string, description: string, configKey: string, type: 'client' | 'server' }) {
     const config = type === 'client' ? useContext(ClientConfigContext) : useContext(ServerConfigContext);
+    const defaultValue = config?.default<boolean>(configKey);
     const [checked, setChecked] = useState(defaultValue);
     const [loading, setLoading] = useState(false);
     const { showAlert, AlertUI } = useAlert();
     const { t } = useTranslation();
     useEffect(() => {
-        const value = config?.get(configKey);
+        const value = config?.get<boolean>(configKey);
         if (value !== undefined) {
             setChecked(value);
         }
@@ -210,7 +222,7 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
         })
     }
     return (
-        <div className="flex flex-col w-full items-start mt-4">
+        <div className="flex flex-col w-full items-start">
             <div className="flex flex-row justify-between w-full items-center">
                 <div className="flex flex-col">
                     <p className="text-lg font-bold dark:text-white">
@@ -234,9 +246,10 @@ function ItemSwitch({ title, description, type, defaultValue = false, configKey 
     );
 }
 
-function ItemInput({ title, configKeyTitle, description, type, defaultValue, configKey }: { title: string, description: string, defaultValue?: string, configKeyTitle: string, configKey: string, type: 'client' | 'server' }) {
+function ItemInput({ title, configKeyTitle, description, type, configKey }: { title: string, description: string, configKeyTitle: string, configKey: string, type: 'client' | 'server' }) {
     const config = type === 'client' ? useContext(ClientConfigContext) : useContext(ServerConfigContext);
-    const [value, setValue] = useState(defaultValue);
+    const defaultValue = config?.default<string>(configKey);
+    const [value, setValue] = useState("");
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
 
@@ -244,7 +257,7 @@ function ItemInput({ title, configKeyTitle, description, type, defaultValue, con
 
     const { t } = useTranslation();
     useEffect(() => {
-        const value = config?.get(configKey);
+        const value = config?.get<string>(configKey);
         if (value !== undefined) {
             setValue(value);
         }
@@ -269,12 +282,12 @@ function ItemInput({ title, configKeyTitle, description, type, defaultValue, con
             setLoading(false);
         }).catch((err) => {
             showAlert(t('settings.update_failed$message', { message: err.message }))
-            setValue(config?.get(configKey) || defaultValue);
+            setValue(config?.get<string>(configKey) || "");
             setLoading(false);
         })
     }
     return (
-        <div className="flex flex-col w-full items-start mt-4">
+        <div className="flex flex-col w-full items-start">
             <div className="flex flex-row justify-between w-full items-center">
                 <div className="flex flex-col">
                     <p className="text-lg font-bold dark:text-white">
@@ -361,7 +374,7 @@ function ItemButton({
     }) {
     const { showConfirm, ConfirmUI } = useConfirm();
     return (
-        <div className="flex flex-col w-full items-start mt-4">
+        <div className="flex flex-col w-full items-start">
             <div className="flex flex-row justify-between w-full items-center">
                 <div className="flex flex-col">
                     <p className="text-lg font-bold dark:text-white">
@@ -386,7 +399,7 @@ function ItemWithUpload({ title, description, onFileChange }: { title: string, d
     const inputRef = useRef<HTMLInputElement>(null);
     const { t } = useTranslation();
     return (
-        <div className="flex flex-col w-full items-start mt-4">
+        <div className="flex flex-col w-full items-start">
             <div className="flex flex-row justify-between w-full items-center">
                 <div className="flex flex-col">
                     <p className="text-lg font-bold dark:text-white">
