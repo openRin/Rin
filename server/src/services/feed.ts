@@ -3,9 +3,9 @@ import Elysia, { t } from "elysia";
 import { XMLParser } from "fast-xml-parser";
 import html2md from 'html-to-md';
 import type { DB } from "../_worker";
-import { feeds } from "../db/schema";
+import { feeds, visits } from "../db/schema";
 import { setup } from "../setup";
-import { PublicCache } from "../utils/cache";
+import { ClientConfig, PublicCache } from "../utils/cache";
 import { getDB } from "../utils/di";
 import { extractImage } from "../utils/image";
 import { bindTagToPost } from "./tag";
@@ -156,7 +156,7 @@ export function FeedService() {
                         tags: t.Array(t.String())
                     })
                 })
-                .get('/:id', async ({ uid, admin, set, params: { id } }) => {
+                .get('/:id', async ({ uid, admin, set, headers, params: { id } }) => {
                     const id_num = parseInt(id);
                     const cache = PublicCache();
                     const cacheKey = `feed_${id}`;
@@ -187,9 +187,30 @@ export function FeedService() {
 
                     const { hashtags, ...other } = feed;
                     const hashtags_flatten = hashtags.map((f) => f.hashtag);
+
+
+                    // update visits
+                    const config = ClientConfig()
+                    const enableVisit = await config.getOrDefault('counter.enabled', true);
+                    let pv = 0;
+                    let uv = 0;
+                    if (enableVisit) {
+                        const ip = headers['CF-Connecting-IP'] || headers['X-Real-IP'] || headers['X-Forwarded-For'] || "UNK"
+                        await db.insert(visits).values({
+                            feedId: feed.id,
+                            ip: ip,
+                        });
+                        const visit = await db.query.visits.findMany({
+                            where: eq(visits.feedId, feed.id),
+                        });
+                        pv = visit.length;
+                        uv = new Set(visit.map((v) => v.ip)).size;
+                    }
                     const data = {
                         ...other,
-                        hashtags: hashtags_flatten
+                        hashtags: hashtags_flatten,
+                        pv,
+                        uv
                     };
                     return data;
                 })

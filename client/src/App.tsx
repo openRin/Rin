@@ -4,7 +4,7 @@ import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
 import Footer from './components/footer'
 import { Header } from './components/header'
 import { Padding } from './components/padding'
-import { client, defaultFavicon } from './main'
+import { client } from './main'
 import { CallbackPage } from './page/callback'
 import { FeedPage, TOCHeader } from './page/feed'
 import { FeedsPage } from './page/feeds'
@@ -14,7 +14,7 @@ import { HashtagsPage } from './page/hashtags.tsx'
 import { Settings } from "./page/settings.tsx"
 import { TimelinePage } from './page/timeline'
 import { WritingPage } from './page/writing'
-import { ClientConfigContext, ConfigWrapper } from './state/config.tsx'
+import { ClientConfigContext, ConfigWrapper, defaultClientConfig, defaultClientConfigWrapper } from './state/config.tsx'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
@@ -23,7 +23,7 @@ import { Helmet } from 'react-helmet'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
-  const [config, setConfig] = useState<ConfigWrapper>(new ConfigWrapper({}))
+  const [config, setConfig] = useState<ConfigWrapper>(defaultClientConfigWrapper)
   useEffect(() => {
     if (ref.current) return
     if (getCookie('token')?.length ?? 0 > 0) {
@@ -43,13 +43,13 @@ function App() {
     const config = sessionStorage.getItem('config')
     if (config) {
       const configObj = JSON.parse(config)
-      const configWrapper = new ConfigWrapper(configObj)
+      const configWrapper = new ConfigWrapper(configObj, defaultClientConfig)
       setConfig(configWrapper)
     } else {
       client.config({ type: "client" }).get().then(({ data }) => {
         if (data && typeof data != 'string') {
           sessionStorage.setItem('config', JSON.stringify(data))
-          const config = new ConfigWrapper(data)
+          const config = new ConfigWrapper(data, defaultClientConfig)
           setConfig(config)
         }
       })
@@ -61,7 +61,7 @@ function App() {
       <ClientConfigContext.Provider value={config}>
         <ProfileContext.Provider value={profile}>
           <Helmet>
-            <link rel="icon" href={config.getOrDefault("favicon",defaultFavicon)} />
+            <link rel="icon" href={config.get("favicon")} />
           </Helmet>
           <Switch>
             <RouteMe path="/">
