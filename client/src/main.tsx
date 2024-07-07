@@ -15,6 +15,7 @@ import { listenSystemMode } from './utils/darkModeUtils'
 import LanguageDetector from 'i18next-browser-languagedetector';
 export const endpoint = process.env.API_URL || 'http://localhost:3001'
 export const oauth_url = process.env.API_URL + '/user/github'
+export const defaultFavicon = process.env.AVATAR ? `//wsrv.nl/?url=${process.env.AVATAR}&w=144&h=144&mask=circle` : '/favicon.ico'
 export const client = treaty<Server>(endpoint)
 listenSystemMode()
 i18n

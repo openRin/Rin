@@ -106,6 +106,10 @@
       },
       "clear_failed$message": "清除缓存失败: {{message}}"
     },
+    "favicon": {
+      "desc": "设置显示于浏览器的地址栏的图标（Favicon）",
+      "title": "网站图标"
+    },
     "friend": {
       "apply": {
         "desc": "允许其他用户申请友链（需审核）",

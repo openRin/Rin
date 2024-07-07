@@ -5,7 +5,7 @@ import ReactLoading from "react-loading";
 import Modal from "react-modal";
 import { Button } from "../components/button.tsx";
 import { useAlert, useConfirm } from "../components/dialog.tsx";
-import { client } from "../main.tsx";
+import { client, defaultFavicon } from "../main.tsx";
 import { ClientConfigContext, ConfigWrapper, ServerConfigContext } from "../state/config.tsx";
 import { headersWithAuth } from "../utils/auth.ts";
 import '../utils/thumb.css';
@@ -93,6 +93,7 @@ export function Settings() {
                             <ItemSwitch title={t('settings.friend.apply.title')} description={t('settings.friend.apply.desc')} type="client" configKey="friend_apply_enable" defaultValue={true} />
                             <ItemSwitch title={t('settings.friend.health.title')} description={t('settings.friend.health.desc')} type="server" configKey="friend_crontab" defaultValue={true} />
                             <ItemInput title={t('settings.friend.health.ua.title')} description={t('settings.friend.health.ua.desc')} type="server" configKey="friend_ua" configKeyTitle="User-Agent" defaultValue="Rin-Check/0.1.0" />
+                            <ItemInput title={t('settings.favicon.title')} description={t('settings.favicon.desc')} type="client" configKey="favicon" configKeyTitle="Favicon" defaultValue={defaultFavicon} />
                             <ItemButton title={t('settings.cache.clear.title')} description={t('settings.cache.clear.desc')} buttonTitle={t('clear')} onConfirm={async () => {
                                 await client.config.cache.delete(undefined, {
                                     headers: headersWithAuth()

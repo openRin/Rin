@@ -4,7 +4,7 @@ import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
 import Footer from './components/footer'
 import { Header } from './components/header'
 import { Padding } from './components/padding'
-import { client } from './main'
+import { client, defaultFavicon } from './main'
 import { CallbackPage } from './page/callback'
 import { FeedPage, TOCHeader } from './page/feed'
 import { FeedsPage } from './page/feeds'
@@ -18,6 +18,7 @@ import { ClientConfigContext, ConfigWrapper } from './state/config.tsx'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
+import { Helmet } from 'react-helmet'
 
 function App() {
   const ref = useRef(false)
@@ -59,6 +60,9 @@ function App() {
     <>
       <ClientConfigContext.Provider value={config}>
         <ProfileContext.Provider value={profile}>
+          <Helmet>
+            <link rel="icon" href={config.getOrDefault("favicon",defaultFavicon)} />
+          </Helmet>
           <Switch>
             <RouteMe path="/">
               <FeedsPage />
