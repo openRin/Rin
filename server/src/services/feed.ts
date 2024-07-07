@@ -195,15 +195,14 @@ export function FeedService() {
                     let pv = 0;
                     let uv = 0;
                     if (enableVisit) {
-                        console.log(headers);
                         const ip = headers['cf-connecting-ip'] || headers['x-real-ip'] || "UNK"
-                        console.log('IP', ip);
                         await db.insert(visits).values({
                             feedId: feed.id,
                             ip: ip,
                         });
                         const visit = await db.query.visits.findMany({
                             where: eq(visits.feedId, feed.id),
+                            columns: { id: true, ip: true }
                         });
                         pv = visit.length;
                         uv = new Set(visit.map((v) => v.ip)).size;
