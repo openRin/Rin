@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { remarkAlert } from 'remark-github-blockquote-alert'
+import { remarkAlert } from "remark-github-blockquote-alert";
 import "katex/dist/katex.min.css";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -31,36 +31,51 @@ const countNewlinesBeforeNode = (text: string, offset: number) => {
   return newlinesBefore;
 };
 
+const isMarkdownImageLinkAtEnd = (text: string) => {
+  const trimmed = text.trim();
+
+  const match = trimmed.match(/(.*)(!\\[.*?\\]\\(.*?\\))$/s);
+
+  if (match) {
+    const [, beforeImage, _] = match;
+
+    return beforeImage.trim().length === 0 || beforeImage.endsWith("\n");
+  }
+
+  return false;
+};
+
 export function Markdown({ content }: { content: string }) {
   const colorMode = useColorMode();
   const [index, setIndex] = React.useState(-1);
-  const [slides, setSlides] = React.useState<SlideImage[]>()
+  const [slides, setSlides] = React.useState<SlideImage[]>();
   useEffect(() => {
     const parent = document.getElementsByClassName("toc-content")[0];
     if (!parent) return;
     const images = parent.querySelectorAll("img");
-    const slides = Array.from(images).map((image) => {
-      const url = image.getAttribute("src") || "";
-      const filename = url.split("/").pop() || "";
-      const alt = image.getAttribute("alt") || "";
-      return ({
-        src: url,
-        alt: alt,
-        imageFit: "contain" as const,
-        download: {
-          url: url,
-          filename: filename,
-        }
+    const slides = Array.from(images)
+      .map((image) => {
+        const url = image.getAttribute("src") || "";
+        const filename = url.split("/").pop() || "";
+        const alt = image.getAttribute("alt") || "";
+        return {
+          src: url,
+          alt: alt,
+          imageFit: "contain" as const,
+          download: {
+            url: url,
+            filename: filename,
+          },
+        };
       })
-    }
-    ).filter((slide) => slide.src != "");
+      .filter((slide) => slide.src != "");
     setSlides(slides);
-  }, [content])
+  }, [content]);
 
   const show = (src: string | undefined) => {
     const index = slides?.findIndex((slide) => slide.src === src) ?? -1;
     setIndex(index);
-  }
+  };
 
   return (
     <>
@@ -77,19 +92,35 @@ export function Markdown({ content }: { content: string }) {
               previousContent,
               offset
             );
-            const Image = () => (
-              <img src={src} {...props} onClick={() => show(src)} className="mx-auto rounded-xl" style={{ zoom: "0.75" }} />
-            )
-            if (newlinesBefore >= 1) {
+            const Image = ({
+              rounded,
+              scale,
+            }: {
+              rounded: boolean;
+              scale: string;
+            }) => (
+              <img
+                src={src}
+                {...props}
+                onClick={() => show(src)}
+                className={`mx-auto ${rounded ? "rounded-xl" : ""}`}
+                style={{ zoom: scale }}
+              />
+            );
+            if (
+              newlinesBefore >= 1 ||
+              previousContent.trim().length === 0 ||
+              isMarkdownImageLinkAtEnd(previousContent)
+            ) {
               return (
                 <span className="block w-full text-center my-4">
-                  <Image />
+                  <Image scale="0.75" rounded={true} />
                 </span>
               );
             } else {
               return (
                 <span className="inline-block align-middle mx-1 ">
-                  <Image />
+                  <Image scale="0.5" rounded={false} />
                 </span>
               );
             }
@@ -149,8 +180,9 @@ export function Markdown({ content }: { content: string }) {
               return (
                 <code
                   {...rest}
-                  className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-neutral-800 dark:text-neutral-300 ${className || ""
-                    }`}
+                  className={`bg-[#eff1f3] dark:bg-[#4a5061] h-[24px] px-[4px] rounded-md mx-[2px] py-[2px] text-neutral-800 dark:text-neutral-300 ${
+                    className || ""
+                  }`}
                   style={inlineCodeStyle}
                 >
                   {children}
@@ -219,42 +251,66 @@ export function Markdown({ content }: { content: string }) {
           },
           h1({ children, ...props }) {
             return (
-              <h1 id={children?.toString()} className="text-3xl font-bold mt-4" {...props}>
+              <h1
+                id={children?.toString()}
+                className="text-3xl font-bold mt-4"
+                {...props}
+              >
                 {children}
               </h1>
             );
           },
           h2({ children, ...props }) {
             return (
-              <h2 id={children?.toString()} className="text-2xl font-bold mt-4" {...props}>
+              <h2
+                id={children?.toString()}
+                className="text-2xl font-bold mt-4"
+                {...props}
+              >
                 {children}
               </h2>
             );
           },
           h3({ children, ...props }) {
             return (
-              <h3 id={children?.toString()} className="text-xl font-bold mt-4" {...props}>
+              <h3
+                id={children?.toString()}
+                className="text-xl font-bold mt-4"
+                {...props}
+              >
                 {children}
               </h3>
             );
           },
           h4({ children, ...props }) {
             return (
-              <h4 id={children?.toString()} className="text-lg font-bold mt-4" {...props}>
+              <h4
+                id={children?.toString()}
+                className="text-lg font-bold mt-4"
+                {...props}
+              >
                 {children}
               </h4>
             );
           },
           h5({ children, ...props }) {
             return (
-              <h5 id={children?.toString()} className="text-base font-bold mt-4" {...props}>
+              <h5
+                id={children?.toString()}
+                className="text-base font-bold mt-4"
+                {...props}
+              >
                 {children}
               </h5>
             );
           },
           h6({ children, ...props }) {
             return (
-              <h6 id={children?.toString()} className="text-sm font-bold mt-4" {...props}>
+              <h6
+                id={children?.toString()}
+                className="text-sm font-bold mt-4"
+                {...props}
+              >
                 {children}
               </h6>
             );
@@ -312,7 +368,7 @@ export function Markdown({ content }: { content: string }) {
             //   );
             // }
             return <div {...props}>{children}</div>;
-          }
+          },
         }}
       />
       <Lightbox
