@@ -35,7 +35,7 @@ type Feed = {
   uv: number;
 };
 
-export function FeedPage({ id, TOC }: { id: string, TOC: () => JSX.Element }) {
+export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Element, clean: (id: string) => void }) {
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
   const [feed, setFeed] = useState<Feed>();
@@ -91,6 +91,7 @@ export function FeedPage({ id, TOC }: { id: string, TOC: () => JSX.Element }) {
             if (img_match) {
               setHeadImage(img_match[1]);
             }
+            clean(id);
           }, 0);
         }
       });

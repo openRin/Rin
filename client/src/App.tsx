@@ -111,15 +111,15 @@ function App() {
             </RouteMe>
 
             <RouteWithIndex path="/feed/:id">
-              {(params, TOC) => {
-                return (<FeedPage id={params.id || ""} TOC={TOC} />)
+              {(params, TOC, clean) => {
+                return (<FeedPage id={params.id || ""} TOC={TOC} clean={clean} />)
               }}
             </RouteWithIndex>
 
             <RouteWithIndex path="/:alias">
-              {(params, TOC) => {
+              {(params, TOC, clean) => {
                 return (
-                  <FeedPage id={params.alias || ""} TOC={TOC} />
+                  <FeedPage id={params.alias || ""} TOC={TOC} clean={clean} />
                 )
               }}
             </RouteWithIndex>
@@ -154,10 +154,12 @@ function RouteMe({ path, children, headerComponent, paddingClassName }:
 
 
 function RouteWithIndex({ path, children }:
-  { path: PathPattern, children: (params: DefaultParams, TOC: () => JSX.Element) => React.ReactNode }) {
-  const TOC = useTableOfContents(".toc-content", "header");
+  { path: PathPattern, children: (params: DefaultParams, TOC: () => JSX.Element, clean: (id: string) => void) => React.ReactNode }) {
+  const { TOC, cleanup } = useTableOfContents(".toc-content");
   return (<RouteMe path={path} headerComponent={TOCHeader({ TOC: TOC })} paddingClassName='mx-4'>
-    {params => children(params, TOC)}
+    {params => {
+      return children(params, TOC, cleanup)
+    }}
   </RouteMe>)
 }
 
