@@ -5,7 +5,7 @@ export interface TableOfContent {
     index: number
     text: string
     marginLeft: number
-    offsetTop: number
+    element: HTMLElement
 }
 
 const useTableOfContents = (selector: string) => {
@@ -31,7 +31,7 @@ const useTableOfContents = (selector: string) => {
             index: i,
             text: header.textContent || '',
             marginLeft: (Number(header.tagName.charAt(1)) - 1) * 10,
-            offsetTop: header.offsetTop + 2, // have to down little bit
+            element: header, // have to down little bit
         }))
         setTableOfContents(tocData)
 
@@ -75,14 +75,6 @@ const useTableOfContents = (selector: string) => {
         if (io.current) io.current.disconnect()
     }
 
-    const onClick = (offsetTop: number) => {
-        window.scrollTo({
-            behavior: 'smooth',
-            left: 0,
-            top: offsetTop,
-        })
-    }
-
     return {
         TOC: () => (<div>
             <h2 className="text-lg font-bold">{t("index.title")}</h2>
@@ -93,7 +85,11 @@ const useTableOfContents = (selector: string) => {
                         key={item.index}
                         className={activeIndex === item.index ? "text-theme" : ""}
                         style={{ marginLeft: item.marginLeft }}
-                        onClick={() => onClick(item.offsetTop)}
+                        onClick={() => {
+                            item.element.scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        }}
                     >
                         {item.text}
                     </li>
