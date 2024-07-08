@@ -1,23 +1,23 @@
-import React, { isValidElement, cloneElement, useEffect, useMemo } from "react";
-import ReactMarkdown from "react-markdown";
-import gfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import { remarkAlert } from "remark-github-blockquote-alert";
 import "katex/dist/katex.min.css";
+import React, { cloneElement, isValidElement, useEffect, useMemo, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
-  vscDarkPlus,
   base16AteliersulphurpoolLight,
+  vscDarkPlus,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
+import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
-import { useColorMode } from "../utils/darkModeUtils";
+import gfm from "remark-gfm";
+import { remarkAlert } from "remark-github-blockquote-alert";
+import remarkMath from "remark-math";
 import Lightbox, { SlideImage } from "yet-another-react-lightbox";
+import Counter from "yet-another-react-lightbox/plugins/counter";
+import "yet-another-react-lightbox/plugins/counter.css";
 import Download from "yet-another-react-lightbox/plugins/download";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import Counter from "yet-another-react-lightbox/plugins/counter";
 import "yet-another-react-lightbox/styles.css";
-import "yet-another-react-lightbox/plugins/counter.css";
+import { useColorMode } from "../utils/darkModeUtils";
 
 const countNewlinesBeforeNode = (text: string, offset: number) => {
   let newlinesBefore = 0;
@@ -48,34 +48,13 @@ const isMarkdownImageLinkAtEnd = (text: string) => {
 export function Markdown({ content }: { content: string }) {
   const colorMode = useColorMode();
   const [index, setIndex] = React.useState(-1);
-  const [slides, setSlides] = React.useState<SlideImage[]>();
+  const slides = useRef<SlideImage[]>();
+
   useEffect(() => {
-    const parent = document.getElementsByClassName("toc-content")[0];
-    if (!parent) return;
-    const images = parent.querySelectorAll("img");
-    const slides = Array.from(images)
-      .map((image) => {
-        const url = image.getAttribute("src") || "";
-        const filename = url.split("/").pop() || "";
-        const alt = image.getAttribute("alt") || "";
-        return {
-          src: url,
-          alt: alt,
-          imageFit: "contain" as const,
-          download: {
-            url: url,
-            filename: filename,
-          },
-        };
-      })
-      .filter((slide) => slide.src != "");
-    setSlides(slides);
+    slides.current = undefined;
   }, [content]);
 
-  const show = (src: string | undefined) => {
-    const index = slides?.findIndex((slide) => slide.src === src) ?? -1;
-    setIndex(index);
-  };
+
 
   const Content = useMemo(() => (
     <ReactMarkdown
@@ -101,7 +80,9 @@ export function Markdown({ content }: { content: string }) {
             <img
               src={src}
               {...props}
-              onClick={() => show(src)}
+              onClick={() => {
+                show(src)
+              }}
               className={`mx-auto ${rounded ? "rounded-xl" : ""}`}
               style={{ zoom: scale }}
             />
@@ -361,13 +342,43 @@ export function Markdown({ content }: { content: string }) {
       }}
     />), [content])
 
+
+
+  const show = (src: string | undefined) => {
+    let slidesLocal = slides.current;
+    if (!slidesLocal) {
+      const parent = document.getElementsByClassName("toc-content")[0];
+      if (!parent) return;
+      const images = parent.querySelectorAll("img");
+      slidesLocal = Array.from(images)
+        .map((image) => {
+          const url = image.getAttribute("src") || "";
+          const filename = url.split("/").pop() || "";
+          const alt = image.getAttribute("alt") || "";
+          return {
+            src: url,
+            alt: alt,
+            imageFit: "contain" as const,
+            download: {
+              url: url,
+              filename: filename,
+            },
+          };
+        })
+        .filter((slide) => slide.src != "");
+      slides.current = (slidesLocal);
+    }
+    const index = slidesLocal?.findIndex((slide) => slide.src === src) ?? -1;
+    setIndex(index);
+  };
+
   return (
     <>
       {Content}
       <Lightbox
         plugins={[Download, Zoom, Counter]}
         index={index}
-        slides={slides}
+        slides={slides.current}
         open={index >= 0}
         close={() => setIndex(-1)}
       />
