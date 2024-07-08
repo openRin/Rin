@@ -5,21 +5,20 @@ export interface TableOfContent {
     index: number
     text: string
     marginLeft: number
-    offsetTop: number
+    element: HTMLElement
 }
 
-const useTableOfContents = (selector: string, id: string) => {
+const useTableOfContents = (selector: string) => {
     const intersectingListRef = useRef<boolean[]>([]) // isIntersecting array
     const [tableOfContents, setTableOfContents] = useState<TableOfContent[]>([])
     const [activeIndex, setActiveIndex] = useState(0)
     const { t } = useTranslation()
     const io = useRef<IntersectionObserver | null>(null);
-
-    const ref = useRef(false)
+    const [ref, setRef] = useState("-1")
+    const lastRef = useRef("")
 
     useEffect(() => {
-        console.log(id,ref.current)
-        if (ref.current) return
+        if (lastRef.current === ref) return
         const content = document.querySelector(selector)
         if (!content) return
         const intersectingList = intersectingListRef.current
@@ -32,7 +31,7 @@ const useTableOfContents = (selector: string, id: string) => {
             index: i,
             text: header.textContent || '',
             marginLeft: (Number(header.tagName.charAt(1)) - 1) * 10,
-            offsetTop: header.offsetTop + 2, // have to down little bit
+            element: header, // have to down little bit
         }))
         setTableOfContents(tocData)
 
@@ -46,7 +45,6 @@ const useTableOfContents = (selector: string, id: string) => {
                     intersectingList[idx] = isIntersecting
                 })
                 // get activeIndex
-                console.log(id, intersectingList)
                 const currentIndex = intersectingList.findIndex((item) => item)
                 let activeIndex = currentIndex - 1
                 if (currentIndex === -1) {
@@ -65,32 +63,40 @@ const useTableOfContents = (selector: string, id: string) => {
             intersectingList.push(false) // increase array length
             io.current!.observe(header) // register to observe
         })
-        ref.current = true
-        console.log(id,ref.current)
-    })
+        lastRef.current = ref
+        return () => {
+            if (io.current) io.current.disconnect()
+        }
+    }, [ref])
 
-    const onClick = (offsetTop: number) => {
-        window.scrollTo({
-            behavior: 'smooth',
-            left: 0,
-            top: offsetTop,
-        })
+    const cleanup = (newId: string) => {
+        if (lastRef.current === newId) return
+        setRef(newId)
+        if (io.current) io.current.disconnect()
     }
-    return () => (<div>
-        <h2 className="text-lg font-bold">{t("index.title")}</h2>
-        <ul>
-            {tableOfContents.map((item) => (
-                <li
-                    key={item.index}
-                    className={activeIndex === item.index ? "text-theme" : ""}
-                    style={{ marginLeft: item.marginLeft }}
-                    onClick={() => onClick(item.offsetTop)}
-                >
-                    {item.text}
-                </li>
-            ))}
-        </ul>
-    </div>)
+
+    return {
+        TOC: () => (<div>
+            <h2 className="text-lg font-bold">{t("index.title")}</h2>
+            <ul>
+                {tableOfContents.length === 0 && <li>{t("index.empty.title")}</li>}
+                {tableOfContents.map((item) => (
+                    <li
+                        key={item.index}
+                        className={activeIndex === item.index ? "text-theme" : ""}
+                        style={{ marginLeft: item.marginLeft }}
+                        onClick={() => {
+                            item.element.scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        }}
+                    >
+                        {item.text}
+                    </li>
+                ))}
+            </ul>
+        </div>), cleanup
+    }
 }
 
 export default useTableOfContents

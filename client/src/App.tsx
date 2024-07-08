@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { getCookie } from 'typescript-cookie'
 import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
@@ -16,7 +16,7 @@ import { HashtagsPage } from './page/hashtags.tsx'
 import { Settings } from "./page/settings.tsx"
 import { TimelinePage } from './page/timeline'
 import { WritingPage } from './page/writing'
-import { ClientConfigContext, ConfigWrapper, defaultClientConfig, defaultClientConfigWrapper } from './state/config.tsx'
+import { ClientConfigContext, ConfigWrapper, defaultClientConfig } from './state/config.tsx'
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
@@ -24,7 +24,7 @@ import { tryInt } from './utils/int'
 function App() {
   const ref = useRef(false)
   const [profile, setProfile] = useState<Profile | undefined>()
-  const [config, setConfig] = useState<ConfigWrapper>(defaultClientConfigWrapper)
+  const [config, setConfig] = useState<ConfigWrapper>(new ConfigWrapper({}, new Map()))
   useEffect(() => {
     if (ref.current) return
     if (getCookie('token')?.length ?? 0 > 0) {
@@ -57,12 +57,14 @@ function App() {
     }
     ref.current = true
   }, [])
+  const favicon = useMemo(() => config.get<string>("favicon"), [config])
   return (
     <>
       <ClientConfigContext.Provider value={config}>
         <ProfileContext.Provider value={profile}>
           <Helmet>
-            <link rel="icon" href={config.get("favicon")} />
+            {favicon &&
+              <link rel="icon" href={favicon} />}
           </Helmet>
           <Switch>
             <RouteMe path="/">
@@ -111,15 +113,15 @@ function App() {
             </RouteMe>
 
             <RouteWithIndex path="/feed/:id">
-              {(params, TOC) => {
-                return (<FeedPage id={params.id || ""} TOC={TOC} />)
+              {(params, TOC, clean) => {
+                return (<FeedPage id={params.id || ""} TOC={TOC} clean={clean} />)
               }}
             </RouteWithIndex>
 
             <RouteWithIndex path="/:alias">
-              {(params, TOC) => {
+              {(params, TOC, clean) => {
                 return (
-                  <FeedPage id={params.alias || ""} TOC={TOC} />
+                  <FeedPage id={params.alias || ""} TOC={TOC} clean={clean} />
                 )
               }}
             </RouteWithIndex>
@@ -154,10 +156,12 @@ function RouteMe({ path, children, headerComponent, paddingClassName }:
 
 
 function RouteWithIndex({ path, children }:
-  { path: PathPattern, children: (params: DefaultParams, TOC: () => JSX.Element) => React.ReactNode }) {
-  const TOC = useTableOfContents(".toc-content", "header");
+  { path: PathPattern, children: (params: DefaultParams, TOC: () => JSX.Element, clean: (id: string) => void) => React.ReactNode }) {
+  const { TOC, cleanup } = useTableOfContents(".toc-content");
   return (<RouteMe path={path} headerComponent={TOCHeader({ TOC: TOC })} paddingClassName='mx-4'>
-    {params => children(params, TOC)}
+    {params => {
+      return children(params, TOC, cleanup)
+    }}
   </RouteMe>)
 }
 

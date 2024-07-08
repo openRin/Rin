@@ -21,8 +21,9 @@ export class ConfigWrapper {
         this.defaultConfig = defaultConfig;
     }
     get<T>(key: string) {
-        if (this.config[key] != undefined) {
-            return this.config[key] as T;
+        const value = this.config[key];
+        if (value != undefined && value != "") {
+            return value as T;
         }
         if (this.defaultConfig.has(key)) {
             return this.defaultConfig.get(key) as T;
