@@ -1,3 +1,5 @@
+PRAGMA foreign_keys=off;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS `feeds_new` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`alias` text,
@@ -20,3 +22,5 @@ FROM `feeds`;
 DROP TABLE `feeds`;
 --> statement-breakpoint
 ALTER TABLE `feeds_new` RENAME TO `feeds`;
+--> statement-breakpoint
+PRAGMA foreign_keys=on;
