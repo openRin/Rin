@@ -7,6 +7,11 @@
       "confirm": "确定删除这篇文章吗？",
       "title": "删除文章"
     },
+    "search": {
+      "placeholder": "请输入关键字",
+      "title": "搜索",
+      "title$keyword": "搜索：{{keyword}}"
+    },
     "title": "文章",
     "total_short$count_one": "{{count}} 篇",
     "total_short$count_other": "{{count}} 篇",
