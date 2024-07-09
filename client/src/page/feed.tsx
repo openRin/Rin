@@ -71,11 +71,12 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
       })
   }
   function topFeed() {
+    const isUnTop = !(top > 0)
     const topNew = top === 0 ? 1 : 0;
     // Confirm
     showConfirm(
-      topNew === 1 ? t("article.top.title") : t("article.untop.title"),
-      topNew === 1 ? t("article.top.confirm") : t("article.untop.confirm"),
+      isUnTop ? t("article.top.title") : t("article.untop.title"),
+      isUnTop ? t("article.top.confirm") : t("article.untop.confirm"),
       () => {
         if (!feed) return;
         client
@@ -89,7 +90,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
             if (error) {
               showAlert(error.value as string);
             } else {
-              showAlert(topNew === 1 ? t("article.top.success") : t("article.untop.success"));
+              showAlert(isUnTop ? t("article.top.success") : t("article.untop.success"));
               setTop(topNew);
             }
           });
@@ -224,7 +225,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                     {profile?.permission && (
                       <div className="flex gap-2">
                         <button
-                          aria-label={top === 0 ? t("top.title") : t("untop.title")}
+                          aria-label={top > 0 ? t("untop.title") : t("top.title")}
                           onClick={topFeed}
                           className={`flex-1 flex flex-col items-end justify-center px-2 py bg-hover rounded-full transition ${top > 0 ? "bg-theme text-white" : "bg-secondary dark:text-neutral-400"}`}
                         >
