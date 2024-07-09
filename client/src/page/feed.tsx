@@ -45,6 +45,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
   const [_, setLocation] = useLocation();
   const { showAlert, AlertUI } = useAlert();
   const { showConfirm, ConfirmUI } = useConfirm();
+  const [top, setTop] = useState<number>(0);
   const config = useContext(ClientConfigContext);
   const counterEnabled = config.get<boolean>('counter.enabled');
   function deleteFeed() {
@@ -69,6 +70,31 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
           });
       })
   }
+  function topFeed() {
+    const topNew = top === 0 ? 1 : 0;
+    // Confirm
+    showConfirm(
+      topNew === 1 ? t("article.top.title") : t("article.untop.title"),
+      topNew === 1 ? t("article.top.confirm") : t("article.untop.confirm"),
+      () => {
+        if (!feed) return;
+        client
+          .feed.top({ id: feed.id })
+          .post({
+            top: topNew,
+          }, {
+            headers: headersWithAuth(),
+          })
+          .then(({ error }) => {
+            if (error) {
+              showAlert(error.value as string);
+            } else {
+              showAlert(topNew === 1 ? t("article.top.success") : t("article.untop.success"));
+              setTop(topNew);
+            }
+          });
+      })
+  }
   useEffect(() => {
     if (ref.current == id) return;
     setFeed(undefined);
@@ -85,6 +111,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
         } else if (data && typeof data !== "string") {
           setTimeout(() => {
             setFeed(data);
+            setTop(data.top);
             // Extract head image
             const img_reg = /!\[.*?\]\((.*?)\)/;
             const img_match = img_reg.exec(data.content);
@@ -196,17 +223,24 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                   <div className="pt-2">
                     {profile?.permission && (
                       <div className="flex gap-2">
+                        <button
+                          aria-label={top === 0 ? t("top.title") : t("untop.title")}
+                          onClick={topFeed}
+                          className={`flex-1 flex flex-col items-end justify-center px-2 py bg-hover rounded-full transition ${top > 0 ? "bg-theme text-white" : "bg-secondary dark:text-neutral-400"}`}
+                        >
+                          <i className="ri-skip-up-line" />
+                        </button>
                         <Link
                           aria-label={t("edit")}
                           href={`/writing/${feed.id}`}
-                          className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition"
+                          className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary bg-hover bg-active rounded-full transition"
                         >
-                          <i className="ri-edit-2-line dark:text-gray-400" />
+                          <i className="ri-edit-2-line dark:text-neutral-400" />
                         </Link>
                         <button
                           aria-label={t("delete.title")}
                           onClick={deleteFeed}
-                          className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition"
+                          className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary bg-hover bg-active rounded-full transition"
                         >
                           <i className="ri-delete-bin-7-line text-red-500" />
                         </button>

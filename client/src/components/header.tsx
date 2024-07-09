@@ -224,7 +224,6 @@ function SearchButton({ className, onClose }: { className?: string, onClose?: ()
     const [value, setValue] = useState('')
     const label = t('article.search.title')
     const onSearch = () => {
-        console.log(value)
         const key = `${encodeURIComponent(value)}`
         setTimeout(() => {
             setIsOpened(false)

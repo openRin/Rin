@@ -13,10 +13,20 @@
       "title$keyword": "搜索：{{keyword}}"
     },
     "title": "文章",
+    "top": {
+      "confirm": "确定置顶这篇文章吗？",
+      "success": "置顶成功",
+      "title": "置顶"
+    },
     "total_short$count_one": "{{count}} 篇",
     "total_short$count_other": "{{count}} 篇",
     "total$count_one": "共有 {{count}} 篇文章",
-    "total$count_other": "共有 {{count}} 篇文章"
+    "total$count_other": "共有 {{count}} 篇文章",
+    "untop": {
+      "confirm": "确定取消置顶这篇文章吗？",
+      "success": "取消置顶成功",
+      "title": "取消置顶"
+    }
   },
   "avatar": {
     "url": "头像 URL"
@@ -167,8 +177,14 @@
   "timeline": "时间轴",
   "title": "标题",
   "title_empty": "标题不能为空",
+  "top": {
+    "title": "置顶"
+  },
   "unlisted": "未列出",
   "untitled": "未列出",
+  "untop": {
+    "title": "取消置顶"
+  },
   "update": {
     "success": "更新成功",
     "title": "更新"

@@ -56,7 +56,7 @@ export function FeedService() {
                                 columns: { id: true, username: true, avatar: true }
                             }
                         },
-                        orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
+                        orderBy: [desc(feeds.top), desc(feeds.createdAt), desc(feeds.updatedAt)],
                         offset: page_num * limit_num,
                         limit: limit_num + 1,
                     })).map(({ content, hashtags, summary, ...other }) => {
@@ -220,7 +220,7 @@ export function FeedService() {
                     set,
                     uid,
                     params: { id },
-                    body: { title, listed, content, summary, alias, draft, tags, createdAt }
+                    body: { title, listed, content, summary, alias, draft, top, tags, createdAt }
                 }) => {
                     const id_num = parseInt(id);
                     const feed = await db.query.feeds.findFirst({
@@ -239,6 +239,7 @@ export function FeedService() {
                         content,
                         summary,
                         alias,
+                        top,
                         listed: listed ? 1 : 0,
                         draft: draft ? 1 : 0,
                         createdAt: createdAt ? new Date(createdAt) : undefined,
@@ -258,7 +259,37 @@ export function FeedService() {
                         listed: t.Boolean(),
                         draft: t.Optional(t.Boolean()),
                         createdAt: t.Optional(t.Date()),
-                        tags: t.Optional(t.Array(t.String()))
+                        tags: t.Optional(t.Array(t.String())),
+                        top: t.Optional(t.Integer())
+                    })
+                })
+                .post('/top/:id', async ({
+                    admin,
+                    set,
+                    uid,
+                    params: { id },
+                    body: { top }
+                }) => {
+                    const id_num = parseInt(id);
+                    const feed = await db.query.feeds.findFirst({
+                        where: eq(feeds.id, id_num)
+                    });
+                    if (!feed) {
+                        set.status = 404;
+                        return 'Not found';
+                    }
+                    if (feed.uid !== uid && !admin) {
+                        set.status = 403;
+                        return 'Permission denied';
+                    }
+                    await db.update(feeds).set({
+                        top
+                    }).where(eq(feeds.id, feed.id));
+                    await clearFeedCache(feed.id, null, null);
+                    return 'Updated';
+                }, {
+                    body: t.Object({
+                        top: t.Integer()
                     })
                 })
                 .delete('/:id', async ({ admin, set, uid, params: { id } }) => {
