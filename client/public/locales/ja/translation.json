@@ -7,11 +7,26 @@
       "confirm": "この記事を削除してもよろしいですか？",
       "title": "記事の削除"
     },
+    "search": {
+      "placeholder": "キーワードを入力してください",
+      "title": "検索",
+      "title$keyword": "検索: {{keyword}}"
+    },
     "title": "記事",
+    "top": {
+      "confirm": "この記事をトップにしてもよろしいですか？",
+      "success": "トップに成功しました",
+      "title": "トップ"
+    },
     "total_short$count_one": "{{count}} 記事",
     "total_short$count_other": "{{count}} 記事",
     "total$count_one": "合計 {{count}} 記事",
-    "total$count_other": "合計 {{count}} 記事"
+    "total$count_other": "合計 {{count}} 記事",
+    "untop": {
+      "confirm": "この記事のトップを解除してもよろしいですか？",
+      "success": "トップ解除に成功しました",
+      "title": "トップ解除"
+    }
   },
   "avatar": {
     "url": "アバターURL"
@@ -162,8 +177,14 @@
   "timeline": "タイムライン",
   "title": "タイトル",
   "title_empty": "タイトルは空にできません",
+  "top": {
+    "title": "キャッシュをクリア"
+  },
   "unlisted": "リストされていない",
   "untitled": "無題",
+  "untop": {
+    "title": "トップ解除"
+  },
   "update": {
     "success": "更新に成功しました",
     "title": "更新"

@@ -20,6 +20,7 @@ import { ClientConfigContext, ConfigWrapper, defaultClientConfig } from './state
 import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
+import { SearchPage } from './page/search.tsx'
 
 function App() {
   const ref = useRef(false)
@@ -87,6 +88,12 @@ function App() {
             <RouteMe path="/hashtag/:name">
               {params => {
                 return (<HashtagPage name={params.name || ""} />)
+              }}
+            </RouteMe>
+
+            <RouteMe path="/search/:keyword">
+              {params => {
+                return (<SearchPage keyword={params.keyword || ""} />)
               }}
             </RouteMe>
 
