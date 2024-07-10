@@ -229,7 +229,7 @@ function SearchButton({ className, onClose }: { className?: string, onClose?: ()
             setIsOpened(false)
             onClose?.()
         }, 100)
-        if (value.length != 0)
+        if (value.length !== 0)
             setLocation(`/search/${key}`)
     }
     return (<div className={className + " flex flex-row items-center"}>

@@ -31,7 +31,7 @@ export function Settings() {
         }).get({
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data != 'string') {
+            if (data && typeof data !== 'string') {
                 sessionStorage.setItem('config', JSON.stringify(data));
                 const config = new ConfigWrapper(data, defaultClientConfig)
                 setClientConfig(config)
@@ -46,7 +46,7 @@ export function Settings() {
         }).get({
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data != 'string') {
+            if (data && typeof data !== 'string') {
                 const config = new ConfigWrapper(data, defaultServerConfig)
                 setServerConfig(config)
             }
@@ -66,7 +66,7 @@ export function Settings() {
             }, {
                 headers: headersWithAuth()
             }).then(({ data }) => {
-                if (data && typeof data != 'string') {
+                if (data && typeof data !== 'string') {
                     setMsg(t('settings.import_success$success$skipped', { success: data.success, skipped: data.skipped }))
                     setMsgList(data.skippedList)
                     setIsOpen(true);
@@ -97,6 +97,7 @@ export function Settings() {
                             <ItemSwitch title={t('settings.counter.enable.title')} description={t('settings.counter.enable.desc')} type="client" configKey="counter.enabled" />
                             <ItemSwitch title={t('settings.rss.title')} description={t('settings.rss.desc')} type="client" configKey="rss" />
                             <ItemInput title={t('settings.favicon.title')} description={t('settings.favicon.desc')} type="client" configKey="favicon" configKeyTitle="Favicon" />
+                            <ItemInput title={t('settings.footer.title')} description={t('settings.footer.desc')} type="client" configKey="footer" configKeyTitle="Footer HTML" />
                             <ItemButton title={t('settings.cache.clear.title')} description={t('settings.cache.clear.desc')} buttonTitle={t('clear')} onConfirm={async () => {
                                 await client.config.cache.delete(undefined, {
                                     headers: headersWithAuth()

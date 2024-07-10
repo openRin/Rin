@@ -10,7 +10,7 @@ export const defaultClientConfig = new Map(Object.entries({
 export const defaultServerConfig = new Map(Object.entries({
     "friend_apply_auto_accept": false,
     "friend_crontab": true,
-    "friend_ua":"Rin-Check/0.1.0"
+    "friend_ua": "Rin-Check/0.1.0"
 }))
 
 export class ConfigWrapper {
@@ -22,7 +22,7 @@ export class ConfigWrapper {
     }
     get<T>(key: string) {
         const value = this.config[key];
-        if (value != undefined && value != "") {
+        if (value !== undefined && value !== "") {
             return value as T;
         }
         if (this.defaultConfig.has(key)) {

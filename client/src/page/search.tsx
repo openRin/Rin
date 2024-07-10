@@ -32,7 +32,7 @@ export function SearchPage({ keyword }: { keyword: string }) {
             },
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data != 'string') {
+            if (data && typeof data !== 'string') {
                 setFeeds(data)
                 setStatus('idle')
             }

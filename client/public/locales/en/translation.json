@@ -135,6 +135,10 @@
       "desc": "Set the icon (Favicon) displayed in the browser's address bar",
       "title": "Favicon"
     },
+    "footer": {
+      "desc": "Set the footer content of the site (HTML)",
+      "title": "Footer"
+    },
     "friend": {
       "apply": {
         "desc": "Allow other users to apply for friend links (requires review)",
