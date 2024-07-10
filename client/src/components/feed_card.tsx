@@ -2,7 +2,14 @@ import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { timeago } from "../utils/timeago";
 import { HashTag } from "./hashtag";
-export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, createdAt, updatedAt }: { id: string, avatar?: string, draft?: number, listed?: number, title: string, summary: string, hashtags: { id: number, name: string }[], createdAt: Date, updatedAt: Date }) {
+export function FeedCard({ id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt }:
+    {
+        id: string, avatar?: string,
+        draft?: number, listed?: number, top?: number,
+        title: string, summary: string,
+        hashtags: { id: number, name: string }[],
+        createdAt: Date, updatedAt: Date
+    }) {
     const { t } = useTranslation()
     return (
         <>
@@ -15,7 +22,7 @@ export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, 
                 <h1 className="text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden">
                     {title}
                 </h1>
-                <div className="space-x-2">
+                <div className="gap-x-2">
                     <span className="text-gray-400 text-sm" title={new Date(createdAt).toLocaleString()}>
                         {createdAt === updatedAt ? timeago(createdAt) : t('feed_card.published$time', { time: timeago(createdAt) })}
                     </span>
@@ -24,8 +31,13 @@ export function FeedCard({ id, title, avatar, draft, listed, summary, hashtags, 
                             {t('feed_card.updated$time', { time: timeago(updatedAt) })}
                         </span>
                     }
-                    {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}
-                    {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
+                    <p className="gap-4">
+                        {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}
+                        {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
+                        {top === 1 && <span className="text-theme text-sm">
+                            置顶
+                        </span>}
+                    </p>
                 </div>
                 <p className="text-pretty overflow-hidden dark:text-neutral-500">
                     {summary}

@@ -1,11 +1,14 @@
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
+import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
 import { removeCookie } from "typescript-cookie";
 import { Link, useLocation } from "wouter";
 import { oauth_url } from "../main";
 import { Profile, ProfileContext } from "../state/profile";
+import { Button } from "./button";
 import { Icon } from "./icon";
+import { Input } from "./input";
 import { Padding } from "./padding";
 
 
@@ -54,6 +57,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
                                 </div>
                             </div>
                             <div className="ml-auto hidden opacity-0 md:opacity-100 duration-300 md:flex flex-row items-center space-x-2">
+                                <SearchButton />
                                 <LanguageSwitch />
                                 <UserAvatar profile={profile} />
                             </div>
@@ -146,6 +150,7 @@ function Menu() {
             >
                 <div className="flex flex-col bg-w rounded-xl p-2 mt-4 w-[50vw]">
                     <div className="flex flex-row justify-end space-x-2">
+                        <SearchButton onClose={onClose} />
                         <LanguageSwitch />
                         <UserAvatar profile={profile} mobile />
                     </div>
@@ -209,5 +214,62 @@ function LanguageSwitch({ className }: { className?: string }) {
                 </div>
             </Popup>
         </div>
+    )
+}
+
+function SearchButton({ className, onClose }: { className?: string, onClose?: () => void }) {
+    const { t } = useTranslation()
+    const [isOpened, setIsOpened] = useState(false);
+    const [_, setLocation] = useLocation()
+    const [value, setValue] = useState('')
+    const label = t('article.search.title')
+    const onSearch = () => {
+        const key = `${encodeURIComponent(value)}`
+        setTimeout(() => {
+            setIsOpened(false)
+            onClose?.()
+        }, 100)
+        if (value.length != 0)
+            setLocation(`/search/${key}`)
+    }
+    return (<div className={className + " flex flex-row items-center"}>
+        <button onClick={() => setIsOpened(true)} title={label} aria-label={label}
+            className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-active">
+            <i className="ri-search-line"></i>
+        </button>
+        <ReactModal
+            isOpen={isOpened}
+            style={{
+                content: {
+                    top: "20%",
+                    left: "50%",
+                    right: "auto",
+                    bottom: "auto",
+                    marginRight: "-50%",
+                    transform: "translate(-50%, -50%)",
+                    padding: "0",
+                    border: "none",
+                    borderRadius: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    background: "none",
+                },
+                overlay: {
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    zIndex: 1000,
+                },
+            }}
+            onRequestClose={() => setIsOpened(false)}
+        >
+            <div className="bg-w w-full flex flex-row items-center justify-between p-4 space-x-4">
+                <Input value={value} setValue={setValue} placeholder={t('article.search.placeholder')}
+                    autofocus
+                    onSubmit={onSearch} />
+                <Button title={value.length === 0 ? t("close") : label} onClick={onSearch} />
+            </div>
+        </ReactModal>
+    </div>
     )
 }

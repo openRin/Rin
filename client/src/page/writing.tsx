@@ -434,8 +434,7 @@ export function WritingPage({ id }: { id?: number }) {
                       className=""
                       value={content}
                       // onPaste={handlePaste}
-                      onChange={(data, e) => {
-                        console.log(e)
+                      onChange={(data, _) => {
                         cache.set("content", data ?? "");
                         setContent(data ?? "");
                       }}
