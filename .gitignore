@@ -4,7 +4,6 @@ dist/**
 .turbo
 *.db
 .env
-bun.lockb
 test.ts
 *.log
 .env.production
