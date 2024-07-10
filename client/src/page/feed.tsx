@@ -72,7 +72,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
   }
   function topFeed() {
     const isUnTop = !(top > 0)
-    const topNew = top === 0 ? 1 : 0;
+    const topNew = isUnTop ? 1 : 0;
     // Confirm
     showConfirm(
       isUnTop ? t("article.top.title") : t("article.untop.title"),
