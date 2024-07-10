@@ -17,7 +17,7 @@ export function TimelinePage() {
         client.feed.timeline.get({
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data != 'string') {
+            if (data && typeof data !== 'string') {
                 setLength(data.length)
                 const groups = Object.groupBy(data, ({ createdAt }) => new Date(createdAt).getFullYear())
                 setFeeds(groups)

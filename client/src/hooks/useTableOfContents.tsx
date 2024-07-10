@@ -58,7 +58,7 @@ const useTableOfContents = (selector: string) => {
         )
         intersectingList.length = 0 // reset array
         headers.forEach((header, i) => {
-            if (header.getAttribute('data-id') != null) return
+            if (header.getAttribute('data-id') !== null) return
             header.setAttribute('data-id', i.toString()) // set data-id
             intersectingList.push(false) // increase array length
             io.current!.observe(header) // register to observe

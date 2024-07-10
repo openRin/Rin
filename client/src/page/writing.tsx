@@ -62,7 +62,7 @@ async function publish({
   if (error) {
     showAlert(error.value as string);
   }
-  if (data && typeof data != "string") {
+  if (data && typeof data !== "string") {
     showAlert(t("publish.success"));
     Cache.with().clear();
     window.location.href = "/feed/" + data.insertedId;
@@ -176,7 +176,7 @@ export function WritingPage({ id }: { id?: number }) {
         .split("#")
         .filter((tag) => tag !== "")
         .map((tag) => tag.trim()) || [];
-    if (id != undefined) {
+    if (id !== undefined) {
       setPublishing(true)
       update({
         id,
@@ -451,7 +451,7 @@ export function WritingPage({ id }: { id?: number }) {
                   </div>
                 </div>
                 <div
-                  className={"px-4 h-[600px] overflow-y-scroll " + (preview != 'edit' ? "" : "hidden")}
+                  className={"px-4 h-[600px] overflow-y-scroll " + (preview !== 'edit' ? "" : "hidden")}
                 >
                   <Markdown content={content ? content : "> No content now. Write on the left side."} />
                 </div>

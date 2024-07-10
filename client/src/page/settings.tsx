@@ -31,7 +31,7 @@ export function Settings() {
         }).get({
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data != 'string') {
+            if (data && typeof data !== 'string') {
                 sessionStorage.setItem('config', JSON.stringify(data));
                 const config = new ConfigWrapper(data, defaultClientConfig)
                 setClientConfig(config)
@@ -46,7 +46,7 @@ export function Settings() {
         }).get({
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data != 'string') {
+            if (data && typeof data !== 'string') {
                 const config = new ConfigWrapper(data, defaultServerConfig)
                 setServerConfig(config)
             }
@@ -66,7 +66,7 @@ export function Settings() {
             }, {
                 headers: headersWithAuth()
             }).then(({ data }) => {
-                if (data && typeof data != 'string') {
+                if (data && typeof data !== 'string') {
                     setMsg(t('settings.import_success$success$skipped', { success: data.success, skipped: data.skipped }))
                     setMsgList(data.skippedList)
                     setIsOpen(true);

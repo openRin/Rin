@@ -22,7 +22,7 @@ export class ConfigWrapper {
     }
     get<T>(key: string) {
         const value = this.config[key];
-        if (value != undefined && value !== "") {
+        if (value !== undefined && value !== "") {
             return value as T;
         }
         if (this.defaultConfig.has(key)) {

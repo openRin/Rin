@@ -398,7 +398,7 @@ export function FeedService() {
             const feedItems: FeedItem[] = items?.map((item: any) => {
                 const createdAt = new Date(item?.['wp:post_date']);
                 const updatedAt = new Date(item?.['wp:post_modified']);
-                const draft = item?.['wp:status'] != 'publish';
+                const draft = item?.['wp:status'] !== 'publish';
                 const contentHtml = item?.['content:encoded'];
                 const content = html2md(contentHtml);
                 const summary = content.length > 100 ? content.slice(0, 100) : content;

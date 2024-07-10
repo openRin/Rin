@@ -41,7 +41,7 @@ export function HashtagPage({ name }: { name: string }) {
         client.tag({ name: nameDecoded }).get({
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data != 'string') {
+            if (data && typeof data !== 'string') {
                 setHashtag(data)
                 setStatus('idle')
             }

@@ -365,7 +365,7 @@ export function Markdown({ content }: { content: string }) {
             },
           };
         })
-        .filter((slide) => slide.src != "");
+        .filter((slide) => slide.src !== "");
       slides.current = (slidesLocal);
     }
     const index = slidesLocal?.findIndex((slide) => slide.src === src) ?? -1;

@@ -98,13 +98,13 @@ export function FriendsPage() {
             <meta property="og:type" content="article" />
             <meta property="og:url" content={document.URL} />
         </Helmet>
-        <Waiting for={friendsAvailable.length != 0 || friendsUnavailable.length != 0 || status === "idle"}>
+        <Waiting for={friendsAvailable.length !== 0 || friendsUnavailable.length !== 0 || status === "idle"}>
             <main className="w-full flex flex-col justify-center items-center mb-8 t-primary">
                 <FriendList title={t('friends.title')} show={friendsAvailable.length > 0} friends={friendsAvailable} />
                 <FriendList title={t('friends.left')} show={friendsUnavailable.length > 0} friends={friendsUnavailable} />
                 <FriendList title={t('friends.review.waiting')} show={waitList.length > 0} friends={waitList} />
                 <FriendList title={t('friends.review.rejected')} show={refusedList.length > 0} friends={refusedList} />
-                <FriendList title={t('friends.my_apply')} show={profile?.permission != true && apply != undefined} friends={apply ? [apply] : []} />
+                <FriendList title={t('friends.my_apply')} show={profile?.permission !== true && apply !== undefined} friends={apply ? [apply] : []} />
                 {profile && (profile.permission || config.get("friend_apply_enable")) &&
                     <div className="wauto t-primary flex text-start text-2xl font-bold mt-8 ani-show">
                         <div className="md:basis-1/2 bg-w rounded-xl p-4">
@@ -210,7 +210,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                 </div>
                 <p className="text-base text-center">{friend.name}</p>
                 {friend.health.length == 0 && <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>}
-                {friend.accepted != 1 && <p className={`${friend.accepted === 0 ? "t-primary" : "text-theme"}`}>{statusOption[friend.accepted + 1].label}</p>}
+                {friend.accepted !== 1 && <p className={`${friend.accepted === 0 ? "t-primary" : "text-theme"}`}>{statusOption[friend.accepted + 1].label}</p>}
                 {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
                 {(profile?.permission || profile?.id === friend.uid) && <>
                     <button onClick={(e) => { e.preventDefault(); setIsOpen(true) }} className="absolute top-0 right-0 m-2 px-2 py-1 bg-secondary t-primary rounded-full bg-active">
@@ -262,7 +262,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                                     <Select options={statusOption} required defaultValue={statusOption[friend.accepted + 1]}
                                         onChange={(newValue, _) => {
                                             const value = newValue?.value
-                                            if (value != undefined) {
+                                            if (value !== undefined) {
                                                 setStatus(value)
                                             }
                                         }}

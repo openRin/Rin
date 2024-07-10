@@ -32,7 +32,7 @@ function App() {
       client.user.profile.get({
         headers: headersWithAuth()
       }).then(({ data }) => {
-        if (data && typeof data != 'string') {
+        if (data && typeof data !== 'string') {
           setProfile({
             id: data.id,
             avatar: data.avatar || '',
@@ -49,7 +49,7 @@ function App() {
       setConfig(configWrapper)
     } else {
       client.config({ type: "client" }).get().then(({ data }) => {
-        if (data && typeof data != 'string') {
+        if (data && typeof data !== 'string') {
           sessionStorage.setItem('config', JSON.stringify(data))
           const config = new ConfigWrapper(data, defaultClientConfig)
           setConfig(config)
