@@ -204,12 +204,12 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                       )}
                     </div>
                     {counterEnabled && <p className='text-[12px] text-gray-400 font-normal link-line'>
-                      <span className="font-bold"> {t("count.pv")} </span>
+                      <span> {t("count.pv")} </span>
                       <span>
                         {feed.pv}
                       </span>
                       <span> |</span>
-                      <span className="font-bold"> {t("count.uv")} </span>
+                      <span> {t("count.uv")} </span>
                       <span>
                         {feed.uv}
                       </span>
