@@ -183,7 +183,7 @@ function NavBar({ menu, onClick }: { menu: boolean, onClick?: () => void }) {
 }
 
 function LanguageSwitch({ className }: { className?: string }) {
-    const { i18n } = useTranslation()
+    const { i18n, t } = useTranslation()
     const label = 'Languages'
     const languages = [
         { code: 'en', name: 'English' },
@@ -203,12 +203,15 @@ function LanguageSwitch({ className }: { className?: string }) {
                 closeOnDocumentClick
             >
                 <div className="border-card">
-                    <p className='font-bold t-primary'>
-                        Languages
+                    <p className='font-bold t-primary mb-1'>
+                        {t('languages')}
                     </p>
                     {languages.map(({ code, name }) => (
-                        <button key={code} onClick={() => i18n.changeLanguage(code)}>
+                        <button key={code} className="relative" onClick={() => i18n.changeLanguage(code)}>
                             {name}
+                            {i18n.language === code && (
+                                <div className={`size-1 bg-theme  rounded-full absolute -right-2 ${i18n.language == 'en' ? 'top-0' : '-top-0.5'}`} />
+                            )}
                         </button>
                     ))}
                 </div>
