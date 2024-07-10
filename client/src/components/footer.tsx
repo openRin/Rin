@@ -44,7 +44,7 @@ function Footer() {
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span>
-                        © 2024 Powered by <a className='hover:underline' href="https://github.com/OXeu/Rin" target="_blank">Rin</a>
+                        © 2024 Powered by <a className='hover:underline' href="https://github.com/openRin/Rin" target="_blank">Rin</a>
                     </span>
                     {config.get<boolean>('rss') && <>
                         <Spliter />

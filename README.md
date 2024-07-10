@@ -4,11 +4,11 @@ English | [简体中文](./README_zh_CN.md)
 
 ![Cover](https://repository-images.githubusercontent.com/803866357/958bc2c1-1703-4127-920c-853291495bdc)
 
-![GitHub commit activity](https://img.shields.io/github/commit-activity/w/OXeu/Rin?style=for-the-badge)
-![GitHub branch check runs](https://img.shields.io/github/check-runs/OXeu/Rin/main?style=for-the-badge)
-![GitHub top language](https://img.shields.io/github/languages/top/OXeu/Rin?style=for-the-badge)
-![GitHub License](https://img.shields.io/github/license/OXeu/Rin?style=for-the-badge)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/OXeu/Rin/deploy.yaml?style=for-the-badge)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/openRin/Rin?style=for-the-badge)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/openRin/Rin/main?style=for-the-badge)
+![GitHub top language](https://img.shields.io/github/languages/top/openRin/Rin?style=for-the-badge)
+![GitHub License](https://img.shields.io/github/license/openRin/Rin?style=for-the-badge)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/openRin/Rin/deploy.yaml?style=for-the-badge)
 
 # Introduction
 
@@ -34,23 +34,15 @@ Rin is a blog based on Cloudflare Pages + Workers + D1 + R2. It does not require
 13. For more features, please refer to https://xeu.life
 
 # Documentation
-1. [Deployment Documentation](./docs/DEPLOY.md)
-
-2. [Environment Variables List](./docs/ENV.md)
-
-3. [SEO Optimization Configuration](./docs/SEO.md)
-
-4. [Contribution Guide](./CONTRIBUTING.md)
-
-5. [Code of Conduct](./CODE_OF_CONDUCT.md)
+[rin-docs.xeu.life](https://rin-docs.xeu.life)
 
 ## Star History
 
-<a href="https://star-history.com/#OXeu/Rin&Date">
+<a href="https://star-history.com/#openRin/Rin&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=OXeu/Rin&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=OXeu/Rin&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OXeu/Rin&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=openRin/Rin&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=openRin/Rin&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=openRin/Rin&type=Date" />
  </picture>
 </a>
 

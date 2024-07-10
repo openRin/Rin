@@ -41,7 +41,7 @@ S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 ```
 xeu.life/seo/*
 ```
-![图片](https://github.com/OXeu/Rin/assets/36541432/ed0ecc72-f61f-4460-8ede-4475ca54ffcb)
+![图片](https://github.com/openRin/Rin/assets/36541432/ed0ecc72-f61f-4460-8ede-4475ca54ffcb)
 
 Worker 选择为部署的 Worker，点击保存。
 
@@ -58,6 +58,6 @@ concat("/seo",http.request.uri.path)
 选择`保留查询`
 
 参考配置截图：
-![转换规则](https://github.com/OXeu/Rin/assets/36541432/657e9546-1dc0-4390-9bfc-5d3eb725e792)
+![转换规则](https://github.com/openRin/Rin/assets/36541432/657e9546-1dc0-4390-9bfc-5d3eb725e792)
 
 点击部署，即可完成 SEO 配置。
