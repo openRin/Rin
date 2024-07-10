@@ -17,7 +17,7 @@ type Hashtag = {
 
 export function HashtagsPage() {
     const { t } = useTranslation();
-    const [hashtags, setHashtags] = useState<Hashtag[]>([]);
+    const [hashtags, setHashtags] = useState<Hashtag[]>();
     const ref = useRef(false);
     useEffect(() => {
         if (ref.current) return;
@@ -47,7 +47,7 @@ export function HashtagsPage() {
                     </div>
 
                     <div className="wauto flex flex-col flex-wrap items-start justify-start">
-                        {hashtags.filter(({ feeds }) => feeds > 0).map((hashtag, index) => {
+                        {hashtags?.filter(({ feeds }) => feeds > 0).map((hashtag, index) => {
                             return (
                                 <div key={index} className="w-full flex flex-row">
                                     <div className="w-full rounded-2xl m-2 duration-300 flex flex-row items-center space-x-4   ">
