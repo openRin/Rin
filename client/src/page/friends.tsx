@@ -1,5 +1,5 @@
 import i18next from "i18next";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
 import { useTranslation } from "react-i18next";
 import Modal from 'react-modal';
@@ -204,7 +204,7 @@ function Friend({ friend }: { friend: FriendItem }) {
         { value: 0, label: t('friends.review.waiting') },
         { value: 1, label: t('friends.review.accepted') }
     ]
-    const UI = useMemo(() => (
+    return (
         <>
             <a title={friend.name} href={friend.url} target="_blank" className="bg-button w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative ani-show">
                 <div className="w-16 h-16">
@@ -286,8 +286,7 @@ function Friend({ friend }: { friend: FriendItem }) {
             <ConfirmUI />
             <AlertUI />
         </>
-    ), [avatar, name, desc, url, status])
-    return UI
+    )
 }
 
 function errorHumanize(error: string) {
