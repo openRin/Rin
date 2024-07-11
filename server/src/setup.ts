@@ -66,6 +66,7 @@ export function setup() {
             }
             return {
                 uid: user.id,
+                username: user.username,
                 admin: user.permission === 1,
             }
         })
