@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
@@ -16,7 +16,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
     const profile = useContext(ProfileContext);
     const { t } = useTranslation()
 
-    return (
+    const UI = useMemo(() => (
         <>
             <div className="fixed z-40">
                 <div className="w-screen">
@@ -67,7 +67,8 @@ export function Header({ children }: { children?: React.ReactNode }) {
             </div>
             <div className="h-20"></div>
         </>
-    )
+    ), [profile])
+    return UI
 }
 
 function NavItem({ menu, title, selected, href, when = true, onClick }: {
