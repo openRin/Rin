@@ -275,25 +275,3 @@ function UserAvatar({ className, profile, onClose }: { className?: string, profi
     </div>
     )
 }
-
-// function UserAvatar({ profile, className, mobile }: { className?: string, profile?: Profile, mobile?: boolean }) {
-//     const { t } = useTranslation()
-//     const githubLoginText = t('github_login')
-//     return (<div className={"flex flex-row justify-end " + className}>
-//         {profile?.avatar ? <>
-//             <div className="relative">
-//                 <img src={profile.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2" />
-//                 <div className="z-50 absolute left-0 top-0 w-10 h-10 opacity-0 hover:opacity-100 duration-300">
-//                     <Icon label={t('logout')} name="ri-logout-circle-line ri-xl" onClick={() => {
-//                         removeCookie("token")
-//                         window.location.reload()
-//                     }} hover={false} />
-//                 </div>
-//             </div>
-//         </> : <>
-//             <Icon label={t('github_login')} name="ri-user-received-line ri-xl" onClick={() => {
-//                 window.location.href = `${oauth_url}`
-//             }} hover={false} />
-//         </>}
-//     </div>)
-// }
