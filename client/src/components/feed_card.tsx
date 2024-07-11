@@ -22,7 +22,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                 <h1 className="text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden">
                     {title}
                 </h1>
-                <div className="gap-x-2">
+                <p className="space-x-2">
                     <span className="text-gray-400 text-sm" title={new Date(createdAt).toLocaleString()}>
                         {createdAt === updatedAt ? timeago(createdAt) : t('feed_card.published$time', { time: timeago(createdAt) })}
                     </span>
@@ -31,14 +31,14 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                             {t('feed_card.updated$time', { time: timeago(updatedAt) })}
                         </span>
                     }
-                    <p className="gap-4">
-                        {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}
-                        {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
-                        {top === 1 && <span className="text-theme text-sm">
-                            置顶
-                        </span>}
-                    </p>
-                </div>
+                </p>
+                <p className="space-x-2">
+                    {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}
+                    {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
+                    {top === 1 && <span className="text-theme text-sm">
+                        置顶
+                    </span>}
+                </p>
                 <p className="text-pretty overflow-hidden dark:text-neutral-500">
                     {summary}
                 </p>
