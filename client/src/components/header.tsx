@@ -1,13 +1,13 @@
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
 import { removeCookie } from "typescript-cookie";
 import { Link, useLocation } from "wouter";
-import { oauth_url } from "../main";
+import { useLoginModal } from "../hooks/useLoginModal";
 import { Profile, ProfileContext } from "../state/profile";
 import { Button } from "./button";
-import { Icon } from "./icon";
+import { IconSmall } from "./icon";
 import { Input } from "./input";
 import { Padding } from "./padding";
 
@@ -16,7 +16,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
     const profile = useContext(ProfileContext);
     const { t } = useTranslation()
 
-    return (
+    return useMemo(() => (
         <>
             <div className="fixed z-40">
                 <div className="w-screen">
@@ -67,7 +67,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
             </div>
             <div className="h-20"></div>
         </>
-    )
+    ), [profile, children])
 }
 
 function NavItem({ menu, title, selected, href, when = true, onClick }: {
@@ -90,33 +90,6 @@ function NavItem({ menu, title, selected, href, when = true, onClick }: {
                 </Link>}
         </>
     )
-}
-
-function UserAvatar({ profile, className, mobile }: { className?: string, profile?: Profile, mobile?: boolean }) {
-    const { t } = useTranslation()
-    const githubLoginText = t('github_login')
-    return (<div className={"flex flex-row justify-end " + className}>
-        {profile?.avatar ? <>
-            <div className="relative">
-                <img src={profile.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2" />
-                <div className="z-50 absolute left-0 top-0 w-10 h-10 opacity-0 hover:opacity-100 duration-300">
-                    <Icon label={t('logout')} name="ri-logout-circle-line ri-xl" onClick={() => {
-                        removeCookie("token")
-                        window.location.reload()
-                    }} hover={false} />
-                </div>
-            </div>
-        </> : <>
-            <button title={githubLoginText} aria-label={githubLoginText}
-                onClick={() => window.location.href = `${oauth_url}`}
-                className={`flex rounded-xl border dark:border-neutral-600 ${mobile ? "bg-secondary" : "bg-w"} h-10 sm:h-auto px-2 py-2 bg-w bg-active t-primary items-center justify-center`}>
-                <i className="ri-github-line ri-xl"></i>
-                <p className="text-sm ml-1">
-                    {githubLoginText}
-                </p>
-            </button>
-        </>}
-    </div>)
 }
 
 function Menu() {
@@ -152,7 +125,7 @@ function Menu() {
                     <div className="flex flex-row justify-end space-x-2">
                         <SearchButton onClose={onClose} />
                         <LanguageSwitch />
-                        <UserAvatar profile={profile} mobile />
+                        <UserAvatar profile={profile} />
                     </div>
                     <NavBar menu={true} onClick={onClose} />
                 </div>
@@ -174,7 +147,7 @@ function NavBar({ menu, onClick }: { menu: boolean, onClick?: () => void }) {
             <NavItem menu={menu} onClick={onClick} when={profile?.permission == true} title={t('writing')}
                 selected={location.startsWith("/writing")} href="/writing" />
             <NavItem menu={menu} onClick={onClick} title={t('friends.title')} selected={location === "/friends"} href="/friends" />
-            <NavItem menu={menu} onClick={onClick} title={t('about')} selected={location === "/about"} href="/about" />
+            <NavItem menu={menu} onClick={onClick} title={t('about.title')} selected={location === "/about"} href="/about" />
             <NavItem menu={menu} onClick={onClick} when={profile?.permission == true} title={t('settings.title')}
                 selected={location === "/settings"}
                 href="/settings" />
@@ -194,7 +167,7 @@ function LanguageSwitch({ className }: { className?: string }) {
         <div className={className + " flex flex-row items-center"}>
             <Popup trigger={
                 <button title={label} aria-label={label}
-                    className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-active">
+                    className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-button">
                     <i className="ri-translate-2"></i>
                 </button>
             }
@@ -227,14 +200,15 @@ function SearchButton({ className, onClose }: { className?: string, onClose?: ()
         const key = `${encodeURIComponent(value)}`
         setTimeout(() => {
             setIsOpened(false)
-            onClose?.()
+            if (value.length !== 0)
+                onClose?.()
         }, 100)
         if (value.length !== 0)
             setLocation(`/search/${key}`)
     }
     return (<div className={className + " flex flex-row items-center"}>
         <button onClick={() => setIsOpened(true)} title={label} aria-label={label}
-            className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-active">
+            className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-button">
             <i className="ri-search-line"></i>
         </button>
         <ReactModal
@@ -270,6 +244,34 @@ function SearchButton({ className, onClose }: { className?: string, onClose?: ()
                 <Button title={value.length === 0 ? t("close") : label} onClick={onSearch} />
             </div>
         </ReactModal>
+    </div>
+    )
+}
+
+
+function UserAvatar({ className, profile, onClose }: { className?: string, profile?: Profile, onClose?: () => void }) {
+    const { t } = useTranslation()
+    const { LoginModal, setIsOpened } = useLoginModal(onClose)
+    const label = t('github_login')
+
+    return (<div className={className + " flex flex-row items-center"}>
+        {profile?.avatar ? <>
+            <div className="w-8 relative">
+                <img src={profile.avatar} alt="Avatar" className="w-8 h-8 rounded-full border" />
+                <div className="z-50 absolute left-0 top-0 w-10 h-8 opacity-0 hover:opacity-100 duration-300">
+                    <IconSmall label={t('logout')} name="ri-logout-circle-line" onClick={() => {
+                        removeCookie("token")
+                        window.location.reload()
+                    }} hover={false} />
+                </div>
+            </div>
+        </> : <>
+            <button onClick={() => setIsOpened(true)} title={label} aria-label={label}
+                className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-button">
+                <i className="ri-user-received-line"></i>
+            </button>
+        </>}
+        <LoginModal />
     </div>
     )
 }

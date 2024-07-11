@@ -63,9 +63,10 @@ async function publish({
     showAlert(error.value as string);
   }
   if (data && typeof data !== "string") {
-    showAlert(t("publish.success"));
-    Cache.with().clear();
-    window.location.href = "/feed/" + data.insertedId;
+    showAlert(t("publish.success"), () => {
+      Cache.with().clear();
+      window.location.href = "/feed/" + data.insertedId;
+    });
   }
 }
 

@@ -1,5 +1,8 @@
 {
-  "about": "关于",
+  "about": {
+    "notfound": "将文章别名设置为 about 可以创建关于页面",
+    "title": "关于"
+  },
   "alert": "提示",
   "alias": "别名",
   "article": {
@@ -70,6 +73,11 @@
   "draft": "草稿",
   "draft_bin": "草稿箱",
   "edit": "编辑",
+  "error": {
+    "api_url": "Pages 环境变量中 API_URL 应为 Worker 地址，请检查 Pages 环境变量中 API_URL 是否正确",
+    "api_url_slash": "Pages 环境变量中 API_URL 应为 Worker 地址，请检查 Pages 环境变量中 API_URL 是否正确，且 API_URL 末尾不能有 /",
+    "github_callback": "GitHub OAuth 回调地址应为 `https://<Worker 地址>/user/github/callback，请检查 GitHub OAuth 回调地址是否正确"
+  },
   "feed_card": {
     "published$time": "{{time}} 发布",
     "updated$time": "{{time}} 更新"
@@ -101,9 +109,16 @@
   },
   "listed": "列出在文章中",
   "login": {
-    "required": "需要登录"
+    "oauth_only": "请登录后继续",
+    "password": {
+      "placeholder": "请输入密码"
+    },
+    "required": "请登录后继续",
+    "title": "登录",
+    "username": {
+      "placeholder": "请输入用户名"
+    }
   },
-  "logout": "退出登录",
   "next": "下一页",
   "preview": "预览",
   "previous": "上一页",
