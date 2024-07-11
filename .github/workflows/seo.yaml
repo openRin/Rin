@@ -45,5 +45,5 @@ jobs:
           S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
         run: |
           cd Rin/
-          bun i
+          bun install --frozen-lockfile
           bun scripts/render.ts
