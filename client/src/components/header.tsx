@@ -16,7 +16,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
     const profile = useContext(ProfileContext);
     const { t } = useTranslation()
 
-    const UI = useMemo(() => (
+    return useMemo(() => (
         <>
             <div className="fixed z-40">
                 <div className="w-screen">
@@ -68,7 +68,6 @@ export function Header({ children }: { children?: React.ReactNode }) {
             <div className="h-20"></div>
         </>
     ), [profile, children])
-    return UI
 }
 
 function NavItem({ menu, title, selected, href, when = true, onClick }: {
@@ -272,7 +271,7 @@ function UserAvatar({ className, profile, onClose }: { className?: string, profi
                 <i className="ri-user-received-line"></i>
             </button>
         </>}
-        {LoginModal}
+        <LoginModal />
     </div>
     )
 }

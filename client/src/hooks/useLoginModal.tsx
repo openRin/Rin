@@ -1,6 +1,6 @@
 import { t } from "i18next";
 import { Button } from "primereact/button";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import ReactModal from "react-modal";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
@@ -16,7 +16,7 @@ export function useLoginModal(onClose?: () => void) {
             onClose?.()
         }, 100)
     }, [username, password])
-    const LoginModal = useMemo(() => {
+    const LoginModal = useCallback(() => {
         return (
             <ReactModal
                 isOpen={isOpened}

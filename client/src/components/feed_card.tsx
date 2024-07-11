@@ -12,7 +12,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
         createdAt: Date, updatedAt: Date
     }) {
     const { t } = useTranslation()
-    const UI = useMemo(() => (
+    return useMemo(() => (
         <>
             <Link href={`/feed/${id}`} target="_blank" className="w-full rounded-2xl bg-w my-2 p-6 duration-300 ani-show bg-button">
                 {avatar &&
@@ -54,5 +54,4 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
             </Link>
         </>
     ), [id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt])
-    return UI
 }
