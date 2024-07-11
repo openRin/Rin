@@ -1,5 +1,5 @@
 import i18next from "i18next";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
 import { useTranslation } from "react-i18next";
 import Modal from 'react-modal';
@@ -87,7 +87,7 @@ export function FriendsPage() {
         ref.current = true
     }, [])
     function publishButton() {
-        publish({ name, desc, avatar, url, showAlert})
+        publish({ name, desc, avatar, url, showAlert })
     }
     return (<>
         <Helmet>
@@ -159,7 +159,8 @@ function Friend({ friend }: { friend: FriendItem }) {
     const [modalIsOpen, setIsOpen] = useState(false);
     const { showConfirm, ConfirmUI } = useConfirm()
     const { showAlert, AlertUI } = useAlert()
-    function deleteFriend() {
+
+    const deleteFriend = useCallback(() => {
         showConfirm(
             t('delete.title'),
             t('delete.confirm'),
@@ -176,8 +177,9 @@ function Friend({ friend }: { friend: FriendItem }) {
                     }
                 })
             })
-    }
-    function updateFriend() {
+    }, [friend.id])
+
+    const updateFriend = useCallback(() => {
         client.friend({ id: friend.id }).put({
             avatar,
             name,
@@ -195,14 +197,14 @@ function Friend({ friend }: { friend: FriendItem }) {
                 })
             }
         })
-    }
+    }, [avatar, name, desc, url, status])
 
     const statusOption = [
         { value: -1, label: t('friends.review.rejected') },
         { value: 0, label: t('friends.review.waiting') },
         { value: 1, label: t('friends.review.accepted') }
     ]
-    return (
+    const UI = useMemo(() => (
         <>
             <a title={friend.name} href={friend.url} target="_blank" className="bg-button w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative ani-show">
                 <div className="w-16 h-16">
@@ -284,13 +286,14 @@ function Friend({ friend }: { friend: FriendItem }) {
             <ConfirmUI />
             <AlertUI />
         </>
-    )
+    ), [avatar, name, desc, url, status])
+    return UI
 }
 
 function errorHumanize(error: string) {
     if (error === "certificate has expired" || error == "526") {
         return "证书已过期"
-    } else if (error.includes("Unable to connect") || error == "521") {
+    } else if (error.includes("Unable to connect") || error == "521" || error == "522") {
         return "无法访问"
     }
     return error
