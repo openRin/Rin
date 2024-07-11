@@ -109,9 +109,16 @@
   },
   "listed": "列出在文章中",
   "login": {
-    "required": "需要登录"
+    "oauth_only": "请登录后继续",
+    "password": {
+      "placeholder": "请输入密码"
+    },
+    "required": "请登录后继续",
+    "title": "登录",
+    "username": {
+      "placeholder": "请输入用户名"
+    }
   },
-  "logout": "退出登录",
   "next": "下一页",
   "preview": "预览",
   "previous": "上一页",

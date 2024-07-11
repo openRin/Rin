@@ -109,9 +109,16 @@
   },
   "listed": "Listed in articles",
   "login": {
-    "required": "Login required"
+    "oauth_only": "Please log in to continue",
+    "password": {
+      "placeholder": "Please enter your password"
+    },
+    "required": "Please log in to continue",
+    "title": "Login",
+    "username": {
+      "placeholder": "Please enter your username"
+    }
   },
-  "logout": "Logout",
   "next": "Next Page",
   "preview": "Preview",
   "previous": "Previous Page",

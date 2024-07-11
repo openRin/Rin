@@ -109,9 +109,16 @@
   },
   "listed": "記事にリスト",
   "login": {
-    "required": "ログインが必要です"
+    "oauth_only": "続行するにはログインしてください",
+    "password": {
+      "placeholder": "パスワードを入力してください"
+    },
+    "required": "続行するにはログインしてください",
+    "title": "ログイン",
+    "username": {
+      "placeholder": "ユーザー名を入力してください"
+    }
   },
-  "logout": "ログアウト",
   "next": "次のページ",
   "preview": "プレビュー",
   "previous": "前のページ",
