@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { timeago } from "../utils/timeago";
 import { HashTag } from "./hashtag";
+import { useMemo } from "react";
 export function FeedCard({ id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt }:
     {
         id: string, avatar?: string,
@@ -11,7 +12,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
         createdAt: Date, updatedAt: Date
     }) {
     const { t } = useTranslation()
-    return (
+    const UI = useMemo(() => (
         <>
             <Link href={`/feed/${id}`} target="_blank" className="w-full rounded-2xl bg-w my-2 p-6 duration-300 ani-show bg-button">
                 {avatar &&
@@ -52,5 +53,6 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
 
             </Link>
         </>
-    )
+    ), [id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt])
+    return UI
 }
