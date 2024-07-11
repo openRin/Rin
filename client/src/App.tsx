@@ -21,9 +21,12 @@ import { Profile, ProfileContext } from './state/profile'
 import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
 import { SearchPage } from './page/search.tsx'
+import { Tips, TipsPage } from './components/tips.tsx'
+import { useTranslation } from 'react-i18next'
 
 function App() {
   const ref = useRef(false)
+  const { t } = useTranslation()
   const [profile, setProfile] = useState<Profile | undefined>()
   const [config, setConfig] = useState<ConfigWrapper>(new ConfigWrapper({}, new Map()))
   useEffect(() => {
@@ -132,6 +135,30 @@ function App() {
                 )
               }}
             </RouteWithIndex>
+
+            <RouteMe path="/user/github">
+              {_ => (
+                <TipsPage>
+                  <Tips value={t('error.api_url')} type='error' />
+                </TipsPage>
+              )}
+            </RouteMe>
+
+            <RouteMe path="/*/user/github">
+              {_ => (
+                <TipsPage>
+                  <Tips value={t('error.api_url_slash')} type='error' />
+                </TipsPage>
+              )}
+            </RouteMe>
+
+            <RouteMe path="/user/github/callback">
+              {_ => (
+                <TipsPage>
+                  <Tips value={t('error.github_callback')} type='error' />
+                </TipsPage>
+              )}
+            </RouteMe>
 
             {/* Default route in a switch */}
             <Route>404: No such page!</Route>

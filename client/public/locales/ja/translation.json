@@ -1,5 +1,8 @@
 {
-  "about": "概要",
+  "about": {
+    "notfound": "About ページを作成するには、記事のエイリアスを about に設定します",
+    "title": "概要"
+  },
   "alert": "警告",
   "alias": "エイリアス",
   "article": {
@@ -70,6 +73,11 @@
   "draft": "下書き",
   "draft_bin": "下書き",
   "edit": "編集",
+  "error": {
+    "api_url": "Pages 環境変数のAPI_URLはWorkerアドレスである必要があります。Pages環境変数のAPI_URLが正しいか確認してください。",
+    "api_url_slash": "Pages 環境変数のAPI_URLはWorkerアドレスである必要があります。Pages環境変数のAPI_URLが正しいか、またAPI_URLの末尾にスラッシュ（/）がないか確認してください。",
+    "github_callback": "GitHub OAuthコールバックURLは`https://<Workerアドレス>/user/github/callback`である必要があります。GitHub OAuthコールバックURLが正しいか確認してください。"
+  },
   "feed_card": {
     "published$time": "{{time}} に公開",
     "updated$time": "{{time}} に更新"
