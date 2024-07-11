@@ -322,7 +322,7 @@ export function TOCHeader({ TOC }: { TOC: () => JSX.Element }) {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            background: "white",
+            background: "none",
           },
           overlay: {
             backgroundColor: "rgba(0, 0, 0, 0.5)",

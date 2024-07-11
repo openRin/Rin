@@ -67,7 +67,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
             </div>
             <div className="h-20"></div>
         </>
-    ), [profile])
+    ), [profile, children])
     return UI
 }
 
