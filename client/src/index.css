@@ -91,6 +91,12 @@ ul {
 .octicon {
   @apply mr-1 w-3;
 }
+
+.katex {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 /* animation */
 
 @keyframes anvil {
@@ -127,6 +133,8 @@ ul {
 
 .table {
   @apply w-full border-collapse my-4;
+  overflow-x: auto;
+  display: block !important;
 }
 
 .table th,
