@@ -127,7 +127,7 @@ try {
         const lastVersion = parseInt(sqlFiles[sqlFiles.length - 1].split('-')[0]);
         if (lastVersion > migrationVersion) {
             // Update the migration version
-            await updateMigrationVersion(true, DB_NAME, lastVersion);
+            await updateMigrationVersion(false, DB_NAME, lastVersion);
         }
     }
 } catch (e: any) {
