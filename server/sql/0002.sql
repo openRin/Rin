@@ -1,26 +1,7 @@
-PRAGMA foreign_keys=off;
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS `feeds_new` (
+CREATE TABLE IF NOT EXISTS `info` (
 	`id` integer PRIMARY KEY NOT NULL,
-	`alias` text,
-	`title` text,
-	`content` text NOT NULL,
-    `summary` text DEFAULT '' NOT NULL,
-	`listed` integer DEFAULT 1 NOT NULL,
-	`draft` integer DEFAULT 1 NOT NULL,
-	`uid` integer NOT NULL,
-    `top` integer DEFAULT 0 NOT NULL,
-	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
-	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
-	FOREIGN KEY (`uid`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+	`key` text NOT NULL,
+	`value` text NOT NULL
 );
---> statement-breakpoint
-INSERT INTO `feeds_new` (`id`, `alias`, `title`, `content`, `summary`, `listed`, `draft`, `uid`, `created_at`, `updated_at`)
-SELECT `id`, `alias`, `title`, `content`, `summary`, `listed`, `draft`, `uid`, `created_at`, `updated_at`
-FROM `feeds`;
---> statement-breakpoint
-DROP TABLE `feeds`;
---> statement-breakpoint
-ALTER TABLE `feeds_new` RENAME TO `feeds`;
---> statement-breakpoint
-PRAGMA foreign_keys=on;
+
+INSERT INTO `info` (`key`, `value`) VALUES ('migration_version', '2');

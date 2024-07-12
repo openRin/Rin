@@ -1,6 +1,7 @@
 import { $ } from "bun"
 import { readdir } from "node:fs/promises"
 import stripIndent from 'strip-indent'
+import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from "./fix-top-field"
 
 function env(name: string, defaultValue?: string, required = false) {
     const env = process.env
@@ -12,7 +13,7 @@ function env(name: string, defaultValue?: string, required = false) {
 }
 
 // must be defined
-const renv = (name: string, defaultValue?: string) => env(name, defaultValue, true)
+const renv = (name: string, defaultValue?: string) => env(name, defaultValue, true)!
 
 const DB_NAME = renv("DB_NAME", 'rin')
 const WORKER_NAME = renv("WORKER_NAME", 'rin-server')
@@ -102,13 +103,32 @@ if (existing) {
 }
 
 console.log(`----------------------------`)
-
 console.log(`Migrating D1 "${DB_NAME}"`)
+const migrationVersion = await getMigrationVersion(true, DB_NAME);
+const isInfoExistResult = await isInfoExist(true, DB_NAME);
+
 try {
     const files = await readdir("./server/sql", { recursive: false })
-    for (const file of files) {
+    const sqlFiles = files
+        .filter(name => name.endsWith('.sql'))
+        .filter(name => {
+            const version = parseInt(name.split('-')[0]);
+            return version > migrationVersion;
+        })
+        .sort();
+    console.log("migration_version:", migrationVersion, "Migration SQL List: ", sqlFiles)
+    for (const file of sqlFiles) {
         await $`bunx wrangler d1 execute ${DB_NAME} --remote --file ./server/sql/${file} -y`
         console.log(`Migrated ${file}`)
+    }
+    if (sqlFiles.length === 0) {
+        console.log("No migration needed.")
+    } else {
+        const lastVersion = parseInt(sqlFiles[sqlFiles.length - 1].split('-')[0]);
+        if (lastVersion > migrationVersion) {
+            // Update the migration version
+            await updateMigrationVersion(true, DB_NAME, lastVersion);
+        }
     }
 } catch (e: any) {
     console.error(e.stderr.toString())
@@ -116,6 +136,9 @@ try {
 }
 
 console.log(`Migrated D1 "${DB_NAME}"`)
+console.log(`----------------------------`)
+console.log(`Patch D1`)
+await fixTopField(true, DB_NAME, isInfoExistResult);
 console.log(`----------------------------`)
 console.log(`Put secrets`)
 
