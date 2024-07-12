@@ -1,7 +1,6 @@
 import { $ } from "bun"
 
-export async function fixTopField(isLocal: boolean, db: string, isInfoExistResult: boolean) {
-    const typ = isLocal ? "local" : "remote"
+export async function fixTopField(typ: 'local' | 'remote', db: string, isInfoExistResult: boolean) {
     if (!isInfoExistResult) {
         console.log("Legacy database, check top field")
         const result = await $`bunx wrangler d1 execute ${db}  --${typ} --json --command "SELECT name FROM pragma_table_info('feeds') WHERE name='top'"`.quiet().json()
@@ -16,8 +15,7 @@ export async function fixTopField(isLocal: boolean, db: string, isInfoExistResul
     }
 }
 
-export async function isInfoExist(isLocal: boolean, db: string) {
-    const typ = isLocal ? "local" : "remote"
+export async function isInfoExist(typ: 'local' | 'remote', db: string) {
     const result = await $`bunx wrangler d1 execute ${db}  --${typ} --json --command "SELECT name FROM sqlite_master WHERE type='table' AND name='info'"`.quiet().json()
     if (result[0].results.length === 0) {
         console.log("info table not exists")
@@ -28,13 +26,12 @@ export async function isInfoExist(isLocal: boolean, db: string) {
     }
 }
 
-export async function getMigrationVersion(isLocal: boolean, db: string) {
-    const isInfoExistResult = await isInfoExist(isLocal, db)
+export async function getMigrationVersion(typ: 'local' | 'remote', db: string) {
+    const isInfoExistResult = await isInfoExist(typ, db)
     if (!isInfoExistResult) {
         console.log("Legacy database, migration_version not exists")
         return -1
     }
-    const typ = isLocal ? "local" : "remote"
     const result = await $`bunx wrangler d1 execute ${db}  --${typ} --json --command "SELECT value FROM info WHERE key='migration_version'"`.quiet().json()
     if (result[0].results.length === 0) {
         console.log("migration_version not exists")
@@ -45,9 +42,8 @@ export async function getMigrationVersion(isLocal: boolean, db: string) {
     }
 }
 
-export async function updateMigrationVersion(isLocal: boolean, db: string, version: number) {
-    const typ = isLocal ? "local" : "remote"
-    const exists = await isInfoExist(isLocal, db)
+export async function updateMigrationVersion(typ: 'local' | 'remote', db: string, version: number) {
+    const exists = await isInfoExist(typ, db)
     if (!exists) {
         console.log("info table not exists, skip update migration_version")
         throw new Error("info table not exists")

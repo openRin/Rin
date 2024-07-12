@@ -104,8 +104,9 @@ if (existing) {
 
 console.log(`----------------------------`)
 console.log(`Migrating D1 "${DB_NAME}"`)
-const migrationVersion = await getMigrationVersion(true, DB_NAME);
-const isInfoExistResult = await isInfoExist(true, DB_NAME);
+const typ = 'remote';
+const migrationVersion = await getMigrationVersion(typ, DB_NAME);
+const isInfoExistResult = await isInfoExist(typ, DB_NAME);
 
 try {
     const files = await readdir("./server/sql", { recursive: false })
@@ -127,7 +128,7 @@ try {
         const lastVersion = parseInt(sqlFiles[sqlFiles.length - 1].split('-')[0]);
         if (lastVersion > migrationVersion) {
             // Update the migration version
-            await updateMigrationVersion(false, DB_NAME, lastVersion);
+            await updateMigrationVersion(typ, DB_NAME, lastVersion);
         }
     }
 } catch (e: any) {
@@ -140,7 +141,7 @@ try {
 console.log(`Migrated D1 "${DB_NAME}"`)
 console.log(`----------------------------`)
 console.log(`Patch D1`)
-await fixTopField(true, DB_NAME, isInfoExistResult);
+await fixTopField(typ, DB_NAME, isInfoExistResult);
 console.log(`----------------------------`)
 console.log(`Put secrets`)
 

@@ -8,9 +8,9 @@ const SQL_DIR = path.join(__dirname, '..', 'server', 'sql');
 
 // Change to the server/sql directory
 process.chdir(SQL_DIR);
-
-const migrationVersion = await getMigrationVersion(true, DB_NAME);
-const isInfoExistResult = await isInfoExist(true, DB_NAME);
+const typ = 'local';
+const migrationVersion = await getMigrationVersion(typ, DB_NAME);
+const isInfoExistResult = await isInfoExist(typ, DB_NAME);
 // List all SQL files and sort them
 const sqlFiles = fs
     .readdirSync(SQL_DIR, { withFileTypes: true })
@@ -43,11 +43,11 @@ if (sqlFiles.length === 0) {
     const lastVersion = parseInt(sqlFiles[sqlFiles.length - 1].split('-')[0]);
     if (lastVersion > migrationVersion) {
         // Update the migration version
-        await updateMigrationVersion(true, DB_NAME, lastVersion);
+        await updateMigrationVersion(typ, DB_NAME, lastVersion);
     }
 }
 
-await fixTopField(true, DB_NAME, isInfoExistResult);
+await fixTopField(typ, DB_NAME, isInfoExistResult);
 
 // Back to the root directory (optional, as the script ends)
 process.chdir(__dirname);
