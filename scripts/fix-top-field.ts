@@ -47,6 +47,11 @@ export async function getMigrationVersion(isLocal: boolean, db: string) {
 
 export async function updateMigrationVersion(isLocal: boolean, db: string, version: number) {
     const typ = isLocal ? "local" : "remote"
+    const exists = await isInfoExist(isLocal, db)
+    if (!exists) {
+        console.log("info table not exists, skip update migration_version")
+        throw new Error("info table not exists")
+    }
     await $`bunx wrangler d1 execute ${db}  --${typ} --json --command "UPDATE info SET value='${version}' WHERE key='migration_version'"`.quiet()
     console.log("Updated migration_version to", version)
 }

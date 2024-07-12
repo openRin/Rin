@@ -26,8 +26,7 @@ export const visits = sqliteTable("visits", {
 });
 
 export const info = sqliteTable("info", {
-    id: integer("id").primaryKey(),
-    key: text("key").notNull(),
+    key: text("key").notNull().unique(),
     value: text("value").notNull(),
 });
 
