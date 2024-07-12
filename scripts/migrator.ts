@@ -131,9 +131,9 @@ try {
         }
     }
 } catch (e: any) {
-    console.error(e.stdio.toString())
-    console.error(e.stdout.toString())
-    console.error(e.stderr.toString())
+    console.error(e.stdio?.toString())
+    console.error(e.stdout?.toString())
+    console.error(e.stderr?.toString())
     process.exit(1)
 }
 
