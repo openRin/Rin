@@ -11,7 +11,7 @@
     "dev:client": "bun --filter './client' dev",
     "dev:server": "bun wrangler dev --port 11498",
     "check": "turbo check",
-    "cf-deploy": "bun server/migrator.ts",
+    "cf-deploy": "bun scripts/migrator.ts",
     "b": "turbo build",
     "t": "turbo t",
     "g": "turbo run g",
