@@ -25,6 +25,11 @@ export const visits = sqliteTable("visits", {
     createdAt: created_at,
 });
 
+export const info = sqliteTable("info", {
+    key: text("key").notNull().unique(),
+    value: text("value").notNull(),
+});
+
 export const friends = sqliteTable("friends", {
     id: integer("id").primaryKey(),
     name: text("name").notNull(),
