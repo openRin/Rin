@@ -86,8 +86,9 @@ const useTableOfContents = (selector: string) => {
                         className={activeIndex === item.index ? "text-theme" : ""}
                         style={{ marginLeft: item.marginLeft }}
                         onClick={() => {
-                            item.element.scrollIntoView({
-                                behavior: 'smooth'
+                            window.scrollTo({
+                                behavior: 'smooth',
+                                top: item.element.offsetTop,
                             });
                         }}
                     >
