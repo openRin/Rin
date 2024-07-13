@@ -119,6 +119,7 @@
       "placeholder": "Please enter your username"
     }
   },
+  "logout": "Logout",
   "next": "Next Page",
   "preview": "Preview",
   "previous": "Previous Page",
@@ -139,6 +140,12 @@
         "title": "Clear Cache"
       },
       "clear_failed$message": "Failed to clear cache: {{message}}"
+    },
+    "comment": {
+      "enable": {
+        "desc": "Enable comment support",
+        "title": "Enable Comment"
+      }
     },
     "counter": {
       "enable": {

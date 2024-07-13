@@ -119,6 +119,7 @@
       "placeholder": "ユーザー名を入力してください"
     }
   },
+  "logout": "ログアウト",
   "next": "次のページ",
   "preview": "プレビュー",
   "previous": "前のページ",
@@ -139,6 +140,12 @@
         "title": "キャッシュをクリア"
       },
       "clear_failed$message": "キャッシュのクリアに失敗しました: {{message}}"
+    },
+    "comment": {
+      "enable": {
+        "desc": "コメント機能を有効にする",
+        "title": "コメントを有効にする"
+      }
     },
     "counter": {
       "enable": {

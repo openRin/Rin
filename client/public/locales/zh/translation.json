@@ -119,6 +119,7 @@
       "placeholder": "请输入用户名"
     }
   },
+  "logout": "退出登录",
   "next": "下一页",
   "preview": "预览",
   "previous": "上一页",
@@ -139,6 +140,12 @@
         "title": "清除缓存"
       },
       "clear_failed$message": "清除缓存失败: {{message}}"
+    },
+    "comment": {
+      "enable": {
+        "desc": "启用评论功能",
+        "title": "启用评论"
+      }
     },
     "counter": {
       "enable": {
