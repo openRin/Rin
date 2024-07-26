@@ -23,7 +23,8 @@ export function RSSService() {
     const folder = env.S3_CACHE_FOLDER || 'cache/';
     return new Elysia({ aot: false })
         .get('/sub/:name', async ({ set, params: { name } }) => {
-            if (!accessHost) {
+            const host = `${(accessHost.startsWith("http://") || accessHost.startsWith("https://") ? '' :'https://')}${accessHost}`;
+            if (!host) {
                 set.status = 500;
                 return 'S3_ACCESS_HOST is not defined'
             }
@@ -33,7 +34,7 @@ export function RSSService() {
             if (['rss.xml', 'atom.xml', 'rss.json'].includes(name)) {
                 const key = path.join(folder, name);
                 try {
-                    const url = `${accessHost}/${key}`;
+                    const url = `${host}/${key}`;
                     console.log(`Fetching ${url}`);
                     const response = await fetch(new Request(url))
                     const contentType = name === 'rss.xml' ? 'application/rss+xml; charset=UTF-8' : name === 'atom.xml' ? 'application/atom+xml; charset=UTF-8' : 'application/feed+json; charset=UTF-8';
