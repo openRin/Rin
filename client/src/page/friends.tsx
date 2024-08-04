@@ -1,5 +1,5 @@
 import i18next from "i18next";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
 import { useTranslation } from "react-i18next";
 import Modal from 'react-modal';
@@ -86,9 +86,6 @@ export function FriendsPage() {
         })
         ref.current = true
     }, [])
-    function publishButton() {
-        publish({ name, desc, avatar, url, showAlert })
-    }
     return (<>
         <Helmet>
             <title>{`${t('friends.title')} - ${process.env.NAME}`}</title>
@@ -117,7 +114,7 @@ export function FriendsPage() {
                                 <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
                                 <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
                                 <div className='flex flex-row justify-center'>
-                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>{t('create.title')}</button>
+                                    <button onClick={() => publish({ name, desc, avatar, url, showAlert })} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>{t('create.title')}</button>
                                 </div>
                             </div>
                         </div>
@@ -130,7 +127,7 @@ export function FriendsPage() {
 }
 
 function FriendList({ title, show, friends }: { title: string, show: boolean, friends: FriendItem[] }) {
-    return (<>
+    return useMemo(() => <>
         {
             show && <>
                 <div className="wauto text-start py-4">
@@ -145,7 +142,7 @@ function FriendList({ title, show, friends }: { title: string, show: boolean, fr
                 </div>
             </>
         }
-    </>)
+    </>, [title, show, friends])
 }
 
 function Friend({ friend }: { friend: FriendItem }) {
@@ -199,11 +196,11 @@ function Friend({ friend }: { friend: FriendItem }) {
         })
     }, [avatar, name, desc, url, status])
 
-    const statusOption = [
+    const statusOption = useMemo(()=>[
         { value: -1, label: t('friends.review.rejected') },
         { value: 0, label: t('friends.review.waiting') },
         { value: 1, label: t('friends.review.accepted') }
-    ]
+    ],[])
     return (
         <>
             <a title={friend.name} href={friend.url} target="_blank" className="bg-button w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative ani-show">
