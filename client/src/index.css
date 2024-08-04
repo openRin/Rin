@@ -1,7 +1,5 @@
 @import "./base.css";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 /* cantarell-latin-400-normal */
 @font-face {
   font-family: "Cantarell";

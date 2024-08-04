@@ -280,7 +280,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
             </main>
             <div className="w-80 hidden lg:block relative">
               <div
-                className={`ml-2 rounded-2xl bg-w py-4 px-4 start-0 end-0 top-[5.5rem] sticky t-primary`}
+                className={`ml-2 start-0 end-0 top-[5.5rem] sticky`}
               >
                 <TOC />
               </div>
@@ -331,7 +331,7 @@ export function TOCHeader({ TOC }: { TOC: () => JSX.Element }) {
         }}
         onRequestClose={() => setIsOpened(false)}
       >
-        <div className="rounded-2xl bg-w py-4 px-4 w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
+        <div className="w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
           <TOC />
         </div>
       </ReactModal>
