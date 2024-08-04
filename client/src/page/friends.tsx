@@ -96,14 +96,14 @@ export function FriendsPage() {
             <meta property="og:url" content={document.URL} />
         </Helmet>
         <Waiting for={friendsAvailable.length !== 0 || friendsUnavailable.length !== 0 || status === "idle"}>
-            <main className="w-full flex flex-col justify-center items-center mb-8 t-primary">
+            <main className="w-full flex flex-col justify-center items-center mb-8 t-primary ani-show">
                 <FriendList title={t('friends.title')} show={friendsAvailable.length > 0} friends={friendsAvailable} />
                 <FriendList title={t('friends.left')} show={friendsUnavailable.length > 0} friends={friendsUnavailable} />
                 <FriendList title={t('friends.review.waiting')} show={waitList.length > 0} friends={waitList} />
                 <FriendList title={t('friends.review.rejected')} show={refusedList.length > 0} friends={refusedList} />
                 <FriendList title={t('friends.my_apply')} show={profile?.permission !== true && apply !== undefined} friends={apply ? [apply] : []} />
                 {profile && (profile.permission || config.get("friend_apply_enable")) &&
-                    <div className="wauto t-primary flex text-start text-2xl font-bold mt-8 ani-show">
+                    <div className="wauto t-primary flex text-start text-2xl font-bold mt-8">
                         <div className="md:basis-1/2 bg-w rounded-xl p-4">
                             <p>
                                 {profile.permission ? t('friends.create') : t('friends.apply')}
@@ -127,7 +127,8 @@ export function FriendsPage() {
 }
 
 function FriendList({ title, show, friends }: { title: string, show: boolean, friends: FriendItem[] }) {
-    return useMemo(() => <>
+    console.log(friends)
+    return (<>
         {
             show && <>
                 <div className="wauto text-start py-4">
@@ -142,7 +143,7 @@ function FriendList({ title, show, friends }: { title: string, show: boolean, fr
                 </div>
             </>
         }
-    </>, [title, show, friends])
+    </>)
 }
 
 function Friend({ friend }: { friend: FriendItem }) {
@@ -196,14 +197,14 @@ function Friend({ friend }: { friend: FriendItem }) {
         })
     }, [avatar, name, desc, url, status])
 
-    const statusOption = useMemo(()=>[
+    const statusOption = useMemo(() => [
         { value: -1, label: t('friends.review.rejected') },
         { value: 0, label: t('friends.review.waiting') },
         { value: 1, label: t('friends.review.accepted') }
-    ],[])
+    ], [])
     return (
         <>
-            <a title={friend.name} href={friend.url} target="_blank" className="bg-button w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative ani-show">
+            <a title={friend.name} href={friend.url} target="_blank" className="bg-button w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative">
                 <div className="w-16 h-16">
                     <img className={"rounded-full " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                 </div>

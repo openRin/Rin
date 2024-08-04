@@ -76,13 +76,13 @@ const useTableOfContents = (selector: string) => {
     }
 
     return {
-        TOC: () => (<div>
+        TOC: () => (<div className='rounded-2xl bg-w py-4 px-4 t-primary'>
             <h2 className="text-lg font-bold">{t("index.title")}</h2>
-            <ul>
+            <ul className="max-h-[calc(100vh-10.25rem)] overflow-auto" style={{ scrollbarWidth: "none" }}>
                 {tableOfContents.length === 0 && <li>{t("index.empty.title")}</li>}
                 {tableOfContents.map((item) => (
                     <li
-                        key={item.index}
+                        key={`toc$${item.index}`}
                         className={activeIndex === item.index ? "text-theme" : ""}
                         style={{ marginLeft: item.marginLeft }}
                         onClick={() => {
