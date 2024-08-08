@@ -9,6 +9,7 @@ import {
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import gfm from "remark-gfm";
+import remarkMermaid from "../remark/remarkMermaid";
 import { remarkAlert } from "remark-github-blockquote-alert";
 import remarkMath from "remark-math";
 import Lightbox, { SlideImage } from "yet-another-react-lightbox";
@@ -17,6 +18,7 @@ import Download from "yet-another-react-lightbox/plugins/download";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 import { useColorMode } from "../utils/darkModeUtils";
+
 
 const countNewlinesBeforeNode = (text: string, offset: number) => {
   let newlinesBefore = 0;
@@ -58,7 +60,7 @@ export function Markdown({ content }: { content: string }) {
   const Content = useMemo(() => (
     <ReactMarkdown
       className="toc-content dark:text-neutral-300"
-      remarkPlugins={[gfm, remarkMath, remarkAlert]}
+      remarkPlugins={[gfm, remarkMermaid, remarkMath, remarkAlert]}
       children={content}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
       components={{
