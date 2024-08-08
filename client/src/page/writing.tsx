@@ -1,10 +1,11 @@
 import Editor from '@monaco-editor/react';
 import i18n from 'i18next';
+import _ from 'lodash';
 import { editor } from 'monaco-editor';
 import { Calendar } from 'primereact/calendar';
 import 'primereact/resources/primereact.css';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import Loading from 'react-loading';
@@ -307,25 +308,31 @@ export function WritingPage({ id }: { id?: number }) {
         });
     }
   }, []);
-  useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "default",
-    });
-    mermaid.run({
-      suppressErrors: true,
-      nodes: document.querySelectorAll("pre.mermaid_default")
-    }).then(()=>{
+  const debouncedUpdate = useCallback(
+    _.debounce(() => {
       mermaid.initialize({
         startOnLoad: false,
-        theme: "dark",
+        theme: "default",
       });
       mermaid.run({
         suppressErrors: true,
-        nodes: document.querySelectorAll("pre.mermaid_dark")
-      });
-    })
-  }, [content]);
+        nodes: document.querySelectorAll("pre.mermaid_default")
+      }).then(()=>{
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: "dark",
+        });
+        mermaid.run({
+          suppressErrors: true,
+          nodes: document.querySelectorAll("pre.mermaid_dark")
+        });
+      })
+    }, 100),
+    []
+  );
+  useEffect(() => {
+    debouncedUpdate();
+  }, [content, debouncedUpdate]);
   function MetaInput({ className }: { className?: string }) {
     return (
       <>
