@@ -12,7 +12,10 @@ function processNode(child: Content, index: number, siblings: Content[]) {
   if (lang !== 'mermaid') return;
   siblings[index] = {
     type: 'html',
-    value: `<pre class="mermaid_default dark:hidden">${value}</pre><pre class="mermaid_dark dark:block hidden">${value}</pre>`
+    value: `
+    <pre class="mermaid_default dark:hidden">${value}</pre>
+    <pre class="mermaid_dark dark:block hidden">${value}</pre>
+    `
   }
 }
 
