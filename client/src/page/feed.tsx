@@ -17,6 +17,7 @@ import { timeago } from "../utils/timeago";
 import { Button } from "../components/button";
 import { Tips } from "../components/tips";
 import { useLoginModal } from "../hooks/useLoginModal";
+import mermaid from "mermaid";
 
 type Feed = {
   id: number;
@@ -128,6 +129,26 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
       });
     ref.current = id;
   }, [id]);
+  useEffect(() => {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "default",
+    });
+    mermaid.run({
+      suppressErrors: true,
+      nodes: document.querySelectorAll("pre.mermaid_default")
+    }).then(()=>{
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "dark",
+      });
+      mermaid.run({
+        suppressErrors: true,
+        nodes: document.querySelectorAll("pre.mermaid_dark")
+      });
+    })
+  }, [feed]);
+
   return (
     <Waiting for={feed || error}>
       {feed && (

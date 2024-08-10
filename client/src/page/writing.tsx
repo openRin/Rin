@@ -1,10 +1,11 @@
 import Editor from '@monaco-editor/react';
 import i18n from 'i18next';
+import _ from 'lodash';
 import { editor } from 'monaco-editor';
 import { Calendar } from 'primereact/calendar';
 import 'primereact/resources/primereact.css';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import Loading from 'react-loading';
@@ -16,6 +17,7 @@ import { headersWithAuth } from "../utils/auth";
 import { Cache, useCache } from '../utils/cache';
 import { siteName } from "../utils/constants";
 import { useColorMode } from "../utils/darkModeUtils";
+import mermaid from 'mermaid';
 
 async function publish({
   title,
@@ -250,7 +252,7 @@ export function WritingPage({ id }: { id?: number }) {
     const t = i18n.t
     const upChange = (event: any) => {
       for (let i = 0; i < event.currentTarget.files.length; i++) {
-        let file = event.currentTarget.files[i]; ///获得input的第一个图片
+        const file = event.currentTarget.files[i]; ///获得input的第一个图片
         if (file.size > 5 * 1024000) {
           showAlert(t("upload.failed$size", { size: 5 }))
           uploadRef.current!.value = "";
@@ -306,6 +308,31 @@ export function WritingPage({ id }: { id?: number }) {
         });
     }
   }, []);
+  const debouncedUpdate = useCallback(
+    _.debounce(() => {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "default",
+      });
+      mermaid.run({
+        suppressErrors: true,
+        nodes: document.querySelectorAll("pre.mermaid_default")
+      }).then(()=>{
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: "dark",
+        });
+        mermaid.run({
+          suppressErrors: true,
+          nodes: document.querySelectorAll("pre.mermaid_dark")
+        });
+      })
+    }, 100),
+    []
+  );
+  useEffect(() => {
+    debouncedUpdate();
+  }, [content, debouncedUpdate]);
   function MetaInput({ className }: { className?: string }) {
     return (
       <>
