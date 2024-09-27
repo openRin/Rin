@@ -1,12 +1,14 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import Elysia from "elysia";
 import type { DB } from "../_worker";
 import { feedHashtags, hashtags } from "../db/schema";
 import { getDB } from "../utils/di";
+import { setup } from "../setup";
 
 export function TagService() {
     const db: DB = getDB();
     return new Elysia({ aot: false })
+        .use(setup())
         .group('/tag', (group) =>
             group
                 .get('/', async () => {
@@ -24,7 +26,7 @@ export function TagService() {
                         }
                     })
                 })
-                .get('/:name', async ({ set, params: { name } }) => {
+                .get('/:name', async ({ admin, set, params: { name } }) => {
                     const nameDecoded = decodeURI(name)
                     const tag = await db.query.hashtags.findFirst({
                         where: eq(hashtags.name, nameDecoded),
@@ -32,7 +34,11 @@ export function TagService() {
                             feeds: {
                                 with: {
                                     feed: {
-                                        columns: { id: true, title: true, summary: true, content: true, createdAt: true, updatedAt: true },
+                                        columns: {
+                                            id: true, title: true, summary: true, content: true, createdAt: true, updatedAt: true,
+                                            draft: false,
+                                            listed: false
+                                        },
                                         with: {
                                             user: {
                                                 columns: { id: true, username: true, avatar: true }
@@ -45,18 +51,22 @@ export function TagService() {
                                                     }
                                                 }
                                             }
-                                        }
-                                    }
+                                        },
+                                        where: (feeds: any) => admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                                    } as any
                                 }
                             }
                         }
                     });
-                    const tagFeeds = tag?.feeds.map((tag) => {
+                    const tagFeeds = tag?.feeds.map((tag: any) => {
+                        if (!tag.feed) {
+                            return null;
+                        }
                         return {
                             ...tag.feed,
-                            hashtags: tag.feed.hashtags.map((tag) => tag.hashtag)
+                            hashtags: tag.feed.hashtags.map((tag: any) => tag.hashtag)
                         }
-                    })
+                    }).filter((feed: any) => feed !== null);
                     if (!tag) {
                         set.status = 404;
                         return 'Not found';
