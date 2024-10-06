@@ -10,6 +10,7 @@
     "dev": "turbo dev",
     "dev:client": "bun --filter './client' dev",
     "dev:server": "bun wrangler dev --port 11498",
+    "dev:cron": "bun wrangler dev --port 11498 --test-scheduled",
     "check": "turbo check",
     "cf-deploy": "bun scripts/migrator.ts",
     "b": "turbo build",
