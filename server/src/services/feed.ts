@@ -324,11 +324,12 @@ export function FeedService() {
             }
             const cacheKey = `search_${keyword}`;
             const searchKeyword = `%${keyword}%`;
-            const feed_list = (await cache.getOrSet(cacheKey, () => db.query.feeds.findMany({
-                where: or(like(feeds.title, searchKeyword),
+            const where = or(like(feeds.title, searchKeyword),
                     like(feeds.content, searchKeyword),
                     like(feeds.summary, searchKeyword),
-                    like(feeds.alias, searchKeyword)),
+                    like(feeds.alias, searchKeyword));
+            const feed_list = (await cache.getOrSet(cacheKey, () => db.query.feeds.findMany({
+                where: admin ? where : and(where, eq(feeds.draft, 0)),
                 columns: admin ? undefined : {
                     draft: false,
                     listed: false
