@@ -58,7 +58,7 @@ export function RSSService() {
 }
 
 export async function rssCrontab(env: Env) {
-    const frontendUrl = env.FRONTEND_URL;
+    const frontendUrl = `${(env.FRONTEND_URL.startsWith("http://") || env.FRONTEND_URL.startsWith("https://") ? '' :'https://')}${env.FRONTEND_URL}`;
     const db = drizzle(env.DB, { schema: schema })
     let title = env.RSS_TITLE;
     const description = env.RSS_DESCRIPTION || "Feed from Rin";
