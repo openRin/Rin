@@ -72,34 +72,56 @@ type D1Item = {
     created_at: string,
 }
 
-const { exitCode, stderr, stdout } = await $`bunx wrangler d1 create ${DB_NAME}`.quiet().nothrow()
-if (exitCode !== 0) {
-    if (!stderr.toString().includes('already exists')) {
-        console.error(`Failed to create D1 "${DB_NAME}"`)
-        console.error(stripIndent(stdout.toString()))
-        console.log(`----------------------------`)
-        console.error(stripIndent(stderr.toString()))
-        process.exit(1)
-    } else {
-        console.log(`D1 "${DB_NAME}" already exists.`)
-    }
-} else {
-    console.log(`Created D1 "${DB_NAME}"`)
-}
-console.log(`Searching D1 "${DB_NAME}"`)
-const listJsonString = await $`bunx wrangler d1 list --json`.quiet().text()
-const listJson = JSON.parse(listJsonString) as D1Item[] ?? []
-const existing = listJson.find((x: D1Item) => x.name === DB_NAME)
-if (existing) {
-    console.log(`Found: ${existing.name}:${existing.uuid}`)
-    // append to the end of the file
+
+console.log(`Searching D1 "${DB_NAME}"`);
+
+const listJsonString = await $`bunx wrangler d1 list --json`.quiet().text();
+const listJson = JSON.parse(listJsonString) as D1Item[] ?? [];
+const D1BataBase = listJson.find((x: D1Item) => x.name === DB_NAME);
+
+if (D1BataBase) {
+    console.log(`Found: ${D1BataBase.name}:${D1BataBase.uuid}`);
+
     const configText = stripIndent(`
     [[d1_databases]]
     binding = "DB"
-    database_name = "${existing.name}"
-    database_id = "${existing.uuid}"`)
-    await $`echo ${configText} >> wrangler.toml`.quiet()
-    console.log(`Appended to wrangler.toml`)
+    database_name = "${D1BataBase.name}"
+    database_id = "${D1BataBase.uuid}"`);
+
+    await $`echo ${configText} >> wrangler.toml`.quiet();
+    console.log(`Appended to wrangler.toml`);
+} else {
+    console.log(`D1 "${DB_NAME}" not found. Creating it...`);
+
+    const { exitCode, stderr, stdout } = await $`bunx wrangler d1 create ${DB_NAME}`.quiet().nothrow();
+    if (exitCode !== 0) {
+        if (stderr.toString().includes('DUPLICATE_DATABASE_ERROR')) {
+            console.log(`D1 "${DB_NAME}" already exists. Skipping creation.`);
+        } else {
+            console.error(`Failed to create D1 "${DB_NAME}"`);
+            console.error(stripIndent(stdout.toString()));
+            console.log(`----------------------------`);
+            console.error(stripIndent(stderr.toString()));
+            process.exit(1);
+        }
+    } else {
+        console.log(`Created D1 "${DB_NAME}"`);
+
+        const newListJsonString = await $`bunx wrangler d1 list --json`.quiet().text();
+        const newListJson = JSON.parse(newListJsonString) as D1Item[] ?? [];
+        const newDatabase = newListJson.find((x: D1Item) => x.name === DB_NAME);
+
+        if (newDatabase) {
+            const configText = stripIndent(`
+            [[d1_databases]]
+            binding = "DB"
+            database_name = "${newDatabase.name}"
+            database_id = "${newDatabase.uuid}"`);
+
+            await $`echo ${configText} >> wrangler.toml`.quiet();
+            console.log(`Appended new D1 "${DB_NAME}" to wrangler.toml`);
+        }
+    }
 }
 
 console.log(`----------------------------`)
