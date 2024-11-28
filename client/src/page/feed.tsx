@@ -327,7 +327,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                   </div>
                 </div>
               </article>
-              <div className="gap-2 m-2 flex flex-row">
+              <div className="gap-2 m-2 flex flex-col sm:flex-row">
                 {adjacentFeeds?.previousFeed && (
                   <FeedCard
                     {...adjacentFeeds.previousFeed}
