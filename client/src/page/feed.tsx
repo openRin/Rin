@@ -5,6 +5,7 @@ import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
 import { Link, useLocation } from "wouter";
 import { useAlert, useConfirm } from "../components/dialog";
+import { FeedCard } from "../components/feed_card";
 import { HashTag } from "../components/hashtag";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
@@ -39,10 +40,27 @@ type Feed = {
   uv: number;
 };
 
+type AdjacentFeed = {
+  id: number;
+  title: string | null;
+  summary: string;
+  hashtags: {
+    id: number;
+    name: string;
+  }[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+type AdjacentFeeds = {
+  nextFeed: AdjacentFeed | null;
+  previousFeed: AdjacentFeed | null;
+};
+
 export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Element, clean: (id: string) => void }) {
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
   const [feed, setFeed] = useState<Feed>();
+  const [adjacentFeeds, setAdjacentFeeds] = useState<AdjacentFeeds>();
   const [error, setError] = useState<string>();
   const [headImage, setHeadImage] = useState<string>();
   const ref = useRef("");
@@ -128,6 +146,18 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
         }
       });
     ref.current = id;
+  }, [id]);
+  useEffect(() => {
+    client.feed
+      .adjacent({ id })
+      .get()
+      .then(({ data, error }) => {
+        if (error) {
+          setError(error.value as string);
+        } else if (data && typeof data !== "string") {
+          setAdjacentFeeds(data);
+        }
+      });
   }, [id]);
   useEffect(() => {
     mermaid.initialize({
@@ -296,6 +326,31 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                   </div>
                 </div>
               </article>
+              <div className="gap-2 m-2 grid grid-cols-1 sm:grid-cols-2">
+                {adjacentFeeds?.previousFeed ? (
+                  <FeedCard
+                    {...adjacentFeeds.previousFeed}
+                    // TODO: Maybe it's better to change the type of the FeedCard section
+                    id={adjacentFeeds.previousFeed.id.toString()}
+                    title={adjacentFeeds.previousFeed.title || ""}
+                  />
+                ) : (
+                  <div className="hidden sm:flex justify-center items-center h-full text-xl font-bold text-gray-700 dark:text-white text-pretty">
+                    无上一篇文章
+                  </div>
+                )}
+                {adjacentFeeds?.nextFeed ? (
+                  <FeedCard
+                    {...adjacentFeeds.nextFeed}
+                    id={adjacentFeeds.nextFeed.id.toString()}
+                    title={adjacentFeeds.nextFeed.title || ""}
+                  />
+                ) : (
+                  <div className="hidden sm:flex justify-center items-center h-full text-xl font-bold text-gray-700 dark:text-white text-pretty">
+                    无下一篇文章
+                  </div>
+                )}
+              </div>
               {feed && <Comments id={`${feed.id}`} />}
               <div className="h-16" />
             </main>
