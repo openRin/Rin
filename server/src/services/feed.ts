@@ -1,4 +1,4 @@
-import { and, count, desc, eq, like, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import { XMLParser } from "fast-xml-parser";
 import html2md from 'html-to-md';
@@ -212,6 +212,115 @@ export function FeedService() {
                         hashtags: hashtags_flatten,
                         pv,
                         uv
+                    };
+                    return data;
+                })
+                .get("/adjacent/:id", async ({ set, params: { id } }) => {
+                    let id_num;
+                    if (isNaN(parseInt(id))) {
+                        const aliasRecord = await db
+                            .select({ id: feeds.id })
+                            .from(feeds)
+                            .where(eq(feeds.alias, id));
+                        if (aliasRecord.length === 0) {
+                            set.status = 404;
+                            return "Not found";
+                        }
+                        id_num = aliasRecord[0].id;
+                    } else {
+                        id_num = parseInt(id);
+                    }
+        
+                    // FIXME: create, delete and change feed listed should update cache
+                    const cache = PublicCache();
+                    const previousCacheKey = `previous_feed_${id}`;
+                    const nextCacheKey = `next_feed_${id}`;
+                    const previousFeed = await cache.getOrSet(
+                        previousCacheKey,
+                        async () => {
+                            const feed = await db.query.feeds.findFirst({
+                                where: and(
+                                    and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                                    lt(feeds.id, id_num),
+                                ),
+                                orderBy: [desc(feeds.id)],
+                                with: {
+                                    hashtags: {
+                                        columns: {},
+                                        with: {
+                                            hashtag: {
+                                                columns: { id: true, name: true },
+                                            },
+                                        },
+                                    },
+                                    user: {
+                                        columns: { id: true, username: true, avatar: true },
+                                    },
+                                },
+                            });
+                            if (feed) {
+                                const hashtags_flatten = feed.hashtags.map((f) => f.hashtag);
+                                const summary =
+                                    feed.summary.length > 0
+                                    ? feed.summary
+                                    : feed.content.length > 50
+                                        ? feed.content.slice(0, 50)
+                                        : feed.content;
+                                return {
+                                    id: feed.id,
+                                    title: feed.title,
+                                    summary: summary,
+                                    hashtags: hashtags_flatten,
+                                    createdAt: feed.createdAt,
+                                    updatedAt: feed.updatedAt,
+                                };
+                            }
+                            return null;
+                        },
+                    );
+                    const nextFeed = await cache.getOrSet(nextCacheKey, async () => {
+                        const feed = await db.query.feeds.findFirst({
+                            where: and(
+                                and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                                gt(feeds.id, id_num),
+                            ),
+                            orderBy: [asc(feeds.id)],
+                            with: {
+                                hashtags: {
+                                    columns: {},
+                                    with: {
+                                        hashtag: {
+                                            columns: { id: true, name: true },
+                                        },
+                                    },
+                                },
+                                user: {
+                                    columns: { id: true, username: true, avatar: true },
+                                },
+                            },
+                        });
+                        if (feed) {
+                            const hashtags_flatten = feed.hashtags.map((f) => f.hashtag);
+                            const summary =
+                            feed.summary.length > 0
+                                ? feed.summary
+                                : feed.content.length > 50
+                                    ? feed.content.slice(0, 50)
+                                    : feed.content;
+                            return {
+                                id: feed.id,
+                                title: feed.title,
+                                summary: summary,
+                                hashtags: hashtags_flatten,
+                                createdAt: feed.createdAt,
+                                updatedAt: feed.updatedAt,
+                            };
+                        }
+                        return null;
+                    });
+                    const data = {
+                        previousFeed,
+                        nextFeed,
                     };
                     return data;
                 })
