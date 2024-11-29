@@ -216,7 +216,7 @@ export function FeedService() {
                     return data;
                 })
                 .get("/adjacent/:id", async ({ set, params: { id } }) => {
-                    let id_num;
+                    let id_num: number;
                     if (isNaN(parseInt(id))) {
                         const aliasRecord = await db
                             .select({ id: feeds.id })
@@ -230,15 +230,44 @@ export function FeedService() {
                     } else {
                         id_num = parseInt(id);
                     }
-        
-                    // FIXME: create, delete and change feed listed should update cache
+          
                     const cache = PublicCache();
-                    const previousCacheKey = `previous_feed_${id}`;
-                    const nextCacheKey = `next_feed_${id}`;
-                    const previousFeed = await cache.getOrSet(
-                        previousCacheKey,
-                        async () => {
-                            const feed = await db.query.feeds.findFirst({
+                    function formatAndCacheData(
+                        feed: any,
+                        feedDirection: "previous_feed" | "next_feed",
+                    ) {
+                        if (feed) {
+                            const hashtags_flatten = feed.hashtags.map((f: any) => f.hashtag);
+                            const summary =
+                                feed.summary.length > 0
+                                    ? feed.summary
+                                    : feed.content.length > 50
+                                        ? feed.content.slice(0, 50)
+                                        : feed.content;
+                            // NOTE: feed.id is adjacent feed, id_num is current feed id
+                            const cacheKey = `${feed.id}_${feedDirection}_${id_num}`;
+                            const cacheData = {
+                            id: feed.id,
+                            title: feed.title,
+                            summary: summary,
+                            hashtags: hashtags_flatten,
+                            createdAt: feed.createdAt,
+                            updatedAt: feed.updatedAt,
+                            };
+                            cache.set(cacheKey, cacheData);
+                            return cacheData;
+                        }
+                        return null;
+                    }
+                    const getPreviousFeed = async () => {
+                        // It should return an array with only one data item
+                        const previousFeedCached = await cache.getBySuffix(
+                            `previous_feed_${id_num}`,
+                        );
+                        if (previousFeedCached && previousFeedCached.length > 0) {
+                            return previousFeedCached[0];
+                        } else {
+                            const tempPreviousFeed = await db.query.feeds.findFirst({
                                 where: and(
                                     and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
                                     lt(feeds.id, id_num),
@@ -258,71 +287,48 @@ export function FeedService() {
                                     },
                                 },
                             });
-                            if (feed) {
-                                const hashtags_flatten = feed.hashtags.map((f) => f.hashtag);
-                                const summary =
-                                    feed.summary.length > 0
-                                    ? feed.summary
-                                    : feed.content.length > 50
-                                        ? feed.content.slice(0, 50)
-                                        : feed.content;
-                                return {
-                                    id: feed.id,
-                                    title: feed.title,
-                                    summary: summary,
-                                    hashtags: hashtags_flatten,
-                                    createdAt: feed.createdAt,
-                                    updatedAt: feed.updatedAt,
-                                };
-                            }
-                            return null;
-                        },
-                    );
-                    const nextFeed = await cache.getOrSet(nextCacheKey, async () => {
-                        const feed = await db.query.feeds.findFirst({
-                            where: and(
-                                and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
-                                gt(feeds.id, id_num),
-                            ),
-                            orderBy: [asc(feeds.id)],
-                            with: {
-                                hashtags: {
-                                    columns: {},
-                                    with: {
-                                        hashtag: {
-                                            columns: { id: true, name: true },
+                            return formatAndCacheData(tempPreviousFeed, "previous_feed");
+                        }
+                    };
+                    const getNextFeed = async () => {
+                        const nextFeedCached = await cache.getBySuffix(
+                            `next_feed_${id_num}`,
+                        );
+                        if (nextFeedCached && nextFeedCached.length > 0) {
+                            return nextFeedCached[0];
+                        } else {
+                            const tempNextFeed = await db.query.feeds.findFirst({
+                                where: and(
+                                    and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                                    gt(feeds.id, id_num),
+                                ),
+                                orderBy: [asc(feeds.id)],
+                                with: {
+                                    hashtags: {
+                                        columns: {},
+                                        with: {
+                                            hashtag: {
+                                                columns: { id: true, name: true },
+                                            },
                                         },
                                     },
+                                    user: {
+                                        columns: { id: true, username: true, avatar: true },
+                                    },
                                 },
-                                user: {
-                                    columns: { id: true, username: true, avatar: true },
-                                },
-                            },
-                        });
-                        if (feed) {
-                            const hashtags_flatten = feed.hashtags.map((f) => f.hashtag);
-                            const summary =
-                            feed.summary.length > 0
-                                ? feed.summary
-                                : feed.content.length > 50
-                                    ? feed.content.slice(0, 50)
-                                    : feed.content;
-                            return {
-                                id: feed.id,
-                                title: feed.title,
-                                summary: summary,
-                                hashtags: hashtags_flatten,
-                                createdAt: feed.createdAt,
-                                updatedAt: feed.updatedAt,
-                            };
+                            });
+                            return formatAndCacheData(tempNextFeed, "next_feed");
                         }
-                        return null;
-                    });
-                    const data = {
+                    };
+          
+                    const [previousFeed, nextFeed] = await Promise.all([
+                        getPreviousFeed(),
+                        getNextFeed(),
+                    ]);
+                    return {
                         previousFeed,
                         nextFeed,
                     };
-                    return data;
                 })
                 .post('/:id', async ({
                     admin,
