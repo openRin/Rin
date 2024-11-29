@@ -594,6 +594,8 @@ async function clearFeedCache(id: number, alias: string | null, newAlias: string
     await cache.deletePrefix('feeds_');
     await cache.deletePrefix('search_');
     await cache.delete(`feed_${id}`, false);
+    await cache.deleteSuffix(`${id}_previous_feed`);
+    await cache.deleteSuffix(`${id}_next_feed`);
     if (alias === newAlias) return;
     if (alias)
         await cache.delete(`feed_${alias}`, false);
