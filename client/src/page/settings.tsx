@@ -5,7 +5,7 @@ import ReactLoading from "react-loading";
 import Modal from "react-modal";
 import { Button } from "../components/button.tsx";
 import { useAlert, useConfirm } from "../components/dialog.tsx";
-import { client } from "../main.tsx";
+import { client, oauth_url } from "../main.tsx";
 import { ClientConfigContext, ConfigWrapper, defaultClientConfig, defaultClientConfigWrapper, defaultServerConfig, defaultServerConfigWrapper, ServerConfigContext } from "../state/config.tsx";
 import { headersWithAuth } from "../utils/auth.ts";
 import '../utils/thumb.css';
@@ -94,6 +94,8 @@ export function Settings() {
                             <ItemSwitch title={t('settings.friend.health.title')} description={t('settings.friend.health.desc')} type="server" configKey="friend_crontab" />
                             <ItemInput title={t('settings.friend.health.ua.title')} description={t('settings.friend.health.ua.desc')} type="server" configKey="friend_ua" configKeyTitle="User-Agent" />
                             <ItemTitle title={t('settings.other.title')} />
+                            <ItemSwitch title={t('settings.login.enable.title')} description={t('settings.login.enable.desc', {"url": oauth_url})} type="client" configKey="login.enabled" />
+                            <ItemSwitch title={t('settings.comment.enable.title')} description={t('settings.comment.enable.desc')} type="client" configKey="comment.enabled" />
                             <ItemSwitch title={t('settings.counter.enable.title')} description={t('settings.counter.enable.desc')} type="client" configKey="counter.enabled" />
                             <ItemSwitch title={t('settings.rss.title')} description={t('settings.rss.desc')} type="client" configKey="rss" />
                             <ItemInput title={t('settings.favicon.title')} description={t('settings.favicon.desc')} type="client" configKey="favicon" configKeyTitle="Favicon" />

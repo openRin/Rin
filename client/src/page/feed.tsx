@@ -453,6 +453,7 @@ type Comment = {
 };
 
 function Comments({ id }: { id: string }) {
+  const config = useContext(ClientConfigContext);
   const [comments, setComments] = useState<Comment[]>([]);
   const [error, setError] = useState<string>();
   const ref = useRef("");
@@ -479,33 +480,35 @@ function Comments({ id }: { id: string }) {
   }, [id]);
   return (
     <>
-      <div className="m-2 flex flex-col justify-center items-center">
-        <CommentInput id={id} onRefresh={loadComments} />
-        {error && (
-          <>
-            <div className="flex flex-col wauto rounded-2xl bg-w t-primary m-2 p-6 items-center justify-center">
-              <h1 className="text-xl font-bold t-primary">{error}</h1>
-              <button
-                className="mt-2 bg-theme text-white px-4 py-2 rounded-full"
-                onClick={loadComments}
-              >
-                {t("reload")}
-              </button>
+      {config.get<boolean>('comment.enabled') &&
+        <div className="m-2 flex flex-col justify-center items-center">
+          <CommentInput id={id} onRefresh={loadComments} />
+          {error && (
+            <>
+              <div className="flex flex-col wauto rounded-2xl bg-w t-primary m-2 p-6 items-center justify-center">
+                <h1 className="text-xl font-bold t-primary">{error}</h1>
+                <button
+                  className="mt-2 bg-theme text-white px-4 py-2 rounded-full"
+                  onClick={loadComments}
+                >
+                  {t("reload")}
+                </button>
+              </div>
+            </>
+          )}
+          {comments.length > 0 && (
+            <div className="w-full">
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  onRefresh={loadComments}
+                />
+              ))}
             </div>
-          </>
-        )}
-        {comments.length > 0 && (
-          <div className="w-full">
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                onRefresh={loadComments}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      }
     </>
   );
 }
