@@ -4,6 +4,7 @@ import { ClientConfigContext } from '../state/config';
 import { Helmet } from "react-helmet";
 import { siteName } from '../utils/constants';
 import { useTranslation } from "react-i18next";
+import { useLoginModal } from '../hooks/useLoginModal';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
@@ -11,6 +12,9 @@ function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
     const config = useContext(ClientConfigContext);
     const footerHtml = config.get<string>('footer');
+    const loginEnabled = config.get<boolean>('login.enabled');
+    const [doubleClickTimes, setDoubleClickTimes] = useState(0);
+    const { LoginModal, setIsOpened } = useLoginModal()
     useEffect(() => {
         const mode = localStorage.getItem('theme') as ThemeMode || 'system';
         setModeState(mode);
@@ -45,7 +49,16 @@ function Footer() {
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
                 <p className='text-sm text-neutral-500 font-normal link-line'>
-                    <span>
+                    <span onDoubleClick={() => {
+                        if(doubleClickTimes >= 2){ // actually need 3 times doubleClick
+                            setDoubleClickTimes(0)
+                            if(!loginEnabled) {
+                                setIsOpened(true)
+                            }
+                        } else {
+                            setDoubleClickTimes(doubleClickTimes + 1)
+                        }
+                    }}>
                         © 2024 Powered by <a className='hover:underline' href="https://github.com/openRin/Rin" target="_blank">Rin</a>
                     </span>
                     {config.get<boolean>('rss') && <>
@@ -84,6 +97,7 @@ function Footer() {
                     <ThemeButton mode='dark' current={modeState} label="Toggle dark mode" icon="ri-moon-line" onClick={setMode} />
                 </div>
             </div>
+            <LoginModal />
         </footer>
     );
 }

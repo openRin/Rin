@@ -5,6 +5,8 @@ export const defaultClientConfig = new Map(Object.entries({
     "favicon": defaultFavicon,
     "counter.enabled": true,
     "friend_apply_enable": true,
+    "comment.enabled": true,
+    "login.enabled": true,
 }))
 
 export const defaultServerConfig = new Map(Object.entries({
