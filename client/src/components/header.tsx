@@ -10,6 +10,7 @@ import { Button } from "./button";
 import { IconSmall } from "./icon";
 import { Input } from "./input";
 import { Padding } from "./padding";
+import { ClientConfigContext } from "../state/config";
 
 
 export function Header({ children }: { children?: React.ReactNode }) {
@@ -253,25 +254,28 @@ function UserAvatar({ className, profile, onClose }: { className?: string, profi
     const { t } = useTranslation()
     const { LoginModal, setIsOpened } = useLoginModal(onClose)
     const label = t('github_login')
+    const config = useContext(ClientConfigContext);
 
-    return (<div className={className + " flex flex-row items-center"}>
-        {profile?.avatar ? <>
-            <div className="w-8 relative">
-                <img src={profile.avatar} alt="Avatar" className="w-8 h-8 rounded-full border" />
-                <div className="z-50 absolute left-0 top-0 w-10 h-8 opacity-0 hover:opacity-100 duration-300">
-                    <IconSmall label={t('logout')} name="ri-logout-circle-line" onClick={() => {
-                        removeCookie("token")
-                        window.location.reload()
-                    }} hover={false} />
+
+    return (
+        <> {config.get<boolean>('login.enabled') && <div className={className + " flex flex-row items-center"}>
+            {profile?.avatar ? <>
+                <div className="w-8 relative">
+                    <img src={profile.avatar} alt="Avatar" className="w-8 h-8 rounded-full border" />
+                    <div className="z-50 absolute left-0 top-0 w-10 h-8 opacity-0 hover:opacity-100 duration-300">
+                        <IconSmall label={t('logout')} name="ri-logout-circle-line" onClick={() => {
+                            removeCookie("token")
+                            window.location.reload()
+                        }} hover={false} />
+                    </div>
                 </div>
-            </div>
-        </> : <>
-            <button onClick={() => setIsOpened(true)} title={label} aria-label={label}
-                className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-button">
-                <i className="ri-user-received-line"></i>
-            </button>
-        </>}
-        <LoginModal />
-    </div>
-    )
+            </> : <>
+                <button onClick={() => setIsOpened(true)} title={label} aria-label={label}
+                    className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-button">
+                    <i className="ri-user-received-line"></i>
+                </button>
+            </>}
+            <LoginModal />
+        </div>
+        }</>)
 }

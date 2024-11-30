@@ -119,6 +119,7 @@
       "placeholder": "请输入用户名"
     }
   },
+  "logout": "退出登录",
   "next": "下一页",
   "preview": "预览",
   "previous": "上一页",
@@ -139,6 +140,12 @@
         "title": "清除缓存"
       },
       "clear_failed$message": "清除缓存失败: {{message}}"
+    },
+    "comment": {
+      "enable": {
+        "desc": "开启/关闭文章底部评论入口与评论区",
+        "title": "启用评论"
+      }
     },
     "counter": {
       "enable": {
@@ -175,6 +182,12 @@
     "import_skipped": "跳过导入",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
     "import_success$success$skipped": "导入成功，{{success}} 篇文章导入成功，{{skipped}} 篇文章跳过",
+    "login": {
+      "enable": {
+        "desc": "开启/关闭右上角登录按钮，关闭后可通过「双击」底部文字 “© 2024 Powered by” 「三次」触发登录入口",
+        "title": "启用右上角登录按钮"
+      }
+    },
     "other": {
       "title": "其他设置"
     },
