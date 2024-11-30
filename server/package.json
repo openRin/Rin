@@ -5,6 +5,7 @@
   "scripts": {
     "cf:deploy": "wrangler deploy",
     "dev": "bun wrangler dev --port 11498",
+    "dev:cron": "bun wrangler dev --port 11498 --test-scheduled #see https://developers.cloudflare.com/workers/configuration/cron-triggers/#test-cron-triggers",
     "cf-typegen": "wrangler types",
     "db:gen": "bun drizzle-kit generate",
     "preview": "wrangler pages dev dist --compatibility-date=2023-12-20"
