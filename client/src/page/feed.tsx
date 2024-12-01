@@ -155,7 +155,6 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
         if (error) {
           setError(error.value as string);
         } else if (data && typeof data !== "string") {
-          console.debug("FIXME: ", data);
           setAdjacentFeeds(data);
         }
       });
@@ -328,20 +327,28 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                 </div>
               </article>
               <div className="gap-2 m-2 grid grid-cols-1 sm:grid-cols-2">
-                {adjacentFeeds?.previousFeed && (
+                {adjacentFeeds?.previousFeed ? (
                   <FeedCard
                     {...adjacentFeeds.previousFeed}
                     // TODO: Maybe it's better to change the type of the FeedCard section
                     id={adjacentFeeds.previousFeed.id.toString()}
                     title={adjacentFeeds.previousFeed.title || ""}
                   />
+                ) : (
+                  <div className="hidden sm:flex justify-center items-center h-full text-xl font-bold text-gray-700 dark:text-white text-pretty">
+                    无上一篇文章
+                  </div>
                 )}
-                {adjacentFeeds?.nextFeed && (
+                {adjacentFeeds?.nextFeed ? (
                   <FeedCard
                     {...adjacentFeeds.nextFeed}
                     id={adjacentFeeds.nextFeed.id.toString()}
                     title={adjacentFeeds.nextFeed.title || ""}
                   />
+                ) : (
+                  <div className="hidden sm:flex justify-center items-center h-full text-xl font-bold text-gray-700 dark:text-white text-pretty">
+                    无下一篇文章
+                  </div>
                 )}
               </div>
               {feed && <Comments id={`${feed.id}`} />}
