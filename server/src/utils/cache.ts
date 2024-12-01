@@ -54,6 +54,30 @@ export class CacheImpl {
         }
         return this.cache.get(key);
     }
+    async getByPrefix(prefix: string): Promise<any[]> {
+        if (!this.loaded) {
+            await this.load();
+        }
+        const result = [];
+        for (let key of this.cache.keys()) {
+            if (key.startsWith(prefix)) {
+                result.push(this.cache.get(key));
+            }
+        }
+        return result;
+    }
+    async getBySuffix(suffix: string): Promise<any[]> {
+        if (!this.loaded) {
+            await this.load();
+        }
+        const result = [];
+        for (let key of this.cache.keys()) {
+            if (key.endsWith(suffix)) {
+                result.push(this.cache.get(key));
+            }
+        }
+        return result;
+    }
     async getOrSet<T>(key: string, value: () => Promise<T>) {
         const cached = await this.get(key)
         if (cached !== undefined) {
@@ -99,7 +123,16 @@ export class CacheImpl {
         }
         await this.save();
     }
-
+    async deleteSuffix(suffix: string) {
+        for (let key of this.cache.keys()) {
+            console.log("Cache key", key);
+            if (key.endsWith(suffix)) {
+                console.log("Cache delete", key);
+                await this.delete(key, false);
+            }
+        }
+        await this.save();
+    }
     async clear() {
         this.cache.clear();
         await this.save();
