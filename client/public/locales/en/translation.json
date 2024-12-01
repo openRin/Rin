@@ -119,6 +119,7 @@
       "placeholder": "Please enter your username"
     }
   },
+  "logout": "Logout",
   "next": "Next Page",
   "preview": "Preview",
   "previous": "Previous Page",
@@ -139,6 +140,12 @@
         "title": "Clear Cache"
       },
       "clear_failed$message": "Failed to clear cache: {{message}}"
+    },
+    "comment": {
+      "enable": {
+        "desc": "Open/close the comment entry and comment area at the bottom of the article",
+        "title": "Enable Comments"
+      }
     },
     "counter": {
       "enable": {
@@ -175,6 +182,12 @@
     "import_skipped": "Import Skipped",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
     "import_success$success$skipped": "Import successful, {{success}} articles imported, {{skipped}} articles skipped",
+    "login": {
+      "enable": {
+        "desc": "Turn on/off the login button in the upper right corner. After turning it off, you can trigger the login entrance by double-clicking the bottom text \"© 2024 Powered by\" three times",
+        "title": "Enable the login button in the upper right corner"
+      }
+    },
     "other": {
       "title": "Other Settings"
     },

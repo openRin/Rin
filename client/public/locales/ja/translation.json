@@ -119,6 +119,7 @@
       "placeholder": "ユーザー名を入力してください"
     }
   },
+  "logout": "ログアウト",
   "next": "次のページ",
   "preview": "プレビュー",
   "previous": "前のページ",
@@ -139,6 +140,12 @@
         "title": "キャッシュをクリア"
       },
       "clear_failed$message": "キャッシュのクリアに失敗しました: {{message}}"
+    },
+    "comment": {
+      "enable": {
+        "desc": "記事下部のコメント入り口とコメントエリアの開閉",
+        "title": "コメントを有効にする"
+      }
     },
     "counter": {
       "enable": {
@@ -175,6 +182,12 @@
     "import_skipped": "インポートをスキップ",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
     "import_success$success$skipped": "インポートに成功しました。{{success}} 記事がインポートされ、{{skipped}} 記事がスキップされました",
+    "login": {
+      "enable": {
+        "desc": "右上隅のログインボタンをオン/オフにしてから、下部の「© 2024 Powered by」を 3 回ダブルクリックすると、ログイン入り口がトリガーされます。",
+        "title": "ログインを許可する"
+      }
+    },
     "other": {
       "title": "その他の設定"
     },
