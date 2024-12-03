@@ -1,14 +1,14 @@
-import { and, count, desc, eq, like, or } from "drizzle-orm";
-import Elysia, { t } from "elysia";
-import { XMLParser } from "fast-xml-parser";
+import {and, count, desc, eq, like, or} from "drizzle-orm";
+import Elysia, {t} from "elysia";
+import {XMLParser} from "fast-xml-parser";
 import html2md from 'html-to-md';
-import type { DB } from "../_worker";
-import { feeds, visits } from "../db/schema";
-import { setup } from "../setup";
-import { ClientConfig, PublicCache } from "../utils/cache";
-import { getDB } from "../utils/di";
-import { extractImage } from "../utils/image";
-import { bindTagToPost } from "./tag";
+import type {DB} from "../_worker";
+import {feeds, visits} from "../db/schema";
+import {setup} from "../setup";
+import {ClientConfig, PublicCache} from "../utils/cache";
+import {getDB} from "../utils/di";
+import {extractImage} from "../utils/image";
+import {bindTagToPost} from "./tag";
 
 export function FeedService() {
     const db: DB = getDB();
@@ -324,12 +324,12 @@ export function FeedService() {
             }
             const cacheKey = `search_${keyword}`;
             const searchKeyword = `%${keyword}%`;
-            const where = or(like(feeds.title, searchKeyword),
+            const whereClause = or(like(feeds.title, searchKeyword),
                     like(feeds.content, searchKeyword),
-                    like(feeds.summary, searchKeyword),
-                    like(feeds.alias, searchKeyword));
+                like(feeds.summary, searchKeyword),
+                like(feeds.alias, searchKeyword));
             const feed_list = (await cache.getOrSet(cacheKey, () => db.query.feeds.findMany({
-                where: admin ? where : and(where, eq(feeds.draft, 0)),
+                where: admin ? whereClause : and(whereClause, eq(feeds.draft, 0)),
                 columns: admin ? undefined : {
                     draft: false,
                     listed: false
