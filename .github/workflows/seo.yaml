@@ -28,8 +28,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgbm-dev
-          npx puppeteer browsers install chrome
-
+        
       - name: Run script
         env: # Or as an environment variable
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
@@ -46,4 +45,5 @@ jobs:
         run: |
           cd Rin/
           bun install --frozen-lockfile
+          npx puppeteer browsers install chrome
           bun scripts/render.ts
