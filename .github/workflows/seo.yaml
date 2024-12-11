@@ -5,6 +5,7 @@ on:
     - cron: "0 8 * * *"
   workflow_dispatch:
   
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,17 +28,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgbm-dev
-          npx puppeteer browsers install chrome
-
-      - name: Verify Puppeteer Installation
-        run: |
-          if [ ! -f /home/runner/.cache/puppeteer/chrome/linux-127.0.0.6533.88/chrome ]; then
-            echo "Chrome not found, installing..."
-            npx puppeteer browsers install chrome
-          else
-            echo "Chrome is already installed."
-          fi
-
+        
       - name: Run script
         env: # Or as an environment variable
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
@@ -53,6 +44,6 @@ jobs:
           S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
         run: |
           cd Rin/
-          npx puppeteer browsers install chrome
           bun install --frozen-lockfile
+          npx puppeteer browsers install chrome
           bun scripts/render.ts
