@@ -1,6 +1,6 @@
-import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
-import Elysia, { t } from "elysia";
-import { XMLParser } from "fast-xml-parser";
+import {and, asc, count, desc, eq, gt, like, lt, or} from "drizzle-orm";
+import Elysia, {t} from "elysia";
+import {XMLParser} from "fast-xml-parser";
 import html2md from 'html-to-md';
 import type {DB} from "../_worker";
 import {feeds, visits} from "../db/schema";
@@ -231,6 +231,16 @@ export function FeedService() {
                         id_num = parseInt(id);
                     }
 
+                    const feed = await db.query.feeds.findFirst({
+                        where: eq(feeds.id, id_num),
+                        columns: {createdAt: true},
+                    });
+                    if (!feed) {
+                        set.status = 404;
+                        return "Not found";
+                    }
+                    const created_at = feed.createdAt;
+
                     const cache = PublicCache();
                     function formatAndCacheData(
                         feed: any,
@@ -270,9 +280,9 @@ export function FeedService() {
                             const tempPreviousFeed = await db.query.feeds.findFirst({
                                 where: and(
                                     and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
-                                    lt(feeds.id, id_num),
+                                    lt(feeds.createdAt, created_at),
                                 ),
-                                orderBy: [desc(feeds.id)],
+                                orderBy: [desc(feeds.createdAt)],
                                 with: {
                                     hashtags: {
                                         columns: {},
@@ -300,9 +310,9 @@ export function FeedService() {
                             const tempNextFeed = await db.query.feeds.findFirst({
                                 where: and(
                                     and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
-                                    gt(feeds.id, id_num),
+                                    gt(feeds.createdAt, created_at),
                                 ),
-                                orderBy: [asc(feeds.id)],
+                                orderBy: [asc(feeds.createdAt)],
                                 with: {
                                     hashtags: {
                                         columns: {},
