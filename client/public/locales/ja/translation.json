@@ -120,7 +120,9 @@
     }
   },
   "logout": "ログアウト",
+  "main_content": "本文",
   "next": "次のページ",
+  "no_more": "もうない",
   "preview": "プレビュー",
   "previous": "前のページ",
   "publish": {
@@ -213,7 +215,6 @@
     "title": "キャッシュをクリア"
   },
   "unlisted": "リストされていない",
-  "untitled": "無題",
   "untop": {
     "title": "トップ解除"
   },

@@ -1,10 +1,10 @@
-import { useEffect } from "react";
-import { setCookie } from "typescript-cookie";
-import { useLocation, useSearch } from "wouter";
+import {useEffect} from "react";
+import {setCookie} from "typescript-cookie";
+import {useLocation, useSearch} from "wouter";
 
 export function CallbackPage() {
     const searchParams = new URLSearchParams(useSearch());
-    const [_, setLocation] = useLocation();
+    const [, setLocation] = useLocation();
     useEffect(() => {
         const token = searchParams.get('token');
         if (token) {

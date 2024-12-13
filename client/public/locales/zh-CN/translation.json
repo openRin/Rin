@@ -120,7 +120,9 @@
     }
   },
   "logout": "退出登录",
+  "main_content": "正文",
   "next": "下一页",
+  "no_more": "没有更多了",
   "preview": "预览",
   "previous": "上一页",
   "publish": {
@@ -213,7 +215,6 @@
     "title": "置顶"
   },
   "unlisted": "未列出",
-  "untitled": "未列出",
   "untop": {
     "title": "取消置顶"
   },

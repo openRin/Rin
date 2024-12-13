@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react"
-import { Helmet } from 'react-helmet'
-import { Link } from "wouter"
-import { Waiting } from "../components/loading"
-import { client } from "../main"
-import { headersWithAuth } from "../utils/auth"
-import { siteName } from "../utils/constants"
-import { useTranslation } from "react-i18next";
+import {useEffect, useRef, useState} from "react"
+import {Helmet} from 'react-helmet'
+import {Link} from "wouter"
+import {Waiting} from "../components/loading"
+import {client} from "../main"
+import {headersWithAuth} from "../utils/auth"
+import {siteName} from "../utils/constants"
+import {useTranslation} from "react-i18next";
 
 
 export function TimelinePage() {
@@ -63,7 +63,8 @@ export function TimelinePage() {
                             </h1>
                             <div className="w-full flex flex-col justify-center items-start my-4">
                                 {feeds[+year]?.map(({ id, title, createdAt }) => (
-                                    <FeedItem key={id} id={id.toString()} title={title || t('untitled')} createdAt={new Date(createdAt)} />
+                                    <FeedItem key={id} id={id.toString()} title={title || t('unlisted')}
+                                              createdAt={new Date(createdAt)}/>
                                 ))}
                             </div>
                         </div>
