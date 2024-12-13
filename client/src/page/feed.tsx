@@ -1,23 +1,24 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { Helmet } from "react-helmet";
-import { useTranslation } from "react-i18next";
+import {useContext, useEffect, useRef, useState} from "react";
+import {Helmet} from "react-helmet";
+import {useTranslation} from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
-import { Link, useLocation } from "wouter";
-import { useAlert, useConfirm } from "../components/dialog";
-import { HashTag } from "../components/hashtag";
-import { Waiting } from "../components/loading";
-import { Markdown } from "../components/markdown";
-import { client } from "../main";
-import { ClientConfigContext } from "../state/config";
-import { ProfileContext } from "../state/profile";
-import { headersWithAuth } from "../utils/auth";
-import { siteName } from "../utils/constants";
-import { timeago } from "../utils/timeago";
-import { Button } from "../components/button";
-import { Tips } from "../components/tips";
-import { useLoginModal } from "../hooks/useLoginModal";
+import {Link, useLocation} from "wouter";
+import {useAlert, useConfirm} from "../components/dialog";
+import {HashTag} from "../components/hashtag";
+import {Waiting} from "../components/loading";
+import {Markdown} from "../components/markdown";
+import {client} from "../main";
+import {ClientConfigContext} from "../state/config";
+import {ProfileContext} from "../state/profile";
+import {headersWithAuth} from "../utils/auth";
+import {siteName} from "../utils/constants";
+import {timeago} from "../utils/timeago";
+import {Button} from "../components/button";
+import {Tips} from "../components/tips";
+import {useLoginModal} from "../hooks/useLoginModal";
 import mermaid from "mermaid";
+import {AdjacentSection} from "../components/adjacent_feed.tsx";
 
 type Feed = {
   id: number;
@@ -39,6 +40,8 @@ type Feed = {
   uv: number;
 };
 
+
+
 export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Element, clean: (id: string) => void }) {
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
@@ -46,7 +49,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
   const [error, setError] = useState<string>();
   const [headImage, setHeadImage] = useState<string>();
   const ref = useRef("");
-  const [_, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { showAlert, AlertUI } = useAlert();
   const { showConfirm, ConfirmUI } = useConfirm();
   const [top, setTop] = useState<number>(0);
@@ -296,6 +299,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                   </div>
                 </div>
               </article>
+              <AdjacentSection id={id} setError={setError}/>
               {feed && <Comments id={`${feed.id}`} />}
               <div className="h-16" />
             </main>

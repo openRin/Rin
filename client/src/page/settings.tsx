@@ -1,13 +1,21 @@
 import * as Switch from '@radix-ui/react-switch';
-import { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import {ChangeEvent, useContext, useEffect, useRef, useState} from "react";
+import {useTranslation} from "react-i18next";
 import ReactLoading from "react-loading";
 import Modal from "react-modal";
-import { Button } from "../components/button.tsx";
-import { useAlert, useConfirm } from "../components/dialog.tsx";
-import { client, oauth_url } from "../main.tsx";
-import { ClientConfigContext, ConfigWrapper, defaultClientConfig, defaultClientConfigWrapper, defaultServerConfig, defaultServerConfigWrapper, ServerConfigContext } from "../state/config.tsx";
-import { headersWithAuth } from "../utils/auth.ts";
+import {Button} from "../components/button.tsx";
+import {useAlert, useConfirm} from "../components/dialog.tsx";
+import {client, oauth_url} from "../main.tsx";
+import {
+    ClientConfigContext,
+    ConfigWrapper,
+    defaultClientConfig,
+    defaultClientConfigWrapper,
+    defaultServerConfig,
+    defaultServerConfigWrapper,
+    ServerConfigContext
+} from "../state/config.tsx";
+import {headersWithAuth} from "../utils/auth.ts";
 import '../utils/thumb.css';
 
 
@@ -81,7 +89,7 @@ export function Settings() {
         <div className="flex flex-col justify-center items-center">
             <ServerConfigContext.Provider value={serverConfig}>
                 <ClientConfigContext.Provider value={clientConfig}>
-                    <main className="wauto rounded-2xl bg-w m-2 p-6" aria-label="正文">
+                    <main className="wauto rounded-2xl bg-w m-2 p-6" aria-label={t("main_content")}>
                         <div className="flex flex-row items-center space-x-2">
                             <h1 className="text-2xl font-bold t-primary">
                                 {t('settings.title')}

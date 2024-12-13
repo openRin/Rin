@@ -1,8 +1,9 @@
-import { Link } from "wouter";
-import { useTranslation } from "react-i18next";
-import { timeago } from "../utils/timeago";
-import { HashTag } from "./hashtag";
-import { useMemo } from "react";
+import {Link} from "wouter";
+import {useTranslation} from "react-i18next";
+import {timeago} from "../utils/timeago";
+import {HashTag} from "./hashtag";
+import {useMemo} from "react";
+
 export function FeedCard({ id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt }:
     {
         id: string, avatar?: string,
@@ -34,10 +35,10 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                     }
                 </p>
                 <p className="space-x-2">
-                    {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}
-                    {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
+                    {draft === 1 && <span className="text-gray-400 text-sm">{t("draft")}</span>}
+                    {listed === 0 && <span className="text-gray-400 text-sm">{t("unlisted")}</span>}
                     {top === 1 && <span className="text-theme text-sm">
-                        置顶
+                        {t('article.top.title')}
                     </span>}
                 </p>
                 <p className="text-pretty overflow-hidden dark:text-neutral-500">
