@@ -305,7 +305,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
             </main>
             <div className="w-80 hidden lg:block relative">
               <div
-                className={`ml-2 start-0 end-0 top-[5.5rem] sticky`}
+                  className={`start-0 end-0 top-[5.5rem] sticky`}
               >
                 <TOC />
               </div>
@@ -408,7 +408,7 @@ function CommentInput({
       });
   }
   return (
-    <div className="w-full rounded-2xl bg-w t-primary m-2 p-6 items-end flex flex-col">
+      <div className="w-full rounded-2xl bg-w t-primary p-6 items-end flex flex-col">
       <div className="flex flex-col w-full items-start mb-4">
         <label htmlFor="comment">{t("comment.title")}</label>
       </div>

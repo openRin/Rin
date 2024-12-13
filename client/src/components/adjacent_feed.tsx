@@ -45,7 +45,7 @@ export function AdjacentSection({id, setError}: { id: string, setError: (error: 
 
 export function AdjacentCard({data, type}: { data: AdjacentFeed | null | undefined, type: "previous" | "next" }) {
     const direction = type === "previous" ? "text-start" : "text-end"
-    const radius = type === "previous" ? "rounded-l-2xl" : "rounded-r-2xl"
+    const radius = type === "previous" ? "rounded-t-2xl sm:rounded-none sm:rounded-l-2xl" : "rounded-b-2xl sm:rounded-none sm:rounded-r-2xl"
     const {t} = useTranslation()
     if (!data) {
         return (<div className="w-full p-6 duration-300">
