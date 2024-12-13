@@ -1,22 +1,22 @@
 import Editor from '@monaco-editor/react';
 import i18n from 'i18next';
 import _ from 'lodash';
-import { editor } from 'monaco-editor';
-import { Calendar } from 'primereact/calendar';
+import {editor} from 'monaco-editor';
+import {Calendar} from 'primereact/calendar';
 import 'primereact/resources/primereact.css';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Helmet } from "react-helmet";
-import { useTranslation } from "react-i18next";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {Helmet} from "react-helmet";
+import {useTranslation} from "react-i18next";
 import Loading from 'react-loading';
-import { ShowAlertType, useAlert } from '../components/dialog';
-import { Checkbox, Input } from "../components/input";
-import { Markdown } from "../components/markdown";
-import { client } from "../main";
-import { headersWithAuth } from "../utils/auth";
-import { Cache, useCache } from '../utils/cache';
-import { siteName } from "../utils/constants";
-import { useColorMode } from "../utils/darkModeUtils";
+import {ShowAlertType, useAlert} from '../components/dialog';
+import {Checkbox, Input} from "../components/input";
+import {Markdown} from "../components/markdown";
+import {client} from "../main";
+import {headersWithAuth} from "../utils/auth";
+import {Cache, useCache} from '../utils/cache';
+import {siteName} from "../utils/constants";
+import {useColorMode} from "../utils/darkModeUtils";
 import mermaid from 'mermaid';
 
 async function publish({
@@ -470,7 +470,6 @@ export function WritingPage({ id }: { id?: number }) {
                       options={{
                         wordWrap: "on",
                         fontSize: 14,
-                        fontFamily: "Fira Code",
                         lineNumbers: "off",
                         dragAndDrop: true,
                         pasteAs: { enabled: false }
