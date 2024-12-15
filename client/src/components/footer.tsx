@@ -59,7 +59,8 @@ function Footer() {
                             setDoubleClickTimes(doubleClickTimes + 1)
                         }
                     }}>
-                        © 2024 Powered by <a className='hover:underline' href="https://github.com/openRin/Rin" target="_blank">Rin</a>
+                        © 2024 Powered by CheerfulCart
+                        {/* <a className='hover:underline' href="https://github.com/openRin/Rin" target="_blank">Rin</a> */}
                     </span>
                     {config.get<boolean>('rss') && <>
                         <Spliter />
