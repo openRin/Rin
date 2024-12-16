@@ -233,5 +233,7 @@
     "self_only": "Visible to self only"
   },
   "writing": "Writing",
-  "year$year": "{{year}}"
+  "year$year": "{{year}}",
+  "product": "Product",
+  "category": "Category"
 }

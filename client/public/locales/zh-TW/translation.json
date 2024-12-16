@@ -233,5 +233,7 @@
     "self_only": "僅自己可見"
   },
   "writing": "寫作",
-  "year$year": "{{year}} 年"
+  "year$year": "{{year}} 年",
+  "product": "商品",
+  "category": "分類"
 }

@@ -233,5 +233,7 @@
     "self_only": "自分のみ可視"
   },
   "writing": "執筆",
-  "year$year": "{{year}} 年"
+  "year$year": "{{year}} 年",
+  "product": "商品",
+  "category": "カテゴリ"
 }

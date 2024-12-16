@@ -233,5 +233,7 @@
     "self_only": "仅自己可见"
   },
   "writing": "写作",
-  "year$year": "{{year}} 年"
+  "year$year": "{{year}} 年",
+  "product": "商品",
+  "category": "分类"
 }
