@@ -1,14 +1,14 @@
 {
   "about": {
-    "notfound": "About ページを作成するには、記事のエイリアスを about に設定します",
+    "notfound": "商品エイリアスを about に設定すると、About ページを作成できます",
     "title": "概要"
   },
   "alert": "警告",
   "alias": "エイリアス",
   "article": {
     "delete": {
-      "confirm": "この記事を削除してもよろしいですか？",
-      "title": "記事の削除"
+      "confirm": "この商品を削除してもよろしいですか？",
+      "title": "商品を削除"
     },
     "search": {
       "placeholder": "キーワードを入力してください",
@@ -17,18 +17,18 @@
     },
     "title": "記事",
     "top": {
-      "confirm": "この記事をトップにしてもよろしいですか？",
+      "confirm": "この商品をピン留めしてもよろしいですか？",
       "success": "トップに成功しました",
-      "title": "トップ"
+      "title": "ピン留め"
     },
-    "total_short$count_one": "{{count}} 記事",
-    "total_short$count_other": "{{count}} 記事",
-    "total$count_one": "合計 {{count}} 記事",
-    "total$count_other": "合計 {{count}} 記事",
+    "total_short$count_one": "{{count}} 商品",
+    "total_short$count_other": "{{count}} 商品",
+    "total$count_one": "合計 {{count}} 個の商品があります",
+    "total$count_other": "合計 {{count}} 個の商品があります",
     "untop": {
-      "confirm": "この記事のトップを解除してもよろしいですか？",
+      "confirm": "この商品のピン留めを解除してもよろしいですか？",
       "success": "トップ解除に成功しました",
-      "title": "トップ解除"
+      "title": "ピン留め解除"
     }
   },
   "avatar": {
@@ -107,7 +107,7 @@
     },
     "title": "目次"
   },
-  "listed": "記事にリスト",
+  "listed": "商品の中にリストされました",
   "login": {
     "oauth_only": "続行するにはログインしてください",
     "password": {
@@ -143,13 +143,13 @@
     },
     "comment": {
       "enable": {
-        "desc": "記事下部のコメント入り口とコメントエリアの開閉",
+        "desc": "商品ページ下部のコメントセクションとコメントエントリを有効/無効にします",
         "title": "コメントを有効にする"
       }
     },
     "counter": {
       "enable": {
-        "desc": "記事の PV と UV 機能を有効にする",
+        "desc": "商品の PV と UV を追跡する機能を有効にします",
         "title": "アクセス数統計を有効にする"
       }
     },
@@ -181,7 +181,7 @@
     "import_result": "インポート結果",
     "import_skipped": "インポートをスキップ",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
-    "import_success$success$skipped": "インポートに成功しました。{{success}} 記事がインポートされ、{{skipped}} 記事がスキップされました",
+    "import_success$success$skipped": "インポートが成功しました。{{success}} 個の商品がインポートされ、{{skipped}} 個の商品がスキップされました",
     "login": {
       "enable": {
         "desc": "右上隅のログインボタンをオン/オフにしてから、下部の「© 2024 Powered by」を 3 回ダブルクリックすると、ログイン入り口がトリガーされます。",

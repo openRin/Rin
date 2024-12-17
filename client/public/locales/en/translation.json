@@ -1,14 +1,14 @@
 {
   "about": {
-    "notfound": "Set the article alias to `about` to create an about page",
+    "notfound": "Setting the product alias to about can create an About page",
     "title": "About"
   },
   "alert": "Alert",
   "alias": "Alias",
   "article": {
     "delete": {
-      "confirm": "Are you sure you want to delete this article?",
-      "title": "Delete Article"
+      "confirm": "Are you sure you want to delete this product?",
+      "title": "Delete Product"
     },
     "search": {
       "placeholder": "Please enter keywords",
@@ -17,18 +17,18 @@
     },
     "title": "Articles",
     "top": {
-      "confirm": "Are you sure you want to top this article?",
-      "success": "Topped successfully",
-      "title": "Top"
+      "confirm": "Are you sure you want to pin this product?",
+      "success": "Successfully pinned",
+      "title": "Pin"
     },
-    "total_short$count_one": "{{count}} articles",
-    "total_short$count_other": "{{count}} articles",
-    "total$count_one": "{{count}} articles in total",
-    "total$count_other": "{{count}} articles in total",
+    "total_short$count_one": "{{{count}} products",
+    "total_short$count_other": "{{count}} products",
+    "total$count_one": "There are {{count}} products in total",
+    "total$count_other": "There are {{count}} products in total",
     "untop": {
-      "confirm": "Are you sure you want to untop this article?",
+      "confirm": "Are you sure you want to unpin this product?",
       "success": "Untopped successfully",
-      "title": "Untop"
+      "title": "Unpin"
     }
   },
   "avatar": {
@@ -107,7 +107,7 @@
     },
     "title": "Index"
   },
-  "listed": "Listed in articles",
+  "listed": "Listed in products",
   "login": {
     "oauth_only": "Please log in to continue",
     "password": {
@@ -143,13 +143,13 @@
     },
     "comment": {
       "enable": {
-        "desc": "Open/close the comment entry and comment area at the bottom of the article",
+        "desc": "Enable/Disable the comment section and entry at the bottom of the product page",
         "title": "Enable Comments"
       }
     },
     "counter": {
       "enable": {
-        "desc": "Enable statistics for article PV and UV",
+        "desc": "Enable the function to track product PV and UV",
         "title": "Enable traffic statistics"
       }
     },
@@ -181,7 +181,7 @@
     "import_result": "Import Result",
     "import_skipped": "Import Skipped",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
-    "import_success$success$skipped": "Import successful, {{success}} articles imported, {{skipped}} articles skipped",
+    "import_success$success$skipped": "Import successful, {{success}} products imported, {{skipped}} products skipped",
     "login": {
       "enable": {
         "desc": "Turn on/off the login button in the upper right corner. After turning it off, you can trigger the login entrance by double-clicking the bottom text \"© 2024 Powered by\" three times",

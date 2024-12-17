@@ -1,14 +1,14 @@
 {
   "about": {
-    "notfound": "將文章別名設定為 about 可以創建關於頁面",
+    "notfound": "將商品別名設置為 about 可以創建關於頁面",
     "title": "關於"
   },
   "alert": "提示",
   "alias": "別名",
   "article": {
     "delete": {
-      "confirm": "確定刪除這篇文章嗎？",
-      "title": "刪除文章"
+      "confirm": "確定刪除此商品嗎？",
+      "title": "刪除商品"
     },
     "search": {
       "placeholder": "請輸入關鍵字",
@@ -17,16 +17,16 @@
     },
     "title": "文章",
     "top": {
-      "confirm": "確定置頂這篇文章嗎？",
+      "confirm": "確定置頂此商品嗎？",
       "success": "置頂成功",
       "title": "置頂"
     },
-    "total_short$count_one": "{{count}} 篇",
-    "total_short$count_other": "{{count}} 篇",
-    "total$count_one": "共有 {{count}} 篇文章",
-    "total$count_other": "共有 {{count}} 篇文章",
+    "total_short$count_one": "{{count}} 個商品",
+    "total_short$count_other": "{{count}} 個商品",
+    "total$count_one": "共有 {{count}} 個商品",
+    "total$count_other": "共有 {{count}} 個商品",
     "untop": {
-      "confirm": "確定取消置頂這篇文章嗎？",
+      "confirm": "確定取消置頂此商品嗎？",
       "success": "取消置頂成功",
       "title": "取消置頂"
     }
@@ -107,7 +107,7 @@
     },
     "title": "目錄"
   },
-  "listed": "列出在文章中",
+  "listed": "列出在商品中",
   "login": {
     "oauth_only": "請登入後繼續",
     "password": {
@@ -143,13 +143,13 @@
     },
     "comment": {
       "enable": {
-        "desc": "開啟/關閉文章底部留言入口與留言區",
+        "desc": "開啟/關閉商品底部評論入口與評論區",
         "title": "啟用留言"
       }
     },
     "counter": {
       "enable": {
-        "desc": "啟用統計文章 PV 與 UV 功能",
+        "desc": "啟用統計商品 PV 與 UV 功能",
         "title": "啟用訪問量統計"
       }
     },
@@ -181,7 +181,7 @@
     "import_result": "匯入结果",
     "import_skipped": "跳過匯入",
     "import_skipped_item$title$reason": "《{{title}}》- {{reason}}",
-    "import_success$success$skipped": "匯入成功，{{success}} 篇文章匯入成功，{{skipped}} 篇文章跳過",
+    "import_success$success$skipped": "導入成功，{{success}} 個商品導入成功，{{skipped}} 個商品跳過",
     "login": {
       "enable": {
         "desc": "開啟/關閉右上角登入按钮，關閉後可通過「雙擊」底部文字 “© 2024 Powered by” 「三次」觸發登入入口",

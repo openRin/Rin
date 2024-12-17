@@ -31,9 +31,9 @@ export function HashtagsPage() {
     return (
         <>
             <Helmet>
-                <title>{`${t('hashtags')} - ${process.env.NAME}`}</title>
+                <title>{`${t('category')} - ${process.env.NAME}`}</title>
                 <meta property="og:site_name" content={siteName} />
-                <meta property="og:title" content={t('hashtags')} />
+                <meta property="og:title" content={t('category')} />
                 <meta property="og:image" content={process.env.AVATAR} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
@@ -42,7 +42,7 @@ export function HashtagsPage() {
                 <main className="w-full flex flex-col justify-center items-center mb-8 ani-show">
                     <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
                         <p>
-                            {t('hashtags')}
+                            {t('category')}
                         </p>
                     </div>
 
