@@ -21,7 +21,7 @@
       "success": "Successfully pinned",
       "title": "Pin"
     },
-    "total_short$count_one": "{{{count}} products",
+    "total_short$count_one": "{{count}} products",
     "total_short$count_other": "{{count}} products",
     "total$count_one": "There are {{count}} products in total",
     "total$count_other": "There are {{count}} products in total",
