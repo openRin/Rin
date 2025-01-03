@@ -49,7 +49,7 @@ function Footer() {
             </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
-                <Link href="/about" style="color: #737373;font-size: 14px;">{t('about.title')}</Link>
+                <Link href="/about" ><span style="color: #737373;font-size: 14px;">{t('about.title')}</span></Link>
 
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span onDoubleClick={() => {
