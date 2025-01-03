@@ -207,7 +207,8 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
               >
                 <div className="flex justify-between">
                   <div>
-                    <div className="mt-1 mb-1 flex gap-1">
+                    {/* 发布时间和更新时间 */}
+                    {/* <div className="mt-1 mb-1 flex gap-1">
                       <p
                         className="text-gray-400 text-[12px]"
                         title={new Date(feed.createdAt).toLocaleString()}
@@ -227,8 +228,11 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                           })}
                         </p>
                       )}
-                    </div>
-                    {counterEnabled && <p className='text-[12px] text-gray-400 font-normal link-line'>
+                    </div> */}
+
+                    {/* 浏览数量 */}
+                    {/* {counterEnabled &&
+                    <p className='text-[12px] text-gray-400 font-normal link-line'>
                       <span> {t("count.pv")} </span>
                       <span>
                         {feed.pv}
@@ -238,7 +242,9 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                       <span>
                         {feed.uv}
                       </span>
-                    </p>}
+                      </p>
+                    } */}
+                    
                     <div className="flex flex-row items-center">
                       <h1 className="text-2xl font-bold t-primary break-all">
                         {feed.title}

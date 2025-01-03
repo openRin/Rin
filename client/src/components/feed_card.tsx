@@ -23,7 +23,8 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                 <h1 className="text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden">
                     {title}
                 </h1>
-                <p className="space-x-2">
+                {/* 发布时间 */}
+                {/* <p className="space-x-2">
                     <span className="text-gray-400 text-sm" title={new Date(createdAt).toLocaleString()}>
                         {createdAt === updatedAt ? timeago(createdAt) : t('feed_card.published$time', { time: timeago(createdAt) })}
                     </span>
@@ -32,7 +33,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                             {t('feed_card.updated$time', { time: timeago(updatedAt) })}
                         </span>
                     }
-                </p>
+                </p> */}
                 <p className="space-x-2">
                     {draft === 1 && <span className="text-gray-400 text-sm">草稿</span>}
                     {listed === 0 && <span className="text-gray-400 text-sm">未列出</span>}
