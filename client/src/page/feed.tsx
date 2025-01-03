@@ -231,6 +231,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                     </div> */}
 
                     {/* 浏览数量 */}
+                    <div className="hidden">{counterEnabled}</div>
                     {/* {counterEnabled &&
                     <p className='text-[12px] text-gray-400 font-normal link-line'>
                       <span> {t("count.pv")} </span>
