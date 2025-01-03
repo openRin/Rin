@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet";
 import { siteName } from '../utils/constants';
 import { useTranslation } from "react-i18next";
 import { useLoginModal } from '../hooks/useLoginModal';
+import { Link } from "wouter"
 
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
@@ -48,6 +49,7 @@ function Footer() {
             </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
+                <Link href="/about">{{t('about.title')}</Link>
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span onDoubleClick={() => {
                         if(doubleClickTimes >= 2){ // actually need 3 times doubleClick
