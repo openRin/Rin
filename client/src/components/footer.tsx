@@ -40,6 +40,11 @@ function Footer() {
         window.dispatchEvent(new Event("colorSchemeChange"));
     };
 
+     const aboutStyle = {
+        color: '#737373',
+        fontSize: '14px'
+     };
+    
     return (
         <footer>
             <Helmet>
@@ -49,7 +54,7 @@ function Footer() {
             </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
-                <Link href="/about" ><span style="color: #737373;font-size: 14px;">{t('about.title')}</span></Link>
+                <Link href="/about" style={aboutStyle}>{t('about.title')}</Link>
 
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span onDoubleClick={() => {
