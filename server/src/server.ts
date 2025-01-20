@@ -2,6 +2,7 @@ import cors from '@elysiajs/cors';
 import { serverTiming } from '@elysiajs/server-timing';
 import { Elysia } from 'elysia';
 import { CommentService } from './services/comments';
+import { FaviconService } from "./services/favicon";
 import { FeedService } from './services/feed';
 import { FriendService } from './services/friends';
 import { RSSService } from './services/rss';
@@ -28,6 +29,7 @@ export const app = () => new Elysia({ aot: false })
         enabled: true,
     }))
     .use(UserService())
+    .use(FaviconService())
     .use(FeedService())
     .use(CommentService())
     .use(TagService())

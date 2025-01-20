@@ -1,8 +1,6 @@
 import { createContext } from "react";
 
-const defaultFavicon = process.env.AVATAR ? `//wsrv.nl/?url=${encodeURIComponent(process.env.AVATAR)}&w=144&h=144&mask=circle` : '/favicon.ico';
 export const defaultClientConfig = new Map(Object.entries({
-    "favicon": defaultFavicon,
     "counter.enabled": true,
     "friend_apply_enable": true,
     "comment.enabled": true,

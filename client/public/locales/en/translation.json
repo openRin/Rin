@@ -157,7 +157,11 @@
     },
     "favicon": {
       "desc": "Set the icon (Favicon) displayed in the browser's address bar",
-      "title": "Favicon"
+      "title": "Favicon",
+      "update": {
+        "success": "Favicon update was successful",
+        "failed$message": "Favicon update failed, {{message}}"
+      }
     },
     "footer": {
       "desc": "Set the footer content of the site (HTML)",

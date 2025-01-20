@@ -2,6 +2,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import Elysia from "elysia";
+import { FAVICON_ALLOWED_TYPES, faviconKey } from "./favicon";
 import { Feed } from "feed";
 import path from 'path';
 import rehypeStringify from "rehype-stringify";
@@ -58,41 +59,70 @@ export function RSSService() {
 }
 
 export async function rssCrontab(env: Env) {
-    const frontendUrl = `${(env.FRONTEND_URL.startsWith("http://") || env.FRONTEND_URL.startsWith("https://") ? '' :'https://')}${env.FRONTEND_URL}`;
-    const db = drizzle(env.DB, { schema: schema })
-    let title = env.RSS_TITLE;
-    const description = env.RSS_DESCRIPTION || "Feed from Rin";
-    if (!title) {
-        const user = await db.query.users.findFirst({ where: eq(users.id, 1) });
-        if (!user) {
-            return;
-        }
-        title = user.username;
-    }
-    const feed = new Feed({
-        title: title,
-        description: description,
+    const frontendUrl = `${env.FRONTEND_URL.startsWith("http://") || env.FRONTEND_URL.startsWith("https://") ? "" : "https://"}${env.FRONTEND_URL}`;
+    const db = drizzle(env.DB, { schema: schema });
+    const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
+
+    let feedConfig: any = {
+        title: env.RSS_TITLE,
+        description: env.RSS_DESCRIPTION || "Feed from Rin",
         id: frontendUrl,
         link: frontendUrl,
-        favicon: `${frontendUrl}/favicon.png`,
         copyright: "All rights reserved 2024",
         updated: new Date(), // optional, default = today
         generator: "Feed from Rin", // optional, default = 'Feed for Node.js'
         feedLinks: {
             rss: `${frontendUrl}/sub/rss.xml`,
             json: `${frontendUrl}/sub/rss.json`,
-            atom: `${frontendUrl}/sub/atom.xml`
+            atom: `${frontendUrl}/sub/atom.xml`,
+        },
+    };
+
+    if (!feedConfig.title) {
+        const user = await db.query.users.findFirst({ where: eq(users.id, 1) });
+        if (user) {
+            feedConfig.title = user.username;
         }
-    });
+    }
+
+    for (const [_mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
+        const originFaviconKey = path.join(
+            env.S3_FOLDER || "",
+            `originFavicon${ext}`,
+        );
+        try {
+            const response = await fetch(
+                new Request(`${accessHost}/${originFaviconKey}`),
+            );
+            if (response.ok) {
+                feedConfig.image = `${accessHost}/${originFaviconKey}`;
+                break;
+            }
+        } catch (error) {
+            continue;
+        }
+    }
+
+    try {
+        const response = await fetch(
+            new Request(`${accessHost}/${faviconKey}`),
+        );
+        if (response.ok) {
+            feedConfig.favicon = `${accessHost}/${faviconKey}`;
+        }
+    } catch (error) {}
+
+    const feed = new Feed(feedConfig);
+
     const feed_list = await db.query.feeds.findMany({
         where: and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
         orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
         limit: 20,
         with: {
             user: {
-                columns: { id: true, username: true, avatar: true }
-            }
-        }
+                columns: { id: true, username: true, avatar: true },
+            },
+        },
     });
     for (const f of feed_list) {
         const { summary, content, user, ...other } = f;
@@ -101,36 +131,47 @@ export async function rssCrontab(env: Env) {
             .use(remarkGfm)
             .use(remarkRehype)
             .use(rehypeStringify)
-            .process(content)
-        let contentHtml = file.toString()
+            .process(content);
+        let contentHtml = file.toString();
         feed.addItem({
             title: other.title || "No title",
             id: other.id?.toString() || "0",
             link: `${frontendUrl}/feed/${other.id}`,
             date: other.createdAt,
-            description: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
+            description:
+                summary.length > 0
+                    ? summary
+                    : content.length > 100
+                      ? content.slice(0, 100)
+                      : content,
             content: contentHtml,
             author: [{ name: user.username }],
-            image: extractImage(content) || user.avatar as string,
+            image: extractImage(content),
         });
     }
     // save rss.xml to s3
-    console.log('save rss.xml to s3');
+    console.log("save rss.xml to s3");
     const bucket = env.S3_BUCKET;
-    const folder = env.S3_CACHE_FOLDER || 'cache/';
+    const folder = env.S3_CACHE_FOLDER || "cache/";
     const s3 = createS3Client();
     async function save(name: string, data: string) {
         const hashkey = path.join(folder, name);
         try {
-            await s3.send(new PutObjectCommand({ Bucket: bucket, Key: hashkey, Body: data }))
+            await s3.send(
+                new PutObjectCommand({
+                    Bucket: bucket,
+                    Key: hashkey,
+                    Body: data,
+                }),
+            );
         } catch (e: any) {
-            console.error(e.message)
+            console.error(e.message);
         }
     }
-    await save('rss.xml', feed.rss2());
-    console.log('Saved atom.xml to s3');
-    await save('atom.xml', feed.atom1());
-    console.log('Saved rss.json to s3');
-    await save('rss.json', feed.json1());
-    console.log('Saved rss.xml to s3');
+    await save("rss.xml", feed.rss2());
+    console.log("Saved atom.xml to s3");
+    await save("atom.xml", feed.atom1());
+    console.log("Saved rss.json to s3");
+    await save("rss.json", feed.json1());
+    console.log("Saved rss.xml to s3");
 }

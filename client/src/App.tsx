@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { getCookie } from 'typescript-cookie'
 import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
@@ -61,7 +61,7 @@ function App() {
     }
     ref.current = true
   }, [])
-  const favicon = useMemo(() => config.get<string>("favicon"), [config])
+  const favicon = `${process.env.API_URL}/favicon`;
   return (
     <>
       <ClientConfigContext.Provider value={config}>
