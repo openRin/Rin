@@ -157,7 +157,11 @@
     },
     "favicon": {
       "desc": "设置显示于浏览器的地址栏的图标（Favicon）",
-      "title": "网站图标"
+      "title": "网站图标",
+      "update": {
+        "success": "网站图标更新成功",
+        "failed$message": "网站图标更新失败，{{message}}"
+      }
     },
     "footer": {
       "desc": "设置显示于站点底部的内容（HTML）",

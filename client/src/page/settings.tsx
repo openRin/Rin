@@ -66,10 +66,46 @@ export function Settings() {
         ref.current = true;
     }, []);
 
-    function onFileChange(e: ChangeEvent<HTMLInputElement>) {
+    async function handleFaviconChange(e: ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         if (file) {
-            client.wp.post({
+            const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+            if (file.size > MAX_FILE_SIZE) {
+                showAlert(
+                    t("upload.failed$size", {
+                        size: MAX_FILE_SIZE / 1024 / 1024,
+                    }),
+                );
+                return;
+            }
+            await client.favicon
+                .post(
+                    {
+                        file: file,
+                    },
+                    {
+                        headers: headersWithAuth(),
+                    },
+                )
+                .then(({ data }) => {
+                    if (data && typeof data !== "string") {
+                        showAlert(t("settings.favicon.update.success"));
+                    }
+                })
+                .catch((err) => {
+                    showAlert(
+                        t("settings.favicon.update.failed$message", {
+                            message: err.message,
+                        }),
+                    );
+                });
+        }
+    }
+
+    async function onFileChange(e: ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (file) {
+            await client.wp.post({
                 data: file,
             }, {
                 headers: headersWithAuth()
@@ -106,7 +142,13 @@ export function Settings() {
                             <ItemSwitch title={t('settings.comment.enable.title')} description={t('settings.comment.enable.desc')} type="client" configKey="comment.enabled" />
                             <ItemSwitch title={t('settings.counter.enable.title')} description={t('settings.counter.enable.desc')} type="client" configKey="counter.enabled" />
                             <ItemSwitch title={t('settings.rss.title')} description={t('settings.rss.desc')} type="client" configKey="rss" />
-                            <ItemInput title={t('settings.favicon.title')} description={t('settings.favicon.desc')} type="client" configKey="favicon" configKeyTitle="Favicon" />
+                            <ItemWithUpload
+                                title={t("settings.favicon.title")}
+                                description={t("settings.favicon.desc")}
+                                // @see https://developers.cloudflare.com/images/transform-images/#supported-input-formats
+                                accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                                onFileChange={handleFaviconChange}
+                            />
                             <ItemInput title={t('settings.footer.title')} description={t('settings.footer.desc')} type="client" configKey="footer" configKeyTitle="Footer HTML" />
                             <ItemButton title={t('settings.cache.clear.title')} description={t('settings.cache.clear.desc')} buttonTitle={t('clear')} onConfirm={async () => {
                                 await client.config.cache.delete(undefined, {
@@ -119,6 +161,7 @@ export function Settings() {
                                     })
                             }} alertTitle={t('settings.cache.clear.confirm.title')} alertDescription={t('settings.cache.clear.confirm.desc')} />
                             <ItemWithUpload title={t('settings.wordpress.title')} description={t('settings.wordpress.desc')}
+                                accept="application/xml"
                                 onFileChange={onFileChange} />
                         </div>
                     </main>
@@ -406,25 +449,60 @@ function ItemButton({
     );
 }
 
-function ItemWithUpload({ title, description, onFileChange }: { title: string, description: string, onFileChange: (e: ChangeEvent<HTMLInputElement>) => void }) {
+function ItemWithUpload({
+    title,
+    description,
+    accept,
+    onFileChange,
+}: {
+    title: string;
+    description: string;
+    onFileChange: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
+    accept: string;
+}) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const [loading, setLoading] = useState(false);
     const { t } = useTranslation();
+
+    const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+        setLoading(true);
+        try {
+            await onFileChange(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="flex flex-col w-full items-start">
             <div className="flex flex-row justify-between w-full items-center">
                 <div className="flex flex-col">
-                    <p className="text-lg font-bold dark:text-white">
-                        {title}
-                    </p>
-                    <p className="text-xs text-neutral-500">
-                        {description}
-                    </p>
+                    <p className="text-lg font-bold dark:text-white">{title}</p>
+                    <p className="text-xs text-neutral-500">{description}</p>
                 </div>
-                <input ref={inputRef} type="file" className="hidden" accept="application/xml"
-                    onChange={onFileChange} />
-                <Button onClick={() => {
-                    inputRef.current?.click();
-                }} title={t('upload.title')} />
+                <div className="flex flex-row items-center justify-center space-x-4">
+                    {loading && (
+                        <ReactLoading
+                            width="1em"
+                            height="1em"
+                            type="spin"
+                            color="#FC466B"
+                        />
+                    )}
+                    <input
+                        ref={inputRef}
+                        type="file"
+                        className="hidden"
+                        accept={accept}
+                        onChange={handleFileChange}
+                    />
+                    <Button
+                        onClick={() => {
+                            inputRef.current?.click();
+                        }}
+                        title={t("upload.title")}
+                    />
+                </div>
             </div>
         </div>
     );
