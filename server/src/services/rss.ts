@@ -2,7 +2,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import Elysia from "elysia";
-import { FAVICON_ALLOWED_TYPES, faviconKey } from "./favicon";
+import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
 import { Feed } from "feed";
 import path from 'path';
 import rehypeStringify from "rehype-stringify";
@@ -62,6 +62,7 @@ export async function rssCrontab(env: Env) {
     const frontendUrl = `${env.FRONTEND_URL.startsWith("http://") || env.FRONTEND_URL.startsWith("https://") ? "" : "https://"}${env.FRONTEND_URL}`;
     const db = drizzle(env.DB, { schema: schema });
     const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
+    const faviconKey = getFaviconKey();
 
     let feedConfig: any = {
         title: env.RSS_TITLE,

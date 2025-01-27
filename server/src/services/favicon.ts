@@ -5,7 +5,6 @@ import { setup } from "../setup";
 import { createS3Client } from "../utils/s3";
 import path from "path";
 
-const env = getEnv();
 // @see https://developers.cloudflare.com/images/url-format#supported-formats-and-limitations
 export const FAVICON_ALLOWED_TYPES: { [key: string]: string } = {
     "image/jpeg": ".jpg",
@@ -13,12 +12,17 @@ export const FAVICON_ALLOWED_TYPES: { [key: string]: string } = {
     "image/gif": ".gif",
     "image/webp": ".webp",
 };
-export const faviconKey = path.join(env.S3_FOLDER || "", "favicon.webp");
+export function getFaviconKey() {
+    const env = getEnv();
+    return path.join(env.S3_FOLDER || "", "favicon.webp");
+}
 
 export function FaviconService() {
+    const env = getEnv();
     const s3 = createS3Client();
     const bucket = env.S3_BUCKET;
     const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
+    const faviconKey = getFaviconKey();
     return new Elysia({ aot: false })
         .use(setup())
         .get("/favicon", async ({ set }) => {
