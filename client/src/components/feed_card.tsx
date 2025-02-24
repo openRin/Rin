@@ -20,7 +20,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                         <img src={avatar} alt=""
                             className="object-cover object-center w-full max-h-96 hover:scale-105 translation duration-300" />
                     </div>}
-                <h1 className="text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden">
+                <h1 style={{whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden'}} className="text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden">
                     {title}
                 </h1>
                 {/* 发布时间 */}
