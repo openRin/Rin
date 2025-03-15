@@ -148,6 +148,7 @@ function NavBar({ menu, onClick }: { menu: boolean, onClick?: () => void }) {
             <NavItem menu={menu} onClick={onClick} when={profile?.permission == true} title={t('writing')}
                 selected={location.startsWith("/writing")} href="/writing" />
             <NavItem menu={menu} onClick={onClick} title={t('friends.title')} selected={location === "/friends"} href="/friends" />
+            <NavItem menu={menu} onClick={() => window.open("https://www.travellings.cn/go.html", "_blank")} title='Travelling' selected={false} href="" />
             <NavItem menu={menu} onClick={onClick} title={t('about.title')} selected={location === "/about"} href="/about" />
             <NavItem menu={menu} onClick={onClick} when={profile?.permission == true} title={t('settings.title')}
                 selected={location === "/settings"}
