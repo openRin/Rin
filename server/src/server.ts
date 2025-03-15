@@ -15,7 +15,7 @@ import { ConfigService } from './services/config';
 export const app = () => new Elysia({ aot: false })
     .use(cors({
         aot: false,
-        origin: '*',
+        origin: true,
         methods: '*',
         allowedHeaders: [
             'authorization',
