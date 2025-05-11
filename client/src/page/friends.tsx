@@ -10,7 +10,6 @@ import { Waiting } from "../components/loading";
 import { client } from "../main";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
-import { shuffleArray } from "../utils/array";
 import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 
@@ -26,6 +25,7 @@ type FriendItem = {
     url: string;
     accepted: number;
     health: string;
+    sort_order?: number;
 };
 
 async function publish({ name, avatar, desc, url, showAlert }: { name: string, avatar: string, desc: string, url: string, showAlert: ShowAlertType }) {
@@ -70,10 +70,8 @@ export function FriendsPage() {
         }).then(({ data }) => {
             if (data) {
                 const friends_available = data.friend_list?.filter(({ health, accepted }) => health.length === 0 && accepted === 1) || []
-                shuffleArray(friends_available)
                 setFriendsAvailable(friends_available)
                 const friends_unavailable = data.friend_list?.filter(({ health, accepted }) => health.length > 0 && accepted === 1) || []
-                shuffleArray(friends_unavailable)
                 setFriendsUnavailable(friends_unavailable)
                 const waitList = data.friend_list?.filter(({ accepted }) => accepted === 0) || []
                 setWaitList(waitList)
@@ -156,6 +154,7 @@ function Friend({ friend }: { friend: FriendItem }) {
     const [desc, setDesc] = useState(friend.desc || "")
     const [url, setUrl] = useState(friend.url)
     const [status, setStatus] = useState(friend.accepted)
+    const [sortOrder, setSortOrder] = useState(friend.sort_order || 0)
     const [modalIsOpen, setIsOpen] = useState(false);
     const { showConfirm, ConfirmUI } = useConfirm()
     const { showAlert, AlertUI } = useAlert()
@@ -185,7 +184,8 @@ function Friend({ friend }: { friend: FriendItem }) {
             name,
             desc,
             url,
-            accepted: status
+            accepted: status,
+            sort_order: sortOrder
         }, {
             headers: headersWithAuth()
         }).then(({ error }) => {
@@ -197,7 +197,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                 })
             }
         })
-    }, [avatar, name, desc, url, status])
+    }, [avatar, name, desc, url, status, sortOrder])
 
     const statusOption = [
         { value: -1, label: t('friends.review.rejected') },
@@ -268,6 +268,20 @@ function Friend({ friend }: { friend: FriendItem }) {
                                                 setStatus(value)
                                             }
                                         }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-row justify-between w-full items-center mt-2">
+                                <div className="flex flex-col">
+                                    <p className="text-lg dark:text-white">
+                                        {t('sort_order')}
+                                    </p>
+                                </div>
+                                <div className="flex flex-row items-center justify-center space-x-4">
+                                    <Input
+                                        value={sortOrder.toString()} 
+                                        setValue={(val) => setSortOrder(parseInt(val) || 0)} 
+                                        placeholder={t('sort_order')} 
                                     />
                                 </div>
                             </div>

@@ -18,7 +18,14 @@ export function FriendService() {
         .use(setup())
         .group('/friend', (group) =>
             group.get('/', async ({ admin, uid }) => {
-                const friend_list = await (admin ? db.query.friends.findMany() : db.query.friends.findMany({ where: eq(friends.accepted, 1) }));
+                const friend_list = await (admin 
+                    ? db.query.friends.findMany({
+                        orderBy: (friends, { asc, desc }) => [desc(friends.sort_order), asc(friends.createdAt)]
+                    }) 
+                    : db.query.friends.findMany({ 
+                        where: eq(friends.accepted, 1),
+                        orderBy: (friends, { asc, desc }) => [desc(friends.sort_order), asc(friends.createdAt)]
+                    }));
                 const uid_num = parseInt(uid);
                 const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid_num ?? null) });
                 return { friend_list, apply_list };
@@ -77,7 +84,7 @@ export function FriendService() {
                         url: t.String(),
                     })
                 })
-                .put('/:id', async ({ admin, uid, username, set, params: { id }, body: { name, desc, avatar, url, accepted } }) => {
+                .put('/:id', async ({ admin, uid, username, set, params: { id }, body: { name, desc, avatar, url, accepted, sort_order } }) => {
                     const config = ClientConfig()
                     const enable = await config.getOrDefault('friend_apply_enable', true)
                     if (!enable && !admin) {
@@ -101,6 +108,7 @@ export function FriendService() {
                     }
                     if (!admin) {
                         accepted = 0;
+                        sort_order = undefined;
                     }
                     function wrap(s: string | undefined) {
                         return s ? s.length === 0 ? undefined : s : undefined;
@@ -111,6 +119,7 @@ export function FriendService() {
                         avatar: wrap(avatar),
                         url: wrap(url),
                         accepted: accepted === undefined ? undefined : accepted,
+                        sort_order: sort_order === undefined ? undefined : sort_order,
                     }).where(eq(friends.id, parseInt(id)));
                     if (!admin) {
                         const webhookUrl = await ServerConfig().get(Config.webhookUrl) || env.WEBHOOK_URL;
@@ -126,6 +135,7 @@ export function FriendService() {
                         avatar: t.Optional(t.String()),
                         url: t.String(),
                         accepted: t.Optional(t.Integer()),
+                        sort_order: t.Optional(t.Integer()),
                     })
                 })
                 .delete('/:id', async ({ admin, uid, set, params: { id } }) => {
