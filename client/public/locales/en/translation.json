@@ -209,6 +209,7 @@
     }
   },
   "sitename": "Site Name",
+  "sort_order": "Sort Order",
   "status": "Status",
   "summary": "Summary",
   "tags": "Tags",

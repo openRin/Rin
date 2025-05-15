@@ -209,6 +209,7 @@
     }
   },
   "sitename": "サイト名",
+  "sort_order": "ソート順",
   "status": "ステータス",
   "summary": "概要",
   "tags": "タグ",

@@ -209,6 +209,7 @@
     }
   },
   "sitename": "站点名称",
+  "sort_order": "排序",
   "status": "状态",
   "summary": "简介",
   "tags": "标签",
