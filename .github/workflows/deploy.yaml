@@ -35,6 +35,7 @@ jobs:
           RIN_GITHUB_CLIENT_ID: ${{ secrets.RIN_GITHUB_CLIENT_ID }}
           RIN_GITHUB_CLIENT_SECRET: ${{ secrets.RIN_GITHUB_CLIENT_SECRET }}
           TURNSTILE_SECRET: ${{ secrets.TURNSTILE_SECRET }}
+          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
 
           DB_NAME: ${{ vars.DB_NAME }}
           WORKER_NAME: ${{ vars.WORKER_NAME }}

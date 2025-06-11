@@ -4,12 +4,16 @@ import { useCallback, useState } from "react";
 import ReactModal from "react-modal";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
+import { useAlert } from "../components/dialog";
+import { Turnstile } from "../components/turnstile";
 import { oauth_url } from "../main";
 
 export function useLoginModal(onClose?: () => void) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [isOpened, setIsOpened] = useState(false);
+    const [token, setToken] = useState('')
+    const { showAlert, AlertUI } = useAlert();
     const onLogin = useCallback(() => {
         setTimeout(() => {
             setIsOpened(false)
@@ -59,16 +63,22 @@ export function useLoginModal(onClose?: () => void) {
                     </>
                     }
                     <div className="flex flex-col justify-center items-center space-y-2">
+                        <Turnstile onSuccess={setToken} />
                         <p className="text-xs t-secondary">{t('login.oauth_only')}</p>
                         <div className="flex flex-row items-center space-x-4">
                             <Icon label={t('github_login')} name="ri-github-line" onClick={() => {
-                                window.location.href = `${oauth_url}`
+                                if (!token) {
+                                    showAlert(t('turnstile.verify_first'));
+                                    return;
+                                }
+                                window.location.href = `${oauth_url}?token=${token}`
                             }} hover={true} />
                         </div>
+                        <AlertUI />
                     </div>
                 </div>
             </ReactModal>
         )
-    }, [username, password, isOpened, onLogin])
+    }, [username, password, token, isOpened, onLogin])
     return { LoginModal, setIsOpened }
 }

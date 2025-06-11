@@ -19,6 +19,7 @@ S3_BUCKET = "<YourS3BucketName>"
 S3_FORCE_PATH_STYLE = "false"
 WEBHOOK_URL = "https://<YourWebhookURL>"
 TURNSTILE_SECRET = "<Turnstile Secret>"
+TURNSTILE_SITE_KEY = "<Turnstile Site Key>"
 RSS_TITLE = "Rin Development Environment"
 RSS_DESCRIPTION = "Development Environment"
 

@@ -182,6 +182,10 @@
       "desc": "Enable RSS subscription link at the site footer",
       "title": "RSS Subscription Link"
     },
+    "turnstile": {
+      "title": "Turnstile Verification",
+      "desc": "Enable Cloudflare Turnstile for login, comments and friend requests"
+    },
     "title": "Settings",
     "update_failed$message": "Update failed: {{message}}",
     "wordpress": {
@@ -194,6 +198,9 @@
   "summary": "Summary",
   "tags": "Tags",
   "timeline": "Timeline",
+  "turnstile": {
+    "verify_first": "Please complete the verification first"
+  },
   "title": "Title",
   "title_empty": "Title cannot be empty",
   "top": {

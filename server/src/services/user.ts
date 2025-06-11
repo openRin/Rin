@@ -5,6 +5,9 @@ import type { DB } from "../_worker";
 import { users } from "../db/schema";
 import { setup } from "../setup";
 import { getDB } from "../utils/di";
+import { ServerConfig } from "../utils/cache";
+import { Config } from "../utils/config";
+import { verifyTurnstile } from "../utils/turnstile";
 
 export function UserService() {
     const db: DB = getDB();
@@ -12,13 +15,29 @@ export function UserService() {
         .use(setup())
         .group('/user', (group) =>
             group
-                .get("/github", ({ oauth2, headers: { referer }, cookie: { redirect_to } }) => {
+                .get("/github", async ({ oauth2, headers: { referer }, cookie: { redirect_to }, query, set }) => {
                     if (!referer) {
                         return 'Referer not found'
+                    }
+                    const enable = await ServerConfig().getOrDefault(Config.turnstile, false)
+                    if (enable) {
+                        if (!query.token) {
+                            set.status = 400
+                            return 'Missing Turnstile token'
+                        }
+                        const pass = await verifyTurnstile(query.token)
+                        if (!pass) {
+                            set.status = 400
+                            return 'Turnstile verification failed'
+                        }
                     }
                     const referer_url = new URL(referer)
                     redirect_to.value = `${referer_url.protocol}//${referer_url.host}`
                     return oauth2.redirect("GitHub", { scopes: ["read:user"] })
+                }, {
+                    query: t.Object({
+                        token: t.Optional(t.String())
+                    })
                 })
                 .get("/github/callback", async ({ jwt, oauth2, set, store, query, cookie: { token, redirect_to, state } }) => {
 

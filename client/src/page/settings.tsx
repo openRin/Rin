@@ -96,6 +96,7 @@ export function Settings() {
                             <ItemTitle title={t('settings.other.title')} />
                             <ItemSwitch title={t('settings.counter.enable.title')} description={t('settings.counter.enable.desc')} type="client" configKey="counter.enabled" />
                             <ItemSwitch title={t('settings.rss.title')} description={t('settings.rss.desc')} type="client" configKey="rss" />
+                            <ItemSwitch title={t('settings.turnstile.title')} description={t('settings.turnstile.desc')} type="server" configKey="turnstile_enable" />
                             <ItemInput title={t('settings.favicon.title')} description={t('settings.favicon.desc')} type="client" configKey="favicon" configKeyTitle="Favicon" />
                             <ItemInput title={t('settings.footer.title')} description={t('settings.footer.desc')} type="client" configKey="footer" configKeyTitle="Footer HTML" />
                             <ItemButton title={t('settings.cache.clear.title')} description={t('settings.cache.clear.desc')} buttonTitle={t('clear')} onConfirm={async () => {

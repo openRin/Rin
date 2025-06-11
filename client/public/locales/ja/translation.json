@@ -182,6 +182,10 @@
       "desc": "サイトフッターにRSS購読リンクを有効にする",
       "title": "RSS 購読リンク"
     },
+    "turnstile": {
+      "title": "Turnstile認証",
+      "desc": "ログイン、コメント、友達申請にCloudflare Turnstileを有効化"
+    },
     "title": "設定",
     "update_failed$message": "更新に失敗しました: {{message}}",
     "wordpress": {
@@ -194,6 +198,9 @@
   "summary": "概要",
   "tags": "タグ",
   "timeline": "タイムライン",
+  "turnstile": {
+    "verify_first": "先に認証を完了してください"
+  },
   "title": "タイトル",
   "title_empty": "タイトルは空にできません",
   "top": {
