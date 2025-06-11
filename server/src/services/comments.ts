@@ -6,6 +6,7 @@ import { comments, feeds, users } from "../db/schema";
 import { setup } from "../setup";
 import { ServerConfig } from "../utils/cache";
 import { Config } from "../utils/config";
+import { verifyTurnstile } from "../utils/turnstile";
 import { getDB, getEnv } from "../utils/di";
 import { notify } from "../utils/webhook";
 
@@ -30,7 +31,7 @@ export function CommentService() {
                     });
                     return comment_list;
                 })
-                .post('/:feed', async ({ uid, set, params: { feed }, body: { content } }) => {
+                .post('/:feed', async ({ uid, set, params: { feed }, body: { content, turnstile_token } }) => {
                     if (!uid) {
                         set.status = 401;
                         return 'Unauthorized';
@@ -38,6 +39,18 @@ export function CommentService() {
                     if (!content) {
                         set.status = 400;
                         return 'Content is required';
+                    }
+                    const enable = await ServerConfig().getOrDefault(Config.turnstile, false);
+                    if (enable) {
+                        if (!turnstile_token) {
+                            set.status = 400;
+                            return 'Missing Turnstile token';
+                        }
+                        const pass = await verifyTurnstile(turnstile_token);
+                        if (!pass) {
+                            set.status = 400;
+                            return 'Turnstile verification failed';
+                        }
                     }
                     const feedId = parseInt(feed);
                     const userId = parseInt(uid);
@@ -64,7 +77,8 @@ export function CommentService() {
                     return 'OK';
                 }, {
                     body: t.Object({
-                        content: t.String()
+                        content: t.String(),
+                        turnstile_token: t.Optional(t.String())
                     })
                 })
         )

@@ -8,6 +8,7 @@ import { friends } from "../db/schema";
 import { setup } from "../setup";
 import { ClientConfig, ServerConfig } from "../utils/cache";
 import { Config } from "../utils/config";
+import { verifyTurnstile } from "../utils/turnstile";
 import { getDB, getEnv } from "../utils/di";
 import { notify } from "../utils/webhook";
 
@@ -23,7 +24,7 @@ export function FriendService() {
                 const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid_num ?? null) });
                 return { friend_list, apply_list };
             })
-                .post('/', async ({ admin, uid, username, set, body: { name, desc, avatar, url } }) => {
+                .post('/', async ({ admin, uid, username, set, body: { name, desc, avatar, url, turnstile_token } }) => {
                     const config = ClientConfig()
                     const enable = await config.getOrDefault('friend_apply_enable', true)
                     if (!enable && !admin) {
@@ -41,6 +42,18 @@ export function FriendService() {
                     if (!uid) {
                         set.status = 401;
                         return 'Unauthorized';
+                    }
+                    const turnstileEnable = await ServerConfig().getOrDefault(Config.turnstile, false)
+                    if (turnstileEnable && !admin) {
+                        if (!turnstile_token) {
+                            set.status = 400;
+                            return 'Missing Turnstile token';
+                        }
+                        const pass = await verifyTurnstile(turnstile_token)
+                        if (!pass) {
+                            set.status = 400;
+                            return 'Turnstile verification failed';
+                        }
                     }
                     if (!admin) {
                         const exist = await db.query.friends.findFirst({
@@ -75,6 +88,7 @@ export function FriendService() {
                         desc: t.String(),
                         avatar: t.String(),
                         url: t.String(),
+                        turnstile_token: t.Optional(t.String()),
                     })
                 })
                 .put('/:id', async ({ admin, uid, username, set, params: { id }, body: { name, desc, avatar, url, accepted } }) => {

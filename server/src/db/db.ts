@@ -19,6 +19,8 @@ export interface Env {
     WEBHOOK_URL: string,
     S3_FORCE_PATH_STYLE: string,
 
+    TURNSTILE_SECRET: string,
+
     RSS_TITLE: string,
     RSS_DESCRIPTION: string,
 }

@@ -8,6 +8,7 @@ import { useAlert, useConfirm } from "../components/dialog";
 import { HashTag } from "../components/hashtag";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
+import { Turnstile } from "../components/turnstile";
 import { client } from "../main";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
@@ -370,6 +371,7 @@ function CommentInput({
   const { t } = useTranslation();
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
+  const [token, setToken] = useState("");
   const { showAlert, AlertUI } = useAlert();
   const profile = useContext(ProfileContext);
   const { LoginModal, setIsOpened } = useLoginModal()
@@ -386,7 +388,7 @@ function CommentInput({
     client.feed
       .comment({ feed: id })
       .post(
-        { content },
+        { content, turnstile_token: token },
         {
           headers: headersWithAuth(),
         }
@@ -416,6 +418,7 @@ function CommentInput({
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
+        <Turnstile onSuccess={setToken} />
         <button
           className="mt-4 bg-theme text-white px-4 py-2 rounded-full"
           onClick={submit}

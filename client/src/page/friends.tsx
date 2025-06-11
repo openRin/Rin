@@ -7,6 +7,7 @@ import Select from 'react-select';
 import { ShowAlertType, useAlert, useConfirm } from "../components/dialog";
 import { Input } from "../components/input";
 import { Waiting } from "../components/loading";
+import { Turnstile } from "../components/turnstile";
 import { client } from "../main";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
@@ -28,13 +29,14 @@ type FriendItem = {
     health: string;
 };
 
-async function publish({ name, avatar, desc, url, showAlert }: { name: string, avatar: string, desc: string, url: string, showAlert: ShowAlertType }) {
+async function publish({ name, avatar, desc, url, showAlert, token }: { name: string, avatar: string, desc: string, url: string, showAlert: ShowAlertType, token: string }) {
     const t = i18next.t
     const { error } = await client.friend.index.post({
         avatar,
         name,
         desc,
-        url
+        url,
+        turnstile_token: token
     }, {
         headers: headersWithAuth()
     })
@@ -55,6 +57,7 @@ export function FriendsPage() {
     const [desc, setDesc] = useState("")
     const [avatar, setAvatar] = useState("")
     const [url, setUrl] = useState("")
+    const [token, setToken] = useState("")
     const profile = useContext(ProfileContext);
     const [friendsAvailable, setFriendsAvailable] = useState<FriendItem[]>([])
     const [waitList, setWaitList] = useState<FriendItem[]>([])
@@ -87,7 +90,7 @@ export function FriendsPage() {
         ref.current = true
     }, [])
     function publishButton() {
-        publish({ name, desc, avatar, url, showAlert })
+        publish({ name, desc, avatar, url, showAlert, token })
     }
     return (<>
         <Helmet>
@@ -116,6 +119,7 @@ export function FriendsPage() {
                                 <Input value={desc} setValue={setDesc} placeholder={t('description')} className="mt-2" />
                                 <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
                                 <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
+                                <Turnstile onSuccess={setToken} />
                                 <div className='flex flex-row justify-center'>
                                     <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>{t('create.title')}</button>
                                 </div>

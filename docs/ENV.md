@@ -10,6 +10,7 @@
 | DESCRIPTION | 否    | 网站左上角描述                      | 无     | 杂食动物                                             |
 | PAGE_SIZE   | 否    | 默认分页限制                       | 5     | 5                                                |
 | RSS_ENABLE  | 否    | 是否启用 RSS(启用后会在站点底部显示 RSS 链接) | false | true                                             |
+| TURNSTILE_SITE_KEY | 否 | Cloudflare Turnstile 前端站点密钥 | 无 | 0xAAAA.BBBB |
 
 **部署环境变量列表**
 
@@ -52,3 +53,4 @@
 | JWT_SECRET               | JWT 认证所需密钥，可为常规格式的任意密码                                      | J0sT%Ch@nge#Me1                                                  |
 | S3_ACCESS_KEY_ID         | S3 存储桶访问所需的 KEY ID，使用 Cloudflare R2 时为拥有 R2 编辑权限的 API 令牌 ID | 1234567890abcdef1234567890abcd                                   |
 | S3_SECRET_ACCESS_KEY     | S3 存储桶访问所需的 Secret，使用 Cloudflare R2 时为拥有 R2 编辑权限的 API 令牌    | 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef |
+| TURNSTILE_SECRET         | Cloudflare Turnstile 验证密钥 | 1x0000000000000000000000000000000AA |
