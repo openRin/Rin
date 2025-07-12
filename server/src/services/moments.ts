@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 import type { DB } from "../_worker";
 import { moments } from "../db/schema";
