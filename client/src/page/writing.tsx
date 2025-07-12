@@ -1,23 +1,20 @@
-import Editor from '@monaco-editor/react';
 import i18n from 'i18next';
 import _ from 'lodash';
-import {editor} from 'monaco-editor';
 import {Calendar} from 'primereact/calendar';
 import 'primereact/resources/primereact.css';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {Helmet} from "react-helmet";
 import {useTranslation} from "react-i18next";
 import Loading from 'react-loading';
 import {ShowAlertType, useAlert} from '../components/dialog';
 import {Checkbox, Input} from "../components/input";
-import {Markdown} from "../components/markdown";
 import {client} from "../main";
 import {headersWithAuth} from "../utils/auth";
-import {Cache, useCache} from '../utils/cache';
+import {Cache} from '../utils/cache';
 import {siteName} from "../utils/constants";
-import {useColorMode} from "../utils/darkModeUtils";
 import mermaid from 'mermaid';
+import { MarkdownEditor } from '../components/markdown_editor';
 
 async function publish({
   title,
@@ -126,40 +123,10 @@ async function update({
   }
 }
 
-function uploadImage(file: File, onSuccess: (url: string) => void, showAlert: ShowAlertType) {
-  const t = i18n.t
-  client.storage.index
-    .post(
-      {
-        key: file.name,
-        file: file,
-      },
-      {
-        headers: headersWithAuth(),
-      }
-    )
-    .then(({ data, error }) => {
-      if (error) {
-        showAlert(t("upload.failed", { error: error.value }));
-      }
-      if (data) {
-        onSuccess(data);
-      }
-    })
-    .catch((e: any) => {
-      console.error(e);
-      showAlert(t("upload.failed", { error: e.message }));
-    });
-}
-
-
-
 // 写作页面
 export function WritingPage({ id }: { id?: number }) {
   const { t } = useTranslation();
-  const colorMode = useColorMode();
   const cache = Cache.with(id);
-  const editorRef = useRef<editor.IStandaloneCodeEditor>();
   const [title, setTitle] = cache.useCache("title", "");
   const [summary, setSummary] = cache.useCache("summary", "");
   const [tags, setTags] = cache.useCache("tags", "");
@@ -168,8 +135,6 @@ export function WritingPage({ id }: { id?: number }) {
   const [listed, setListed] = useState(true);
   const [content, setContent] = cache.useCache("content", "");
   const [createdAt, setCreatedAt] = useState<Date | undefined>(new Date());
-  const [preview, setPreview] = useCache<'edit' | 'preview' | 'comparison'>("preview", 'edit');
-  const [uploading, setUploading] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const { showAlert, AlertUI } = useAlert()
   function publishButton() {
@@ -223,69 +188,6 @@ export function WritingPage({ id }: { id?: number }) {
     }
   }
 
-
-  const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
-    // Access the clipboard data using event.clipboardData
-    const clipboardData = event.clipboardData;
-    // only if clipboard payload is file
-    if (clipboardData.files.length === 1) {
-      const editor = editorRef.current;
-      if (!editor) return;
-      editor.trigger(undefined, "undo", undefined);
-      setUploading(true)
-      const myfile = clipboardData.files[0] as File;
-      uploadImage(myfile, (url) => {
-        const selection = editor.getSelection();
-        if (!selection) return;
-        editor.executeEdits(undefined, [{
-          range: selection,
-          text: `![${myfile.name}](${url})\n`,
-        }]);
-        setUploading(false)
-      }, showAlert);
-    }
-  };
-
-  function UploadImageButton() {
-    const { showAlert, AlertUI } = useAlert();
-    const uploadRef = useRef<HTMLInputElement>(null);
-    const t = i18n.t
-    const upChange = (event: any) => {
-      for (let i = 0; i < event.currentTarget.files.length; i++) {
-        const file = event.currentTarget.files[i]; ///获得input的第一个图片
-        if (file.size > 5 * 1024000) {
-          showAlert(t("upload.failed$size", { size: 5 }))
-          uploadRef.current!.value = "";
-        } else {
-          const editor = editorRef.current;
-          if (!editor) return;
-          const selection = editor.getSelection();
-          if (!selection) return;
-          setUploading(true)
-          uploadImage(file, (url) => {
-            setUploading(false)
-            editor.executeEdits(undefined, [{
-              range: selection,
-              text: `![${file.name}](${url})\n`,
-            }]);
-          }, showAlert);
-        }
-      }
-    };
-    return (
-      <button onClick={() => uploadRef.current?.click()}>
-        <input
-          ref={uploadRef}
-          onChange={upChange}
-          className="hidden"
-          type="file"
-          accept="image/gif,image/jpeg,image/jpg,image/png"
-        />
-        <i className="ri-image-add-line" />
-        <AlertUI />
-      </button>
-    )
-  }
   useEffect(() => {
     if (id) {
       client
@@ -411,80 +313,7 @@ export function WritingPage({ id }: { id?: number }) {
       </Helmet>
       <div className="grid grid-cols-1 md:grid-cols-3 t-primary mt-2">
         <div className="col-span-2 pb-8">
-          <div className="bg-w rounded-2xl shadow-xl shadow-light p-4">
-            {MetaInput({ className: "visible md:hidden mb-8" })}
-            <div className="flex flex-col mx-4 my-2 md:mx-0 md:my-0 gap-2">
-              <div className="flex flex-row space-x-2">
-                <button className={`${preview === 'edit' ? "text-theme" : ""}`} onClick={() => setPreview('edit')}> {t("edit")} </button>
-                <button className={`${preview === 'preview' ? "text-theme" : ""}`} onClick={() => setPreview('preview')}> {t("preview")} </button>
-                <button className={`${preview === 'comparison' ? "text-theme" : ""}`} onClick={() => setPreview('comparison')}> {t("comparison")} </button>
-                <div className="flex-grow" />
-                {uploading &&
-                  <div className="flex flex-row space-x-2 items-center">
-                    <Loading type="spin" color="#FC466B" height={16} width={16} />
-                    <span className="text-sm text-neutral-500">{t('uploading')}</span>
-                  </div>
-                }
-              </div>
-              <div className={`grid grid-cols-1 ${preview === 'comparison' ? "sm:grid-cols-2" : ""}`}>
-                <div className={"flex flex-col " + (preview === 'preview' ? "hidden" : "")}>
-                  <div className="flex flex-row justify-start mb-2">
-                    <UploadImageButton />
-                  </div>
-                  <div
-                    className={"relative"}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const editor = editorRef.current;
-                      if (!editor) return;
-                      for (let i = 0; i < e.dataTransfer.files.length; i++) {
-                        const selection = editor.getSelection();
-                        if (!selection) return;
-                        const file = e.dataTransfer.files[i];
-                        setUploading(true)
-                        uploadImage(file, (url) => {
-                          setUploading(false)
-                          editor.executeEdits(undefined, [{
-                            range: selection,
-                            text: `![${file.name}](${url})\n`,
-                          }]);
-                        }, showAlert);
-                      }
-                    }}
-                    onPaste={handlePaste}
-                  >
-                    <Editor
-                      onMount={(editor, _) => {
-                        editorRef.current = editor
-                      }}
-                      height="600px"
-                      defaultLanguage="markdown"
-                      className=""
-                      value={content}
-                      // onPaste={handlePaste}
-                      onChange={(data, _) => {
-                        cache.set("content", data ?? "");
-                        setContent(data ?? "");
-                      }}
-                      theme={colorMode === "dark" ? "vs-dark" : "light"}
-                      options={{
-                        wordWrap: "on",
-                        fontSize: 14,
-                        lineNumbers: "off",
-                        dragAndDrop: true,
-                        pasteAs: { enabled: false }
-                      }}
-                    />
-                  </div>
-                </div>
-                <div
-                  className={"px-4 h-[600px] overflow-y-scroll " + (preview !== 'edit' ? "" : "hidden")}
-                >
-                  <Markdown content={content ? content : "> No content now. Write on the left side."} />
-                </div>
-              </div>
-            </div>
-          </div>
+          <MarkdownEditor content={content} setContent={setContent} height='600px' />
           <div className="visible md:hidden flex flex-row justify-center mt-8">
             <button
               onClick={publishButton}
