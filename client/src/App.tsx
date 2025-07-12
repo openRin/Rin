@@ -23,6 +23,7 @@ import { tryInt } from './utils/int'
 import { SearchPage } from './page/search.tsx'
 import { Tips, TipsPage } from './components/tips.tsx'
 import { useTranslation } from 'react-i18next'
+import { MomentsPage } from './page/moments'
 
 function App() {
   const ref = useRef(false)
@@ -78,7 +79,10 @@ function App() {
             <RouteMe path="/timeline">
               <TimelinePage />
             </RouteMe>
-
+            
+            <RouteMe path="/moments">
+              <MomentsPage />
+            </RouteMe>
 
             <RouteMe path="/friends">
               <FriendsPage />
