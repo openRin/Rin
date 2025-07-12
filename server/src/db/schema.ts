@@ -18,6 +18,14 @@ export const feeds = sqliteTable("feeds", {
     updatedAt: updated_at,
 });
 
+export const moments = sqliteTable("moments", {
+    id: integer("id").primaryKey(),
+    content: text("content").notNull(),
+    uid: integer("uid").references(() => users.id).notNull(),
+    createdAt: created_at,
+    updatedAt: updated_at
+});
+
 export const visits = sqliteTable("visits", {
     id: integer("id").primaryKey(),
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
@@ -84,6 +92,13 @@ export const feedsRelations = relations(feeds, ({ many, one }) => ({
         references: [users.id],
     }),
     comments: many(comments),
+}));
+
+export const momentsRelations = relations(moments, ({ one }) => ({
+    user: one(users, {
+        fields: [moments.uid],
+        references: [users.id],
+    })
 }));
 
 export const commentsRelations = relations(comments, ({ one }) => ({
