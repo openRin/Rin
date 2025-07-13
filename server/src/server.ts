@@ -5,6 +5,7 @@ import { CommentService } from './services/comments';
 import { FaviconService } from "./services/favicon";
 import { FeedService } from './services/feed';
 import { FriendService } from './services/friends';
+import { MomentsService } from './services/moments';
 import { RSSService } from './services/rss';
 import { SEOService } from './services/seo';
 import { StorageService } from './services/storage';
@@ -38,6 +39,7 @@ export const app = () => new Elysia({ aot: false })
     .use(SEOService())
     .use(RSSService())
     .use(ConfigService())
+    .use(MomentsService())
     .get('/', () => `Hi`)
     .onError(({ path, params, code }) => {
         if (code === 'NOT_FOUND')

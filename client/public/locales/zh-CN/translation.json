@@ -66,6 +66,7 @@
       "title": "删除评论"
     },
     "confirm": "确定要删除吗？",
+    "failed$message": "删除失败: {{message}}",
     "success": "删除成功",
     "title": "删除"
   },
@@ -108,6 +109,7 @@
     "title": "目录"
   },
   "listed": "列出在文章中",
+  "load_more": "加载更多",
   "login": {
     "oauth_only": "请登录后继续",
     "password": {
@@ -121,16 +123,25 @@
   },
   "logout": "退出登录",
   "main_content": "正文",
+  "moments": {
+    "edit": "编辑动态",
+    "publish": "发布动态",
+    "title": "动态",
+    "total$count_one": "{{count}} 条动态",
+    "total$count_other": "{{count}} 条动态"
+  },
   "next": "下一页",
   "no_more": "没有更多了",
   "preview": "预览",
   "previous": "上一页",
   "publish": {
+    "failed$message": "发布失败: {{message}}",
     "success": "发布成功",
     "title": "发布"
   },
   "reload": "重试",
   "save": "保存",
+  "saving": "保存中",
   "settings": {
     "cache": {
       "clear": {
@@ -159,8 +170,8 @@
       "desc": "设置显示于浏览器的地址栏的图标（Favicon）",
       "title": "网站图标",
       "update": {
-        "success": "网站图标更新成功",
-        "failed$message": "网站图标更新失败，{{message}}"
+        "failed$message": "网站图标更新失败，{{message}}",
+        "success": "网站图标更新成功"
       }
     },
     "footer": {
@@ -224,6 +235,7 @@
     "title": "取消置顶"
   },
   "update": {
+    "failed$message": "更新失败: {{message}}",
     "success": "更新成功",
     "title": "更新"
   },

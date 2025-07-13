@@ -66,6 +66,7 @@
       "title": "コメントを削除"
     },
     "confirm": "削除してもよろしいですか？",
+    "failed$message": "削除に失敗しました: {{message}}",
     "success": "削除に成功しました",
     "title": "削除"
   },
@@ -108,6 +109,7 @@
     "title": "目次"
   },
   "listed": "記事にリスト",
+  "load_more": "もっと読み込む",
   "login": {
     "oauth_only": "続行するにはログインしてください",
     "password": {
@@ -121,16 +123,25 @@
   },
   "logout": "ログアウト",
   "main_content": "本文",
+  "moments": {
+    "edit": "編集",
+    "publish": "公開",
+    "title": "動態",
+    "total$count_one": "{{count}} 件の動態",
+    "total$count_other": "{{count}} 件の動態"
+  },
   "next": "次のページ",
   "no_more": "もうない",
   "preview": "プレビュー",
   "previous": "前のページ",
   "publish": {
+    "failed$message": "公開に失敗しました: {{message}}",
     "success": "公開に成功しました",
     "title": "公開"
   },
   "reload": "再試行",
   "save": "保存",
+  "saving": "保存中",
   "settings": {
     "cache": {
       "clear": {
@@ -159,8 +170,8 @@
       "desc": "ブラウザのアドレスバーに表示されるアイコン（ファビコン）を設定します。",
       "title": "ファビコン",
       "update": {
-        "success": "ファビコンの更新が成功しました",
-        "failed$message": "ファビコンの更新に失敗しました、{{message}}"
+        "failed$message": "ファビコンの更新に失敗しました、{{message}}",
+        "success": "ファビコンの更新が成功しました"
       }
     },
     "footer": {
@@ -224,6 +235,7 @@
     "title": "トップ解除"
   },
   "update": {
+    "failed$message": "更新に失敗しました: {{message}}",
     "success": "更新に成功しました",
     "title": "更新"
   },

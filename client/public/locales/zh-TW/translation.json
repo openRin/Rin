@@ -66,6 +66,7 @@
       "title": "刪除留言"
     },
     "confirm": "確定要刪除嗎？",
+    "failed$message": "刪除失敗：{{message}}",
     "success": "刪除成功",
     "title": "刪除"
   },
@@ -108,6 +109,7 @@
     "title": "目錄"
   },
   "listed": "列出在文章中",
+  "load_more": "載入更多",
   "login": {
     "oauth_only": "請登入後繼續",
     "password": {
@@ -121,16 +123,25 @@
   },
   "logout": "登出",
   "main_content": "正文",
+  "moments": {
+    "edit": "編輯動態",
+    "publish": "發布動態",
+    "title": "動態",
+    "total$count_one": "{{count}} 條動態",
+    "total$count_other": "{{count}} 條動態"
+  },
   "next": "下一頁",
   "no_more": "沒有更多了",
   "preview": "預覽",
   "previous": "上一頁",
   "publish": {
+    "failed$message": "發布失敗: {{message}}",
     "success": "發布成功",
     "title": "發布"
   },
   "reload": "重試",
   "save": "保存",
+  "saving": "保存中",
   "settings": {
     "cache": {
       "clear": {
@@ -159,8 +170,8 @@
       "desc": "設定顯示於瀏覽器的地址欄的圖標（Favicon）",
       "title": "網站圖標",
       "update": {
-        "success": "網站圖標更新成功",
-        "failed$message": "網站圖標更新失敗，{{message}}"
+        "failed$message": "網站圖標更新失敗，{{message}}",
+        "success": "網站圖標更新成功"
       }
     },
     "footer": {
@@ -224,6 +235,7 @@
     "title": "取消置頂"
   },
   "update": {
+    "failed$message": "更新失敗: {{message}}",
     "success": "更新成功",
     "title": "更新"
   },

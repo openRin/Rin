@@ -66,6 +66,7 @@
       "title": "Delete Comment"
     },
     "confirm": "Are you sure you want to delete?",
+    "failed$message": "Failed to delete: {{message}}",
     "success": "Deleted successfully",
     "title": "Delete"
   },
@@ -108,6 +109,7 @@
     "title": "Index"
   },
   "listed": "Listed in articles",
+  "load_more": "Load More",
   "login": {
     "oauth_only": "Please log in to continue",
     "password": {
@@ -121,16 +123,25 @@
   },
   "logout": "Logout",
   "main_content": "Main content",
+  "moments": {
+    "edit": "Edit Moment",
+    "publish": "Publish Moment",
+    "title": "Moments",
+    "total$count_one": "{{count}} moment in total",
+    "total$count_other": "{{count}} moments in total"
+  },
   "next": "Next Page",
   "no_more": "No More",
   "preview": "Preview",
   "previous": "Previous Page",
   "publish": {
+    "failed$message": "Failed to publish: {{message}}",
     "success": "Publish successful",
     "title": "Publish"
   },
   "reload": "Retry",
   "save": "Save",
+  "saving": "Saving",
   "settings": {
     "cache": {
       "clear": {
@@ -159,8 +170,8 @@
       "desc": "Set the icon (Favicon) displayed in the browser's address bar",
       "title": "Favicon",
       "update": {
-        "success": "Favicon update was successful",
-        "failed$message": "Favicon update failed, {{message}}"
+        "failed$message": "Favicon update failed, {{message}}",
+        "success": "Favicon update was successful"
       }
     },
     "footer": {
@@ -224,6 +235,7 @@
     "title": "Untop"
   },
   "update": {
+    "failed$message": "Update failed: {{message}}",
     "success": "Update successful",
     "title": "Update"
   },
