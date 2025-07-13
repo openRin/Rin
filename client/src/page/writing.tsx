@@ -313,7 +313,10 @@ export function WritingPage({ id }: { id?: number }) {
       </Helmet>
       <div className="grid grid-cols-1 md:grid-cols-3 t-primary mt-2">
         <div className="col-span-2 pb-8">
-          <MarkdownEditor content={content} setContent={setContent} height='600px' />
+          <div className="bg-w rounded-2xl shadow-xl shadow-light p-4">
+            {MetaInput({ className: "visible md:hidden mb-8" })}
+            <MarkdownEditor content={content} setContent={setContent} height='600px' />
+          </div>
           <div className="visible md:hidden flex flex-row justify-center mt-8">
             <button
               onClick={publishButton}
