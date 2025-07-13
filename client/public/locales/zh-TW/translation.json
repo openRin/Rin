@@ -77,7 +77,10 @@
   "error": {
     "api_url": "Pages 環境變數中 API_URL 應為 Worker 地址，請檢查 Pages 環境變數中 API_URL 是否正確",
     "api_url_slash": "Pages 環境變數中 API_URL 應為 Worker 地址，請檢查 Pages 環境變數中 API_URL 是否正確，且 API_URL 末尾不能有 /",
-    "github_callback": "GitHub OAuth 回調地址應為 `https://<Worker 地址>/user/github/callback，請檢查 GitHub OAuth 回調地址是否正確"
+    "github_callback": "GitHub OAuth 回調地址應為 `https://<Worker 地址>/user/github/callback，請檢查 GitHub OAuth 回調地址是否正確",
+    "not_found": "頁面未找到",
+    "permission_denied": "權限不足",
+    "title": "錯誤"
   },
   "feed_card": {
     "published$time": "{{time}} 發布",
