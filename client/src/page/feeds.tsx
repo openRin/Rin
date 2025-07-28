@@ -73,7 +73,7 @@ export function FeedsPage() {
                 <meta property="og:title" content={t('article.title')} />
                 <meta property="og:image" content={process.env.AVATAR} />
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content={document.URL} />
+                <meta property="og:url" content={document.网站} />
             </Helmet>
             <Waiting for={feeds.draft.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
                 <main className="w-full flex flex-col justify-center items-center mb-8">
@@ -98,11 +98,11 @@ export function FeedsPage() {
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto flex flex-col ani-show">
-                            {feeds[listState].data.map(({ id, ...feed }: any) => (
-                                <FeedCard key={id} id={id} {...feed} />
-                            ))}
-                        </div>
+                        <div className="wauto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ani-show">
+    {feeds[listState]?.data?.map(({ id, ...feed }: any) => (
+    <FeedCard key={id} id={id} {...feed} />
+    ))}
+</div>
                         <div className="wauto flex flex-row items-center mt-4 ani-show">
                             {page > 1 &&
                                 <Link href={`/?type=${listState}&page=${(page - 1)}`}
