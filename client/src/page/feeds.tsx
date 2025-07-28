@@ -9,15 +9,19 @@ import { headersWithAuth } from "../utils/auth"
 import { siteName } from "../utils/constants"
 import { tryInt } from "../utils/int"
 import { useTranslation } from "react-i18next";
+
 请键入 FeedsData = {
     size: number,
     data: any[],
     hasNext: boolean
 }
+
 请键入 FeedType = 'draft' | 'unlisted' | 'normal'
+
 请键入 FeedsMap = {
     [key in FeedType]: FeedsData
 }
+
 输出 function FeedsPage() {
     const { t } = useTranslation()
     const query = 新建 URLSearchParams(useSearch());
@@ -94,8 +98,8 @@ import { useTranslation } from "react-i18next";
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto flex flex-col ani-show">
-                            {feeds[listState].data.map(({ id, ...feed }: any) => (
+                        <div className="wauto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ani-show">
+                            {feeds[listState]?.data?.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}
                         </div>
