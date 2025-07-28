@@ -9,35 +9,39 @@ import { headersWithAuth } from "../utils/auth"
 import { siteName } from "../utils/constants"
 import { tryInt } from "../utils/int"
 import { useTranslation } from "react-i18next";
-type FeedsData = {
+
+请键入 FeedsData = {
     size: number,
     data: any[],
     hasNext: boolean
 }
-type FeedType = 'draft' | 'unlisted' | 'normal'
-type FeedsMap = {
+
+请键入 FeedType = 'draft' | 'unlisted' | 'normal'
+
+请键入 FeedsMap = {
     [key in FeedType]: FeedsData
 }
-export function FeedsPage() {
+
+输出 function FeedsPage() {
     const { t } = useTranslation()
-    const query = new URLSearchParams(useSearch());
-    const profile = useContext(ProfileContext);
+    const query = 新建 URLSearchParams(useSearch());
+    const 个人资料 = useContext(ProfileContext);
     const [listState, _setListState] = useState<FeedType>(query.get("type") as FeedType || 'normal')
-    const [status, setStatus] = useState<'loading' | 'idle'>('idle')
+    const [状态, setStatus] = useState<'loading' | 'idle'>('idle')
     const [feeds, setFeeds] = useState<FeedsMap>({
-        draft: { size: 0, data: [], hasNext: false },
+        草案: { size: 0, data: [], hasNext: false },
         unlisted: { size: 0, data: [], hasNext: false },
         normal: { size: 0, data: [], hasNext: false }
     })
     const page = tryInt(1, query.get("page"))
     const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
     const ref = useRef("")
-    function fetchFeeds(type: FeedType) {
+    function fetchFeeds(请键入: FeedType) {
         client.feed.index.get({
             query: {
                 page: page,
                 limit: limit,
-                type: type
+                请键入: type
             },
             headers: headersWithAuth()
         }).then(({ data }) => {
@@ -53,7 +57,7 @@ export function FeedsPage() {
     useEffect(() => {
         const key = `${query.get("page")} ${query.get("type")}`
         if (ref.current == key) return
-        const type = query.get("type") as FeedType || 'normal'
+        const 请键入 = query.get("type") as FeedType || 'normal'
         if (type !== listState) {
             _setListState(type)
         }
@@ -64,14 +68,14 @@ export function FeedsPage() {
     return (
         <>
             <Helmet>
-                <title>{`${t('article.title')} - ${process.env.NAME}`}</title>
+                <标题>{`${t('article.title')} - ${process.env.名字}`}</标题>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('article.title')} />
                 <meta property="og:image" content={process.env.AVATAR} />
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content={window.location.href} />
+                <meta property="og:url" content={window.位置.href} />
             </Helmet>
-            <Waiting for={feeds.draft.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
+            <Waiting for={feeds.草案.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
                 <main className="w-full flex flex-col justify-center items-center mb-8">
                     <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
                         <p>
@@ -94,8 +98,8 @@ export function FeedsPage() {
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto flex flex-col ani-show">
-                            {feeds[listState].data.map(({ id, ...feed }: any) => (
+                        <div className="wauto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ani-show">
+                            {feeds[listState]?.data?.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}
                         </div>
