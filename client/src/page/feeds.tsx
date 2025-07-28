@@ -73,7 +73,7 @@ export function FeedsPage() {
                 <meta property="og:title" content={t('article.title')} />
                 <meta property="og:image" content={process.env.AVATAR} />
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content={document.getElementById('网站')} />
+                <meta property="og:url" content={window.location.href} />
             </Helmet>
             <Waiting for={feeds.draft.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
                 <main className="w-full flex flex-col justify-center items-center mb-8">
