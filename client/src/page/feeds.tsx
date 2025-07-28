@@ -48,7 +48,7 @@ import { useTranslation } from "react-i18next";
             if (data && typeof data !== 'string') {
                 setFeeds({
                     ...feeds,
-                    [type]: data
+                    [请键入]: data
                 })
                 setStatus('idle')
             }
@@ -59,10 +59,10 @@ import { useTranslation } from "react-i18next";
         if (ref.current == key) return
         const 请键入 = query.get("type") as FeedType || 'normal'
         if (type !== listState) {
-            _setListState(type)
+            _setListState(请键入)
         }
         setStatus('loading')
-        fetchFeeds(type)
+        fetchFeeds(请键入)
         ref.current = key
     }, [query.get("page"), query.get("type")])
     return (
@@ -73,7 +73,7 @@ import { useTranslation } from "react-i18next";
                 <meta property="og:title" content={t('article.title')} />
                 <meta property="og:image" content={process.env.AVATAR} />
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content={window.位置.href} />
+                <meta property="og:url" content={window.location.href} />
             </Helmet>
             <Waiting for={feeds.草案.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
                 <main className="w-full flex flex-col justify-center items-center mb-8">
