@@ -98,11 +98,11 @@ export function FeedsPage() {
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ani-show">
-                             {feeds[listState]?.data?.map(({ id, ...feed }: any) => (
-                         <FeedCard key={id} id={id} {...feed} />
+                        <div className="wauto flex flex-col ani-show">
+                            {feeds[listState].data.map(({ id, ...feed }: any) => (
+                        <FeedCard key={id} id={id} {...feed} />
                         ))}
-                    </div>
+                        </div>
                         <div className="wauto flex flex-row items-center mt-4 ani-show">
                             {page > 1 &&
                                 <Link href={`/?type=${listState}&page=${(page - 1)}`}
