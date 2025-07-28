@@ -9,46 +9,42 @@ import { headersWithAuth } from "../utils/auth"
 import { siteName } from "../utils/constants"
 import { tryInt } from "../utils/int"
 import { useTranslation } from "react-i18next";
-
-请键入 FeedsData = {
+type FeedsData = {
     size: number,
     data: any[],
     hasNext: boolean
 }
-
-请键入 FeedType = 'draft' | 'unlisted' | 'normal'
-
-请键入 FeedsMap = {
+type FeedType = 'draft' | 'unlisted' | 'normal'
+type FeedsMap = {
     [key in FeedType]: FeedsData
 }
-
-输出 function FeedsPage() {
+export function FeedsPage() {
     const { t } = useTranslation()
-    const query = 新建 URLSearchParams(useSearch());
-    const 个人资料 = useContext(ProfileContext);
+    const query = new URLSearchParams(useSearch());
+    const profile = useContext(ProfileContext);
     const [listState, _setListState] = useState<FeedType>(query.get("type") as FeedType || 'normal')
-    const [状态, setStatus] = useState<'loading' | 'idle'>('idle')
+    const [status, setStatus] = useState<'loading' | 'idle'>('idle')
     const [feeds, setFeeds] = useState<FeedsMap>({
-        草案: { size: 0, data: [], hasNext: false },
+        draft: { size: 0, data: [], hasNext: false },
         unlisted: { size: 0, data: [], hasNext: false },
         normal: { size: 0, data: [], hasNext: false }
     })
     const page = tryInt(1, query.get("page"))
     const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
     const ref = useRef("")
-    function fetchFeeds(请键入: FeedType) {
+    function fetchFeeds(type: FeedType) {
         client.feed.index.get({
             query: {
                 page: page,
                 limit: limit,
-                请键入: type
+                type: type
             },
             headers: headersWithAuth()
         }).then(({ data }) => {
             if (data && typeof data !== 'string') {
                 setFeeds({
                     ...feeds,
-                    [请键入]: data
+                    [type]: data
                 })
                 setStatus('idle')
             }
@@ -57,25 +53,25 @@ import { useTranslation } from "react-i18next";
     useEffect(() => {
         const key = `${query.get("page")} ${query.get("type")}`
         if (ref.current == key) return
-        const 请键入 = query.get("type") as FeedType || 'normal'
+        const type = query.get("type") as FeedType || 'normal'
         if (type !== listState) {
-            _setListState(请键入)
+            _setListState(type)
         }
         setStatus('loading')
-        fetchFeeds(请键入)
+        fetchFeeds(type)
         ref.current = key
     }, [query.get("page"), query.get("type")])
     return (
         <>
             <Helmet>
-                <标题>{`${t('article.title')} - ${process.env.名字}`}</标题>
+                <title>{`${t('article.title')} - ${process.env.NAME}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('article.title')} />
                 <meta property="og:image" content={process.env.AVATAR} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={window.location.href} />
             </Helmet>
-            <Waiting for={feeds.草案.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
+            <Waiting for={feeds.draft.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
                 <main className="w-full flex flex-col justify-center items-center mb-8">
                     <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
                         <p>
@@ -98,8 +94,8 @@ import { useTranslation } from "react-i18next";
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ani-show">
-                            {feeds[listState]?.data?.map(({ id, ...feed }: any) => (
+                        <div className="wauto flex flex-col ani-show">
+                            {feeds[listState].data.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}
                         </div>
