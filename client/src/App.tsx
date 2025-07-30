@@ -32,6 +32,17 @@ function App() {
   const [profile, setProfile] = useState<Profile | undefined>()
   const [config, setConfig] = useState<ConfigWrapper>(new ConfigWrapper({}, new Map()))
   useEffect(() => {
+    // --- 自动缩放逻辑开始 ---
+    const HIGH_RES_THRESHOLD = 2560; // 定义高分屏阈值
+    const applyScaling = () => {
+      if (window.screen.width >= HIGH_RES_THRESHOLD) {
+        document.documentElement.style.fontSize = '125%'; // 应用 125% 缩放
+      } else {
+        document.documentElement.style.fontSize = '100%'; // 恢复默认
+      }
+    };
+    applyScaling();
+    // --- 自动缩放逻辑结束 ---
     if (ref.current) return
     if (getCookie('token')?.length ?? 0 > 0) {
       client.user.profile.get({
