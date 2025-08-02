@@ -37,7 +37,7 @@ Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，�
 
 # 文档
 
-[rin-docs.xeu.life](https://rin-docs.xeu.life)
+[docs.openrin.org](https://docs.openrin.org)
 
 ## Star History
 
