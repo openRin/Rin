@@ -37,7 +37,7 @@ Rin is a blog based on Cloudflare Pages + Workers + D1 + R2. It does not require
 13. For more features, please refer to https://xeu.life
 
 # Documentation
-[rin-docs.xeu.life](https://rin-docs.xeu.life)
+[docs.openrin.org](https://docs.openrin.org)
 
 ## Star History
 
