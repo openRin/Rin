@@ -83,7 +83,7 @@ const useTableOfContents = (selector: string) => {
                 {tableOfContents.map((item) => (
                     <li
                         key={`toc$${item.index}`}
-                        className={activeIndex === item.index ? "text-theme" : ""}
+                        className={`cursor-pointer hover:opacity-50 ${activeIndex === item.index ? "text-theme" : ""}`}
                         style={{ marginLeft: item.marginLeft }}
                         onClick={() => {
                             item.element.scrollIntoView({
