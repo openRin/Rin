@@ -1,6 +1,6 @@
 import Editor from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Loading from 'react-loading';
 import { useColorMode } from "../utils/darkModeUtils";
@@ -19,6 +19,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   const { t } = useTranslation();
   const colorMode = useColorMode();
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
+  const isComposingRef = useRef(false);
   const [preview, setPreview] = useState<'edit' | 'preview' | 'comparison'>('edit');
   const [uploading, setUploading] = useState(false);
 
@@ -107,6 +108,50 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     );
   }
 
+  /* ---------------- Monaco Mount & IME Optimization ---------------- */
+
+  const handleEditorMount = (editor: editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
+
+    editor.onDidCompositionStart(() => {
+      isComposingRef.current = true;
+    });
+
+    editor.onDidCompositionEnd(() => {
+      isComposingRef.current = false;
+      setContent(editor.getValue());
+    });
+
+    editor.onDidChangeModelContent(() => {
+      if (!isComposingRef.current) {
+        setContent(editor.getValue());
+      }
+    });
+
+    editor.onDidBlurEditorText(() => {
+      setContent(editor.getValue());
+    });
+  };
+
+  /* ---------------- synchronization ---------------- */
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const model = editor.getModel();
+    if (!model) return;
+
+    const editorValue = model.getValue();
+
+    // Avoid infinite loops & prevent overwriting content being edited
+    if (editorValue !== content) {
+      editor.setValue(content);
+    }
+  }, [content]);
+
+  /* ---------------- UI ---------------- */
+
   return (
     <div className="flex flex-col mx-4 my-2 md:mx-0 md:my-0 gap-2">
       <div className="flex flex-row space-x-2">
@@ -149,23 +194,31 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
             onPaste={handlePaste}
           >
             <Editor
-              onMount={(editor, _) => {
-                editorRef.current = editor;
-              }}
+              onMount={handleEditorMount}
               height={height}
               defaultLanguage="markdown"
-              className=""
-              value={content}
-              onChange={(data, _) => {
-                setContent(data ?? "");
-              }}
+              defaultValue={content}
               theme={colorMode === "dark" ? "vs-dark" : "light"}
               options={{
                 wordWrap: "on",
+
+                // Chinese IME stability key
+                fontFamily: "Sarasa Mono SC, JetBrains Mono, monospace",
+                fontLigatures: false,
+                letterSpacing: 0,
+
                 fontSize: 14,
                 lineNumbers: "off",
+
+                accessibilitySupport: "off",
+                unicodeHighlight: { ambiguousCharacters: false },
+
+                renderWhitespace: "none",
+                renderControlCharacters: false,
+                smoothScrolling: false,
+
                 dragAndDrop: true,
-                pasteAs: { enabled: false }
+                pasteAs: { enabled: false },
               }}
             />
           </div>
