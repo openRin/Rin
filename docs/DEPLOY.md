@@ -256,6 +256,8 @@ S3_ENDPOINT=https://8879900e5e1219fb745c9f69b086565a.r2.cloudflarestorage.com
 
 然后在`公开访问`处绑定一个域名用于访问资源，绑定的域名对应于`S3_ACCESS_HOST`环境变量：
 
+> 这里记得启用 **公共开发 URL**，否则前端会提示CORS跨域、后端1101等问题。[参考](https://developers.cloudflare.com/r2/buckets/public-buckets/#managed-public-buckets-through-r2dev)
+
 ```ini
 S3_ACCESS_HOST=https://image.xeu.life
 ```
