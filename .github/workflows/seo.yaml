@@ -46,4 +46,5 @@ jobs:
         run: |
           cd Rin/
           bun install --frozen-lockfile
+          npx puppeteer browsers install chrome
           bun scripts/render.ts
