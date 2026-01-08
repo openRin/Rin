@@ -15,6 +15,40 @@ function Footer() {
     const loginEnabled = config.get<boolean>('login.enabled');
     const [doubleClickTimes, setDoubleClickTimes] = useState(0);
     const { LoginModal, setIsOpened } = useLoginModal()
+    
+    // Website creation time (default: 2026-01-07 12:00:00 UTC)
+    const [siteAge, setSiteAge] = useState('');
+    // Voyager 1 distance from Earth
+    const [voyagerDistance, setVoyagerDistance] = useState('');
+    
+    useEffect(() => {
+        // Update every second
+        const interval = setInterval(() => {
+            // Calculate website age in Beijing time (UTC+8)
+            const now = new Date();
+            // Convert to Beijing time (UTC+8)
+            const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+            const creationDate = new Date('2024-01-01T00:00:00Z');
+            const creationDateBeijing = new Date(creationDate.getTime() + 8 * 60 * 60 * 1000);
+            const ageInSeconds = Math.floor((beijingTime.getTime() - creationDateBeijing.getTime()) / 1000);
+            const days = Math.floor(ageInSeconds / (24 * 60 * 60));
+            const hours = Math.floor((ageInSeconds % (24 * 60 * 60)) / (60 * 60));
+            const minutes = Math.floor((ageInSeconds % (60 * 60)) / 60);
+            const seconds = ageInSeconds % 60;
+            setSiteAge(`${days}天 ${hours}时 ${minutes}分 ${seconds}秒`);
+            
+            // Calculate Voyager 1 distance
+            const voyagerLaunchDate = new Date('1977-09-05T12:56:00Z');
+            const voyagerAgeInSeconds = Math.floor((now.getTime() - voyagerLaunchDate.getTime()) / 1000);
+            // Voyager 1 speed: ~17 km/s
+            const speedKmPerSec = 17;
+            const distanceKm = voyagerAgeInSeconds * speedKmPerSec;
+            const distanceAu = distanceKm / 149597870.7; // 1 AU = ~149.6 million km
+            setVoyagerDistance(`${distanceAu.toFixed(2)} AU (${Math.floor(distanceKm).toLocaleString()} 公里)`);
+        }, 1000);
+        
+        return () => clearInterval(interval);
+    }, []);
     useEffect(() => {
         const mode = localStorage.getItem('theme') as ThemeMode || 'system';
         setModeState(mode);
@@ -48,6 +82,9 @@ function Footer() {
             </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
+                <p className='text-xs text-neutral-500 font-normal'>
+                    建站时间: {siteAge} | 旅行者一号距地球: {voyagerDistance}
+                </p>
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span onDoubleClick={() => {
                         if(doubleClickTimes >= 2){ // actually need 3 times doubleClick
@@ -59,7 +96,7 @@ function Footer() {
                             setDoubleClickTimes(doubleClickTimes + 1)
                         }
                     }}>
-                        © {new Date().getFullYear()} Powered by <a className='hover:underline' href="https://github.com/openRin/Rin" target="_blank">Rin</a>
+                        © {new Date().getFullYear()} Powered by <a className='hover:underline' href="https://github.com/zsxcoder/Rin" target="_blank">zsxcoder</a>
                     </span>
                     {config.get<boolean>('rss') && <>
                         <Spliter />
