@@ -44,7 +44,7 @@ export function MomentsService() {
                     user_id: moment.user?.id || 0,
                     tags: [],
                     fav_count: 0,
-                    created_at: new Date(moment.createdAt * 1000).toISOString()
+                    created_at: new Date(moment.createdAt).toISOString()
                 }));
                 
                 const response = {
