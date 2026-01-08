@@ -28,7 +28,7 @@ function Footer() {
             const now = new Date();
             // Convert to Beijing time (UTC+8)
             const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-            const creationDate = new Date('2024-01-01T00:00:00Z');
+            const creationDate = new Date('2026-01-07T12:00:00Z');
             const creationDateBeijing = new Date(creationDate.getTime() + 8 * 60 * 60 * 1000);
             const ageInSeconds = Math.floor((beijingTime.getTime() - creationDateBeijing.getTime()) / 1000);
             const days = Math.floor(ageInSeconds / (24 * 60 * 60));
