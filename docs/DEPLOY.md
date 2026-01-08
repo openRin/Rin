@@ -260,6 +260,8 @@ S3_ENDPOINT=https://8879900e5e1219fb745c9f69b086565a.r2.cloudflarestorage.com
 S3_ACCESS_HOST=https://image.xeu.life
 ```
 
+> 这里记得启用 **公共开发 URL**，否则前端会提示CORS跨域、后端1101等问题。[参考](https://developers.cloudflare.com/r2/buckets/public-buckets/#managed-public-buckets-through-r2dev)
+
 然后创建一个 API 令牌用于访问存储桶，可参考 https://developers.cloudflare.com/r2/api/s3/tokens/ ，这里不再赘述，拿到 ID 和 TOKEN 对应于`S3_ACCESS_KEY_ID` 和 `S3_SECRET_ACCESS_KEY` 变量，填入 Workers 的环境变量中
 
 至此后端就已经部署完成了，记得将前端的 API_URL 修改为后端的地址，与此同时，如果你需要 WebHook 通知的话，还可在后端配置环境变量`WEBHOOK_URL`为你的 Webhook 地址，在新增评论时会像目标 URL 发送一条 POST 消息，消息格式为：
