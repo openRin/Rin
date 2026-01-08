@@ -9,6 +9,72 @@ import { getDB } from "../utils/di";
 export function MomentsService() {
     const db: DB = getDB();
     return new Elysia({ aot: false })
+        // Public API endpoint without setup (no OAuth required)
+        .get('/api/moments', async ({ query: { page } }) => {
+            try {
+                const cache = PublicCache();
+                const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
+                const limit_num = 50;
+                const cacheKey = `moments_api_${page_num}`;
+                const cached = await cache.get(cacheKey);
+                if (cached) {
+                    return cached;
+                }
+                
+                const size = await db.select({ count: count() }).from(moments);
+                const total = size[0].count;
+                
+                const moments_list = await db.query.moments.findMany({
+                    with: {
+                        user: {
+                            columns: { id: true, username: true }
+                        }
+                    },
+                    orderBy: [desc(moments.createdAt)],
+                    offset: page_num * limit_num,
+                    limit: limit_num,
+                });
+                
+                const items = moments_list.map(moment => ({
+                    id: moment.id,
+                    content: moment.content,
+                    username: moment.user?.username || 'unknown',
+                    layout: 'waterfall',
+                    private: false,
+                    user_id: moment.user?.id || 0,
+                    tags: [],
+                    fav_count: 0,
+                    created_at: new Date(moment.createdAt * 1000).toISOString()
+                }));
+                
+                const response = {
+                    code: 1,
+                    msg: '获取Moments成功！',
+                    data: {
+                        total,
+                        items
+                    }
+                };
+                
+                await cache.set(cacheKey, response);
+                return response;
+            } catch (error) {
+                console.error('Error in api/moments:', error);
+                return {
+                    code: 0,
+                    msg: '获取Moments失败！',
+                    data: {
+                        total: 0,
+                        items: []
+                    }
+                };
+            }
+        }, {
+            query: t.Object({
+                page: t.Optional(t.Numeric())
+            })
+        })
+        // Protected routes with setup
         .use(setup())
         .group('/moments', (group) =>
             group
@@ -60,70 +126,6 @@ export function MomentsService() {
                     query: t.Object({
                         page: t.Optional(t.Numeric()),
                         limit: t.Optional(t.Numeric())
-                    })
-                })
-                .get('/api', async ({ query: { page } }) => {
-                    try {
-                        const cache = PublicCache();
-                        const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
-                        const limit_num = 50;
-                        const cacheKey = `moments_api_${page_num}`;
-                        const cached = await cache.get(cacheKey);
-                        if (cached) {
-                            return cached;
-                        }
-                        
-                        const size = await db.select({ count: count() }).from(moments);
-                        const total = size[0].count;
-                        
-                        const moments_list = await db.query.moments.findMany({
-                            with: {
-                                user: {
-                                    columns: { id: true, username: true }
-                                }
-                            },
-                            orderBy: [desc(moments.createdAt)],
-                            offset: page_num * limit_num,
-                            limit: limit_num,
-                        });
-                        
-                        const items = moments_list.map(moment => ({
-                            id: moment.id,
-                            content: moment.content,
-                            username: moment.user?.username || 'unknown',
-                            layout: 'waterfall',
-                            private: false,
-                            user_id: moment.user?.id || 0,
-                            tags: [],
-                            fav_count: 0,
-                            created_at: new Date(moment.createdAt * 1000).toISOString()
-                        }));
-                        
-                        const response = {
-                            code: 1,
-                            msg: '获取Moments成功！',
-                            data: {
-                                total,
-                                items
-                            }
-                        };
-                        
-                        await cache.set(cacheKey, response);
-                        return response;
-                    } catch (error) {
-                        console.error('Error in moments/api:', error);
-                        return {
-                            code: 0,
-                            msg: '获取Moments失败！',
-                            data: {
-                                total: 0,
-                                items: []
-                            }
-                        };
-                    }
-                }, {
-                    query: t.Object({
-                        page: t.Optional(t.Numeric())
                     })
                 })
                 .post('/', async ({ set, admin, uid, body: { content } }) => {

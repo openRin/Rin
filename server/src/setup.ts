@@ -16,11 +16,15 @@ export function setup() {
     let gh_client_secret = env.RIN_GITHUB_CLIENT_SECRET || env.GITHUB_CLIENT_SECRET;
     let jwt_secret = env.JWT_SECRET;
 
+    // For development purposes, use dummy values if environment variables are not set
     if (!gh_client_id || !gh_client_secret) {
-        throw new Error('Please set RIN_GITHUB_CLIENT_ID and RIN_GITHUB_CLIENT_SECRET');
+        console.warn('Warning: RIN_GITHUB_CLIENT_ID and RIN_GITHUB_CLIENT_SECRET not set. Using dummy values for development.');
+        gh_client_id = 'dummy_client_id';
+        gh_client_secret = 'dummy_client_secret';
     }
     if (!jwt_secret) {
-        throw new Error('Please set JWT_SECRET');
+        console.warn('Warning: JWT_SECRET not set. Using dummy value for development.');
+        jwt_secret = 'dummy_jwt_secret';
     }
     const oauth = oauth2({
         GitHub: [
