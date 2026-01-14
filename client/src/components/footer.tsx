@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet";
 import { siteName } from '../utils/constants';
 import { useTranslation } from "react-i18next";
 import { useLoginModal } from '../hooks/useLoginModal';
+import { MusicPlayer } from './music_player';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
@@ -91,10 +92,21 @@ function Footer() {
                         </Popup>
                     </>}
                 </p>
-                <div className="w-fit-content inline-flex rounded-full border border-zinc-200 p-[3px] dark:border-zinc-700">
-                    <ThemeButton mode='light' current={modeState} label="Toggle light mode" icon="ri-sun-line" onClick={setMode} />
-                    <ThemeButton mode='system' current={modeState} label="Toggle system mode" icon="ri-computer-line" onClick={setMode} />
-                    <ThemeButton mode='dark' current={modeState} label="Toggle dark mode" icon="ri-moon-line" onClick={setMode} />
+                {/* 音乐播放器 */}
+                <div className="w-full max-w-5xl flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                    <div className="flex-1 min-w-0">
+                        <MusicPlayer 
+                            src={process.env.MUSIC_URL || 'https://music.163.com/song/media/outer/url?id=191249.mp3'}
+                            title={process.env.MUSIC_TITLE || '背景音乐'}
+                            artist={process.env.MUSIC_ARTIST || '未知艺术家'}
+                        />
+                    </div>
+                    {/* 夜间模式切换：放右侧，不占用太多纵向空间 */}
+                    <div className="w-fit-content self-center sm:self-auto inline-flex rounded-full border border-zinc-200 p-[3px] dark:border-zinc-700">
+                        <ThemeButton mode='light' current={modeState} label="Toggle light mode" icon="ri-sun-line" onClick={setMode} />
+                        <ThemeButton mode='system' current={modeState} label="Toggle system mode" icon="ri-computer-line" onClick={setMode} />
+                        <ThemeButton mode='dark' current={modeState} label="Toggle dark mode" icon="ri-moon-line" onClick={setMode} />
+                    </div>
                 </div>
             </div>
             <LoginModal />
