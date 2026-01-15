@@ -1,7 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from './fix-top-field';
+import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from './fix-top-field.ts';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const DB_NAME = "rin";
 const SQL_DIR = path.join(__dirname, '..', 'server', 'sql');
@@ -29,7 +33,8 @@ for (const file of sqlFiles) {
     const filePath = path.join(SQL_DIR, file);
     // Run the migration
     try {
-        execSync(`bunx wrangler d1 execute ${DB_NAME} --local --file "${filePath}"`, { stdio: 'inherit' });
+        const isBun = typeof Bun !== "undefined";
+        execSync(`${isBun ? "bunx": "npx"} wrangler d1 execute ${DB_NAME} --local --file "${filePath}"`, { stdio: 'inherit' });
         console.log(`Executed ${file}`);
     } catch (error) {
         console.error(`Failed to execute ${file}: ${error}`);
