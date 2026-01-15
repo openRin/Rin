@@ -712,7 +712,7 @@ function AISummarySettings() {
         await updateConfig({
             provider: provider,
             model: model,
-            api_url: preset?.url || apiUrl,
+            api_url: apiUrl || preset?.url,
             api_key: apiKey.trim() || undefined
         });
         setHasUnsavedChanges(false);
