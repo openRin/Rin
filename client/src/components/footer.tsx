@@ -76,7 +76,6 @@ function Footer() {
                                     {t('footer.rss')}
                                 </p>
                                 <p>
-                                    <a rel="me" href="https://tech.lgbt/@hydroakri">Mastodon</a>
                                     <a href='/sub/rss.xml'>
                                         RSS
                                     </a> <Spliter />
