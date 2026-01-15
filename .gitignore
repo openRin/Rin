@@ -33,3 +33,6 @@ dist-ssr
 *.sln
 *.sw?
 /.dev.vars
+
+# Bun
+.bun/*

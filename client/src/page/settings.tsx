@@ -590,10 +590,7 @@ const AI_MODEL_PRESETS: Record<string, string[]> = {
         // High performance/cost-effective models
         'glm-4.5-air',
         'glm-4.5-airx',
-        'glm-4-air',
-        'glm-4-flash-250414',
         'glm-4.5-flash',
-        'glm-4-flashx-250414',
         // Long context model
         'glm-4-long',
         // Vision models
@@ -607,6 +604,8 @@ const AI_MODEL_PRESETS: Record<string, string[]> = {
         'glm-4-plus',
         'glm-4-air',
         'glm-4-flash',
+        'glm-4-flash-250414',
+        'glm-4-flashx-250414',
         'glm-3-turbo'
     ]
 };
@@ -789,18 +788,21 @@ function AISummarySettings() {
                                 </p>
                             </div>
                             <div className="flex flex-row items-center space-x-2">
-                                <select
+                                <input
+                                    list="model-options"
                                     value={model}
                                     onChange={(e) => {
-                                        setModel(e.target.value);
-                                        setHasUnsavedChanges(true);
+                                    setModel(e.target.value);
+                                    setHasUnsavedChanges(true);
                                     }}
                                     className="rounded-lg px-3 py-1.5 bg-secondary t-primary text-sm w-56"
-                                >
+                                    placeholder="选择或输入模型"
+                                />
+                                <datalist id="model-options">
                                     {modelOptions.map(m => (
                                         <option key={m} value={m}>{m}</option>
                                     ))}
-                                </select>
+                                </datalist>
                             </div>
                         </div>
                     </div>
