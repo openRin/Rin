@@ -1,24 +1,24 @@
-import {useContext, useEffect, useRef, useState} from "react";
-import {Helmet} from "react-helmet";
-import {useTranslation} from "react-i18next";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet";
+import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
-import {Link, useLocation} from "wouter";
-import {useAlert, useConfirm} from "../components/dialog";
-import {HashTag} from "../components/hashtag";
-import {Waiting} from "../components/loading";
-import {Markdown} from "../components/markdown";
-import {client} from "../main";
-import {ClientConfigContext} from "../state/config";
-import {ProfileContext} from "../state/profile";
-import {headersWithAuth} from "../utils/auth";
-import {siteName} from "../utils/constants";
-import {timeago} from "../utils/timeago";
-import {Button} from "../components/button";
-import {Tips} from "../components/tips";
-import {useLoginModal} from "../hooks/useLoginModal";
+import { Link, useLocation } from "wouter";
+import { useAlert, useConfirm } from "../components/dialog";
+import { HashTag } from "../components/hashtag";
+import { Waiting } from "../components/loading";
+import { Markdown } from "../components/markdown";
+import { client } from "../main";
+import { ClientConfigContext } from "../state/config";
+import { ProfileContext } from "../state/profile";
+import { headersWithAuth } from "../utils/auth";
+import { siteName } from "../utils/constants";
+import { timeago } from "../utils/timeago";
+import { Button } from "../components/button";
+import { Tips } from "../components/tips";
+import { useLoginModal } from "../hooks/useLoginModal";
 import mermaid from "mermaid";
-import {AdjacentSection} from "../components/adjacent_feed.tsx";
+import { AdjacentSection } from "../components/adjacent_feed.tsx";
 
 type Feed = {
   id: number;
@@ -27,6 +27,7 @@ type Feed = {
   uid: number;
   createdAt: Date;
   updatedAt: Date;
+  ai_summary: string;
   hashtags: {
     id: number;
     name: string;
@@ -55,6 +56,30 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
   const [top, setTop] = useState<number>(0);
   const config = useContext(ClientConfigContext);
   const counterEnabled = config.get<boolean>('counter.enabled');
+  const [aiSummaryEnabled, setAiSummaryEnabled] = useState(config.get<boolean>('ai_summary.enabled') ?? false);
+
+  // Listen for config changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const configStr = sessionStorage.getItem('config');
+      if (configStr) {
+        try {
+          const configObj = JSON.parse(configStr);
+          setAiSummaryEnabled(configObj['ai_summary.enabled'] ?? false);
+        } catch (e) {
+          console.error('Failed to parse config:', e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also check immediately in case the event was already fired
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
   function deleteFeed() {
     // Confirm
     showConfirm(
@@ -140,7 +165,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
     mermaid.run({
       suppressErrors: true,
       nodes: document.querySelectorAll("pre.mermaid_default")
-    }).then(()=>{
+    }).then(() => {
       mermaid.initialize({
         startOnLoad: false,
         theme: "dark",
@@ -277,6 +302,19 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                     )}
                   </div>
                 </div>
+                {feed.ai_summary && aiSummaryEnabled && (
+                  <div className="my-4 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-100 dark:border-purple-800/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <i className="ri-sparkling-2-fill text-purple-500" />
+                      <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                        {t('ai_summary.title')}
+                      </span>
+                    </div>
+                    <p className="text-sm t-secondary leading-relaxed">
+                      {feed.ai_summary}
+                    </p>
+                  </div>
+                )}
                 <Markdown content={feed.content} />
                 <div className="mt-6 flex flex-col gap-2">
                   {feed.hashtags.length > 0 && (
@@ -299,13 +337,13 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                   </div>
                 </div>
               </article>
-              <AdjacentSection id={id} setError={setError}/>
+              <AdjacentSection id={id} setError={setError} />
               {feed && <Comments id={`${feed.id}`} />}
               <div className="h-16" />
             </main>
             <div className="w-80 hidden lg:block relative">
               <div
-                  className={`start-0 end-0 top-[5.5rem] sticky`}
+                className={`start-0 end-0 top-[5.5rem] sticky`}
               >
                 <TOC />
               </div>
@@ -408,7 +446,7 @@ function CommentInput({
       });
   }
   return (
-      <div className="w-full rounded-2xl bg-w t-primary p-6 items-end flex flex-col">
+    <div className="w-full rounded-2xl bg-w t-primary p-6 items-end flex flex-col">
       <div className="flex flex-col w-full items-start mb-4">
         <label htmlFor="comment">{t("comment.title")}</label>
       </div>

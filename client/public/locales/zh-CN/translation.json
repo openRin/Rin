@@ -3,6 +3,9 @@
     "notfound": "将文章别名设置为 about 可以创建关于页面",
     "title": "关于"
   },
+  "ai_summary": {
+    "title": "AI 总结"
+  },
   "alert": "提示",
   "alias": "别名",
   "article": {
@@ -195,6 +198,38 @@
         }
       },
       "title": "友链设置"
+    },
+    "ai_summary": {
+      "title": "AI 总结设置",
+      "enable": {
+        "title": "启用 AI 总结",
+        "desc": "发布文章时自动生成 AI 总结"
+      },
+      "provider": {
+        "title": "AI 供应商",
+        "desc": "选择或输入 AI 服务供应商"
+      },
+      "model": {
+        "title": "模型",
+        "desc": "选择或输入模型名称"
+      },
+      "api_key": {
+        "title": "API Key",
+        "desc": "输入您的 API 密钥",
+        "set": "已设置",
+        "placeholder_set": "输入新密钥以更新"
+      },
+      "api_url": {
+        "title": "API URL",
+        "desc": "自定义 API 地址（OpenAI 兼容格式）"
+      },
+      "save": {
+        "title": "保存配置",
+        "desc": "保存 AI 配置到数据库",
+        "button": "保存配置"
+      },
+      "save_success": "保存成功",
+      "unsaved_changes": "您有未保存的更改"
     },
     "get_config_failed$message": "获取配置失败，{{message}}",
     "import_failed$message": "导入失败，{{message}}",

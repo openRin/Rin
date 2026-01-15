@@ -1,6 +1,23 @@
 import Elysia, { t } from "elysia";
 import { setup } from "../setup";
 import { ClientConfig, PublicCache, ServerConfig } from "../utils/cache";
+import { getAIConfigForFrontend } from "../utils/db-config";
+
+// Sensitive fields that should not be exposed to frontend
+const SENSITIVE_FIELDS = ['ai_summary.api_key'];
+
+function maskSensitiveFields(config: Map<string, any>): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const [key, value] of config) {
+        if (SENSITIVE_FIELDS.includes(key) && value) {
+            // Mask the value - show only that it's set
+            result[key] = '••••••••';
+        } else {
+            result[key] = value;
+        }
+    }
+    return result;
+}
 
 export function ConfigService() {
     return new Elysia({ aot: false })
@@ -18,7 +35,17 @@ export function ConfigService() {
                     }
                     const config = type === 'server' ? ServerConfig() : ClientConfig();
                     const all = await config.all();
-                    return Object.fromEntries(all);
+                    // Mask sensitive fields for server config
+                    if (type === 'server') {
+                        return maskSensitiveFields(all);
+                    }
+                    // For client config, include AI summary enabled status
+                    const clientConfig = Object.fromEntries(all);
+                    const aiConfig = await getAIConfigForFrontend();
+                    return {
+                        ...clientConfig,
+                        'ai_summary.enabled': aiConfig.enabled ?? false
+                    };
                 })
                 .post('/:type', async ({ set, admin, body, params: { type } }) => {
                     if (type !== 'server' && type !== 'client') {

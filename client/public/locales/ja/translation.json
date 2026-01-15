@@ -3,6 +3,9 @@
     "notfound": "About ページを作成するには、記事のエイリアスを about に設定します",
     "title": "概要"
   },
+  "ai_summary": {
+    "title": "AI 要約"
+  },
   "alert": "警告",
   "alias": "エイリアス",
   "article": {
@@ -195,6 +198,38 @@
         }
       },
       "title": "友リンク設定"
+    },
+    "ai_summary": {
+      "title": "AI 要約設定",
+      "enable": {
+        "title": "AI 要約を有効にする",
+        "desc": "記事公開時に AI 要約を自動生成"
+      },
+      "provider": {
+        "title": "AI プロバイダー",
+        "desc": "AI サービスプロバイダーを選択または入力"
+      },
+      "model": {
+        "title": "モデル",
+        "desc": "モデル名を選択または入力"
+      },
+      "api_key": {
+        "title": "API キー",
+        "desc": "API キーを入力してください",
+        "set": "設定済み",
+        "placeholder_set": "新しいキーを入力して更新"
+      },
+      "api_url": {
+        "title": "API URL",
+        "desc": "カスタム API URL（OpenAI 互換形式）"
+      },
+      "save": {
+        "title": "設定を保存",
+        "desc": "AI 設定をデータベースに保存",
+        "button": "設定を保存"
+      },
+      "save_success": "保存しました",
+      "unsaved_changes": "保存されていない変更があります"
     },
     "get_config_failed$message": "設定の取得に失敗しました: {{message}}",
     "import_failed$message": "インポートに失敗しました: {{message}}",

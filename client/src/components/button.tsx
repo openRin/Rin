@@ -1,8 +1,8 @@
 import ReactLoading from "react-loading";
 
-export function Button({ title, onClick, secondary = false }: { title: string, secondary?: boolean, onClick: () => void }) {
+export function Button({ title, onClick, secondary = false, disabled = false }: { title: string, secondary?: boolean, onClick: () => void, disabled?: boolean }) {
     return (
-        <button onClick={onClick} className={`${secondary ? "bg-secondary t-primary bg-button" : "bg-theme text-white active:bg-theme-active hover:bg-theme-hover"} text-nowrap rounded-full px-4 py-2 h-min`}>
+        <button onClick={onClick} disabled={disabled} className={`${disabled ? "opacity-50 cursor-not-allowed" : ""} ${secondary ? "bg-secondary t-primary bg-button" : "bg-theme text-white active:bg-theme-active hover:bg-theme-hover"} text-nowrap rounded-full px-4 py-2 h-min`}>
             {title}
         </button>
     );

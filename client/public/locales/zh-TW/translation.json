@@ -3,6 +3,9 @@
     "notfound": "將文章別名設定為 about 可以創建關於頁面",
     "title": "關於"
   },
+  "ai_summary": {
+    "title": "AI 總結"
+  },
   "alert": "提示",
   "alias": "別名",
   "article": {
@@ -195,6 +198,38 @@
         }
       },
       "title": "友情連結設定"
+    },
+    "ai_summary": {
+      "title": "AI 總結設定",
+      "enable": {
+        "title": "啟用 AI 總結",
+        "desc": "發佈文章時自動產生 AI 總結"
+      },
+      "provider": {
+        "title": "AI 供應商",
+        "desc": "選擇或輸入 AI 服務供應商"
+      },
+      "model": {
+        "title": "模型",
+        "desc": "選擇或輸入模型名稱"
+      },
+      "api_key": {
+        "title": "API Key",
+        "desc": "輸入您的 API 金鑰",
+        "set": "已設定",
+        "placeholder_set": "輸入新金鑰以更新"
+      },
+      "api_url": {
+        "title": "API URL",
+        "desc": "自訂 API 地址（OpenAI 相容格式）"
+      },
+      "save": {
+        "title": "儲存設定",
+        "desc": "儲存 AI 設定到資料庫",
+        "button": "儲存設定"
+      },
+      "save_success": "儲存成功",
+      "unsaved_changes": "您有未儲存的變更"
     },
     "get_config_failed$message": "獲取配置失敗，{{message}}",
     "import_failed$message": "匯入失敗，{{message}}",
