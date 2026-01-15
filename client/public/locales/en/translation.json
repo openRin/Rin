@@ -3,6 +3,9 @@
     "notfound": "Set the article alias to `about` to create an about page",
     "title": "About"
   },
+  "ai_summary": {
+    "title": "AI Summary"
+  },
   "alert": "Alert",
   "alias": "Alias",
   "article": {
@@ -195,6 +198,38 @@
         }
       },
       "title": "Friend Link Settings"
+    },
+    "ai_summary": {
+      "title": "AI Summary Settings",
+      "enable": {
+        "title": "Enable AI Summary",
+        "desc": "Automatically generate AI summary when publishing articles"
+      },
+      "provider": {
+        "title": "AI Provider",
+        "desc": "Select or enter an AI service provider"
+      },
+      "model": {
+        "title": "Model",
+        "desc": "Select or enter model name"
+      },
+      "api_key": {
+        "title": "API Key",
+        "desc": "Enter your API key",
+        "set": "Set",
+        "placeholder_set": "Enter new key to update"
+      },
+      "api_url": {
+        "title": "API URL",
+        "desc": "Custom API URL (OpenAI compatible format)"
+      },
+      "save": {
+        "title": "Save Configuration",
+        "desc": "Save AI configuration to database",
+        "button": "Save Configuration"
+      },
+      "save_success": "Saved successfully",
+      "unsaved_changes": "You have unsaved changes"
     },
     "get_config_failed$message": "Failed to get configuration, {{message}}",
     "import_failed$message": "Import failed, {{message}}",

@@ -1,11 +1,11 @@
 import * as Switch from '@radix-ui/react-switch';
-import {ChangeEvent, useContext, useEffect, useRef, useState} from "react";
-import {useTranslation} from "react-i18next";
+import { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ReactLoading from "react-loading";
 import Modal from "react-modal";
-import {Button} from "../components/button.tsx";
-import {useAlert, useConfirm} from "../components/dialog.tsx";
-import {client, oauth_url} from "../main.tsx";
+import { Button } from "../components/button.tsx";
+import { useAlert, useConfirm } from "../components/dialog.tsx";
+import { client, endpoint, oauth_url } from "../main.tsx";
 import {
     ClientConfigContext,
     ConfigWrapper,
@@ -15,7 +15,7 @@ import {
     defaultServerConfigWrapper,
     ServerConfigContext
 } from "../state/config.tsx";
-import {headersWithAuth} from "../utils/auth.ts";
+import { headersWithAuth } from "../utils/auth.ts";
 import '../utils/thumb.css';
 
 
@@ -138,7 +138,7 @@ export function Settings() {
                             <ItemSwitch title={t('settings.friend.health.title')} description={t('settings.friend.health.desc')} type="server" configKey="friend_crontab" />
                             <ItemInput title={t('settings.friend.health.ua.title')} description={t('settings.friend.health.ua.desc')} type="server" configKey="friend_ua" configKeyTitle="User-Agent" />
                             <ItemTitle title={t('settings.other.title')} />
-                            <ItemSwitch title={t('settings.login.enable.title')} description={t('settings.login.enable.desc', {"url": oauth_url})} type="client" configKey="login.enabled" />
+                            <ItemSwitch title={t('settings.login.enable.title')} description={t('settings.login.enable.desc', { "url": oauth_url })} type="client" configKey="login.enabled" />
                             <ItemSwitch title={t('settings.comment.enable.title')} description={t('settings.comment.enable.desc')} type="client" configKey="comment.enabled" />
                             <ItemSwitch title={t('settings.counter.enable.title')} description={t('settings.counter.enable.desc')} type="client" configKey="counter.enabled" />
                             <ItemSwitch title={t('settings.rss.title')} description={t('settings.rss.desc')} type="client" configKey="rss" />
@@ -163,6 +163,7 @@ export function Settings() {
                             <ItemWithUpload title={t('settings.wordpress.title')} description={t('settings.wordpress.desc')}
                                 accept="application/xml"
                                 onFileChange={onFileChange} />
+                            <AISummarySettings />
                         </div>
                     </main>
                 </ClientConfigContext.Provider>
@@ -505,5 +506,387 @@ function ItemWithUpload({
                 </div>
             </div>
         </div>
+    );
+}
+
+// AI Provider presets with their default API URLs
+const AI_PROVIDER_PRESETS = [
+    { value: 'openai', label: 'OpenAI', url: 'https://api.openai.com/v1' },
+    { value: 'claude', label: 'Claude', url: 'https://api.anthropic.com/v1' },
+    { value: 'gemini', label: 'Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai' },
+    { value: 'deepseek', label: 'DeepSeek', url: 'https://api.deepseek.com/v1' },
+    { value: 'zhipu', label: 'Zhipu', url: 'https://open.bigmodel.cn/api/paas/v4' }
+];
+
+const AI_MODEL_PRESETS: Record<string, string[]> = {
+    openai: [
+        // GPT-5 series (latest)
+        'gpt-5.2',
+        'gpt-5.1',
+        'gpt-5',
+        'gpt-5-mini',
+        'gpt-5-nano',
+        'gpt-5-pro',
+        // GPT-5 Codex series
+        'gpt-5.1-codex',
+        'gpt-5.1-codex-max',
+        'gpt-5.1-codex-mini',
+        'gpt-5-codex',
+        // GPT-4 series
+        'gpt-4.1',
+        'gpt-4.1-mini',
+        'gpt-4.1-nano',
+        'gpt-4o',
+        'gpt-4o-mini',
+        'gpt-4-turbo',
+        // Legacy models
+        'gpt-3.5-turbo',
+        'o3',
+        'o3-mini',
+        'o1',
+        'o1-mini',
+        'o1-preview'
+    ],
+    claude: [
+        // Claude 4.5 series (latest)
+        'claude-opus-4-5-20251101',
+        'claude-sonnet-4-5-20250929',
+        'claude-haiku-4-5-20251001',
+        // Aliases for 4.5
+        'claude-opus-4-5',
+        'claude-sonnet-4-5',
+        'claude-haiku-4-5',
+        // Legacy Claude 3 series
+        'claude-3-5-sonnet-20241022',
+        'claude-3-5-haiku-20241022',
+        'claude-3-opus-20240229'
+    ],
+    gemini: [
+        // Gemini 3 series (latest)
+        'gemini-3-pro-preview',
+        'gemini-3-flash-preview',
+        // Gemini 2.5 series
+        'gemini-2.5-flash',
+        'gemini-2.5-flash-preview-09-2025',
+        'gemini-2.5-flash-lite',
+        'gemini-2.5-flash-lite-preview-09-2025',
+        'gemini-2.5-pro',
+        // Gemini 2.0 series
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-001',
+        'gemini-2.0-flash-exp',
+        'gemini-2.0-flash-lite',
+        'gemini-2.0-flash-lite-001',
+        // Legacy
+        'gemini-1.5-pro',
+        'gemini-1.5-flash'
+    ],
+    deepseek: ['deepseek-chat', 'deepseek-reasoner'],
+    zhipu: [
+        // GLM-4 series (latest)
+        'glm-4.7',
+        'glm-4.6',
+        'glm-4.5',
+        // High performance/cost-effective models
+        'glm-4.5-air',
+        'glm-4.5-airx',
+        'glm-4-air',
+        'glm-4-flash-250414',
+        'glm-4.5-flash',
+        'glm-4-flashx-250414',
+        // Long context model
+        'glm-4-long',
+        // Vision models
+        'glm-4.6v',
+        'glm-4.1v-thinking-flashx',
+        'glm-4.6v-flash',
+        'glm-4.1v-thinking-flash',
+        'glm-4v-flash',
+        // Legacy models
+        'glm-4',
+        'glm-4-plus',
+        'glm-4-air',
+        'glm-4-flash',
+        'glm-3-turbo'
+    ]
+};
+
+function AISummarySettings() {
+    const { t } = useTranslation();
+    const [enabled, setEnabled] = useState(false);
+    const [provider, setProvider] = useState('openai');
+    const [model, setModel] = useState('gpt-4o-mini');
+    const [apiKey, setApiKey] = useState('');
+    const [apiKeySet, setApiKeySet] = useState(false);
+    const [apiUrl, setApiUrl] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const { showAlert, AlertUI } = useAlert();
+
+    // Load AI config from database via new API
+    useEffect(() => {
+        const loadConfig = async () => {
+            try {
+                const response = await fetch(`${endpoint}/ai-config`, {
+                    headers: headersWithAuth()
+                });
+                if (response.ok) {
+                    const data = await response.json() as {
+                        enabled?: boolean;
+                        provider?: string;
+                        model?: string;
+                        api_key_set?: boolean;
+                        api_url?: string;
+                    };
+                    setEnabled(data.enabled ?? false);
+                    setProvider(data.provider ?? 'openai');
+                    setModel(data.model ?? 'gpt-4o-mini');
+                    setApiKeySet(data.api_key_set ?? false);
+                    setApiUrl(data.api_url ?? '');
+                }
+            } catch (err) {
+                console.error('Failed to load AI config:', err);
+            }
+        };
+        loadConfig();
+    }, []);
+
+    const updateConfig = async (updates: Record<string, any>) => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${endpoint}/ai-config`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...headersWithAuth()
+                },
+                body: JSON.stringify(updates)
+            });
+            if (!response.ok) {
+                const errorData = await response.text();
+                console.error('AI config save error:', response.status, errorData);
+                throw new Error(`Failed to save config: ${response.status} - ${errorData}`);
+            }
+        } catch (err: any) {
+            showAlert(t('settings.update_failed$message', { message: err.message }));
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleToggleEnabled = async (checked: boolean) => {
+        setEnabled(checked);
+        // Reset unsaved changes when toggling AI feature on/off
+        setHasUnsavedChanges(false);
+        await updateConfig({ enabled: checked });
+        // Refresh client config to update ai_summary.enabled in global state
+        try {
+            const { data } = await client.config({ type: 'client' }).get({
+                headers: headersWithAuth()
+            });
+            if (data && typeof data !== 'string') {
+                sessionStorage.setItem('config', JSON.stringify(data));
+                // Trigger a storage event to notify other components
+                window.dispatchEvent(new Event('storage'));
+            }
+        } catch (err) {
+            console.error('Failed to refresh client config:', err);
+        }
+    };
+
+    const handleProviderChange = (newProvider: string) => {
+        setProvider(newProvider);
+        const preset = AI_PROVIDER_PRESETS.find(p => p.value === newProvider);
+        if (preset) {
+            setApiUrl(preset.url);
+            const models = AI_MODEL_PRESETS[newProvider];
+            if (models && models.length > 0) {
+                setModel(models[0]);
+            }
+        }
+        setHasUnsavedChanges(true);
+    };
+
+    const handleSaveConfig = async () => {
+        const preset = AI_PROVIDER_PRESETS.find(p => p.value === provider);
+        await updateConfig({
+            provider: provider,
+            model: model,
+            api_url: preset?.url || apiUrl,
+            api_key: apiKey.trim() || undefined
+        });
+        setHasUnsavedChanges(false);
+        if (apiKey.trim()) {
+            setApiKeySet(true);
+        }
+        setApiKey('');
+        showAlert(t('settings.ai_summary.save_success'));
+    };
+
+    const modelOptions = AI_MODEL_PRESETS[provider] || [];
+
+    return (
+        <>
+            <ItemTitle title={t('settings.ai_summary.title')} />
+            <div className="flex flex-col w-full items-start">
+                <div className="flex flex-row justify-between w-full items-center">
+                    <div className="flex flex-col">
+                        <p className="text-lg font-bold dark:text-white">
+                            {t('settings.ai_summary.enable.title')}
+                        </p>
+                        <p className="text-xs text-neutral-500">
+                            {t('settings.ai_summary.enable.desc')}
+                        </p>
+                    </div>
+                    <div className="flex flex-row items-center justify-center space-x-4">
+                        {loading && <ReactLoading width="1em" height="1em" type="spin" color="#FC466B" />}
+                        <Switch.Root className="SwitchRoot" checked={enabled} onCheckedChange={handleToggleEnabled}>
+                            <Switch.Thumb className="SwitchThumb" />
+                        </Switch.Root>
+                    </div>
+                </div>
+            </div>
+
+            {enabled && (
+                <>
+                    {/* Provider */}
+                    <div className="flex flex-col w-full items-start">
+                        <div className="flex flex-row justify-between w-full items-center">
+                            <div className="flex flex-col">
+                                <p className="text-lg font-bold dark:text-white">
+                                    {t('settings.ai_summary.provider.title')}
+                                </p>
+                                <p className="text-xs text-neutral-500">
+                                    {t('settings.ai_summary.provider.desc')}
+                                </p>
+                            </div>
+                            <div className="flex flex-row items-center space-x-2">
+                                <select
+                                    value={provider}
+                                    onChange={(e) => {
+                                        handleProviderChange(e.target.value);
+                                    }}
+                                    className="rounded-lg px-3 py-1.5 bg-secondary t-primary text-sm w-40"
+                                >
+                                    {AI_PROVIDER_PRESETS.map(p => (
+                                        <option key={p.value} value={p.value}>{p.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Model */}
+                    <div className="flex flex-col w-full items-start">
+                        <div className="flex flex-row justify-between w-full items-center">
+                            <div className="flex flex-col">
+                                <p className="text-lg font-bold dark:text-white">
+                                    {t('settings.ai_summary.model.title')}
+                                </p>
+                                <p className="text-xs text-neutral-500">
+                                    {t('settings.ai_summary.model.desc')}
+                                </p>
+                            </div>
+                            <div className="flex flex-row items-center space-x-2">
+                                <select
+                                    value={model}
+                                    onChange={(e) => {
+                                        setModel(e.target.value);
+                                        setHasUnsavedChanges(true);
+                                    }}
+                                    className="rounded-lg px-3 py-1.5 bg-secondary t-primary text-sm w-56"
+                                >
+                                    {modelOptions.map(m => (
+                                        <option key={m} value={m}>{m}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* API Key */}
+                    <div className="flex flex-col w-full items-start">
+                        <div className="flex flex-row justify-between w-full items-center">
+                            <div className="flex flex-col">
+                                <p className="text-lg font-bold dark:text-white">
+                                    {t('settings.ai_summary.api_key.title')}
+                                    {apiKeySet && <span className="ml-2 text-xs text-green-500">(✓ {t('settings.ai_summary.api_key.set')})</span>}
+                                </p>
+                                <p className="text-xs text-neutral-500">
+                                    {t('settings.ai_summary.api_key.desc')}
+                                </p>
+                            </div>
+                            <div className="flex flex-row items-center space-x-2">
+                                <input
+                                    type="password"
+                                    value={apiKey}
+                                    onChange={(e) => {
+                                        setApiKey(e.target.value);
+                                        setHasUnsavedChanges(true);
+                                    }}
+                                    placeholder={apiKeySet ? t('settings.ai_summary.api_key.placeholder_set') : "sk-..."}
+                                    className="rounded-lg px-3 py-1.5 bg-secondary t-primary text-sm w-56"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* API URL */}
+                    <div className="flex flex-col w-full items-start">
+                        <div className="flex flex-row justify-between w-full items-center">
+                            <div className="flex flex-col">
+                                <p className="text-lg font-bold dark:text-white">
+                                    {t('settings.ai_summary.api_url.title')}
+                                </p>
+                                <p className="text-xs text-neutral-500">
+                                    {t('settings.ai_summary.api_url.desc')}
+                                </p>
+                            </div>
+                            <div className="flex flex-row items-center space-x-2">
+                                <input
+                                    type="text"
+                                    value={apiUrl}
+                                    onChange={(e) => {
+                                        setApiUrl(e.target.value);
+                                        setHasUnsavedChanges(true);
+                                    }}
+                                    placeholder="https://api.openai.com/v1"
+                                    className="rounded-lg px-3 py-1.5 bg-secondary t-primary text-sm w-64"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Save Button - only visible when there are unsaved configuration changes */}
+            {hasUnsavedChanges && (
+                <div className="flex flex-col w-full items-start">
+                    <div className="flex flex-row justify-between w-full items-center">
+                        <div className="flex flex-col">
+                            <p className="text-lg font-bold dark:text-white">
+                                {t('settings.ai_summary.save.title')}
+                            </p>
+                            <p className="text-xs text-neutral-500">
+                                {t('settings.ai_summary.save.desc')}
+                            </p>
+                        </div>
+                        <div className="flex flex-row items-center space-x-2">
+                            {loading && <ReactLoading width="1em" height="1em" type="spin" color="#FC466B" />}
+                            <Button
+                                title={t('settings.ai_summary.save.button')}
+                                onClick={handleSaveConfig}
+                                disabled={loading}
+                            />
+                        </div>
+                    </div>
+                    <p className="text-xs text-yellow-500 mt-1">
+                        {t('settings.ai_summary.unsaved_changes')}
+                    </p>
+                </div>
+            )}
+            <AlertUI />
+        </>
     );
 }

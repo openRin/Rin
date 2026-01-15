@@ -1,6 +1,7 @@
 import cors from '@elysiajs/cors';
 import { serverTiming } from '@elysiajs/server-timing';
 import { Elysia } from 'elysia';
+import { AIConfigService } from './services/ai-config';
 import { CommentService } from './services/comments';
 import { FaviconService } from "./services/favicon";
 import { FeedService } from './services/feed';
@@ -39,6 +40,7 @@ export const app = () => new Elysia({ aot: false })
     .use(SEOService())
     .use(RSSService())
     .use(ConfigService())
+    .use(AIConfigService())
     .use(MomentsService())
     .get('/', () => `Hi`)
     .onError(({ path, params, code }) => {

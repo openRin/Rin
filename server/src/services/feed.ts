@@ -1,14 +1,15 @@
-import {and, asc, count, desc, eq, gt, like, lt, or} from "drizzle-orm";
-import Elysia, {t} from "elysia";
-import {XMLParser} from "fast-xml-parser";
+import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
+import Elysia, { t } from "elysia";
+import { XMLParser } from "fast-xml-parser";
 import html2md from 'html-to-md';
-import type {DB} from "../_worker";
-import {feeds, visits} from "../db/schema";
-import {setup} from "../setup";
-import {ClientConfig, PublicCache} from "../utils/cache";
-import {getDB} from "../utils/di";
-import {extractImage} from "../utils/image";
-import {bindTagToPost} from "./tag";
+import type { DB } from "../_worker";
+import { feeds, visits } from "../db/schema";
+import { setup } from "../setup";
+import { ClientConfig, PublicCache } from "../utils/cache";
+import { getDB } from "../utils/di";
+import { extractImage } from "../utils/image";
+import { generateAISummary } from "../utils/ai";
+import { bindTagToPost } from "./tag";
 
 export function FeedService() {
     const db: DB = getDB();
@@ -125,10 +126,21 @@ export function FeedService() {
                         return 'Content already exists';
                     }
                     const date = createdAt ? new Date(createdAt) : new Date();
+
+                    // Generate AI summary if enabled and not a draft
+                    let ai_summary = "";
+                    if (!draft) {
+                        const generatedSummary = await generateAISummary(content);
+                        if (generatedSummary) {
+                            ai_summary = generatedSummary;
+                        }
+                    }
+
                     const result = await db.insert(feeds).values({
                         title,
                         content,
                         summary,
+                        ai_summary,
                         uid,
                         alias,
                         listed: listed ? 1 : 0,
@@ -233,7 +245,7 @@ export function FeedService() {
 
                     const feed = await db.query.feeds.findFirst({
                         where: eq(feeds.id, id_num),
-                        columns: {createdAt: true},
+                        columns: { createdAt: true },
                     });
                     if (!feed) {
                         set.status = 404;
@@ -257,12 +269,12 @@ export function FeedService() {
                             // NOTE: feed.id is adjacent feed, id_num is current feed id
                             const cacheKey = `${feed.id}_${feedDirection}_${id_num}`;
                             const cacheData = {
-                            id: feed.id,
-                            title: feed.title,
-                            summary: summary,
-                            hashtags: hashtags_flatten,
-                            createdAt: feed.createdAt,
-                            updatedAt: feed.updatedAt,
+                                id: feed.id,
+                                title: feed.title,
+                                summary: summary,
+                                hashtags: hashtags_flatten,
+                                createdAt: feed.createdAt,
+                                updatedAt: feed.updatedAt,
                             };
                             cache.set(cacheKey, cacheData);
                             return cacheData;
@@ -359,10 +371,31 @@ export function FeedService() {
                         set.status = 403;
                         return 'Permission denied';
                     }
+
+                    // Generate AI summary if content changed and not a draft
+                    let ai_summary: string | undefined = undefined;
+                    const contentChanged = content && content !== feed.content;
+                    const isDraft = draft !== undefined ? draft : (feed.draft === 1);
+                    if (contentChanged && !isDraft) {
+                        const generatedSummary = await generateAISummary(content);
+                        if (generatedSummary) {
+                            ai_summary = generatedSummary;
+                        }
+                    }
+                    // Also generate if publishing a draft for the first time
+                    if (!isDraft && feed.draft === 1 && !feed.ai_summary) {
+                        const contentToSummarize = content || feed.content;
+                        const generatedSummary = await generateAISummary(contentToSummarize);
+                        if (generatedSummary) {
+                            ai_summary = generatedSummary;
+                        }
+                    }
+
                     await db.update(feeds).set({
                         title,
                         content,
                         summary,
+                        ai_summary,
                         alias,
                         top,
                         listed: listed ? 1 : 0,
@@ -450,7 +483,7 @@ export function FeedService() {
             const cacheKey = `search_${keyword}`;
             const searchKeyword = `%${keyword}%`;
             const whereClause = or(like(feeds.title, searchKeyword),
-                    like(feeds.content, searchKeyword),
+                like(feeds.content, searchKeyword),
                 like(feeds.summary, searchKeyword),
                 like(feeds.alias, searchKeyword));
             const feed_list = (await cache.getOrSet(cacheKey, () => db.query.feeds.findMany({
