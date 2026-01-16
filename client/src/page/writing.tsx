@@ -199,7 +199,7 @@ export function WritingPage({ id }: { id?: number }) {
           if (data && typeof data !== "string") {
             if (title == "" && data.title) setTitle(data.title);
             if (tags == "" && data.hashtags)
-              setTags(data.hashtags.map(({ name }) => `#${name}`).join(" "));
+              setTags(data.hashtags.map(({ name }: any) => `#${name}`).join(" "));
             if (alias == "" && data.alias) setAlias(data.alias);
             if (content == "") setContent(data.content);
             if (summary == "") setSummary(data.summary);

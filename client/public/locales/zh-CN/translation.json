@@ -43,9 +43,12 @@
   "comment": {
     "empty": "评论内容不能为空",
     "placeholder": {
-      "title": "说点什么吧"
+      "title": "说点什么吧",
+      "reply": "回复..."
     },
+    "reply": "回复",
     "submit": "发表评论",
+    "submitting": "发表中...",
     "success": "评论成功",
     "title": "评论"
   },

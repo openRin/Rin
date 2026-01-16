@@ -65,7 +65,7 @@ export function FeedService() {
                         const avatar = extractImage(content);
                         return {
                             summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
-                            hashtags: hashtags.map(({ hashtag }) => hashtag),
+                            hashtags: (hashtags as any).map(({ hashtag }: any) => hashtag),
                             avatar,
                             ...other
                         }
@@ -198,7 +198,7 @@ export function FeedService() {
                     }
 
                     const { hashtags, ...other } = feed;
-                    const hashtags_flatten = hashtags.map((f) => f.hashtag);
+                    const hashtags_flatten = (hashtags as any).map((f: any) => f.hashtag);
 
 
                     // update visits
@@ -259,7 +259,7 @@ export function FeedService() {
                         feedDirection: "previous_feed" | "next_feed",
                     ) {
                         if (feed) {
-                            const hashtags_flatten = feed.hashtags.map((f: any) => f.hashtag);
+                            const hashtags_flatten = (feed.hashtags as any).map((f: any) => f.hashtag);
                             const summary =
                                 feed.summary.length > 0
                                     ? feed.summary
@@ -508,7 +508,7 @@ export function FeedService() {
             }))).map(({ content, hashtags, summary, ...other }) => {
                 return {
                     summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
-                    hashtags: hashtags.map(({ hashtag }) => hashtag),
+                    hashtags: (hashtags as any).map(({ hashtag }: any) => hashtag),
                     ...other
                 }
             });

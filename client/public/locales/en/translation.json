@@ -43,9 +43,12 @@
   "comment": {
     "empty": "Comment cannot be empty",
     "placeholder": {
-      "title": "Say something..."
+      "title": "Say something...",
+      "reply": "Reply..."
     },
+    "reply": "Reply",
     "submit": "Submit Comment",
+    "submitting": "Submitting...",
     "success": "Comment successful",
     "title": "Comment"
   },

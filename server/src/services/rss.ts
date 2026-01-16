@@ -146,7 +146,7 @@ export async function rssCrontab(env: Env) {
                       ? content.slice(0, 100)
                       : content,
             content: contentHtml,
-            author: [{ name: user.username }],
+            author: [{ name: (user as any).username }],
             image: extractImage(content),
         });
     }
