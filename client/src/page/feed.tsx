@@ -25,8 +25,8 @@ type Feed = {
   title: string | null;
   content: string;
   uid: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   ai_summary: string;
   hashtags: {
     id: number;
@@ -39,6 +39,7 @@ type Feed = {
   };
   pv: number;
   uv: number;
+  top: number;
 };
 
 
@@ -143,11 +144,12 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
           setError(error.value as string);
         } else if (data && typeof data !== "string") {
           setTimeout(() => {
-            setFeed(data as any);
-            setTop((data as any).top);
+            const feedData = data as unknown as Feed;
+            setFeed(feedData);
+            setTop(feedData.top);
             // Extract head image
             const img_reg = /!\[.*?\]\((.*?)\)/;
-            const img_match = img_reg.exec((data as any).content);
+            const img_match = img_reg.exec(feedData.content);
             if (img_match) {
               setHeadImage(img_match[1]);
             }
@@ -585,8 +587,8 @@ function ReplyInput({
 type Comment = {
   id: number;
   content: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   parentId?: number | null;
   replyToUser?: {
     id: number;
@@ -618,7 +620,7 @@ function Comments({ id }: { id: string }) {
         if (error) {
           setError(error.value as string);
         } else if (data && Array.isArray(data)) {
-          setComments(data as any);
+          setComments(data as unknown as Comment[]);
         }
       });
   }

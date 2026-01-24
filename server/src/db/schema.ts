@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { foreignKey, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
@@ -68,11 +68,17 @@ export const comments = sqliteTable("comments", {
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
     userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
     content: text("content").notNull(),
-    parentId: integer("parent_id").references(() => comments.id, { onDelete: 'cascade' }),
+    parentId: integer("parent_id"),
     replyToUserId: integer("reply_to_user_id").references(() => users.id, { onDelete: 'set null' }),
     createdAt: created_at,
     updatedAt: updated_at,
-}) as any;
+}, (table) => ({
+    parentReference: foreignKey({
+        columns: [table.parentId],
+        foreignColumns: [table.id],
+        name: "comments_parent_id_fk"
+    }).onDelete("cascade")
+}));
 
 export const hashtags = sqliteTable("hashtags", {
     id: integer("id").primaryKey(),

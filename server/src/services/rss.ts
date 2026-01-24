@@ -4,7 +4,8 @@ import { drizzle } from "drizzle-orm/d1";
 import Elysia from "elysia";
 import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
 import { Feed } from "feed";
-import path from 'path';
+import type { FeedOptions } from "feed";
+import path from 'node:path';
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
@@ -64,7 +65,7 @@ export async function rssCrontab(env: Env) {
     const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
     const faviconKey = getFaviconKey();
 
-    let feedConfig: any = {
+    let feedConfig: FeedOptions = {
         title: env.RSS_TITLE,
         description: env.RSS_DESCRIPTION || "Feed from Rin",
         id: frontendUrl,
@@ -146,7 +147,7 @@ export async function rssCrontab(env: Env) {
                       ? content.slice(0, 100)
                       : content,
             content: contentHtml,
-            author: [{ name: (user as any).username }],
+            author: [{ name: user.username }],
             image: extractImage(content),
         });
     }

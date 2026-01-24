@@ -1,5 +1,5 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import path from "path";
+import path from "node:path";
 import Container, { Service } from "typedi";
 import type { DB } from "../_worker";
 import type { Env } from "../db/db";

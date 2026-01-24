@@ -33,8 +33,11 @@ export function CommentService() {
                     });
 
                     // Build nested structure
-                    const rootComments: any[] = [];
-                    const replyMap = new Map();
+                    type CommentItem = typeof allComments[number];
+                    type CommentWithReplies = CommentItem & { replies?: CommentItem[] };
+
+                    const rootComments: CommentWithReplies[] = [];
+                    const replyMap = new Map<number, CommentItem[]>();
 
                     // First, collect all replies by parent ID
                     for (const comment of allComments) {
@@ -42,7 +45,7 @@ export function CommentService() {
                             if (!replyMap.has(comment.parentId)) {
                                 replyMap.set(comment.parentId, []);
                             }
-                            replyMap.get(comment.parentId).push(comment);
+                            replyMap.get(comment.parentId)!.push(comment);
                         } else {
                             rootComments.push(comment);
                         }
@@ -52,8 +55,8 @@ export function CommentService() {
                     for (const root of rootComments) {
                         const replies = replyMap.get(root.id) || [];
                         // Sort replies by createdAt ascending (older first)
-                        replies.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                        (root as any).replies = replies;
+                        replies.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                        root.replies = replies;
                     }
 
                     return rootComments;
@@ -79,11 +82,12 @@ export function CommentService() {
                         set.status = 400;
                         return 'Feed not found';
                     }
-                    let finalParentId = parentId || null;
-                    let finalReplyToUserId = replyToUserId ? parseInt(replyToUserId as string) : null;
+                    let parsedParentId = parentId ? (typeof parentId === 'string' ? parseInt(parentId) : parentId) : null;
+                    let finalParentId = parsedParentId;
+                    let finalReplyToUserId = replyToUserId ? (typeof replyToUserId === 'string' ? parseInt(replyToUserId) : replyToUserId) : null;
 
-                    if (parentId) {
-                        const parentComment = await db.query.comments.findFirst({ where: eq(comments.id, parentId) });
+                    if (parsedParentId) {
+                        const parentComment = await db.query.comments.findFirst({ where: eq(comments.id, parsedParentId) });
                         if (!parentComment || parentComment.feedId !== feedId) {
                             set.status = 400;
                             return 'Parent comment not found';
