@@ -161,8 +161,8 @@ function LanguageSwitch({ className }: { className?: string }) {
     const { i18n } = useTranslation()
     const label = 'Languages'
     const languages = [
-        { code: 'en', name: 'English' },
         { code: 'zh-CN', name: '简体中文' },
+        { code: 'en', name: 'English' },
         { code: 'zh-TW', name: '繁體中文' },
         { code: 'ja', name: '日本語' }
     ]
