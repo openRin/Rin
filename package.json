@@ -21,7 +21,8 @@
     "i18n:extract": "bun --filter './client' i18n",
     "clean": "rm -rf dist node_modules client/node_modules server/node_modules .turbo wrangler.toml client/.env .dev.vars",
     "format:check": "turbo format:check",
-    "format:write": "turbo format:write"
+    "format:write": "turbo format:write",
+    "release": "bun scripts/release.ts"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",
