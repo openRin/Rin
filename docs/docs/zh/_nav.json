@@ -1,0 +1,19 @@
+[
+  {
+    "text": "指南",
+    "items": [
+      { "text": "简介", "link": "/zh/guide/" },
+      { "text": "部署", "link": "/zh/guide/deploy" },
+      { "text": "SEO", "link": "/zh/guide/seo" },
+      { "text": "RSS", "link": "/zh/guide/rss" },
+      { "text": "更新日志", "link": "/zh/guide/changelog" },
+      { "text": "贡献指南", "link": "/zh/guide/contribution" }
+    ]
+  },
+  {
+    "text": "配置",
+    "items": [
+      { "text": "环境变量", "link": "/zh/env" }
+    ]
+  }
+]

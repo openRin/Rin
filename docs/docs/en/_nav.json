@@ -1,0 +1,19 @@
+[
+  {
+    "text": "Guide",
+    "items": [
+      { "text": "Introduction", "link": "/en/guide/" },
+      { "text": "Deploy", "link": "/en/guide/deploy" },
+      { "text": "SEO", "link": "/en/guide/seo" },
+      { "text": "RSS", "link": "/en/guide/rss" },
+      { "text": "Changelog", "link": "/en/guide/changelog" },
+      { "text": "Contribution", "link": "/en/guide/contribution" }
+    ]
+  },
+  {
+    "text": "Configuration",
+    "items": [
+      { "text": "Environment Variables", "link": "/en/env" }
+    ]
+  }
+]
