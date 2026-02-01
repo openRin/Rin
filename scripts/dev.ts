@@ -7,8 +7,11 @@
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as net from 'net';
 
 const ROOT_DIR = process.cwd();
+const FRONTEND_PORT = 5173;
+const BACKEND_PORT = 11498;
 
 // 颜色输出
 const colors = {
@@ -26,6 +29,25 @@ const colors = {
 function log(label: string, message: string, color: string = colors.reset) {
     const timestamp = new Date().toLocaleTimeString('zh-CN', { hour12: false });
     console.log(`${colors.dim}[${timestamp}]${colors.reset} ${color}[${label}]${colors.reset} ${message}`);
+}
+
+// 检查端口是否被占用
+function checkPort(port: number): Promise<boolean> {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.once('error', (err: any) => {
+            if (err.code === 'EADDRINUSE') {
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        });
+        server.once('listening', () => {
+            server.close();
+            resolve(true);
+        });
+        server.listen(port);
+    });
 }
 
 // 检查配置文件
@@ -69,12 +91,28 @@ if (!fs.existsSync(path.join(ROOT_DIR, '.env.local'))) {
     }
 }
 
-function startDev() {
+async function startDev() {
     log('Dev', '启动开发服务器...', colors.green);
+    
+    // 检查端口占用
+    const frontendAvailable = await checkPort(FRONTEND_PORT);
+    const backendAvailable = await checkPort(BACKEND_PORT);
+    
+    if (!frontendAvailable) {
+        log('Error', `端口 ${FRONTEND_PORT} 已被占用`, colors.red);
+        log('Help', '请检查是否有其他进程占用了该端口，或修改 .env.local 中的 FRONTEND_URL', colors.yellow);
+        process.exit(1);
+    }
+    
+    if (!backendAvailable) {
+        log('Error', `端口 ${BACKEND_PORT} 已被占用`, colors.red);
+        log('Help', '请检查是否有其他 wrangler dev 进程在运行', colors.yellow);
+        process.exit(1);
+    }
     
     // 先运行数据库迁移
     log('DB', '检查数据库迁移...', colors.cyan);
-    const migrateProcess = spawn('bun', ['scripts/dev-migrator.ts'], {
+    const migrateProcess = spawn('bun', ['scripts/db-migrate-local.ts'], {
         stdio: 'inherit',
         cwd: ROOT_DIR
     });
@@ -93,8 +131,11 @@ function startDev() {
 function startServers() {
     log('Dev', '正在启动前端和后端服务...', colors.green);
     
+    let backendReady = false;
+    let frontendReady = false;
+    
     // 启动后端
-    const backend = spawn('bun', ['wrangler', 'dev', '--port', '11498'], {
+    const backend = spawn('bun', ['wrangler', 'dev', '--port', String(BACKEND_PORT)], {
         cwd: ROOT_DIR,
         env: { ...process.env }
     });
@@ -109,8 +150,12 @@ function startServers() {
     backend.stdout.on('data', (data) => {
         const lines = data.toString().split('\n').filter((l: string) => l.trim());
         lines.forEach((line: string) => {
-            if (line.includes('Ready') || line.includes('http')) {
+            if (line.includes('Ready') || line.includes('http://localhost')) {
                 log('Backend', line, colors.blue);
+                if (!backendReady && line.includes('Ready')) {
+                    backendReady = true;
+                    checkAllReady();
+                }
             } else if (line.includes('Error') || line.includes('error')) {
                 log('Backend', line, colors.red);
             } else {
@@ -127,8 +172,12 @@ function startServers() {
     frontend.stdout.on('data', (data) => {
         const lines = data.toString().split('\n').filter((l: string) => l.trim());
         lines.forEach((line: string) => {
-            if (line.includes('Local') || line.includes('http')) {
+            if (line.includes('Local') || line.includes('http://localhost')) {
                 log('Frontend', line, colors.magenta);
+                if (!frontendReady && line.includes('Local:')) {
+                    frontendReady = true;
+                    checkAllReady();
+                }
             } else if (line.includes('Error') || line.includes('error')) {
                 log('Frontend', line, colors.red);
             } else {
@@ -167,13 +216,27 @@ function startServers() {
         frontend.kill('SIGTERM');
     });
     
+    // 检查是否都准备好了
+    function checkAllReady() {
+        if (backendReady && frontendReady) {
+            showReadyMessage();
+        }
+    }
+    
     // 显示访问信息
-    setTimeout(() => {
+    function showReadyMessage() {
         console.log('\n' + '='.repeat(60));
         console.log(`${colors.bright}🚀 开发服务器已启动！${colors.reset}`);
         console.log('='.repeat(60));
-        console.log(`${colors.cyan}📱 前端地址:${colors.reset} http://localhost:5173`);
-        console.log(`${colors.blue}🔌 后端地址:${colors.reset} http://localhost:11498`);
+        console.log(`${colors.cyan}📱 前端地址:${colors.reset} http://localhost:${FRONTEND_PORT}`);
+        console.log(`${colors.blue}🔌 后端地址:${colors.reset} http://localhost:${BACKEND_PORT}`);
         console.log('='.repeat(60) + '\n');
-    }, 3000);
+    }
+    
+    // 超时显示（如果检测失败）
+    setTimeout(() => {
+        if (!backendReady || !frontendReady) {
+            showReadyMessage();
+        }
+    }, 8000);
 }
