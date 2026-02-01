@@ -57,11 +57,7 @@ bun run dev
 
 访问 http://localhost:5173 开始开发！
 
-详细文档：
-- 📖 [本地开发指南](./docs/DEVELOPMENT.md)
-- 🚀 [部署指南](./docs/DEPLOY.md)
-- 🔧 [环境变量说明](./docs/ENV.md)
-- 📚 [完整文档](https://docs.openrin.org)
+详细文档：[docs.openrin.org](https://docs.openrin.org)
 
 ## Star History
 
