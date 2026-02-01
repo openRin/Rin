@@ -1,19 +1,16 @@
-# English Version
-
-# Rin
+![Cover](./docs/docs/public/rin-logo.png)
 
 English | [简体中文](./README_zh_CN.md)
 
-![Cover](./docs/docs/public/rin-logo.png)
 
-!https://img.shields.io/github/commit-activity/w/openRin/Rin?style=for-the-badge
-!https://img.shields.io/github/check-runs/openRin/Rin/main?style=for-the-badge
-!https://img.shields.io/github/languages/top/openRin/Rin?style=for-the-badge
-!https://img.shields.io/github/license/openRin/Rin?style=for-the-badge
-!https://img.shields.io/github/actions/workflow/status/openRin/Rin/deploy.yaml?style=for-the-badge
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/openRin/Rin?style=for-the-badge)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/openRin/Rin/main?style=for-the-badge)
+![GitHub top language](https://img.shields.io/github/languages/top/openRin/Rin?style=for-the-badge)
+![GitHub License](https://img.shields.io/github/license/openRin/Rin?style=for-the-badge)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/openRin/Rin/deploy.yaml?style=for-the-badge)
 
-https://img.shields.io/badge/Discord-openRin-red?style=for-the-badge&color=%236e7acc](https://discord.gg/JWbSTHvAPN)
-https://img.shields.io/badge/Telegram-openRin-red?style=for-the-badge&color=%233390EC](https://t.me/openRin)
+[![Discord](https://img.shields.io/badge/Discord-openRin-red?style=for-the-badge&color=%236e7acc)](https://discord.gg/JWbSTHvAPN)
+[![Telegram](https://img.shields.io/badge/Telegram-openRin-red?style=for-the-badge&color=%233390EC)](https://t.me/openRin)
 
 ## Introduction
 
