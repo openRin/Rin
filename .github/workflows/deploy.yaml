@@ -54,4 +54,4 @@ jobs:
         run: |
           cd Rin/
           bun install --frozen-lockfile
-          bun scripts/migrator.ts
+          bun scripts/deploy-cf.ts

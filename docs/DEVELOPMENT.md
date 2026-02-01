@@ -93,25 +93,21 @@ bun run dev:server
 
 # 运行数据库迁移
 bun run db:migrate
-# 或
-bun run m
 
 # 生成数据库迁移文件
-bun run db:gen
+bun run db:generate
 
 # 重新生成配置文件
 bun run dev:setup
 
 # 构建项目
 bun run build
-# 或
-bun run b
 
 # 清理生成的文件
 bun run clean
 
 # 运行类型检查
-bun run check
+bun run typecheck
 
 # 格式化代码
 bun run format:write
@@ -138,7 +134,7 @@ bun run format:check
 ### 数据库变更
 
 1. 修改 `server/src/db/schema.ts`
-2. 运行 `bun run db:gen` 生成迁移文件
+2. 运行 `bun run db:generate` 生成迁移文件
 3. 运行 `bun run db:migrate` 应用迁移
 
 ## 故障排除
@@ -196,7 +192,7 @@ bun run dev:setup
 ├── scripts/                # 开发脚本
 │   ├── dev.ts             # 开发服务器
 │   ├── setup-dev.ts       # 配置生成
-│   └── dev-migrator.ts    # 数据库迁移
+│   └── db-migrate-local.ts    # 数据库迁移
 ├── docs/                   # 文档
 ├── .env.example            # 环境变量示例
 ├── .env.local              # 本地配置（不提交到 Git）
