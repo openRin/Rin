@@ -18,19 +18,50 @@ export function CommentService() {
             group
                 .get('/:feed', async ({ params: { feed } }) => {
                     const feedId = parseInt(feed);
-                    const comment_list = await db.query.comments.findMany({
+                    const allComments = await db.query.comments.findMany({
                         where: eq(comments.feedId, feedId),
                         columns: { feedId: false, userId: false },
                         with: {
                             user: {
                                 columns: { id: true, username: true, avatar: true, permission: true }
+                            },
+                            replyToUser: {
+                                columns: { id: true, username: true }
                             }
                         },
                         orderBy: [desc(comments.createdAt)]
                     });
-                    return comment_list;
+
+                    // Build nested structure
+                    type CommentItem = typeof allComments[number];
+                    type CommentWithReplies = CommentItem & { replies?: CommentItem[] };
+
+                    const rootComments: CommentWithReplies[] = [];
+                    const replyMap = new Map<number, CommentItem[]>();
+
+                    // First, collect all replies by parent ID
+                    for (const comment of allComments) {
+                        if (comment.parentId) {
+                            if (!replyMap.has(comment.parentId)) {
+                                replyMap.set(comment.parentId, []);
+                            }
+                            replyMap.get(comment.parentId)!.push(comment);
+                        } else {
+                            rootComments.push(comment);
+                        }
+                    }
+
+                    // Attach replies to their parents and sort by createdAt ascending (older first)
+                    for (const root of rootComments) {
+                        const replies = replyMap.get(root.id) || [];
+                        // Sort replies by createdAt ascending (older first)
+                        replies.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                        root.replies = replies;
+                    }
+
+                    return rootComments;
                 })
-                .post('/:feed', async ({ uid, set, params: { feed }, body: { content } }) => {
+                .post('/:feed', async ({ uid, set, params: { feed }, body: { content, parentId, replyToUserId } }) => {
                     if (!uid) {
                         set.status = 401;
                         return 'Unauthorized';
@@ -51,20 +82,46 @@ export function CommentService() {
                         set.status = 400;
                         return 'Feed not found';
                     }
+                    let parsedParentId = parentId ? (typeof parentId === 'string' ? parseInt(parentId) : parentId) : null;
+                    let finalParentId = parsedParentId;
+                    let finalReplyToUserId = replyToUserId ? (typeof replyToUserId === 'string' ? parseInt(replyToUserId) : replyToUserId) : null;
+
+                    if (parsedParentId) {
+                        const parentComment = await db.query.comments.findFirst({ where: eq(comments.id, parsedParentId) });
+                        if (!parentComment || parentComment.feedId !== feedId) {
+                            set.status = 400;
+                            return 'Parent comment not found';
+                        }
+                        // Enforce two-level nesting: if parent is already a reply, use its parent (root comment)
+                        if (parentComment.parentId) {
+                            finalParentId = parentComment.parentId;
+                            // If replying to a reply, use the reply's author as replyToUser
+                            if (!finalReplyToUserId) {
+                                finalReplyToUserId = parentComment.userId;
+                            }
+                        } else if (!finalReplyToUserId) {
+                            // If replying to a root comment without explicit replyToUser, use the root comment's author
+                            finalReplyToUserId = parentComment.userId;
+                        }
+                    }
 
                     await db.insert(comments).values({
                         feedId,
                         userId,
-                        content
+                        content,
+                        parentId: finalParentId,
+                        replyToUserId: finalReplyToUserId
                     });
 
                     const webhookUrl = await ServerConfig().get(Config.webhookUrl) || env.WEBHOOK_URL;
                     // notify
-                    await notify(webhookUrl, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
+                    await notify(webhookUrl, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} ${parentId ? '回复了评论' : '评论了'}: ${exist.title}\n${content}`);
                     return 'OK';
                 }, {
                     body: t.Object({
-                        content: t.String()
+                        content: t.String(),
+                        parentId: t.Optional(t.Union([t.String(), t.Number()])),
+                        replyToUserId: t.Optional(t.Union([t.String(), t.Number()]))
                     })
                 })
         )

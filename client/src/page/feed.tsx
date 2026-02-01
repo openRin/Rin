@@ -25,8 +25,8 @@ type Feed = {
   title: string | null;
   content: string;
   uid: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   ai_summary: string;
   hashtags: {
     id: number;
@@ -39,6 +39,7 @@ type Feed = {
   };
   pv: number;
   uv: number;
+  top: number;
 };
 
 
@@ -143,11 +144,12 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
           setError(error.value as string);
         } else if (data && typeof data !== "string") {
           setTimeout(() => {
-            setFeed(data);
-            setTop(data.top);
+            const feedData = data as unknown as Feed;
+            setFeed(feedData);
+            setTop(feedData.top);
             // Extract head image
             const img_reg = /!\[.*?\]\((.*?)\)/;
-            const img_match = img_reg.exec(data.content);
+            const img_match = img_reg.exec(feedData.content);
             if (img_match) {
               setHeadImage(img_match[1]);
             }
@@ -412,6 +414,7 @@ function CommentInput({
   const { t } = useTranslation();
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const { showAlert, AlertUI } = useAlert();
   const profile = useContext(ProfileContext);
   const { LoginModal, setIsOpened } = useLoginModal()
@@ -421,10 +424,11 @@ function CommentInput({
     return error;
   }
   function submit() {
-    if (!profile) {
-      setIsOpened(true)
+    if (!profile || submitting) {
+      if (!profile) setIsOpened(true)
       return;
     }
+    setSubmitting(true);
     client.feed
       .comment({ feed: id })
       .post(
@@ -436,11 +440,13 @@ function CommentInput({
       .then(({ error }) => {
         if (error) {
           setError(errorHumanize(error.value as string));
+          setSubmitting(false);
         } else {
           setContent("");
           setError("");
           showAlert(t("comment.success"), () => {
             onRefresh();
+            setSubmitting(false);
           });
         }
       });
@@ -457,12 +463,14 @@ function CommentInput({
           className="bg-w w-full h-24 rounded-lg"
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          disabled={submitting}
         />
         <button
-          className="mt-4 bg-theme text-white px-4 py-2 rounded-full"
+          className="mt-4 bg-theme text-white px-4 py-2 rounded-full disabled:opacity-50"
           onClick={submit}
+          disabled={submitting || !content.trim()}
         >
-          {t("comment.submit")}
+          {submitting ? t("comment.submitting") : t("comment.submit")}
         </button>
       </>) : (
         <div className="flex flex-row w-full items-center justify-center space-x-2 py-12">
@@ -481,11 +489,112 @@ function CommentInput({
   );
 }
 
+function ReplyInput({
+  feedId,
+  parentId,
+  replyToUserId,
+  onRefresh,
+  onCancel,
+}: {
+  feedId: string;
+  parentId: number;
+  replyToUserId?: number;
+  onRefresh: () => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const [content, setContent] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { showAlert, AlertUI } = useAlert();
+  const profile = useContext(ProfileContext);
+  const { LoginModal, setIsOpened } = useLoginModal()
+  function errorHumanize(error: string) {
+    if (error === "Unauthorized") return t("login.required");
+    else if (error === "Content is required") return t("comment.empty");
+    return error;
+  }
+  function submit() {
+    if (!profile || submitting) {
+      if (!profile) setIsOpened(true)
+      return;
+    }
+    setSubmitting(true);
+    client.feed
+      .comment({ feed: feedId })
+      .post(
+        { content, parentId, replyToUserId },
+        {
+          headers: headersWithAuth(),
+        }
+      )
+      .then(({ error }) => {
+        if (error) {
+          setError(errorHumanize(error.value as string));
+          setSubmitting(false);
+        } else {
+          setContent("");
+          setError("");
+          onRefresh();
+          setSubmitting(false);
+          showAlert(t("comment.success"));
+        }
+      });
+  }
+  return (
+    <div className="w-full rounded-2xl bg-w t-primary p-4 items-end flex flex-col mt-2">
+      {profile ? (<>
+        <textarea
+          placeholder={t("comment.placeholder.reply")}
+          className="bg-w w-full h-20 rounded-lg p-2"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          disabled={submitting}
+        />
+        <div className="flex flex-row w-full justify-end space-x-2 mt-2">
+          <button
+            className="bg-secondary text-theme px-4 py-2 rounded-full"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            {t("cancel")}
+          </button>
+          <button
+            className="bg-theme text-white px-4 py-2 rounded-full disabled:opacity-50"
+            onClick={submit}
+            disabled={submitting || !content.trim()}
+          >
+            {submitting ? t("comment.submitting") : t("comment.submit")}
+          </button>
+        </div>
+      </>) : (
+        <div className="flex flex-row w-full items-center justify-center space-x-2 py-8">
+          <button
+            className="bg-theme text-white px-4 py-2 rounded-full"
+            onClick={() => setIsOpened(true)}
+          >
+            {t("login.required")}
+          </button>
+        </div>
+      )}
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      <AlertUI />
+      <LoginModal />
+    </div>
+  );
+}
+
 type Comment = {
   id: number;
   content: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  parentId?: number | null;
+  replyToUser?: {
+    id: number;
+    username: string;
+  } | null;
+  replies?: Comment[];
   user: {
     id: number;
     username: string;
@@ -511,7 +620,7 @@ function Comments({ id }: { id: string }) {
         if (error) {
           setError(error.value as string);
         } else if (data && Array.isArray(data)) {
-          setComments(data);
+          setComments(data as unknown as Comment[]);
         }
       });
   }
@@ -540,11 +649,13 @@ function Comments({ id }: { id: string }) {
           )}
           {comments.length > 0 && (
             <div className="w-full">
-              {comments.map((comment) => (
+              {comments.map((comment, index) => (
                 <CommentItem
                   key={comment.id}
                   comment={comment}
+                  feedId={id}
                   onRefresh={loadComments}
+                  index={index}
                 />
               ))}
             </div>
@@ -557,15 +668,37 @@ function Comments({ id }: { id: string }) {
 
 function CommentItem({
   comment,
+  feedId,
   onRefresh,
+  rootId,
+  index,
 }: {
   comment: Comment;
+  feedId: string;
   onRefresh: () => void;
+  rootId?: number;
+  index?: number;
 }) {
   const { showConfirm, ConfirmUI } = useConfirm();
   const { showAlert, AlertUI } = useAlert();
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const replyInputRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (replyInputRef.current && !replyInputRef.current.contains(event.target as Node)) {
+        setShowReplyInput(false);
+      }
+    }
+    if (showReplyInput) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showReplyInput]);
   function deleteComment() {
     showConfirm(
       t("delete.comment.title"),
@@ -588,51 +721,233 @@ function CommentItem({
       })
   }
   return (
-    <div className="flex flex-row items-start rounded-xl mt-2">
-      <img
-        src={comment.user.avatar || ""}
-        className="w-8 h-8 rounded-full mt-4"
-      />
-      <div className="flex flex-col flex-1 w-0 ml-2 bg-w rounded-xl p-4">
-        <div className="flex flex-row">
-          <span className="t-primary text-base font-bold">
-            {comment.user.username}
-          </span>
-          <div className="flex-1 w-0" />
-          <span
-            title={new Date(comment.createdAt).toLocaleString()}
-            className="text-gray-400 text-sm"
-          >
-            {timeago(comment.createdAt)}
-          </span>
-        </div>
-        <p className="t-primary break-words">{comment.content}</p>
-        <div className="flex flex-row justify-end">
-          {(profile?.permission || profile?.id == comment.user.id) && (
-            <Popup
-              arrow={false}
-              trigger={
-                <button className="px-2 py bg-secondary rounded-full">
-                  <i className="ri-more-fill t-secondary"></i>
-                </button>
-              }
-              position="left center"
+    <div className="flex flex-col w-full">
+      <div className="flex flex-row items-start rounded-xl mt-2">
+        <img
+          src={comment.user.avatar || ""}
+          className="w-8 h-8 rounded-full mt-4"
+        />
+        <div className="flex flex-col flex-1 w-0 ml-2 bg-w rounded-xl p-4">
+          <div className="flex flex-row">
+            <span className="t-primary text-base font-bold">
+              {comment.user.username}
+            </span>
+            <div className="flex-1 w-0" />
+            {index !== undefined && (
+              <span className="text-xs text-gray-400 mr-2">
+                #{index + 1}
+              </span>
+            )}
+            <span
+              title={new Date(comment.createdAt).toLocaleString()}
+              className="text-gray-400 text-sm"
             >
-              <div className="flex flex-row self-end mr-2">
-                <button
-                  onClick={deleteComment}
-                  aria-label={t("delete.comment.title")}
-                  className="px-2 py bg-secondary rounded-full"
-                >
-                  <i className="ri-delete-bin-2-line t-secondary"></i>
-                </button>
-              </div>
-            </Popup>
-          )}
+              {timeago(comment.createdAt)}
+            </span>
+          </div>
+          <p className="t-primary break-words">{comment.content}</p>
+          <div className="flex flex-row justify-end items-center space-x-2">
+            <button
+              className="text-sm text-theme hover:underline"
+              onClick={() => setShowReplyInput(!showReplyInput)}
+            >
+              {t("comment.reply")}
+            </button>
+            {(profile?.permission || profile?.id == comment.user.id) && (
+              <Popup
+                arrow={false}
+                trigger={
+                  <button className="px-2 py bg-secondary rounded-full">
+                    <i className="ri-more-fill t-secondary"></i>
+                  </button>
+                }
+                position="left center"
+              >
+                <div className="flex flex-row self-end mr-2">
+                  <button
+                    onClick={deleteComment}
+                    aria-label={t("delete.comment.title")}
+                    className="px-2 py bg-secondary rounded-full"
+                  >
+                    <i className="ri-delete-bin-2-line t-secondary"></i>
+                  </button>
+                </div>
+              </Popup>
+            )}
+          </div>
         </div>
+        <ConfirmUI />
+        <AlertUI />
       </div>
-      <ConfirmUI />
-      <AlertUI />
+      {showReplyInput && (
+        <div className="ml-10" ref={replyInputRef}>
+          <ReplyInput
+            feedId={feedId}
+            parentId={rootId || comment.id}
+            replyToUserId={comment.user.id}
+            onRefresh={() => {
+              onRefresh();
+              setShowReplyInput(false);
+            }}
+            onCancel={() => setShowReplyInput(false)}
+          />
+        </div>
+      )}
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="ml-10 mt-2 space-y-2">
+          {comment.replies.map((reply, replyIndex) => (
+            <ReplyItem
+              key={reply.id}
+              reply={reply}
+              feedId={feedId}
+              rootId={comment.id}
+              onRefresh={onRefresh}
+              index={replyIndex}
+              replyPrefix={index !== undefined ? `${index + 1}-` : ''}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReplyItem({
+  reply,
+  feedId,
+  rootId,
+  onRefresh,
+  index,
+  replyPrefix = '',
+}: {
+  reply: Comment;
+  feedId: string;
+  rootId: number;
+  onRefresh: () => void;
+  index?: number;
+  replyPrefix?: string;
+}) {
+  const { showConfirm, ConfirmUI } = useConfirm();
+  const { showAlert, AlertUI } = useAlert();
+  const { t } = useTranslation();
+  const profile = useContext(ProfileContext);
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const replyInputRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (replyInputRef.current && !replyInputRef.current.contains(event.target as Node)) {
+        setShowReplyInput(false);
+      }
+    }
+    if (showReplyInput) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showReplyInput]);
+
+  function deleteComment() {
+    showConfirm(
+      t("delete.comment.title"),
+      t("delete.comment.confirm"),
+      async () => {
+        client
+          .comment({ id: reply.id })
+          .delete(null, {
+            headers: headersWithAuth(),
+          })
+          .then(({ error }) => {
+            if (error) {
+              showAlert(error.value as string);
+            } else {
+              showAlert(t("delete.success"), () => {
+                onRefresh();
+              });
+            }
+          });
+      })
+  }
+
+  return (
+    <div className="flex flex-col w-full">
+      <div className="flex flex-row items-start rounded-xl">
+        <img
+          src={reply.user.avatar || ""}
+          className="w-6 h-6 rounded-full mt-2"
+        />
+        <div className="flex flex-col flex-1 w-0 ml-2 bg-w rounded-xl p-4">
+          <div className="flex flex-row">
+            <span className="t-primary text-base font-bold">
+              {reply.user.username}
+            </span>
+            <div className="flex-1 w-0" />
+            {index !== undefined && (
+              <span className="text-xs text-gray-400 mr-2">
+                #{replyPrefix}{index + 1}
+              </span>
+            )}
+            <span
+              title={new Date(reply.createdAt).toLocaleString()}
+              className="text-gray-400 text-sm"
+            >
+              {timeago(reply.createdAt)}
+            </span>
+          </div>
+          <p className="t-primary break-words">
+            {reply.replyToUser && (
+              <span className="text-theme">@{reply.replyToUser.username} </span>
+            )}
+            {reply.content}
+          </p>
+          <div className="flex flex-row justify-end items-center space-x-2">
+            <button
+              className="text-sm text-theme hover:underline"
+              onClick={() => setShowReplyInput(!showReplyInput)}
+            >
+              {t("comment.reply")}
+            </button>
+            {(profile?.permission || profile?.id == reply.user.id) && (
+              <Popup
+                arrow={false}
+                trigger={
+                  <button className="px-2 py bg-secondary rounded-full">
+                    <i className="ri-more-fill t-secondary"></i>
+                  </button>
+                }
+                position="left center"
+              >
+                <div className="flex flex-row self-end mr-2">
+                  <button
+                    onClick={deleteComment}
+                    aria-label={t("delete.comment.title")}
+                    className="px-2 py bg-secondary rounded-full"
+                  >
+                    <i className="ri-delete-bin-2-line t-secondary"></i>
+                  </button>
+                </div>
+              </Popup>
+            )}
+          </div>
+        </div>
+        <ConfirmUI />
+        <AlertUI />
+      </div>
+      {showReplyInput && (
+        <div className="ml-8" ref={replyInputRef}>
+          <ReplyInput
+            feedId={feedId}
+            parentId={rootId}
+            replyToUserId={reply.user.id}
+            onRefresh={() => {
+              onRefresh();
+              setShowReplyInput(false);
+            }}
+            onCancel={() => setShowReplyInput(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

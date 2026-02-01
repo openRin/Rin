@@ -3,7 +3,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getEnv } from "../utils/di";
 import { setup } from "../setup";
 import { createS3Client } from "../utils/s3";
-import path from "path";
+import path from "node:path";
 
 // @see https://developers.cloudflare.com/images/url-format#supported-formats-and-limitations
 export const FAVICON_ALLOWED_TYPES: { [key: string]: string } = {

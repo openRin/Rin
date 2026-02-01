@@ -43,9 +43,12 @@
   "comment": {
     "empty": "コメント内容は空にできません",
     "placeholder": {
-      "title": "何か言ってください..."
+      "title": "何か言ってください...",
+      "reply": "返信..."
     },
+    "reply": "返信",
     "submit": "コメントを投稿",
+    "submitting": "投稿中...",
     "success": "コメントに成功しました",
     "title": "コメント"
   },

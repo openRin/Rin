@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { foreignKey, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
@@ -68,9 +68,17 @@ export const comments = sqliteTable("comments", {
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
     userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
     content: text("content").notNull(),
+    parentId: integer("parent_id"),
+    replyToUserId: integer("reply_to_user_id").references(() => users.id, { onDelete: 'set null' }),
     createdAt: created_at,
     updatedAt: updated_at,
-});
+}, (table) => ({
+    parentReference: foreignKey({
+        columns: [table.parentId],
+        foreignColumns: [table.id],
+        name: "comments_parent_id_fk"
+    }).onDelete("cascade")
+}));
 
 export const hashtags = sqliteTable("hashtags", {
     id: integer("id").primaryKey(),
@@ -102,7 +110,7 @@ export const momentsRelations = relations(moments, ({ one }) => ({
     })
 }));
 
-export const commentsRelations = relations(comments, ({ one }) => ({
+export const commentsRelations = relations(comments, ({ one, many }) => ({
     feed: one(feeds, {
         fields: [comments.feedId],
         references: [feeds.id],
@@ -110,6 +118,18 @@ export const commentsRelations = relations(comments, ({ one }) => ({
     user: one(users, {
         fields: [comments.userId],
         references: [users.id],
+    }),
+    parent: one(comments, {
+        fields: [comments.parentId],
+        references: [comments.id],
+        relationName: 'comment_replies'
+    }),
+    replyToUser: one(users, {
+        fields: [comments.replyToUserId],
+        references: [users.id],
+    }),
+    replies: many(comments, {
+        relationName: 'comment_replies'
     }),
 }));
 

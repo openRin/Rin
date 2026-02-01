@@ -65,7 +65,7 @@ export function FeedService() {
                         const avatar = extractImage(content);
                         return {
                             summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
-                            hashtags: hashtags.map(({ hashtag }) => hashtag),
+                            hashtags: (hashtags as unknown as { hashtag: { id: number; name: string } }[]).map(({ hashtag }) => hashtag),
                             avatar,
                             ...other
                         }
@@ -198,7 +198,7 @@ export function FeedService() {
                     }
 
                     const { hashtags, ...other } = feed;
-                    const hashtags_flatten = hashtags.map((f) => f.hashtag);
+                    const hashtags_flatten = (hashtags as unknown as { hashtag: { id: number; name: string } }[]).map((f) => f.hashtag);
 
 
                     // update visits
@@ -255,11 +255,19 @@ export function FeedService() {
 
                     const cache = PublicCache();
                     function formatAndCacheData(
-                        feed: any,
+                        feed: {
+                            id: number;
+                            title: string | null;
+                            summary: string;
+                            content: string;
+                            createdAt: Date;
+                            updatedAt: Date;
+                            hashtags: { hashtag: { id: number; name: string } }[];
+                        } | null | undefined,
                         feedDirection: "previous_feed" | "next_feed",
                     ) {
                         if (feed) {
-                            const hashtags_flatten = feed.hashtags.map((f: any) => f.hashtag);
+                            const hashtags_flatten = (feed.hashtags as unknown as { hashtag: { id: number; name: string } }[]).map((f) => f.hashtag);
                             const summary =
                                 feed.summary.length > 0
                                     ? feed.summary
@@ -508,7 +516,7 @@ export function FeedService() {
             }))).map(({ content, hashtags, summary, ...other }) => {
                 return {
                     summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
-                    hashtags: hashtags.map(({ hashtag }) => hashtag),
+                    hashtags: (hashtags as unknown as { hashtag: { id: number; name: string } }[]).map(({ hashtag }) => hashtag),
                     ...other
                 }
             });
@@ -554,16 +562,16 @@ export function FeedService() {
                 set.status = 404;
                 return 'No items found';
             }
-            const feedItems: FeedItem[] = items?.map((item: any) => {
-                const createdAt = new Date(item?.['wp:post_date']);
-                const updatedAt = new Date(item?.['wp:post_modified']);
-                const draft = item?.['wp:status'] !== 'publish';
-                const contentHtml = item?.['content:encoded'];
+            const feedItems: FeedItem[] = items?.map((item: WPItem) => {
+                const createdAt = new Date(item['wp:post_date']);
+                const updatedAt = new Date(item['wp:post_modified']);
+                const draft = item['wp:status'] !== 'publish';
+                const contentHtml = item['content:encoded'];
                 const content = html2md(contentHtml);
                 const summary = content.length > 100 ? content.slice(0, 100) : content;
-                let tags = item?.['category'];
+                let tags = item.category;
                 if (tags && Array.isArray(tags)) {
-                    tags = tags.map((tag: any) => tag + '');
+                    tags = tags.map((tag: string) => tag + '');
                 } else if (tags && typeof tags === 'string') {
                     tags = [tags];
                 }
@@ -622,6 +630,15 @@ export function FeedService() {
         })
 }
 
+
+interface WPItem {
+    title: string;
+    'wp:post_date': string;
+    'wp:post_modified': string;
+    'wp:status': string;
+    'content:encoded': string;
+    category?: string | string[];
+}
 
 type FeedItem = {
     title: string;
