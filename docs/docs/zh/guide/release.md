@@ -152,7 +152,7 @@ GitHub Releases 将包含：
 
 1. 转到您在 GitHub 上的 fork 仓库
 2. 点击 **"Sync fork"** 按钮
-3. 查看 [CHANGELOG.md](../changelog.md) 了解迁移步骤
+3. 查看 [CHANGELOG.md](./changelog.md) 了解迁移步骤
 4. 如果需要，更新环境变量
 5. 如果已配置，部署将自动运行
 

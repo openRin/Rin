@@ -152,7 +152,7 @@ GitHub Releases will contain:
 
 1. Go to your forked repository on GitHub
 2. Click **"Sync fork"** button
-3. Review the [CHANGELOG.md](../changelog.md) for migration steps
+3. Review the [CHANGELOG.md](./changelog.md) for migration steps
 4. Update environment variables if needed
 5. The deployment will run automatically if configured
 
