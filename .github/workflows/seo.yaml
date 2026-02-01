@@ -28,7 +28,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgbm-dev
-          npx puppeteer browsers install chrome
+         # npx puppeteer browsers install chrome
 
       - name: Run script
         env: # Or as an environment variable
@@ -45,5 +45,5 @@ jobs:
           S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
         run: |
           cd Rin/
-          bun install --frozen-lockfile
+          bun install --frozen-lockfile --trusted-dependencies puppeteer
           bun scripts/render.ts
