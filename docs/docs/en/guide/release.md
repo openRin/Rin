@@ -37,14 +37,14 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 | `perf` | Performance | `perf(cache): add Redis` |
 | `chore` | Maintenance | `chore(deps): update packages` |
 
-See [COMMIT_CONVENTION.md](./COMMIT_CONVENTION.md) for detailed guidelines.
+See [Commit Convention](./commit-convention.md) for detailed guidelines.
 
 ## Release Workflow
 
 ### 1. Ensure All Changes Are Ready
 
 - [ ] All features/fixes merged to `main`
-- [ ] All commits follow [conventional commit format](./COMMIT_CONVENTION.md)
+- [ ] All commits follow [conventional commit format](./commit-convention.md)
 - [ ] Tests passing (`bun run typecheck`, `bun run build`)
 
 ### 2. Run the Release Script
@@ -152,7 +152,7 @@ GitHub Releases will contain:
 
 1. Go to your forked repository on GitHub
 2. Click **"Sync fork"** button
-3. Review the [CHANGELOG.md](../CHANGELOG.md) for migration steps
+3. Review the [CHANGELOG.md](../changelog.md) for migration steps
 4. Update environment variables if needed
 5. The deployment will run automatically if configured
 
@@ -284,6 +284,6 @@ When in doubt, use **minor** for new features.
 
 ## Questions?
 
-- 📖 Read [COMMIT_CONVENTION.md](./COMMIT_CONVENTION.md) for commit guidelines
+- 📖 Read [Commit Convention](./commit-convention.md) for commit guidelines
 - 🐛 Report issues: [GitHub Issues](https://github.com/openRin/Rin/issues)
 - 💬 Join discussions in our community

@@ -1,8 +1,11 @@
 [
   "index",
   "deploy",
+  "development",
   "seo",
   "rss",
   "changelog",
-  "contribution"
+  "contribution",
+  "commit-convention",
+  "release"
 ]

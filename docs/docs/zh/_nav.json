@@ -4,10 +4,13 @@
     "items": [
       { "text": "简介", "link": "/zh/guide/" },
       { "text": "部署", "link": "/zh/guide/deploy" },
+      { "text": "本地开发", "link": "/zh/guide/development" },
       { "text": "SEO", "link": "/zh/guide/seo" },
       { "text": "RSS", "link": "/zh/guide/rss" },
       { "text": "更新日志", "link": "/zh/guide/changelog" },
-      { "text": "贡献指南", "link": "/zh/guide/contribution" }
+      { "text": "贡献指南", "link": "/zh/guide/contribution" },
+      { "text": "提交规范", "link": "/zh/guide/commit-convention" },
+      { "text": "发布流程", "link": "/zh/guide/release" }
     ]
   },
   {

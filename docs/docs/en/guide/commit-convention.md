@@ -16,18 +16,18 @@ Each commit message should follow this format:
 
 ## Types
 
-| Type | Description | Emoji | Example |
-|------|-------------|-------|---------|
-| `feat` | A new feature | ✨ | `feat(auth): add GitHub OAuth login` |
-| `fix` | A bug fix | 🐛 | `fix(api): resolve CORS issue` |
-| `docs` | Documentation changes | 📚 | `docs(readme): update deployment guide` |
-| `style` | Code style changes (formatting, semicolons, etc.) | 💎 | `style: format with prettier` |
-| `refactor` | Code refactoring | ♻️ | `refactor(db): optimize query performance` |
-| `perf` | Performance improvements | ⚡ | `perf(cache): implement Redis caching` |
-| `test` | Adding or updating tests | 🧪 | `test(api): add user authentication tests` |
-| `chore` | Build process or auxiliary tool changes | 🔧 | `chore(deps): update dependencies` |
-| `ci` | CI/CD changes | 🔄 | `ci: add release workflow` |
-| `revert` | Reverting changes | ⏪ | `revert: undo breaking change` |
+| Type | Description | Example |
+|------|-------------|---------|
+| `feat` | A new feature | `feat(auth): add GitHub OAuth login` |
+| `fix` | A bug fix | `fix(api): resolve CORS issue` |
+| `docs` | Documentation changes | `docs(readme): update deployment guide` |
+| `style` | Code style changes (formatting, semicolons, etc.) | `style: format with prettier` |
+| `refactor` | Code refactoring | `refactor(db): optimize query performance` |
+| `perf` | Performance improvements | `perf(cache): implement Redis caching` |
+| `test` | Adding or updating tests | `test(api): add user authentication tests` |
+| `chore` | Build process or auxiliary tool changes | `chore(deps): update dependencies` |
+| `ci` | CI/CD changes | `ci: add release workflow` |
+| `revert` | Reverting changes | `revert: undo breaking change` |
 
 ## Scope
 

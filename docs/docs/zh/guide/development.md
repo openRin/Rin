@@ -201,7 +201,7 @@ bun run dev:setup
 
 ## 生产部署
 
-请参考 [DEPLOY.md](./DEPLOY.md) 了解生产环境部署流程。
+请参考 [部署指南](./deploy.mdx) 了解生产环境部署流程。
 
 ## 获取帮助
 
