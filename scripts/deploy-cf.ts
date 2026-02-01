@@ -1,7 +1,7 @@
 import { $ } from "bun"
 import { readdir } from "node:fs/promises"
 import stripIndent from 'strip-indent'
-import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from "./fix-top-field"
+import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from "./db-fix-top-field"
 
 function env(name: string, defaultValue?: string, required = false) {
     const env = process.env

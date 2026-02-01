@@ -37,7 +37,31 @@ Rin is a blog based on Cloudflare Pages + Workers + D1 + R2. It does not require
 13. For more features, please refer to https://xeu.life
 
 # Documentation
-[docs.openrin.org](https://docs.openrin.org)
+
+## 快速开始
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/openRin/Rin.git && cd Rin
+
+# 2. 安装依赖
+bun install
+
+# 3. 配置环境变量
+cp .env.example .env.local
+# 编辑 .env.local 填入你的配置
+
+# 4. 启动开发服务器
+bun run dev
+```
+
+访问 http://localhost:5173 开始开发！
+
+详细文档：
+- 📖 [本地开发指南](./docs/DEVELOPMENT.md)
+- 🚀 [部署指南](./docs/DEPLOY.md)
+- 🔧 [环境变量说明](./docs/ENV.md)
+- 📚 [完整文档](https://docs.openrin.org)
 
 ## Star History
 

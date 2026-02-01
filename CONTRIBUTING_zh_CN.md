@@ -6,16 +6,16 @@
 
 # Commit-msg 钩子
 
-我们在 `scripts/commit-msg.sh` 中有一个示例 commit-msg hook。请运行以下命令设置：
+我们在 `scripts/git-commit-msg.sh` 中有一个示例 commit-msg hook。请运行以下命令设置：
 
 ```sh
-ln -s ../../scripts/commit-msg.sh ./.git/hooks/commit-msg
+ln -s ../../scripts/git-commit-msg.sh ./.git/hooks/commit-msg
 ```
 
-Windows 下请直接将 `commit-msg.sh` 文件复制到 `.git/hooks/commit-msg`。
+Windows 下请直接将 `git-commit-msg.sh` 文件复制到 `.git/hooks/commit-msg`。
 
 ```powershell
-cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
+cp .\scripts\git-commit-msg.sh .\.git\hooks\commit-msg
 ```
 
 这将在每次提交之前运行以下检查：
@@ -48,9 +48,9 @@ cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
 6. 执行数据库迁移
    > [!TIP]  
    > 如果您的数据库名称(`wrangler.toml`中`database_name`)不为 `rin`\
-   > 请在执行迁移之前修改 `scripts/dev-migrator.sh` 中的 `DB_NAME` 字段
+   > 请在执行迁移之前修改 `scripts/db-migrate-local.ts` 中的 `DB_NAME` 字段
     ```sh
-    bun m
+    bun run db:migrate
     ```
 
 7. 配置 `.dev.vars` 文件

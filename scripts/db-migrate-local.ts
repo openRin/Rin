@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from './fix-top-field';
+import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from './db-fix-top-field';
 
 const DB_NAME = "rin";
 const SQL_DIR = path.join(__dirname, '..', 'server', 'sql');
