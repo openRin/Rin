@@ -26,7 +26,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: 1.2.13
+          bun-version: 1.3.6
 
       - name: Deploy
         env: # Or as an environment variable
