@@ -1,0 +1,16 @@
+{
+  "name": "rin-docs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "rspress dev",
+    "build": "rspress build",
+    "preview": "rspress preview"
+  },
+  "dependencies": {
+    "@rspress/core": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20"
+  }
+}

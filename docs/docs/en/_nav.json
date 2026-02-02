@@ -1,0 +1,22 @@
+[
+  {
+    "text": "Guide",
+    "items": [
+      { "text": "Introduction", "link": "/en/guide/" },
+      { "text": "Deploy", "link": "/en/guide/deploy" },
+      { "text": "Development", "link": "/en/guide/development" },
+      { "text": "SEO", "link": "/en/guide/seo" },
+      { "text": "RSS", "link": "/en/guide/rss" },
+      { "text": "Changelog", "link": "/en/guide/changelog" },
+      { "text": "Contribution", "link": "/en/guide/contribution" },
+      { "text": "Commit Convention", "link": "/en/guide/commit-convention" },
+      { "text": "Release Process", "link": "/en/guide/release" }
+    ]
+  },
+  {
+    "text": "Configuration",
+    "items": [
+      { "text": "Environment Variables", "link": "/en/env" }
+    ]
+  }
+]

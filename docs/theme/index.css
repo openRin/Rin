@@ -1,0 +1,9 @@
+.rp-home-hero {
+    flex-direction: column-reverse !important;
+    align-items: center !important;
+}
+
+.rp-home-hero__container {
+    width: auto !important;
+    align-items: center !important;
+}

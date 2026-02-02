@@ -1,8 +1,7 @@
-# Rin
+![Cover](./docs/docs/public/rin-logo.png)
 
 English | [简体中文](./README_zh_CN.md)
 
-![Cover](https://repository-images.githubusercontent.com/803866357/958bc2c1-1703-4127-920c-853291495bdc)
 
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/openRin/Rin?style=for-the-badge)
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/openRin/Rin/main?style=for-the-badge)
@@ -13,31 +12,57 @@ English | [简体中文](./README_zh_CN.md)
 [![Discord](https://img.shields.io/badge/Discord-openRin-red?style=for-the-badge&color=%236e7acc)](https://discord.gg/JWbSTHvAPN)
 [![Telegram](https://img.shields.io/badge/Telegram-openRin-red?style=for-the-badge&color=%233390EC)](https://t.me/openRin)
 
-# Introduction
+## Introduction
 
-Rin is a blog based on Cloudflare Pages + Workers + D1 + R2. It does not require a server to deploy. It can be deployed just with a domain name that resolves to Cloudflare.
+Rin is a modern, serverless blog platform built entirely on Cloudflare's developer platform: Pages for hosting, Workers for serverless functions, D1 for SQLite database, and R2 for object storage. Deploy your personal blog with just a domain name pointed to Cloudflare—no server management required.
 
-## Demo
+## Live Demo
 
-[xeu.life](https://xeu.life)
+https://xeu.life
 
 ## Features
-1. Support GitHub OAuth login. By default, the first logged-in user has management privileges, and other users are ordinary users
-2. Support article writing and editing
-3. Support local real-time saving of modifications/edits to any article without interfering between multiple articles
-4. Support setting it as visible only to yourself, which can serve as a draft box for cloud synchronization or record more private content
-5. Support dragging/pasting uploaded images to a bucket that supports the S3 protocol and generating links
-6. Support setting article aliases, and access articles through links such as https://xeu.life/about
-7. Support articles not being listed in the homepage list
-8. Support adding links of friends' blog, and the backend regularly checks and updates the accessible status of links every 20 minutes
-9. Support replying to comment articles/deleting comments
-10. Support sending comment notifications through Webhook
-11. Support automatic identification of the first picture in the article and display it as the header image in the article list
-12. Support inputting tag texts such as "#Blog #Cloudflare" and automatically parsing them into tags
-13. For more features, please refer to https://xeu.life
+- **Authentication & Management**: GitHub OAuth login. The first registered user becomes an administrator, while subsequent users join as regular members.
+- **Content Creation**: Write and edit articles with a rich, intuitive editor.
+- **Real-time Autosave**: Local drafts are saved automatically in real-time, with isolation between different articles.
+- **Privacy Control**: Mark articles as "Visible only to me" for private drafts or personal notes, synchronized across devices.
+- **Image Management**: Drag-and-drop or paste images to upload directly to S3-compatible storage (e.g., Cloudflare R2), with automatic link generation.
+- **Custom Slugs**: Assign friendly URLs like `https://yourblog.com/about` using custom article aliases.
+- **Unlisted Posts**: Option to keep articles out of the public homepage listing.
+- **Blogroll**: Add links to friends' blogs. The backend automatically checks link availability every 20 minutes.
+- **Comment System**: Reply to comments or moderate them with delete functionality.
+- **Webhook Notifications**: Receive real-time alerts for new comments via configurable webhooks.
+- **Featured Images**: Automatically detect the first image in an article and use it as the cover image in listings.
+- **Tag Parsing**: Input tags like `#Blog #Cloudflare` and have them automatically parsed and displayed.
+- ...and more! Explore all features at https://xeu.life.
 
-# Documentation
-[docs.openrin.org](https://docs.openrin.org)
+## Documentation
+
+### Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/openRin/Rin.git && cd Rin
+
+# 2. Install dependencies
+bun install
+
+# 3. Configure environment variables
+cp .env.example .env.local
+# Edit .env.local with your own configuration
+
+# 4. Start the development server
+bun run dev
+```
+
+Visit http://localhost:5173 to start hacking!
+
+Full documentation is available at https://docs.openrin.org.
+
+## Community & Support
+
+- Join our https://discord.gg/JWbSTHvAPN for discussions and help.
+- Follow updates on https://t.me/openRin.
+- Found a bug or have a feature request? Please open an issue on GitHub.
 
 ## Star History
 
@@ -49,7 +74,12 @@ Rin is a blog based on Cloudflare Pages + Workers + D1 + R2. It does not require
  </picture>
 </a>
 
-# License
+## Contributing
+
+We welcome contributions of all kinds—code, documentation, design, and ideas. Please check out our [contributing guidelines](https://docs.openrin.org/en/guide/contribution.html) and join us in building Rin together!
+
+## License
+
 ```
 MIT License
 

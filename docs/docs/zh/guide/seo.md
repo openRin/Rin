@@ -1,4 +1,8 @@
-# SEO 工作原理介绍与配置指南
+# SEO 优化
+:::tip
+部分搜索引擎支持动态渲染（如 Google），SEO优化的作用不再那么重要，但是对于一些不支持动态渲染的搜索引擎，SEO优化仍然是必不可少的。
+:::
+
 ## 前言
 由于采用前后端分离的技术，导致搜索引擎无法直接获取到页面内容，因此需要通过 SEO 优化来提高搜索引擎的收录效果。本文将介绍本项目中 SEO 实现的工作原理与配置指南。
 
@@ -41,13 +45,16 @@ S3_SECRET_ACCESS_KEY=<你的S3SecretAccessKey>
 ```
 xeu.life/seo/*
 ```
-![图片](https://github.com/openRin/Rin/assets/36541432/ed0ecc72-f61f-4460-8ede-4475ca54ffcb)
+![图片](https://github.com/OXeu/Rin/assets/36541432/ed0ecc72-f61f-4460-8ede-4475ca54ffcb)
 
 Worker 选择为部署的 Worker，点击保存。
 
 随后点击侧边栏菜单 > `规则` > `转换规则` > `重写 URL` > `创建规则`，规则名称随意，自定义筛选表达式为：
-> [!NOTE]
-> 该筛选表达式只为 Google 做了收录优化，如需其他搜索引擎的优化请自行查找其对应的爬虫 UA 填写
+
+:::note
+该筛选表达式只为 Google 做了收录优化，如需其他搜索引擎的优化请自行查找其对应的爬虫 UA 填写
+:::
+
 ```
 (http.host eq "<前端域名，如xeu.life>" and http.user_agent contains "Googlebot")
 ```
@@ -58,6 +65,6 @@ concat("/seo",http.request.uri.path)
 选择`保留查询`
 
 参考配置截图：
-![转换规则](https://github.com/openRin/Rin/assets/36541432/657e9546-1dc0-4390-9bfc-5d3eb725e792)
+![转换规则](https://github.com/OXeu/Rin/assets/36541432/657e9546-1dc0-4390-9bfc-5d3eb725e792)
 
 点击部署，即可完成 SEO 配置。

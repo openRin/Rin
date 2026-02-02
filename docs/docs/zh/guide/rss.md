@@ -1,8 +1,6 @@
-# RSS 支持与配置
+# RSS 配置
 
-支持 RSS、Atom、Json 三种订阅格式
-
-## 配置
+Rin 支持 RSS、Atom、Json 三种订阅格式
 
 ## 环境变量
 
@@ -31,8 +29,9 @@ xeu.life/sub/*
 
 Worker 选择为部署的 Worker，点击保存。
 
-> [!NOTE]
-> 如果你还配置了国内 CDN 加速，还需要将回源域名按上述同样的方式设置 Workers 路由。
+:::note
+如果你还配置了国内 CDN 加速，还需要将回源域名按上述同样的方式设置 Workers 路由。
+:::
 
 
 ## 使用
