@@ -11,8 +11,8 @@ export function MomentsService(router: Router): void {
             const { query, store: { db, cache } } = ctx;
             const { page, limit } = query;
             
-            const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
-            const limit_num = limit ? +limit > 50 ? 50 : +limit : 20;
+            const page_num = (page ? parseInt(page as string) > 0 ? parseInt(page as string) : 1 : 1) - 1;
+            const limit_num = limit ? parseInt(limit as string) > 50 ? 50 : parseInt(limit as string) : 20;
             const cacheKey = `moments_${page_num}_${limit_num}`;
             const cached = await cache.get(cacheKey);
             

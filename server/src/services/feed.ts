@@ -22,8 +22,8 @@ export function FeedService(router: Router): void {
                 return 'Permission denied';
             }
             
-            const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
-            const limit_num = limit ? +limit > 50 ? 50 : +limit : 20;
+            const page_num = (page ? parseInt(page as string) > 0 ? parseInt(page as string) : 1 : 1) - 1;
+            const limit_num = limit ? parseInt(limit as string) > 50 ? 50 : parseInt(limit as string) : 20;
             const cacheKey = `feeds_${type}_${page_num}_${limit_num}`;
             const cached = await cache.get(cacheKey);
             
@@ -458,8 +458,8 @@ export function FeedService(router: Router): void {
         const { page, limit } = query;
         
         keyword = decodeURI(keyword);
-        const page_num = (page ? page > 0 ? page : 1 : 1) - 1;
-        const limit_num = limit ? +limit > 50 ? 50 : +limit : 20;
+        const page_num = (page ? parseInt(page as string) > 0 ? parseInt(page as string) : 1 : 1) - 1;
+        const limit_num = limit ? parseInt(limit as string) > 50 ? 50 : parseInt(limit as string) : 20;
         
         if (keyword === undefined || keyword.trim().length === 0) {
             return { size: 0, data: [], hasNext: false };
