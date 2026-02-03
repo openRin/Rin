@@ -1,8 +1,13 @@
 import { eq } from "drizzle-orm";
-import { users } from "../db/schema";
 import { Router } from "../core/router";
-import { t } from "../core/types";
 import type { Context } from "../core/types";
+import { users } from "../db/schema";
+import {
+    BadRequestError,
+    ForbiddenError,
+    InternalServerError,
+    NotFoundError
+} from "../errors";
 
 export function UserService(router: Router): void {
     router.group('/user', (group) => {
@@ -11,7 +16,7 @@ export function UserService(router: Router): void {
             const referer = headers['referer'];
             
             if (!referer) {
-                return 'Referer not found';
+                throw new BadRequestError('Referer header is required');
             }
             
             cookie.redirect_to.set({
@@ -39,8 +44,7 @@ export function UserService(router: Router): void {
 
             // Verify state to prevent CSRF attacks
             if (query.state != cookie.state.value) {
-                set.status = 400;
-                return 'Invalid state parameter';
+                throw new BadRequestError('Invalid state parameter');
             }
             
             // Clear state cookie
@@ -49,8 +53,7 @@ export function UserService(router: Router): void {
             // Exchange code for access token
             const gh_token = await oauth2!.authorize("GitHub", query.code);
             if (!gh_token) {
-                set.status = 400;
-                return 'Failed to authorize with GitHub';
+                throw new BadRequestError('Failed to authorize with GitHub');
             }
             
             // request https://api.github.com/user for user info
@@ -98,7 +101,7 @@ export function UserService(router: Router): void {
                         }
                         const result = await db.insert(users).values(profile).returning({ insertedId: users.id });
                         if (!result || result.length === 0) {
-                            throw new Error('Failed to register');
+                            throw new InternalServerError('Failed to register user');
                         } else {
                         cookie.token.set({
                             value: await jwt!.sign({ id: result[0].insertedId }),
@@ -119,17 +122,15 @@ export function UserService(router: Router): void {
         });
 
         group.get('/profile', async (ctx: Context) => {
-            const { set, uid, store: { db } } = ctx;
+            const { uid, store: { db } } = ctx;
 
             if (!uid) {
-                set.status = 403;
-                return 'Permission denied';
+                throw new ForbiddenError('Authentication required');
             }
 
             const user = await db.query.users.findFirst({ where: eq(users.id, uid) });
             if (!user) {
-                set.status = 404;
-                return 'User not found';
+                throw new NotFoundError('User');
             }
 
             return {

@@ -242,11 +242,25 @@ class HttpClient {
       const response = await fetch(url, init);
       
       if (!response.ok) {
-        const errorText = await response.text();
+        const contentType = response.headers.get('content-type');
+        let errorValue: any;
+        
+        if (contentType?.includes('application/json')) {
+          // Try to parse structured error response
+          try {
+            const errorData = await response.json();
+            errorValue = errorData;
+          } catch {
+            errorValue = await response.text();
+          }
+        } else {
+          errorValue = await response.text();
+        }
+        
         return {
           error: {
             status: response.status,
-            value: errorText || response.statusText,
+            value: errorValue || response.statusText,
           },
         };
       }

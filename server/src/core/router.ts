@@ -1,4 +1,6 @@
 import type { Context, Handler, Middleware, RouteDefinition } from "./types";
+import { handleError, generateRequestId } from "./error-handler";
+import { isAppError } from "../errors";
 
 export class Router {
     private routes: Map<string, RouteDefinition[]> = new Map();
@@ -173,6 +175,7 @@ export class Router {
         const url = new URL(request.url);
         const method = request.method;
         const pathname = url.pathname;
+        const requestId = generateRequestId();
 
         // Handle OPTIONS preflight requests before route matching
         if (method === 'OPTIONS') {
@@ -189,7 +192,18 @@ export class Router {
         // Find matching route
         const match = this.matchRoute(method, pathname);
         if (!match) {
-            return new Response('Not Found', { status: 404 });
+            const errorResponse = {
+                success: false,
+                error: {
+                    code: 'NOT_FOUND',
+                    message: `Route ${method} ${pathname} not found`,
+                    requestId,
+                },
+            };
+            return new Response(JSON.stringify(errorResponse), {
+                status: 404,
+                headers: { 'Content-Type': 'application/json' },
+            });
         }
 
         const { route, params } = match;
@@ -225,7 +239,13 @@ export class Router {
             try {
                 context.body = await this.parseBody(request);
             } catch (e) {
-                // Body parsing failed, continue without body
+                // Body parsing failed, return structured error
+                const { ValidationError } = await import('../errors');
+                return handleError(
+                    new ValidationError('Invalid request body format'),
+                    context,
+                    requestId
+                );
             }
         }
 
@@ -233,19 +253,26 @@ export class Router {
         if (route.schema) {
             const validation = this.validateSchema(route.schema, context.body);
             if (!validation.valid) {
-                return new Response(JSON.stringify({ errors: validation.errors }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
-                });
+                const { ValidationError } = await import('../errors');
+                const details = validation.errors?.map((msg) => ({ message: msg }));
+                return handleError(
+                    new ValidationError('Validation failed', details),
+                    context,
+                    requestId
+                );
             }
         }
 
         // Run middlewares
-        for (const middleware of this.middlewares) {
-            const result = await middleware(context, env);
-            if (result instanceof Response) {
-                return result;
+        try {
+            for (const middleware of this.middlewares) {
+                const result = await middleware(context, env);
+                if (result instanceof Response) {
+                    return result;
+                }
             }
+        } catch (error) {
+            return handleError(error, context, requestId);
         }
 
         // Run handler
@@ -265,8 +292,7 @@ export class Router {
                 headers
             });
         } catch (error) {
-            console.error('Handler error:', error);
-            return new Response('Internal Server Error', { status: 500 });
+            return handleError(error, context, requestId);
         }
     }
 }
