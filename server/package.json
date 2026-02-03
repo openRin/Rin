@@ -43,7 +43,8 @@
     "remark-rehype": "^11.1.0",
     "typedi": "^0.10.0",
     "unified": "^11.0.4",
-    "url": "^0.11.3"
+    "url": "^0.11.3",
+    "html-to-md": "^0.8.5"
   },
   "trustedDependencies": [
     "es5-ext"
