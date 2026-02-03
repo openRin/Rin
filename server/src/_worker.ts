@@ -11,7 +11,7 @@ export default {
         env: Env,
     ): Promise<Response> {
         const url = new URL(request.url);
-        const app = createApp(env, url.pathname);
+        const app = await createApp(env, url.pathname);
         
         if (app) {
             return await app.handle(request, env);
