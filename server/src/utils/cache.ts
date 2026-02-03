@@ -1,8 +1,6 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { path_join } from "./path";
-import { createS3Client } from "./s3";
 
 type DB = DrizzleD1Database<typeof schema>;
 
@@ -16,7 +14,7 @@ export class CacheImpl {
     cacheUrl: string;
     type: string;
     loaded: boolean = false;
-    private s3Instance: S3Client | null = null;
+    private s3Instance: any = null;
 
     constructor(db: DB, env: Env, type: string = "cache") {
         this.type = type;
@@ -28,8 +26,9 @@ export class CacheImpl {
     }
 
     // Lazy load S3 client
-    private get s3(): S3Client {
+    private async getS3() {
         if (!this.s3Instance) {
+            const { createS3Client } = await import('./s3');
             this.s3Instance = createS3Client(this.env);
         }
         return this.s3Instance;
@@ -146,8 +145,10 @@ export class CacheImpl {
     }
 
     async save() {
+        const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+        const s3 = await this.getS3();
         const cacheKey = path_join(this.env.S3_CACHE_FOLDER, `${this.type}.json`);
-        await this.s3.send(new PutObjectCommand({
+        await s3.send(new PutObjectCommand({
             Bucket: this.env.S3_BUCKET,
             Key: cacheKey,
             Body: JSON.stringify(Object.fromEntries(this.cache))
