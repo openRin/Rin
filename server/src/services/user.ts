@@ -76,7 +76,7 @@ export function UserService(router: Router): void {
             };
             
             await db.query.users.findFirst({ where: eq(users.openid, profile.openid) })
-                .then(async (user) => {
+                .then(async (user: any) => {
                     if (user) {
                         profile.permission = user.permission;
                         await db.update(users).set(profile).where(eq(users.id, user.id));
@@ -110,12 +110,6 @@ export function UserService(router: Router): void {
             set.headers.set('Location', redirect_url);
             set.status = 302;
             return '';
-        }, {
-            type: 'object',
-            properties: {
-                state: { type: 'string' },
-                code: { type: 'string' }
-            }
         });
 
         group.get('/profile', async (ctx: Context) => {
