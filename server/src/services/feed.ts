@@ -1,6 +1,4 @@
 import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
-import { XMLParser } from "fast-xml-parser";
-import html2md from 'html-to-md';
 import { feeds, visits } from "../db/schema";
 import { Router } from "../core/router";
 import { t } from "../core/types";
@@ -9,6 +7,21 @@ import { generateAISummary } from "../utils/ai";
 import { CacheImpl } from "../utils/cache";
 import { extractImage } from "../utils/image";
 import { bindTagToPost } from "./tag";
+
+// Lazy-loaded modules for WordPress import
+let XMLParser: any;
+let html2md: any;
+
+async function initWPModules() {
+    if (!XMLParser) {
+        const fxp = await import("fast-xml-parser");
+        XMLParser = fxp.XMLParser;
+    }
+    if (!html2md) {
+        const h2m = await import("html-to-md");
+        html2md = h2m.default;
+    }
+}
 
 export function FeedService(router: Router): void {
     router.group('/feed', (group) => {
@@ -526,6 +539,9 @@ export function FeedService(router: Router): void {
             set.status = 400;
             return 'Data is required';
         }
+        
+        // Initialize WordPress import modules lazily
+        await initWPModules();
         
         const xml = await data.text();
         const parser = new XMLParser();

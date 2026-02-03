@@ -142,14 +142,16 @@ export class CacheImpl {
     }
 
     async save() {
-        const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+        const { putObject } = await import('./s3');
         const s3 = await this.getS3();
         const cacheKey = path_join(this.env.S3_CACHE_FOLDER, `${this.type}.json`);
-        await s3.send(new PutObjectCommand({
-            Bucket: this.env.S3_BUCKET,
-            Key: cacheKey,
-            Body: JSON.stringify(Object.fromEntries(this.cache))
-        })).then(() => {
+        await putObject(
+            s3,
+            this.env,
+            cacheKey,
+            JSON.stringify(Object.fromEntries(this.cache)),
+            'application/json'
+        ).then(() => {
             console.log('Cache saved');
         }).catch((e: any) => {
             console.error('Cache save failed')

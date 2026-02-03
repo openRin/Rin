@@ -1,9 +1,8 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { Router } from "../core/router";
 import { t } from "../core/types";
 import type { Context } from "../core/types";
 import { path_join } from "../utils/path";
-import { createS3Client } from "../utils/s3";
+import { createS3Client, putObject } from "../utils/s3";
 
 function buf2hex(buffer: ArrayBuffer) {
     return [...new Uint8Array(buffer)]
@@ -56,13 +55,13 @@ export function StorageService(router: Router): void {
             const hashkey = path_join(folder, hash + "." + suffix);
             
             try {
-                const response = await s3.send(new PutObjectCommand({
-                    Bucket: bucket,
-                    Key: hashkey,
-                    Body: file,
-                    ContentType: file.type
-                }));
-                console.info(response);
+                await putObject(
+                    s3,
+                    env,
+                    hashkey,
+                    file,
+                    file.type
+                );
                 return `${accessHost}/${hashkey}`;
             } catch (e: any) {
                 set.status = 400;

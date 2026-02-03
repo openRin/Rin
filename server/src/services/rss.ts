@@ -1,19 +1,40 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, desc, eq } from "drizzle-orm";
-import { Feed } from "feed";
-import rehypeStringify from "rehype-stringify";
-import remarkGfm from "remark-gfm";
-import remarkParse from "remark-parse";
-import remarkRehype from "remark-rehype";
-import { unified } from "unified";
 import { Router } from "../core/router";
 import type { Context } from "../core/types";
 import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
 import { path_join } from "../utils/path";
-import { createS3Client } from "../utils/s3";
+import { createS3Client, putObject } from "../utils/s3";
 import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
 import type { DB } from "../server";
+
+// Lazy-loaded modules for RSS generation
+let Feed: any;
+let unified: any;
+let remarkParse: any;
+let remarkGfm: any;
+let remarkRehype: any;
+let rehypeStringify: any;
+
+async function initRSSModules() {
+    if (!Feed) {
+        const feed = await import("feed");
+        Feed = feed.Feed;
+    }
+    if (!unified) {
+        const unifiedMod = await import("unified");
+        const remarkParseMod = await import("remark-parse");
+        const remarkGfmMod = await import("remark-gfm");
+        const remarkRehypeMod = await import("remark-rehype");
+        const rehypeStringifyMod = await import("rehype-stringify");
+        
+        unified = unifiedMod.unified;
+        remarkParse = remarkParseMod.default;
+        remarkGfm = remarkGfmMod.default;
+        remarkRehype = remarkRehypeMod.default;
+        rehypeStringify = rehypeStringifyMod.default;
+    }
+}
 
 export function RSSService(router: Router): void {
     router.get('/sub/:name', async (ctx: Context) => {
@@ -68,6 +89,9 @@ export function RSSService(router: Router): void {
 }
 
 export async function rssCrontab(env: Env, db: DB) {
+    // Initialize RSS modules lazily
+    await initRSSModules();
+    
     const frontendUrl = `${env.FRONTEND_URL.startsWith("http://") || env.FRONTEND_URL.startsWith("https://") ? "" : "https://"}${env.FRONTEND_URL}`;
     const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
     const faviconKey = getFaviconKey(env);
@@ -153,18 +177,19 @@ export async function rssCrontab(env: Env, db: DB) {
 
     // save rss.xml to s3
     console.log("save rss.xml to s3");
-    const bucket = env.S3_BUCKET;
     const folder = env.S3_CACHE_FOLDER || "cache/";
     const s3 = createS3Client(env);
 
     async function save(name: string, data: string) {
         const hashkey = path_join(folder, name);
         try {
-            await s3.send(new PutObjectCommand({
-                Bucket: bucket,
-                Key: hashkey,
-                Body: data,
-            }));
+            await putObject(
+                s3,
+                env,
+                hashkey,
+                data,
+                name.endsWith('.json') ? 'application/json' : 'application/xml'
+            );
         } catch (e: any) {
             console.error(e.message);
         }

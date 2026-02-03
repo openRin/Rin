@@ -1,9 +1,8 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { Router } from "../core/router";
 import { t } from "../core/types";
 import type { Context } from "../core/types";
 import { path_join } from "../utils/path";
-import { createS3Client } from "../utils/s3";
+import { createS3Client, putObject } from "../utils/s3";
 
 // @see https://developers.cloudflare.com/images/url-format#supported-formats-and-limitations
 export const FAVICON_ALLOWED_TYPES: { [key: string]: string } = {
@@ -21,7 +20,6 @@ export function FaviconService(router: Router): void {
     // GET /favicon
     router.get("/favicon", async (ctx: Context) => {
         const { set, store: { env } } = ctx;
-        const s3 = createS3Client(env);
         const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
         const faviconKey = getFaviconKey(env);
         
@@ -81,7 +79,6 @@ export function FaviconService(router: Router): void {
         const { file } = body;
         
         const s3 = createS3Client(env);
-        const bucket = env.S3_BUCKET;
         const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
         const faviconKey = getFaviconKey(env);
         
@@ -106,11 +103,12 @@ export function FaviconService(router: Router): void {
                 `originFavicon${FAVICON_ALLOWED_TYPES[file.type]}`,
             );
 
-            await s3.send(new PutObjectCommand({
-                Bucket: bucket,
-                Key: originFaviconKey,
-                Body: file,
-            }));
+            await putObject(
+                s3,
+                env,
+                originFaviconKey,
+                file
+            );
 
             const imageRequest = new Request(`${accessHost}/${originFaviconKey}`, {
                 headers: request.headers,
@@ -134,13 +132,13 @@ export function FaviconService(router: Router): void {
             }
 
             const arrayBuffer = await response.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
 
-            await s3.send(new PutObjectCommand({
-                Bucket: bucket,
-                Key: faviconKey,
-                Body: buffer,
-            }));
+            await putObject(
+                s3,
+                env,
+                faviconKey,
+                new Uint8Array(arrayBuffer)
+            );
 
             return { url: `${accessHost}/${faviconKey}` };
         } catch (error) {
