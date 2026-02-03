@@ -19,7 +19,7 @@ function maskSensitiveFields(config: Map<string, any>): Record<string, any> {
     return result;
 }
 
-export const ConfigService = base()
+export const ConfigService = () => base()
     .group('/config', (group) =>
         group
             .get('/:type', async ({ set, admin, params: { type }, store: { db, serverConfig, clientConfig } }) => {

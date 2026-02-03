@@ -6,7 +6,7 @@ import { Config } from "../utils/config";
 import { notify } from "../utils/webhook";
 
 
-export const CommentService = base()
+export const CommentService = () => base()
     .group('/feed/comment', (group) =>
         group
             .get('/:feed', async ({ params: { feed }, store: { db } }) => {

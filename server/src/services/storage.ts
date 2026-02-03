@@ -11,7 +11,7 @@ function buf2hex(buffer: ArrayBuffer) {
         .join('');
 }
 
-export const StorageService = base()
+export const StorageService = () => base()
     .group('/storage', (group) =>
         group
             .post('/', async ({ uid, set, body: { key, file }, store: { env } }) => {

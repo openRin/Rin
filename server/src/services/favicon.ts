@@ -17,7 +17,7 @@ export function getFaviconKey(env: Env) {
     return path_join(env.S3_FOLDER || "", "favicon.webp");
 }
 
-export const FaviconService = base()
+export const FaviconService = () => base()
     .get("/favicon", async ({ set, store: { env } }) => {
         const s3 = createS3Client(env);
         const bucket = env.S3_BUCKET;

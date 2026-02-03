@@ -15,7 +15,7 @@ import { createS3Client } from "../utils/s3";
 import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
 
 
-export const RSSService = base()
+export const RSSService = () => base()
     .get('/sub/:name', async ({ set, params: { name }, store: { env } }) => {
         const endpoint = env.S3_ENDPOINT;
         const accessHost = env.S3_ACCESS_HOST || endpoint;

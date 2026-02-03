@@ -1,13 +1,12 @@
 import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 import { Elysia, t } from "elysia";
 import type { DB } from "./context";
-import { users } from "./db/schema";
-import jwt from "./utils/jwt";
-import { CacheImpl } from "./utils/cache";
-import { drizzle } from "drizzle-orm/d1";
 import * as schema from './db/schema';
+import { users } from "./db/schema";
+import { CacheImpl } from "./utils/cache";
+import jwt from "./utils/jwt";
 import { createOAuthPlugin, GitHubProvider } from "./utils/oauth";
-import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 
 
 const anyUser = async (db: DB) => (await db.query.users.findMany())?.length > 0

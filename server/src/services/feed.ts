@@ -10,7 +10,7 @@ import { extractImage } from "../utils/image";
 import { bindTagToPost } from "./tag";
 
 
-export const FeedService = base()
+export const FeedService = () => base()
     .group('/feed', (group) =>
         group
             .get('/', async ({ admin, set, query: { page, limit, type }, store: { db, cache } }) => {

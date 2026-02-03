@@ -4,7 +4,7 @@ import { feedHashtags, hashtags } from "../db/schema";
 import base from "../base";
 
 
-export const TagService = base()
+export const TagService = () => base()
     .group('/tag', (group) =>
         group
             .get('/', async ({ store: { db } }) => {

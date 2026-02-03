@@ -3,7 +3,7 @@ import { t } from "elysia";
 import { users } from "../db/schema";
 import base from "../base";
 
-export const UserService = base()
+export const UserService = () => base()
     .group('/user', (group) =>
         group
             .get("/github", ({ oauth2, set, headers: { referer }, cookie: { redirect_to, state } }) => {

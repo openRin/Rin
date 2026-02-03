@@ -9,7 +9,7 @@ export default {
         request: Request,
         env: Env,
     ): Promise<Response> {
-        return await server()
+        return await server(request.url)
             .handle(request)
     },
     async scheduled(

@@ -4,7 +4,7 @@ import { moments } from "../db/schema";
 import base from "../base";
 
 
-export const MomentsService = base()
+export const MomentsService = () => base()
     .group('/moments', (group) =>
         group
             .get('/', async ({ query: { page, limit }, store: { db, cache } }) => {

@@ -8,7 +8,7 @@ import base from "../base";
  * Handles AI summary settings with database storage
  * API key is never exposed to frontend
  */
-export const AIConfigService = base()
+export const AIConfigService = () => base()
     .group('/ai-config', (group) =>
         group
             // Get AI configuration (with masked API key)

@@ -9,7 +9,7 @@ import { Config } from "../utils/config";
 import { notify } from "../utils/webhook";
 
 
-export const FriendService = base()
+export const FriendService = () => base()
     .group('/friend', (group) => group.get('/', async ({ admin, uid, store: { db } }) => {
         const friend_list = await (admin
             ? db.query.friends.findMany({
@@ -19,10 +19,8 @@ export const FriendService = base()
                 where: eq(friends.accepted, 1),
                 orderBy: (friends: any, { asc, desc }: { asc: any, desc: any }) => [desc(friends.sort_order), asc(friends.createdAt)]
             }));
-        if (uid == undefined) {
-            return 'Invalid uid'
-        }
-        const apply_list = await db.query.friends.findFirst({ where: eq(friends.uid, uid) });
+            parseInt
+        const apply_list = uid ? await db.query.friends.findFirst({ where: eq(friends.uid, uid) }) : null;
         return { friend_list, apply_list };
     })
         .post('/', async ({ admin, uid, username, set, body: { name, desc, avatar, url }, store: { db, env, clientConfig, serverConfig } }) => {
@@ -51,9 +49,6 @@ export const FriendService = base()
                     set.status = 400;
                     return 'Already sent';
                 }
-            }
-            if (uid == undefined) {
-                return 'Invalid uid'
             }
             const accepted = admin ? 1 : 0;
             await db.insert(friends).values({

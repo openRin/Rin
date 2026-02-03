@@ -2,7 +2,7 @@ import base from "../base";
 import { path_join } from "../utils/path";
 
 
-export const SEOService = base()
+export const SEOService = () => base()
     .get('/seo/*', async ({ set, params, query, store: { env } }) => {
         const endpoint = env.S3_ENDPOINT;
         const accessHost = env.S3_ACCESS_HOST || endpoint;
