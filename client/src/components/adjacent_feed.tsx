@@ -7,13 +7,13 @@ import {useTranslation} from "react-i18next";
 export type AdjacentFeed = {
     id: number;
     title: string | null;
-    summary: string;
-    hashtags: {
+    summary?: string;
+    hashtags?: {
         id: number;
         name: string;
     }[];
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: Date | string;
+    updatedAt: Date | string;
 };
 export type AdjacentFeeds = {
     nextFeed: AdjacentFeed | null;
@@ -25,13 +25,15 @@ export function AdjacentSection({id, setError}: { id: string, setError: (error: 
 
     useEffect(() => {
         client.feed
-            .adjacent({id})
-            .get()
+            .adjacent(parseInt(id))
             .then(({data, error}) => {
                 if (error) {
                     setError(error.value as string);
-                } else if (data && typeof data !== "string") {
-                    setAdjacentFeeds(data);
+                } else if (data) {
+                    setAdjacentFeeds({
+                        nextFeed: data.next,
+                        previousFeed: data.prev
+                    });
                 }
             });
     }, [id, setError]);

@@ -25,14 +25,10 @@ export function SearchPage({ keyword }: { keyword: string }) {
     const ref = useRef("")
     function fetchFeeds() {
         if (!keyword) return
-        client.search({ keyword }).get({
-            query: {
-                page: page,
-                limit: limit
-            },
+        client.search.search(keyword, {
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
+            if (data) {
                 setFeeds(data)
                 setStatus('idle')
             }

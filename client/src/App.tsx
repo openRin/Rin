@@ -43,14 +43,14 @@ function App() {
     applyScaling();
     // --- 自动缩放逻辑结束 ---
     if (ref.current) return
-    client.user.profile.get({
+    client.user.profile({
       headers: headersWithAuth()
     }).then(({ data }) => {
-      if (data && typeof data !== 'string') {
+      if (data) {
         setProfile({
           id: data.id,
           avatar: data.avatar || '',
-          permission: data.permission,
+          permission: data.permission === 1,
           name: data.username
         })
       }
@@ -61,8 +61,8 @@ function App() {
       const configWrapper = new ConfigWrapper(configObj, defaultClientConfig)
       setConfig(configWrapper)
     } else {
-      client.config({ type: "client" }).get().then(({ data }) => {
-        if (data && typeof data !== 'string') {
+      client.config.get("client").then(({ data }) => {
+        if (data) {
           sessionStorage.setItem('config', JSON.stringify(data))
           const config = new ConfigWrapper(data, defaultClientConfig)
           setConfig(config)

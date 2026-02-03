@@ -37,15 +37,14 @@ export function FeedsPage() {
     const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
     const ref = useRef("")
     function fetchFeeds(type: FeedType) {
-        client.feed.index.get({
-            query: {
-                page: page,
-                limit: limit,
-                type: type
-            },
+        client.feed.list({
+            page: page,
+            limit: limit,
+            type: type
+        }, {
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
+            if (data) {
                 setFeeds({
                     ...feeds,
                     [type]: data
