@@ -3,7 +3,7 @@ import { XMLParser } from "fast-xml-parser";
 import html2md from 'html-to-md';
 import { feeds, visits } from "../db/schema";
 import { Router } from "../core/router";
-import { t } from "../core/index";
+import { t } from "../core/types";
 import type { Context } from "../core/types";
 import { generateAISummary } from "../utils/ai";
 import { CacheImpl } from "../utils/cache";

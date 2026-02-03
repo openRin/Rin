@@ -1,7 +1,7 @@
 import { count, desc, eq } from "drizzle-orm";
 import { moments } from "../db/schema";
 import { Router } from "../core/router";
-import { t } from "../core/index";
+import { t } from "../core/types";
 import type { Context } from "../core/types";
 
 export function MomentsService(router: Router): void {

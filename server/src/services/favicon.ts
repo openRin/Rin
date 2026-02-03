@@ -1,6 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { Router } from "../core/router";
-import { t } from "../core/index";
+import { t } from "../core/types";
 import type { Context } from "../core/types";
 import { path_join } from "../utils/path";
 import { createS3Client } from "../utils/s3";

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { users } from "../db/schema";
 import { Router } from "../core/router";
-import { t } from "../core/index";
+import { t } from "../core/types";
 import type { Context } from "../core/types";
 
 export function UserService(router: Router): void {
