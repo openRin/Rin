@@ -1,5 +1,6 @@
 import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
-import { feeds, visits } from "../db/schema";
+import { feeds, visits, visitStats } from "../db/schema";
+import { HyperLogLog } from "../utils/hyperloglog";
 import { Router } from "../core/router";
 import { t } from "../core/types";
 import type { Context } from "../core/types";
@@ -223,20 +224,50 @@ export function FeedService(router: Router): void {
             const { hashtags, ...other } = feed;
             const hashtags_flatten = hashtags.map((f: any) => f.hashtag);
 
-            // update visits
+            // update visits using HyperLogLog for efficient UV estimation
             const enableVisit = await clientConfig.getOrDefault('counter.enabled', true);
             let pv = 0;
             let uv = 0;
             
             if (enableVisit) {
                 const ip = headers['cf-connecting-ip'] || headers['x-real-ip'] || "UNK";
-                await db.insert(visits).values({ feedId: feed.id, ip: ip });
-                const visit = await db.query.visits.findMany({
-                    where: eq(visits.feedId, feed.id),
-                    columns: { id: true, ip: true }
+                const visitorKey = `${ip}`;
+                
+                // Get or create visit stats for this feed
+                let stats = await db.query.visitStats.findFirst({
+                    where: eq(visitStats.feedId, feed.id)
                 });
-                pv = visit.length;
-                uv = new Set(visit.map((v: any) => v.ip)).size;
+                
+                if (!stats) {
+                    // Create new stats record
+                    await db.insert(visitStats).values({
+                        feedId: feed.id,
+                        pv: 1,
+                        hllData: new HyperLogLog().serialize()
+                    });
+                    pv = 1;
+                    uv = 1;
+                } else {
+                    // Update existing stats
+                    const hll = new HyperLogLog(stats.hllData);
+                    hll.add(visitorKey);
+                    const newHllData = hll.serialize();
+                    const newPv = stats.pv + 1;
+                    
+                    await db.update(visitStats)
+                        .set({ 
+                            pv: newPv, 
+                            hllData: newHllData,
+                            updatedAt: new Date()
+                        })
+                        .where(eq(visitStats.feedId, feed.id));
+                    
+                    pv = newPv;
+                    uv = Math.round(hll.count());
+                }
+                
+                // Keep recording to visits table for backup/history
+                await db.insert(visits).values({ feedId: feed.id, ip: ip });
             }
             
             return { ...other, hashtags: hashtags_flatten, pv, uv };

@@ -34,6 +34,13 @@ export const visits = sqliteTable("visits", {
     createdAt: created_at,
 });
 
+export const visitStats = sqliteTable("visit_stats", {
+    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull().primaryKey(),
+    pv: integer("pv").default(0).notNull(),
+    hllData: text("hll_data").default("").notNull(),
+    updatedAt: updated_at,
+});
+
 export const info = sqliteTable("info", {
     key: text("key").notNull().unique(),
     value: text("value").notNull(),
