@@ -42,7 +42,7 @@ export interface OAuth2Utils {
 }
 
 export type Handler = (context: Context) => Promise<any> | any;
-export type Middleware = (context: Context, env: Env) => Promise<Response | void> | Response | void;
+export type Middleware = (context: Context, env: Env, container?: any) => Promise<Response | void> | Response | void;
 
 export interface RouteDefinition {
     path: string;
