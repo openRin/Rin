@@ -132,15 +132,20 @@ export interface CreateCommentRequest {
 export interface Friend {
   id: number;
   name: string;
-  desc: string;
+  desc: string | null;
   avatar: string;
   url: string;
   accepted: number;
-  sort_order: number;
+  sort_order: number | null;
   createdAt: string;
   uid: number;
   updatedAt: string;
   health: string;
+}
+
+export interface FriendListResponse {
+  friend_list: Friend[];
+  apply_list: Friend | null;
 }
 
 export interface CreateFriendRequest {
@@ -357,7 +362,7 @@ class FeedAPI {
   }
 
   // GET /feed/adjacent/:id
-  async adjacent(id: number, options?: RequestOptions): Promise<ApiResponse<{ prev: Feed | null; next: Feed | null }>> {
+  async adjacent(id: number | string, options?: RequestOptions): Promise<ApiResponse<{ prev: Feed | null; next: Feed | null }>> {
     return this.client.get<{ prev: Feed | null; next: Feed | null }>(`/feed/adjacent/${id}`, options);
   }
 
@@ -423,8 +428,8 @@ class FriendAPI {
   constructor(private client: HttpClient) {}
 
   // GET /friend
-  async list(options?: RequestOptions): Promise<ApiResponse<Friend[]>> {
-    return this.client.get<Friend[]>('/friend', options);
+  async list(options?: RequestOptions): Promise<ApiResponse<FriendListResponse>> {
+    return this.client.get<FriendListResponse>('/friend', options);
   }
 
   // POST /friend

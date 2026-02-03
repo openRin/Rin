@@ -25,7 +25,7 @@ export function AdjacentSection({id, setError}: { id: string, setError: (error: 
 
     useEffect(() => {
         client.feed
-            .adjacent(parseInt(id))
+            .adjacent(id)
             .then(({data, error}) => {
                 if (error) {
                     setError(error.value as string);

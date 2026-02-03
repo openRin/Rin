@@ -69,13 +69,14 @@ export function FriendsPage() {
             headers: headersWithAuth()
         }).then(({ data }) => {
             if (data) {
-                const friends_available = data.filter(({ health, accepted }: any) => health.length === 0 && accepted === 1) || []
+                const friend_list = data.friend_list || []
+                const friends_available = friend_list.filter(({ health, accepted }: any) => health.length === 0 && accepted === 1) || []
                 setFriendsAvailable(friends_available as any)
-                const friends_unavailable = data.filter(({ health, accepted }: any) => health.length > 0 && accepted === 1) || []
+                const friends_unavailable = friend_list.filter(({ health, accepted }: any) => health.length > 0 && accepted === 1) || []
                 setFriendsUnavailable(friends_unavailable as any)
-                const waitList = data.filter(({ accepted }: any) => accepted === 0) || []
+                const waitList = friend_list.filter(({ accepted }: any) => accepted === 0) || []
                 setWaitList(waitList as any)
-                const refuesdList = data.filter(({ accepted }: any) => accepted === -1) || []
+                const refuesdList = friend_list.filter(({ accepted }: any) => accepted === -1) || []
                 setRefusedList(refuesdList as any)
             }
             setStatus('idle')
