@@ -55,7 +55,9 @@ const requiredVars = [
     'RIN_GITHUB_CLIENT_SECRET',
     'JWT_SECRET',
     'S3_ACCESS_KEY_ID',
-    'S3_SECRET_ACCESS_KEY'
+    'S3_SECRET_ACCESS_KEY',
+    'BACKEND_PORT',
+    'FRONTEND_PORT'
 ];
 
 const missingVars = requiredVars.filter(v => !env[v]);
@@ -70,8 +72,7 @@ if (missingVars.length > 0) {
 const wranglerContent = `#:schema node_modules/wrangler/config-schema.json
 name = "${env.WORKER_NAME || 'rin-server'}"
 main = "server/src/_worker.ts"
-compatibility_date = "2024-05-29"
-node_compat = true
+compatibility_date = "2026-01-20"
 
 [triggers]
 crons = ["*/20 * * * *"]

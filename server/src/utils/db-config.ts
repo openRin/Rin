@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { getDB } from "./di";
 import { info } from "../db/schema";
 
 /**
@@ -29,8 +28,7 @@ const defaultAIConfig: AIConfig = {
 /**
  * Get a configuration value from the database
  */
-export async function getDBConfig(key: string): Promise<string | null> {
-    const db = getDB();
+export async function getDBConfig(db: any, key: string): Promise<string | null> {
     const result = await db.select().from(info).where(eq(info.key, key)).get();
     return result?.value ?? null;
 }
@@ -38,8 +36,7 @@ export async function getDBConfig(key: string): Promise<string | null> {
 /**
  * Set a configuration value in the database (upsert)
  */
-export async function setDBConfig(key: string, value: string): Promise<void> {
-    const db = getDB();
+export async function setDBConfig(db: any, key: string, value: string): Promise<void> {
     // Use SQLite's INSERT OR REPLACE to handle upsert
     await db.insert(info)
         .values({ key, value })
@@ -52,22 +49,22 @@ export async function setDBConfig(key: string, value: string): Promise<void> {
 /**
  * Get AI configuration from database
  */
-export async function getAIConfig(): Promise<AIConfig> {
+export async function getAIConfig(db: any): Promise<AIConfig> {
     const config: AIConfig = { ...defaultAIConfig };
 
-    const enabled = await getDBConfig(AI_CONFIG_PREFIX + "enabled");
+    const enabled = await getDBConfig(db, AI_CONFIG_PREFIX + "enabled");
     if (enabled !== null) config.enabled = enabled === "true";
 
-    const provider = await getDBConfig(AI_CONFIG_PREFIX + "provider");
+    const provider = await getDBConfig(db, AI_CONFIG_PREFIX + "provider");
     if (provider !== null) config.provider = provider;
 
-    const model = await getDBConfig(AI_CONFIG_PREFIX + "model");
+    const model = await getDBConfig(db, AI_CONFIG_PREFIX + "model");
     if (model !== null) config.model = model;
 
-    const apiKey = await getDBConfig(AI_CONFIG_PREFIX + "api_key");
+    const apiKey = await getDBConfig(db, AI_CONFIG_PREFIX + "api_key");
     if (apiKey !== null) config.api_key = apiKey;
 
-    const apiUrl = await getDBConfig(AI_CONFIG_PREFIX + "api_url");
+    const apiUrl = await getDBConfig(db, AI_CONFIG_PREFIX + "api_url");
     if (apiUrl !== null) config.api_url = apiUrl;
 
     return config;
@@ -76,30 +73,30 @@ export async function getAIConfig(): Promise<AIConfig> {
 /**
  * Set AI configuration in database
  */
-export async function setAIConfig(updates: Partial<AIConfig>): Promise<void> {
+export async function setAIConfig(db: any, updates: Partial<AIConfig>): Promise<void> {
     if (updates.enabled !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "enabled", String(updates.enabled));
+        await setDBConfig(db, AI_CONFIG_PREFIX + "enabled", String(updates.enabled));
     }
     if (updates.provider !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "provider", updates.provider);
+        await setDBConfig(db, AI_CONFIG_PREFIX + "provider", updates.provider);
     }
     if (updates.model !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "model", updates.model);
+        await setDBConfig(db, AI_CONFIG_PREFIX + "model", updates.model);
     }
     if (updates.api_key !== undefined && updates.api_key.trim() !== "") {
         // Only update API key if a new value is provided
-        await setDBConfig(AI_CONFIG_PREFIX + "api_key", updates.api_key);
+        await setDBConfig(db, AI_CONFIG_PREFIX + "api_key", updates.api_key);
     }
     if (updates.api_url !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "api_url", updates.api_url);
+        await setDBConfig(db, AI_CONFIG_PREFIX + "api_url", updates.api_url);
     }
 }
 
 /**
  * Get AI config for frontend (with masked API key)
  */
-export async function getAIConfigForFrontend(): Promise<AIConfig & { api_key_set: boolean }> {
-    const config = await getAIConfig();
+export async function getAIConfigForFrontend(db: any): Promise<AIConfig & { api_key_set: boolean }> {
+    const config = await getAIConfig(db);
     return {
         ...config,
         api_key: "", // Never expose the actual key

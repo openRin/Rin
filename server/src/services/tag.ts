@@ -1,83 +1,78 @@
 import { and, eq } from "drizzle-orm";
-import Elysia from "elysia";
-import type { DB } from "../_worker";
+import type { DB } from "../context";
 import { feedHashtags, hashtags } from "../db/schema";
-import { getDB } from "../utils/di";
-import { setup } from "../setup";
+import base from "../base";
 
-export function TagService() {
-    const db: DB = getDB();
-    return new Elysia({ aot: false })
-        .use(setup())
-        .group('/tag', (group) =>
-            group
-                .get('/', async () => {
-                    const tag_list = await db.query.hashtags.findMany({
-                        with: {
-                            feeds: {
-                                columns: { feedId: true }
-                            }
+
+export const TagService = base()
+    .group('/tag', (group) =>
+        group
+            .get('/', async ({ store: { db } }) => {
+                const tag_list = await db.query.hashtags.findMany({
+                    with: {
+                        feeds: {
+                            columns: { feedId: true }
                         }
-                    });
-                    return tag_list.map((tag) => {
-                        return {
-                            ...tag,
-                            feeds: tag.feeds.length
-                        }
-                    })
-                })
-                .get('/:name', async ({ admin, set, params: { name } }) => {
-                    const nameDecoded = decodeURI(name)
-                    const tag = await db.query.hashtags.findFirst({
-                        where: eq(hashtags.name, nameDecoded),
-                        with: {
-                            feeds: {
-                                with: {
-                                    feed: {
-                                        columns: {
-                                            id: true, title: true, summary: true, content: true, createdAt: true, updatedAt: true,
-                                            draft: false,
-                                            listed: false
-                                        },
-                                        with: {
-                                            user: {
-                                                columns: { id: true, username: true, avatar: true }
-                                            },
-                                            hashtags: {
-                                                columns: {},
-                                                with: {
-                                                    hashtag: {
-                                                        columns: { id: true, name: true }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        where: (feeds: any) => admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
-                                    } as any
-                                }
-                            }
-                        }
-                    });
-                    const tagFeeds = tag?.feeds.map((tag: any) => {
-                        if (!tag.feed) {
-                            return null;
-                        }
-                        return {
-                            ...tag.feed,
-                            hashtags: tag.feed.hashtags.map((tag: any) => tag.hashtag)
-                        }
-                    }).filter((feed: any) => feed !== null);
-                    if (!tag) {
-                        set.status = 404;
-                        return 'Not found';
                     }
+                });
+                return tag_list.map((tag) => {
                     return {
                         ...tag,
-                        feeds: tagFeeds
-                    };
+                        feeds: tag.feeds.length
+                    }
                 })
-        );
-}
+            })
+            .get('/:name', async ({ admin, set, params: { name }, store: { db } }) => {
+                const nameDecoded = decodeURI(name)
+                const tag = await db.query.hashtags.findFirst({
+                    where: eq(hashtags.name, nameDecoded),
+                    with: {
+                        feeds: {
+                            with: {
+                                feed: {
+                                    columns: {
+                                        id: true, title: true, summary: true, content: true, createdAt: true, updatedAt: true,
+                                        draft: false,
+                                        listed: false
+                                    },
+                                    with: {
+                                        user: {
+                                            columns: { id: true, username: true, avatar: true }
+                                        },
+                                        hashtags: {
+                                            columns: {},
+                                            with: {
+                                                hashtag: {
+                                                    columns: { id: true, name: true }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    where: (feeds: any) => admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                                } as any
+                            }
+                        }
+                    }
+                });
+                const tagFeeds = tag?.feeds.map((tag: any) => {
+                    if (!tag.feed) {
+                        return null;
+                    }
+                    return {
+                        ...tag.feed,
+                        hashtags: tag.feed.hashtags.map((tag: any) => tag.hashtag)
+                    }
+                }).filter((feed: any) => feed !== null);
+                if (!tag) {
+                    set.status = 404;
+                    return 'Not found';
+                }
+                return {
+                    ...tag,
+                    feeds: tagFeeds
+                };
+            })
+    )
 
 
 export async function bindTagToPost(db: DB, feedId: number, tags: string[]) {

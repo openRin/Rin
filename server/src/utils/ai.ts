@@ -13,9 +13,9 @@ const AI_PROVIDER_URLS: Record<string, string> = {
  * Uses OpenAI-compatible API format
  * Configuration is read from D1 database
  */
-export async function generateAISummary(content: string): Promise<string | null> {
+export async function generateAISummary(db: any, content: string): Promise<string | null> {
     // Get AI configuration from database
-    const config = await getAIConfig();
+    const config = await getAIConfig(db);
 
     // Check if AI summary is enabled
     if (!config.enabled) {

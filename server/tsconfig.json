@@ -5,6 +5,9 @@
       "ESNext",
       "DOM"
     ],
+    "types": [
+      "./worker-configuration.d.ts"
+    ],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",

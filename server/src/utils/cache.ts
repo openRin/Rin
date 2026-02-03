@@ -1,15 +1,11 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import path from "path";
-import Container, { Service } from "typedi";
-import type { DB } from "../_worker";
-import type { Env } from "../db/db";
-import { getDB, getEnv } from "./di";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import type { DB } from "../context";
+import { path_join } from "./path";
 import { createS3Client } from "./s3";
 
 // Cache Utils for storing data in memory and persisting to S3
 // DO NOT USE THIS TO STORE SENSITIVE DATA
 
-@Service()
 export class CacheImpl {
     cache: Map<string, any> = new Map<string, any>();
     db: DB;
@@ -17,15 +13,16 @@ export class CacheImpl {
     cacheUrl: string;
     type: string;
     loaded: boolean = false;
-    s3 = createS3Client();
+    s3: S3Client;
 
-    constructor(type: string = "cache") {
+    constructor(db: DB, env: Env, type: string = "cache") {
         this.type = type;
-        this.db = getDB();
-        this.env = getEnv();
+        this.db = db;
+        this.env = env;
         this.cache = new Map<string, any>();
         const slash = this.env.S3_ACCESS_HOST.endsWith('/') ? '' : '/';
-        this.cacheUrl = this.env.S3_ACCESS_HOST + slash + path.join(this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
+        this.cacheUrl = this.env.S3_ACCESS_HOST + slash + path_join(this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
+        this.s3 = createS3Client(env);
     }
 
     async load() {
@@ -139,7 +136,7 @@ export class CacheImpl {
     }
 
     async save() {
-        const cacheKey = path.join(this.env.S3_CACHE_FOLDER, `${this.type}.json`);
+        const cacheKey = path_join(this.env.S3_CACHE_FOLDER, `${this.type}.json`);
         await this.s3.send(new PutObjectCommand({
             Bucket: this.env.S3_BUCKET,
             Key: cacheKey,
@@ -153,6 +150,15 @@ export class CacheImpl {
     }
 }
 
-export const PublicCache = () => Container.get<CacheImpl>("cache");
-export const ServerConfig = () => Container.get<CacheImpl>("server.config");
-export const ClientConfig = () => Container.get<CacheImpl>("client.config");
+// Factory functions to create cache instances with context
+export function createPublicCache(db: DB, env: Env) {
+    return new CacheImpl(db, env, "cache");
+}
+
+export function createServerConfig(db: DB, env: Env) {
+    return new CacheImpl(db, env, "server.config");
+}
+
+export function createClientConfig(db: DB, env: Env) {
+    return new CacheImpl(db, env, "client.config");
+}

@@ -1,19 +1,36 @@
 import { eq } from "drizzle-orm";
-import Elysia, { t } from "elysia";
+import { Elysia, t } from "elysia";
 import { oauth2 } from "elysia-oauth2";
-import type { DB } from "./_worker";
-import type { Env } from "./db/db";
+import type { DB } from "./context";
 import { users } from "./db/schema";
-import { getDB, getEnv } from "./utils/di";
 import jwt from "./utils/jwt";
+import { CacheImpl } from "./utils/cache";
+import { drizzle } from "drizzle-orm/d1";
+import * as schema from './db/schema';
 
 
 const anyUser = async (db: DB) => (await db.query.users.findMany())?.length > 0
-export function setup() {
-    const db: DB = getDB();
-    const env: Env = getEnv();
-    let gh_client_id = env.RIN_GITHUB_CLIENT_ID || env.GITHUB_CLIENT_ID;
-    let gh_client_secret = env.RIN_GITHUB_CLIENT_SECRET || env.GITHUB_CLIENT_SECRET;
+
+// Store type definition
+export interface AppStore {
+    db: DB;
+    env: Env;
+    cache: CacheImpl;
+    serverConfig: CacheImpl;
+    clientConfig: CacheImpl;
+    anyUser: typeof anyUser;
+}
+
+export function createSetupPlugin(env: Env) {
+
+    const db = drizzle(env.DB, { schema: schema })
+
+    // Create cache instances
+    const cache = new CacheImpl(db, env, "cache");
+    const serverConfig = new CacheImpl(db, env, "server.config");
+    const clientConfig = new CacheImpl(db, env, "client.config");
+    let gh_client_id = env.RIN_GITHUB_CLIENT_ID;
+    let gh_client_secret = env.RIN_GITHUB_CLIENT_SECRET;
     let jwt_secret = env.JWT_SECRET;
 
     if (!gh_client_id || !gh_client_secret) {
@@ -22,13 +39,21 @@ export function setup() {
     if (!jwt_secret) {
         throw new Error('Please set JWT_SECRET');
     }
+
     const oauth = oauth2({
         GitHub: [
             gh_client_id,
-            gh_client_secret
+            gh_client_secret,
+            null
         ],
-    })
-    return new Elysia({ aot: false, name: 'setup' })
+    });
+
+    return new Elysia()
+        .state('db', db)
+        .state('env', env)
+        .state('cache', cache)
+        .state('serverConfig', serverConfig)
+        .state('clientConfig', clientConfig)
         .state('anyUser', anyUser)
         .use(oauth)
         .use(
@@ -41,20 +66,12 @@ export function setup() {
                 })
             })
         )
-        .derive({ as: 'global' }, async ({ headers, jwt }) => {
+        .derive({ as: 'global' }, async ({ headers, jwt, store: { db }, oauth2 }) => {
             const authorization = headers['authorization']
             if (!authorization) {
                 return {};
             }
             const token = authorization.split(' ')[1]
-            if (process.env.NODE_ENV?.toLowerCase() === 'test') {
-                console.warn('Now in test mode, skip jwt verification.')
-                try {
-                    return JSON.parse(token);
-                } catch (e) {
-                    return {};
-                }
-            }
             const profile = await jwt.verify(token)
             if (!profile) {
                 return {};
@@ -68,6 +85,7 @@ export function setup() {
                 uid: user.id,
                 username: user.username,
                 admin: user.permission === 1,
+                oauth2: oauth2
             }
         })
 }
