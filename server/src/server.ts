@@ -13,7 +13,7 @@ import { TagService } from './services/tag';
 import { UserService } from './services/user';
 
 
-const app = base()
+const app = () => base()
     .use(UserService)
     .use(FaviconService)
     .use(FeedService)
@@ -31,7 +31,6 @@ const app = base()
         if (code === 'NOT_FOUND')
             return `${path} ${JSON.stringify(params)} not found`
     })
-    .compile()
 
 
 export default app

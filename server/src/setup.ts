@@ -7,6 +7,7 @@ import { CacheImpl } from "./utils/cache";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from './db/schema';
 import { createOAuthPlugin, GitHubProvider } from "./utils/oauth";
+import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 
 
 const anyUser = async (db: DB) => (await db.query.users.findMany())?.length > 0
@@ -47,7 +48,9 @@ export function createSetupPlugin(env: Env) {
         }),
     });
 
-    return new Elysia()
+    return new Elysia({
+        name: 'plugins',
+    })
         .state('db', db)
         .state('env', env)
         .state('cache', cache)

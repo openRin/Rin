@@ -1,13 +1,11 @@
 import cors from "@elysiajs/cors";
 import serverTiming from "@elysiajs/server-timing";
+import { env } from 'cloudflare:workers';
 import Elysia from "elysia";
-import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { createSetupPlugin } from "./setup";
-import { env } from 'cloudflare:workers'
 
-const basePlugin = new Elysia({
+const basePlugin = () => new Elysia({
     name: "base-plugin",
-    adapter: CloudflareAdapter
 })
     .use(cors({
         aot: false,
@@ -24,9 +22,9 @@ const basePlugin = new Elysia({
     .use(serverTiming({
         enabled: true,
     }))
-    .use(createSetupPlugin(env))
 
 export default () => new Elysia({
-    adapter: CloudflareAdapter
+    aot: false
 })
-    .use(basePlugin)
+    .use(basePlugin())
+    .use(createSetupPlugin(env))
