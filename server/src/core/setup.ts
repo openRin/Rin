@@ -1,66 +1,5 @@
-import type { Context, JWTUtils, OAuth2Utils, CookieValue } from "./types";
-import { drizzle, DrizzleD1Database } from "drizzle-orm/d1";
-import * as schema from '../db/schema';
+import type { Context, JWTUtils, CookieValue } from "./types";
 import { eq } from "drizzle-orm";
-import { users } from "../db/schema";
-import { CacheImpl } from "../utils/cache";
-import { createOAuthPlugin, GitHubProvider } from "../utils/oauth";
-import createJWT from "../utils/jwt";
-
-export type DB = DrizzleD1Database<typeof import("../db/schema")>;
-
-export interface AppStore {
-    db: DB;
-    env: Env;
-    cache: CacheImpl;
-    serverConfig: CacheImpl;
-    clientConfig: CacheImpl;
-    anyUser: (db: DB) => Promise<boolean>;
-    jwt: JWTUtils;
-    oauth2: OAuth2Utils;
-}
-
-const anyUser = async (db: DB) => (await db.query.users.findMany())?.length > 0;
-
-export function createSetupPlugin(env: Env) {
-    const db = drizzle(env.DB, { schema: schema });
-
-    // Create cache instances
-    const cache = new CacheImpl(db, env, "cache");
-    const serverConfig = new CacheImpl(db, env, "server.config");
-    const clientConfig = new CacheImpl(db, env, "client.config");
-    
-    let gh_client_id = env.RIN_GITHUB_CLIENT_ID;
-    let gh_client_secret = env.RIN_GITHUB_CLIENT_SECRET;
-    let jwt_secret = env.JWT_SECRET;
-
-    if (!gh_client_id || !gh_client_secret) {
-        throw new Error('Please set RIN_GITHUB_CLIENT_ID and RIN_GITHUB_CLIENT_SECRET');
-    }
-    if (!jwt_secret) {
-        throw new Error('Please set JWT_SECRET');
-    }
-
-    const oauth = createOAuthPlugin({
-        GitHub: new GitHubProvider({
-            clientId: gh_client_id,
-            clientSecret: gh_client_secret,
-        }),
-    });
-
-    const jwt = createJWT(jwt_secret);
-
-    return {
-        db,
-        env,
-        cache,
-        serverConfig,
-        clientConfig,
-        anyUser,
-        jwt,
-        oauth2: oauth
-    };
-}
 
 export async function deriveAuth(context: Context): Promise<void> {
     const { headers, jwt, store } = context;
@@ -80,6 +19,7 @@ export async function deriveAuth(context: Context): Promise<void> {
         return;
     }
 
+    const { users } = await import("../db/schema");
     const user = await store.db.query.users.findFirst({ 
         where: eq(users.id, profile.id) 
     });
