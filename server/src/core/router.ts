@@ -174,6 +174,18 @@ export class Router {
         const method = request.method;
         const pathname = url.pathname;
 
+        // Handle OPTIONS preflight requests before route matching
+        if (method === 'OPTIONS') {
+            const origin = request.headers.get('origin') || '*';
+            const headers = new Headers();
+            headers.set('Access-Control-Allow-Origin', origin);
+            headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+            headers.set('Access-Control-Allow-Headers', 'authorization, content-type');
+            headers.set('Access-Control-Max-Age', '600');
+            headers.set('Access-Control-Allow-Credentials', 'true');
+            return new Response(null, { status: 204, headers });
+        }
+
         // Find matching route
         const match = this.matchRoute(method, pathname);
         if (!match) {
