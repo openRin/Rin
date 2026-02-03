@@ -2,32 +2,27 @@ import type { Context, JWTUtils, CookieValue } from "./types";
 import { eq } from "drizzle-orm";
 
 export async function deriveAuth(context: Context): Promise<void> {
-    const { headers, jwt, store } = context;
-    
-    const authorization = headers['authorization'];
-    if (!authorization) {
-        return;
-    }
-    
-    const token = authorization.split(' ')[1];
+    const { cookie, jwt, store } = context;
+
+    const token = cookie.token?.value;
     if (!token || !jwt) {
         return;
     }
-    
+
     const profile = await jwt.verify(token);
     if (!profile) {
         return;
     }
 
     const { users } = await import("../db/schema");
-    const user = await store.db.query.users.findFirst({ 
-        where: eq(users.id, profile.id) 
+    const user = await store.db.query.users.findFirst({
+        where: eq(users.id, profile.id)
     });
-    
+
     if (!user) {
         return;
     }
-    
+
     context.uid = user.id;
     context.username = user.username;
     context.admin = user.permission === 1;

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useContext } from 'react'
 import { Helmet } from 'react-helmet'
-import { getCookie } from 'typescript-cookie'
 import { DefaultParams, PathPattern, Route, Switch } from 'wouter'
 import Footer from './components/footer'
 import { Header } from './components/header'
@@ -44,20 +43,18 @@ function App() {
     applyScaling();
     // --- 自动缩放逻辑结束 ---
     if (ref.current) return
-    if (getCookie('token')?.length ?? 0 > 0) {
-      client.user.profile.get({
-        headers: headersWithAuth()
-      }).then(({ data }) => {
-        if (data && typeof data !== 'string') {
-          setProfile({
-            id: data.id,
-            avatar: data.avatar || '',
-            permission: data.permission,
-            name: data.username
-          })
-        }
-      })
-    }
+    client.user.profile.get({
+      headers: headersWithAuth()
+    }).then(({ data }) => {
+      if (data && typeof data !== 'string') {
+        setProfile({
+          id: data.id,
+          avatar: data.avatar || '',
+          permission: data.permission,
+          name: data.username
+        })
+      }
+    })
     const config = sessionStorage.getItem('config')
     if (config) {
       const configObj = JSON.parse(config)

@@ -180,7 +180,7 @@ export class Router {
             const headers = new Headers();
             headers.set('Access-Control-Allow-Origin', origin);
             headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-            headers.set('Access-Control-Allow-Headers', 'authorization, content-type');
+            headers.set('Access-Control-Allow-Headers', 'content-type, x-csrf-token');
             headers.set('Access-Control-Max-Age', '600');
             headers.set('Access-Control-Allow-Credentials', 'true');
             return new Response(null, { status: 204, headers });

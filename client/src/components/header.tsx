@@ -2,7 +2,6 @@ import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
-import { removeCookie } from "typescript-cookie";
 import { Link, useLocation } from "wouter";
 import { useLoginModal } from "../hooks/useLoginModal";
 import { Profile, ProfileContext } from "../state/profile";
@@ -11,6 +10,7 @@ import { IconSmall } from "./icon";
 import { Input } from "./input";
 import { Padding } from "./padding";
 import { ClientConfigContext } from "../state/config";
+import { client } from "../main";
 
 
 export function Header({ children }: { children?: React.ReactNode }) {
@@ -265,8 +265,8 @@ function UserAvatar({ className, profile, onClose }: { className?: string, profi
                 <div className="w-8 relative">
                     <img src={profile.avatar} alt="Avatar" className="w-8 h-8 rounded-full border" />
                     <div className="z-50 absolute left-0 top-0 w-10 h-8 opacity-0 hover:opacity-100 duration-300">
-                        <IconSmall label={t('logout')} name="ri-logout-circle-line" onClick={() => {
-                            removeCookie("token")
+                        <IconSmall label={t('logout')} name="ri-logout-circle-line" onClick={async () => {
+                            await client.user.logout.post()
                             window.location.reload()
                         }} hover={false} />
                     </div>

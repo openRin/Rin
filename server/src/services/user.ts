@@ -84,6 +84,9 @@ export function UserService(router: Router): void {
                             value: await jwt!.sign({ id: user.id }),
                             expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
                             path: '/',
+                            httpOnly: true,
+                            secure: true,
+                            sameSite: 'lax',
                         });
                     } else {
                         // if no user exists, set permission to 1
@@ -97,11 +100,14 @@ export function UserService(router: Router): void {
                         if (!result || result.length === 0) {
                             throw new Error('Failed to register');
                         } else {
-                            cookie.token.set({
-                                value: await jwt!.sign({ id: result[0].insertedId }),
-                                expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-                                path: '/',
-                            });
+                        cookie.token.set({
+                            value: await jwt!.sign({ id: result[0].insertedId }),
+                            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+                            path: '/',
+                            httpOnly: true,
+                            secure: true,
+                            sameSite: 'lax',
+                        });
                         }
                     }
                 });
@@ -114,18 +120,18 @@ export function UserService(router: Router): void {
 
         group.get('/profile', async (ctx: Context) => {
             const { set, uid, store: { db } } = ctx;
-            
+
             if (!uid) {
                 set.status = 403;
                 return 'Permission denied';
             }
-            
+
             const user = await db.query.users.findFirst({ where: eq(users.id, uid) });
             if (!user) {
                 set.status = 404;
                 return 'User not found';
             }
-            
+
             return {
                 id: user.id,
                 username: user.username,
@@ -134,6 +140,19 @@ export function UserService(router: Router): void {
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt,
             };
+        });
+
+        group.post('/logout', async (ctx: Context) => {
+            const { cookie } = ctx;
+            cookie.token.set({
+                value: '',
+                expires: new Date(0),
+                path: '/',
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+            });
+            return { success: true };
         });
     });
 }
