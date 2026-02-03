@@ -1,9 +1,7 @@
-import { drizzle, DrizzleD1Database } from "drizzle-orm/d1";
-import * as schema from './db/schema';
-import { CacheImpl } from "./utils/cache";
+import { drizzle } from "drizzle-orm/d1";
 import { createApp, createDefaultApp } from "./server";
+import { CacheImpl } from "./utils/cache";
 
-export type DB = DrizzleD1Database<typeof import("./db/schema")>
 
 export default {
     async fetch(
@@ -27,6 +25,7 @@ export default {
         env: Env,
         ctx: ExecutionContext
     ) {
+        const schema = await import('./db/schema');
         const db = drizzle(env.DB, { schema: schema });
 
         // Create cache instances

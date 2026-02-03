@@ -1,5 +1,8 @@
+import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { createBaseApp } from "./core/base";
 import { Router } from "./core/router";
+
+export type DB = DrizzleD1Database<typeof import("./db/schema")>
 
 // Service loader type
 interface ServiceLoader {

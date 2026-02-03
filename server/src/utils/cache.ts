@@ -1,8 +1,5 @@
-import type { DrizzleD1Database } from "drizzle-orm/d1";
-import * as schema from "../db/schema";
+import type { DB } from "../server";
 import { path_join } from "./path";
-
-type DB = DrizzleD1Database<typeof schema>;
 
 // Cache Utils for storing data in memory and persisting to S3
 // DO NOT USE THIS TO STORE SENSITIVE DATA
