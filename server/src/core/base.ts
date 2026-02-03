@@ -36,5 +36,4 @@ export function createBaseApp(env: Env): Router {
 
 // Re-export types and utilities
 export { createRouter } from "./router";
-export { t } from "./index";
 export type { Context, Handler, Middleware } from "./types";
