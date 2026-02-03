@@ -49,41 +49,24 @@ export interface OAuth2Methods {
 }
 
 export function createOAuthPlugin(providers: Record<string, OAuthProvider>) {
-    const stateStore = new Map<string, { provider: string; timestamp: number }>();
-
-    // Clean up expired states (older than 10 minutes)
-    const cleanupExpiredStates = () => {
-        const now = Date.now();
-        const expiryTime = 10 * 60 * 1000; // 10 minutes
-        for (const [state, data] of stateStore.entries()) {
-            if (now - data.timestamp > expiryTime) {
-                stateStore.delete(state);
-            }
-        }
-    };
 
     // Generate random state string
-    const generateState = (): string => {
-        const array = new Uint8Array(32);
-        crypto.getRandomValues(array);
-        return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
-    };
+
 
     return new Elysia({ name: "oauth2" })
         .decorate("oauth2", {
-            createRedirectUrl: (providerName: string): string => {
+            generateState: () => {
+                const array = new Uint8Array(32);
+                crypto.getRandomValues(array);
+                return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+            },
+            createRedirectUrl: (state: string, providerName: string): string => {
                 const provider = providers[providerName];
                 if (!provider) {
                     throw new Error(`OAuth provider "${providerName}" not found`);
                 }
 
-                cleanupExpiredStates();
 
-                const state = generateState();
-                stateStore.set(state, {
-                    provider: providerName,
-                    timestamp: Date.now(),
-                });
 
                 const params = new URLSearchParams({
                     client_id: provider.clientId,
@@ -91,7 +74,7 @@ export function createOAuthPlugin(providers: Record<string, OAuthProvider>) {
                 });
 
                 // if (provider.redirectUri) {
-                    // params.set("redirect_uri", provider.redirectUri);
+                // params.set("redirect_uri", provider.redirectUri);
                 // }
 
                 return `${provider.authorizeUrl}?${params.toString()}`;
@@ -145,19 +128,6 @@ export function createOAuthPlugin(providers: Record<string, OAuthProvider>) {
                     expiresIn: data.expires_in,
                     refreshToken: data.refresh_token,
                 };
-            },
-
-            verifyState: (state: string): boolean => {
-                cleanupExpiredStates();
-                return stateStore.has(state);
-            },
-
-            getStateData: (state: string) => {
-                return stateStore.get(state);
-            },
-
-            removeState: (state: string) => {
-                stateStore.delete(state);
             },
         });
 }

@@ -6,26 +6,32 @@ import base from "../base";
 export const UserService = base()
     .group('/user', (group) =>
         group
-            .get("/github", ({ oauth2, set, headers: { referer }, cookie: { redirect_to } }) => {
+            .get("/github", ({ oauth2, set, headers: { referer }, cookie: { redirect_to, state } }) => {
                 if (!referer) {
                     return 'Referer not found'
                 }
                 redirect_to.value = `${referer}`
-                set.headers['Location'] = oauth2.createRedirectUrl("GitHub")
+                const genState = oauth2.generateState();
+                // Store state in cookie to verify later
+                state.value = genState;
+                set.headers['Location'] = oauth2.createRedirectUrl(genState, "GitHub")
                 set.status = 302
             })
-            .get("/github/callback", async ({ jwt, oauth2, set, store, query, cookie: { token, redirect_to } }) => {
+            .get("/github/callback", async ({ jwt, oauth2, set, store, query, cookie: { token, redirect_to, state } }) => {
                 const { db } = store;
 
-                console.log('p_state', query.state)
+                console.log('param_state', query.state)
+                console.log('cookie_state', state.value)
 
                 // Verify state to prevent CSRF attacks
-                if (!oauth2.verifyState(query.state)) {
+                if (query.state != state.value) {
                     set.status = 400;
                     return 'Invalid state parameter';
                 }
+                // Clear state cookie
+                state.value = '';
 
-                oauth2.removeState(query.state);
+                // Exchange code for access token
                 const gh_token = await oauth2.authorize("GitHub", query.code);
                 if (!gh_token) {
                     set.status = 400;
