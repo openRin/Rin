@@ -1,13 +1,12 @@
 import { eq } from "drizzle-orm";
-import type { DB } from "../context";
+import { Router } from "../core/router";
+import type { Context } from "../core/types";
 import * as schema from "../db/schema";
 import { friends } from "../db/schema";
-import { Router } from "../core/router";
-import { t } from "../core/index";
-import type { Context } from "../core/types";
 import type { CacheImpl } from "../utils/cache";
 import { Config } from "../utils/config";
 import { notify } from "../utils/webhook";
+import type { DB } from "../core/setup";
 
 export function FriendService(router: Router): void {
     router.group('/friend', (group) => {

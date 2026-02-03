@@ -1,7 +1,7 @@
 import { drizzle, DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from './db/schema';
-import { createApp, createDefaultApp } from "./server-new";
 import { CacheImpl } from "./utils/cache";
+import { createApp, createDefaultApp } from "./server";
 
 export type DB = DrizzleD1Database<typeof import("./db/schema")>
 

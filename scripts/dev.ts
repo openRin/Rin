@@ -10,21 +10,16 @@ import * as path from 'path';
 import * as net from 'net';
 
 const ROOT_DIR = process.cwd();
-const ENV_FILE = path.join(ROOT_DIR, '.env.local');
-const envContent = fs.readFileSync(ENV_FILE, 'utf-8');
-const env = parseEnv(envContent);
-const FRONTEND_PORT = env.FRONTEND_PORT ? parseInt(env.FRONTEND_PORT) : 5173;
-const BACKEND_PORT = env.BACKEND_PORT ? parseInt(env.BACKEND_PORT) : 11498;
 
 function parseEnv(content: string): Record<string, string> {
     const env: Record<string, string> = {};
     const lines = content.split('\n');
-    
+
     for (const line of lines) {
         const trimmed = line.trim();
         // 跳过注释和空行
         if (!trimmed || trimmed.startsWith('#')) continue;
-        
+
         const equalIndex = trimmed.indexOf('=');
         if (equalIndex > 0) {
             const key = trimmed.substring(0, equalIndex).trim();
@@ -32,7 +27,7 @@ function parseEnv(content: string): Record<string, string> {
             env[key] = value;
         }
     }
-    
+
     return env;
 }
 
@@ -114,9 +109,18 @@ if (!fs.existsSync(path.join(ROOT_DIR, '.env.local'))) {
     }
 }
 
+const ENV_FILE = path.join(ROOT_DIR, '.env.local');
+if (!fs.existsSync(ENV_FILE)) {
+    log('Error', '.env.local 文件不存在，无法启动开发服务器', colors.red);
+    process.exit(1);
+}
+const envContent = fs.readFileSync(ENV_FILE, 'utf-8');
+const env = parseEnv(envContent);
+const FRONTEND_PORT = env.FRONTEND_PORT ? parseInt(env.FRONTEND_PORT) : 5173;
+const BACKEND_PORT = env.BACKEND_PORT ? parseInt(env.BACKEND_PORT) : 11498;
+
 async function startDev() {
     log('Dev', '启动开发服务器...', colors.green);
-
 
     // 检查端口占用
     const frontendAvailable = await checkPort(FRONTEND_PORT);

@@ -4,8 +4,8 @@ import * as schema from '../db/schema';
 import { eq } from "drizzle-orm";
 import { users } from "../db/schema";
 import { CacheImpl } from "../utils/cache";
-import { createJWT } from "../utils/jwt-new";
-import { createOAuthPlugin, GitHubProvider } from "../utils/oauth-new";
+import { createOAuthPlugin, GitHubProvider } from "../utils/oauth";
+import createJWT from "../utils/jwt";
 
 export type DB = DrizzleD1Database<typeof import("../db/schema")>;
 
