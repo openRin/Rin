@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
-import { oauth2 } from "elysia-oauth2";
 import type { DB } from "./context";
 import { users } from "./db/schema";
 import jwt from "./utils/jwt";
 import { CacheImpl } from "./utils/cache";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from './db/schema';
+import { createOAuthPlugin, GitHubProvider } from "./utils/oauth";
 
 
 const anyUser = async (db: DB) => (await db.query.users.findMany())?.length > 0
@@ -40,12 +40,11 @@ export function createSetupPlugin(env: Env) {
         throw new Error('Please set JWT_SECRET');
     }
 
-    const oauth = oauth2({
-        GitHub: [
-            gh_client_id,
-            gh_client_secret,
-            null
-        ],
+    const oauth = createOAuthPlugin({
+        GitHub: new GitHubProvider({
+            clientId: gh_client_id,
+            clientSecret: gh_client_secret,
+        }),
     });
 
     return new Elysia()
@@ -66,7 +65,7 @@ export function createSetupPlugin(env: Env) {
                 })
             })
         )
-        .derive({ as: 'global' }, async ({ headers, jwt, store: { db }, oauth2 }) => {
+        .derive({ as: 'global' }, async ({ headers, jwt, store: { db } }) => {
             const authorization = headers['authorization']
             if (!authorization) {
                 return {};
@@ -85,7 +84,6 @@ export function createSetupPlugin(env: Env) {
                 uid: user.id,
                 username: user.username,
                 admin: user.permission === 1,
-                oauth2: oauth2
             }
         })
 }

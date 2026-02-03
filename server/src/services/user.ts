@@ -1,27 +1,36 @@
 import { eq } from "drizzle-orm";
 import { t } from "elysia";
-import { URL } from "url";
 import { users } from "../db/schema";
 import base from "../base";
 
 export const UserService = base()
     .group('/user', (group) =>
         group
-            .get("/github", ({ oauth2, headers: { referer }, cookie: { redirect_to }, store: { env } }) => {
+            .get("/github", ({ oauth2, set, headers: { referer }, cookie: { redirect_to } }) => {
                 if (!referer) {
                     return 'Referer not found'
                 }
-                const referer_url = new URL(referer)
-                redirect_to.value = `${referer_url.protocol}//${referer_url.host}`
-                return oauth2?.redirect("GitHub", ["read:user"])
+                redirect_to.value = `${referer}`
+                set.headers['Location'] = oauth2.createRedirectUrl("GitHub")
+                set.status = 302
             })
-            .get("/github/callback", async ({ jwt, oauth2, set, store, query, cookie: { token, redirect_to, state } }) => {
+            .get("/github/callback", async ({ jwt, oauth2, set, store, query, cookie: { token, redirect_to } }) => {
                 const { db } = store;
 
-                console.log('state', state.value)
                 console.log('p_state', query.state)
 
-                const gh_token = await oauth2?.authorize("GitHub");
+                // Verify state to prevent CSRF attacks
+                if (!oauth2.verifyState(query.state)) {
+                    set.status = 400;
+                    return 'Invalid state parameter';
+                }
+
+                oauth2.removeState(query.state);
+                const gh_token = await oauth2.authorize("GitHub", query.code);
+                if (!gh_token) {
+                    set.status = 400;
+                    return 'Failed to authorize with GitHub';
+                }
                 // request https://api.github.com/user for user info
                 const response = await fetch("https://api.github.com/user", {
                     headers: {
@@ -74,12 +83,9 @@ export const UserService = base()
                             }
                         }
                     });
-                const redirect_host = redirect_to.value || ""
-                const redirect_url = (`${redirect_host}/callback?token=${token.value}`);
-                set.headers = {
-                    'Content-Type': 'text/html',
-                }
-                set.redirect = redirect_url
+                const redirect_url = `${redirect_to.value}`
+                set.headers['Location'] = redirect_url
+                set.status = 302
             }, {
                 query: t.Object({
                     state: t.String(),
