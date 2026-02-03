@@ -87,9 +87,8 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
       t("article.delete.confirm"),
       () => {
         if (!feed) return;
-        client
-          .feed({ id: feed.id })
-          .delete(null, {
+        client.feed
+          .delete(feed.id, {
             headers: headersWithAuth(),
           })
           .then(({ error }) => {
@@ -111,11 +110,8 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
       isUnTop ? t("article.top.confirm") : t("article.untop.confirm"),
       () => {
         if (!feed) return;
-        client
-          .feed.top({ id: feed.id })
-          .post({
-            top: topNew,
-          }, {
+        client.feed
+          .setTop(feed.id, topNew, {
             headers: headersWithAuth(),
           })
           .then(({ error }) => {
@@ -133,9 +129,8 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
     setFeed(undefined);
     setError(undefined);
     setHeadImage(undefined);
-    client
-      .feed({ id })
-      .get({
+    client.feed
+      .get(id, {
         headers: headersWithAuth(),
       })
       .then(({ data, error }) => {
@@ -143,8 +138,8 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
           setError(error.value as string);
         } else if (data && typeof data !== "string") {
           setTimeout(() => {
-            setFeed(data);
-            setTop(data.top);
+            setFeed(data as any);
+            setTop(data.top || 0);
             // Extract head image
             const img_reg = /!\[.*?\]\((.*?)\)/;
             const img_match = img_reg.exec(data.content);
@@ -425,14 +420,10 @@ function CommentInput({
       setIsOpened(true)
       return;
     }
-    client.feed
-      .comment({ feed: id })
-      .post(
-        { content },
-        {
-          headers: headersWithAuth(),
-        }
-      )
+    client.comment
+      .create(parseInt(id), { content }, {
+        headers: headersWithAuth(),
+      })
       .then(({ error }) => {
         if (error) {
           setError(errorHumanize(error.value as string));
@@ -502,16 +493,15 @@ function Comments({ id }: { id: string }) {
   const { t } = useTranslation();
 
   function loadComments() {
-    client.feed
-      .comment({ feed: id })
-      .get({
+    client.comment
+      .list(parseInt(id), {
         headers: headersWithAuth(),
       })
       .then(({ data, error }) => {
         if (error) {
           setError(error.value as string);
         } else if (data && Array.isArray(data)) {
-          setComments(data);
+          setComments(data as any);
         }
       });
   }
@@ -571,9 +561,8 @@ function CommentItem({
       t("delete.comment.title"),
       t("delete.comment.confirm"),
       async () => {
-        client
-          .comment({ id: comment.id })
-          .delete(null, {
+        client.comment
+          .delete(comment.id, {
             headers: headersWithAuth(),
           })
           .then(({ error }) => {

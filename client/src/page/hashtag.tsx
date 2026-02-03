@@ -38,11 +38,11 @@ export function HashtagPage({ name }: { name: string }) {
     const ref = useRef("")
     function fetchFeeds() {
         const nameDecoded = decodeURI(name)
-        client.tag({ name: nameDecoded }).get({
+        client.tag.get(nameDecoded, {
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
-                setHashtag(data)
+            if (data) {
+                setHashtag(data as any)
                 setStatus('idle')
             }
         })

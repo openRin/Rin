@@ -30,7 +30,7 @@ type FriendItem = {
 
 async function publish({ name, avatar, desc, url, showAlert }: { name: string, avatar: string, desc: string, url: string, showAlert: ShowAlertType }) {
     const t = i18next.t
-    const { error } = await client.friend.index.post({
+    const { error } = await client.friend.create({
         avatar,
         name,
         desc,
@@ -50,7 +50,7 @@ async function publish({ name, avatar, desc, url, showAlert }: { name: string, a
 export function FriendsPage() {
     const { t } = useTranslation()
     const config = useContext(ClientConfigContext)
-    let [apply, setApply] = useState<FriendItem>()
+    let [apply] = useState<FriendItem>()
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
     const [avatar, setAvatar] = useState("")
@@ -65,20 +65,18 @@ export function FriendsPage() {
     const { showAlert, AlertUI } = useAlert()
     useEffect(() => {
         if (ref.current) return
-        client.friend.index.get({
+        client.friend.list({
             headers: headersWithAuth()
         }).then(({ data }) => {
             if (data) {
-                const friends_available = data.friend_list?.filter(({ health, accepted }) => health.length === 0 && accepted === 1) || []
-                setFriendsAvailable(friends_available)
-                const friends_unavailable = data.friend_list?.filter(({ health, accepted }) => health.length > 0 && accepted === 1) || []
-                setFriendsUnavailable(friends_unavailable)
-                const waitList = data.friend_list?.filter(({ accepted }) => accepted === 0) || []
-                setWaitList(waitList)
-                const refuesdList = data.friend_list?.filter(({ accepted }) => accepted === -1) || []
-                setRefusedList(refuesdList)
-                if (data.apply_list)
-                    setApply(data.apply_list)
+                const friends_available = data.filter(({ health, accepted }: any) => health.length === 0 && accepted === 1) || []
+                setFriendsAvailable(friends_available as any)
+                const friends_unavailable = data.filter(({ health, accepted }: any) => health.length > 0 && accepted === 1) || []
+                setFriendsUnavailable(friends_unavailable as any)
+                const waitList = data.filter(({ accepted }: any) => accepted === 0) || []
+                setWaitList(waitList as any)
+                const refuesdList = data.filter(({ accepted }: any) => accepted === -1) || []
+                setRefusedList(refuesdList as any)
             }
             setStatus('idle')
         })
@@ -164,7 +162,7 @@ function Friend({ friend }: { friend: FriendItem }) {
             t('delete.title'),
             t('delete.confirm'),
             () => {
-                client.friend({ id: friend.id }).delete(friend.id, {
+                client.friend.delete(friend.id, {
                     headers: headersWithAuth()
                 }).then(({ error }) => {
                     if (error) {
@@ -179,7 +177,7 @@ function Friend({ friend }: { friend: FriendItem }) {
     }, [friend.id])
 
     const updateFriend = useCallback(() => {
-        client.friend({ id: friend.id }).put({
+        client.friend.update(friend.id, {
             avatar,
             name,
             desc,

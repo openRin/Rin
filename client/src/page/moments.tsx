@@ -55,21 +55,20 @@ export function MomentsPage() {
             setLoadingMore(true)
         }
         
-        client.moments.index.get({
-            query: {
-                page: page,
-                limit: limit
-            },
+        client.moments.list({
+            page: page,
+            limit: limit
+        }, {
             headers: headersWithAuth()
         }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
-                setLength(data.size)
+            if (data) {
+                setLength(data.data.length)
                 setHasNextPage(data.hasNext)
                 
                 if (append) {
-                    setMoments(prev => [...prev, ...data.data])
+                    setMoments(prev => [...prev, ...data.data] as any)
                 } else {
-                    setMoments(data.data)
+                    setMoments(data.data as any)
                 }
                 
                 setCurrentPage(page)
@@ -95,31 +94,31 @@ export function MomentsPage() {
         setLoading(true)
         
         if (editingMoment) {
-            client.moments({ id: editingMoment.id }).post(
-                { content },
-                { headers: headersWithAuth() }
-            ).then(() => {
-                setContent("")
-                setEditingMoment(null)
-                setIsModalOpen(false)
-                fetchMoments(1, false)
-                showAlert(t('update.success'))
-            }).catch(error => {
-                showAlert(t('update.failed$message', { message: error.message }))
+            client.moments.update(editingMoment.id, { content }, { headers: headersWithAuth() })
+            .then(({ error }) => {
+                if (error) {
+                    showAlert(t('update.failed$message', { message: error.value }))
+                } else {
+                    setContent("")
+                    setEditingMoment(null)
+                    setIsModalOpen(false)
+                    fetchMoments(1, false)
+                    showAlert(t('update.success'))
+                }
             }).finally(() => {
                 setLoading(false)
             })
         } else {
-            client.moments.index.post(
-                { content },
-                { headers: headersWithAuth() }
-            ).then(() => {
-                setContent("")
-                setIsModalOpen(false)
-                fetchMoments(1, false)
-                showAlert(t('publish.success'))
-            }).catch(error => {
-                showAlert(t('publish.failed$message', { message: error.message }))
+            client.moments.create({ content }, { headers: headersWithAuth() })
+            .then(({ error }) => {
+                if (error) {
+                    showAlert(t('publish.failed$message', { message: error.value }))
+                } else {
+                    setContent("")
+                    setIsModalOpen(false)
+                    fetchMoments(1, false)
+                    showAlert(t('publish.success'))
+                }
             }).finally(() => {
                 setLoading(false)
             })
@@ -137,13 +136,15 @@ export function MomentsPage() {
             t("delete.title"),
             t("delete.confirm"),
             () => {
-                client.moments({ id: id }).delete({}, {
+                client.moments.delete(id, {
                     headers: headersWithAuth()
-                }).then(() => {
-                    fetchMoments(1, false)
-                    showAlert(t('delete.success'))
-                }).catch(error => {
-                    showAlert(t('delete.failed$message', { message: error.message }))
+                }).then(({ error }) => {
+                    if (error) {
+                        showAlert(t('delete.failed$message', { message: error.value }))
+                    } else {
+                        fetchMoments(1, false)
+                        showAlert(t('delete.success'))
+                    }
                 })
             }
         )
