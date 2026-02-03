@@ -1,12 +1,12 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, desc, eq } from "drizzle-orm";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { Feed } from "feed";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import { unified } from "unified";
-import type { DB } from "../context";
 import { feeds, users } from "../db/schema";
 import { Router } from "../core/router";
 import type { Context } from "../core/types";
@@ -14,6 +14,8 @@ import { extractImage } from "../utils/image";
 import { path_join } from "../utils/path";
 import { createS3Client } from "../utils/s3";
 import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
+
+type DB = DrizzleD1Database<typeof import("../db/schema")>;
 
 export function RSSService(router: Router): void {
     router.get('/sub/:name', async (ctx: Context) => {

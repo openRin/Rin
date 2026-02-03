@@ -1,7 +1,10 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import type { DB } from "../context";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import * as schema from "../db/schema";
 import { path_join } from "./path";
 import { createS3Client } from "./s3";
+
+type DB = DrizzleD1Database<typeof schema>;
 
 // Cache Utils for storing data in memory and persisting to S3
 // DO NOT USE THIS TO STORE SENSITIVE DATA
@@ -13,7 +16,7 @@ export class CacheImpl {
     cacheUrl: string;
     type: string;
     loaded: boolean = false;
-    s3: S3Client;
+    private s3Instance: S3Client | null = null;
 
     constructor(db: DB, env: Env, type: string = "cache") {
         this.type = type;
@@ -22,7 +25,14 @@ export class CacheImpl {
         this.cache = new Map<string, any>();
         const slash = this.env.S3_ACCESS_HOST.endsWith('/') ? '' : '/';
         this.cacheUrl = this.env.S3_ACCESS_HOST + slash + path_join(this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
-        this.s3 = createS3Client(env);
+    }
+
+    // Lazy load S3 client
+    private get s3(): S3Client {
+        if (!this.s3Instance) {
+            this.s3Instance = createS3Client(this.env);
+        }
+        return this.s3Instance;
     }
 
     async load() {
