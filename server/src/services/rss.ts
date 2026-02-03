@@ -8,33 +8,45 @@ import remarkRehype from "remark-rehype";
 import { unified } from "unified";
 import type { DB } from "../context";
 import { feeds, users } from "../db/schema";
-import base from "../base";
+import { Router } from "../core/router";
+import type { Context } from "../core/types";
 import { extractImage } from "../utils/image";
 import { path_join } from "../utils/path";
 import { createS3Client } from "../utils/s3";
 import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
 
-
-export const RSSService = () => base()
-    .get('/sub/:name', async ({ set, params: { name }, store: { env } }) => {
+export function RSSService(router: Router): void {
+    router.get('/sub/:name', async (ctx: Context) => {
+        const { set, params, store: { env } } = ctx;
+        const { name } = params;
+        
         const endpoint = env.S3_ENDPOINT;
         const accessHost = env.S3_ACCESS_HOST || endpoint;
         const folder = env.S3_CACHE_FOLDER || 'cache/';
         const host = `${(accessHost.startsWith("http://") || accessHost.startsWith("https://") ? '' :'https://')}${accessHost}`;
+        
         if (!host) {
             set.status = 500;
-            return 'S3_ACCESS_HOST is not defined'
+            return 'S3_ACCESS_HOST is not defined';
         }
-        if (name === 'feed.xml') {
-            name = 'rss.xml';
+        
+        let fileName = name;
+        if (fileName === 'feed.xml') {
+            fileName = 'rss.xml';
         }
-        if (['rss.xml', 'atom.xml', 'rss.json'].includes(name)) {
-            const key = path_join(folder, name);
+        
+        if (['rss.xml', 'atom.xml', 'rss.json'].includes(fileName)) {
+            const key = path_join(folder, fileName);
             try {
                 const url = `${host}/${key}`;
                 console.log(`Fetching ${url}`);
-                const response = await fetch(new Request(url))
-                const contentType = name === 'rss.xml' ? 'application/rss+xml; charset=UTF-8' : name === 'atom.xml' ? 'application/atom+xml; charset=UTF-8' : 'application/feed+json; charset=UTF-8';
+                const response = await fetch(new Request(url));
+                const contentType = fileName === 'rss.xml' 
+                    ? 'application/rss+xml; charset=UTF-8' 
+                    : fileName === 'atom.xml' 
+                        ? 'application/atom+xml; charset=UTF-8' 
+                        : 'application/feed+json; charset=UTF-8';
+                        
                 return new Response(response.body, {
                     status: response.status,
                     statusText: response.statusText,
@@ -49,9 +61,11 @@ export const RSSService = () => base()
                 return e.message;
             }
         }
+        
         set.status = 404;
         return 'Not Found';
-    })
+    });
+}
 
 export async function rssCrontab(env: Env, db: DB) {
     const frontendUrl = `${env.FRONTEND_URL.startsWith("http://") || env.FRONTEND_URL.startsWith("https://") ? "" : "https://"}${env.FRONTEND_URL}`;
@@ -64,8 +78,8 @@ export async function rssCrontab(env: Env, db: DB) {
         id: frontendUrl,
         link: frontendUrl,
         copyright: "All rights reserved 2024",
-        updated: new Date(), // optional, default = today
-        generator: "Feed from Rin", // optional, default = 'Feed for Node.js'
+        updated: new Date(),
+        generator: "Feed from Rin",
         feedLinks: {
             rss: `${frontendUrl}/sub/rss.xml`,
             json: `${frontendUrl}/sub/rss.json`,
@@ -81,14 +95,9 @@ export async function rssCrontab(env: Env, db: DB) {
     }
 
     for (const [_mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
-        const originFaviconKey = path_join(
-            env.S3_FOLDER || "",
-            `originFavicon${ext}`,
-        );
+        const originFaviconKey = path_join(env.S3_FOLDER || "", `originFavicon${ext}`);
         try {
-            const response = await fetch(
-                new Request(`${accessHost}/${originFaviconKey}`),
-            );
+            const response = await fetch(new Request(`${accessHost}/${originFaviconKey}`));
             if (response.ok) {
                 feedConfig.image = `${accessHost}/${originFaviconKey}`;
                 break;
@@ -99,9 +108,7 @@ export async function rssCrontab(env: Env, db: DB) {
     }
 
     try {
-        const response = await fetch(
-            new Request(`${accessHost}/${faviconKey}`),
-        );
+        const response = await fetch(new Request(`${accessHost}/${faviconKey}`));
         if (response.ok) {
             feedConfig.favicon = `${accessHost}/${faviconKey}`;
         }
@@ -114,11 +121,10 @@ export async function rssCrontab(env: Env, db: DB) {
         orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
         limit: 20,
         with: {
-            user: {
-                columns: { id: true, username: true, avatar: true },
-            },
+            user: { columns: { id: true, username: true, avatar: true } },
         },
     });
+    
     for (const f of feed_list) {
         const { summary, content, user, ...other } = f;
         const file = await unified()
@@ -128,41 +134,42 @@ export async function rssCrontab(env: Env, db: DB) {
             .use(rehypeStringify)
             .process(content);
         let contentHtml = file.toString();
+        
         feed.addItem({
             title: other.title || "No title",
             id: other.id?.toString() || "0",
             link: `${frontendUrl}/feed/${other.id}`,
             date: other.createdAt,
-            description:
-                summary.length > 0
-                    ? summary
-                    : content.length > 100
-                      ? content.slice(0, 100)
-                      : content,
+            description: summary.length > 0
+                ? summary
+                : content.length > 100
+                    ? content.slice(0, 100)
+                    : content,
             content: contentHtml,
             author: [{ name: user.username }],
             image: extractImage(content),
         });
     }
+    
     // save rss.xml to s3
     console.log("save rss.xml to s3");
     const bucket = env.S3_BUCKET;
     const folder = env.S3_CACHE_FOLDER || "cache/";
     const s3 = createS3Client(env);
+    
     async function save(name: string, data: string) {
         const hashkey = path_join(folder, name);
         try {
-            await s3.send(
-                new PutObjectCommand({
-                    Bucket: bucket,
-                    Key: hashkey,
-                    Body: data,
-                }),
-            );
+            await s3.send(new PutObjectCommand({
+                Bucket: bucket,
+                Key: hashkey,
+                Body: data,
+            }));
         } catch (e: any) {
             console.error(e.message);
         }
     }
+    
     await save("rss.xml", feed.rss2());
     console.log("Saved atom.xml to s3");
     await save("atom.xml", feed.atom1());

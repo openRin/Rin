@@ -1,48 +1,54 @@
-import { t } from "elysia";
+import { Router } from "../core/router";
+import { t } from "../core/index";
+import type { Context } from "../core/types";
 import { getAIConfigForFrontend, setAIConfig } from "../utils/db-config";
-import base from "../base";
-
 
 /**
  * AI Configuration Service
  * Handles AI summary settings with database storage
  * API key is never exposed to frontend
  */
-export const AIConfigService = () => base()
-    .group('/ai-config', (group) =>
-        group
-            // Get AI configuration (with masked API key)
-            .get('/', async ({ set, admin, store: { db } }) => {
-                if (!admin) {
-                    set.status = 401;
-                    return { error: 'Unauthorized' };
-                }
-                return await getAIConfigForFrontend(db);
-            })
-            // Update AI configuration
-            .post('/', async ({ set, admin, body, store: { db } }) => {
-                if (!admin) {
-                    set.status = 401;
-                    return { error: 'Unauthorized' };
-                }
+export function AIConfigService(router: Router): void {
+    router.group('/ai-config', (group) => {
+        // Get AI configuration (with masked API key)
+        group.get('/', async (ctx: Context) => {
+            const { set, admin, store: { db } } = ctx;
+            
+            if (!admin) {
+                set.status = 401;
+                return { error: 'Unauthorized' };
+            }
+            
+            return await getAIConfigForFrontend(db);
+        });
 
-                await setAIConfig(db, {
-                    enabled: body.enabled,
-                    provider: body.provider,
-                    model: body.model,
-                    api_key: body.api_key,
-                    api_url: body.api_url,
-                });
+        // Update AI configuration
+        group.post('/', async (ctx: Context) => {
+            const { set, admin, body, store: { db } } = ctx;
+            
+            if (!admin) {
+                set.status = 401;
+                return { error: 'Unauthorized' };
+            }
 
-                return { success: true };
-            }, {
-                body: t.Object({
-                    enabled: t.Optional(t.Boolean()),
-                    provider: t.Optional(t.String()),
-                    model: t.Optional(t.String()),
-                    api_key: t.Optional(t.String()),
-                    api_url: t.Optional(t.String()),
-                })
-            })
-    )
-    ;
+            await setAIConfig(db, {
+                enabled: body.enabled,
+                provider: body.provider,
+                model: body.model,
+                api_key: body.api_key,
+                api_url: body.api_url,
+            });
+
+            return { success: true };
+        }, {
+            type: 'object',
+            properties: {
+                enabled: { type: 'boolean', optional: true },
+                provider: { type: 'string', optional: true },
+                model: { type: 'string', optional: true },
+                api_key: { type: 'string', optional: true },
+                api_url: { type: 'string', optional: true }
+            }
+        });
+    });
+}

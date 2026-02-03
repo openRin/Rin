@@ -1,4 +1,4 @@
-import base from './base';
+import { createBaseApp } from "./core/base";
 import { AIConfigService } from './services/ai-config';
 import { CommentService } from './services/comments';
 import { ConfigService } from './services/config';
@@ -13,54 +13,56 @@ import { TagService } from './services/tag';
 import { UserService } from './services/user';
 import { getFirstPathSegment } from './utils/path';
 
-
-const app = (path: string) => {
+// Service registry - lazy load services based on path
+export function createApp(env: Env, path: string) {
     const group = getFirstPathSegment(path);
-    let services = undefined;
+    const app = createBaseApp(env);
+    
     switch (group) {
         case 'ai-config':
-            services = [AIConfigService];
+            AIConfigService(app);
             break;
         case 'config':
-            services = [ConfigService];
+            ConfigService(app);
             break;
         case 'feed':
-            services = [FeedService, CommentService];
+            FeedService(app);
+            CommentService(app);
             break;
         case 'tag':
-            services = [TagService];
+            TagService(app);
             break;
         case 'storage':
-            services = [StorageService];
+            StorageService(app);
             break;
         case 'friend':
-            services = [FriendService];
+            FriendService(app);
             break;
         case 'seo':
-            services = [SEOService];
+            SEOService(app);
             break;
         case 'sub':
-            services = [RSSService];
+            RSSService(app);
             break;
         case 'moments':
-            services = [MomentsService];
+            MomentsService(app);
             break;
         case 'favicon':
-            services = [FaviconService];
+            FaviconService(app);
             break;
         case 'user':
-            services = [UserService];
+            UserService(app);
             break;
+        default:
+            return null;
     }
-    if (services) {
-        let serviceApp: any = base()
-            .get('/', () => `Hi`);
-        for (const service of services) {
-            serviceApp = serviceApp.use(service());
-        }
-        return serviceApp
-    }
+    
+    return app;
 }
 
-
-export default app
+// Default health check route
+export function createDefaultApp(env: Env) {
+    const app = createBaseApp(env);
+    app.get('/', () => 'Hi');
+    return app;
+}

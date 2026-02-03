@@ -1,9 +1,9 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { t } from "elysia";
-import base from "../base";
+import { Router } from "../core/router";
+import { t } from "../core/index";
+import type { Context } from "../core/types";
 import { path_join } from "../utils/path";
 import { createS3Client } from "../utils/s3";
-
 
 function buf2hex(buffer: ArrayBuffer) {
     return [...new Uint8Array(buffer)]
@@ -11,58 +11,70 @@ function buf2hex(buffer: ArrayBuffer) {
         .join('');
 }
 
-export const StorageService = () => base()
-    .group('/storage', (group) =>
-        group
-            .post('/', async ({ uid, set, body: { key, file }, store: { env } }) => {
-                const endpoint = env.S3_ENDPOINT;
-                const bucket = env.S3_BUCKET;
-                const folder = env.S3_FOLDER || '';
-                const accessHost = env.S3_ACCESS_HOST || endpoint;
-                const accessKeyId = env.S3_ACCESS_KEY_ID;
-                const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
-                const s3 = createS3Client(env);
+export function StorageService(router: Router): void {
+    router.group('/storage', (group) => {
+        // POST /storage
+        group.post('/', async (ctx: Context) => {
+            const { uid, set, body, store: { env } } = ctx;
+            const { key, file } = body;
+            
+            const endpoint = env.S3_ENDPOINT;
+            const bucket = env.S3_BUCKET;
+            const folder = env.S3_FOLDER || '';
+            const accessHost = env.S3_ACCESS_HOST || endpoint;
+            const accessKeyId = env.S3_ACCESS_KEY_ID;
+            const secretAccessKey = env.S3_SECRET_ACCESS_KEY;
+            const s3 = createS3Client(env);
 
-                if (!endpoint) {
-                    set.status = 500;
-                    return 'S3_ENDPOINT is not defined'
-                }
-                if (!accessKeyId) {
-                    set.status = 500;
-                    return 'S3_ACCESS_KEY_ID is not defined'
-                }
-                if (!secretAccessKey) {
-                    set.status = 500;
-                    return 'S3_SECRET_ACCESS_KEY is not defined'
-                }
-                if (!bucket) {
-                    set.status = 500;
-                    return 'S3_BUCKET is not defined'
-                }
-                if (!uid) {
-                    set.status = 401;
-                    return 'Unauthorized';
-                }
-                const suffix = key.includes(".") ? key.split('.').pop() : "";
-                const hashArray = await crypto.subtle.digest(
-                    { name: 'SHA-1' },
-                    await file.arrayBuffer()
-                );
-                const hash = buf2hex(hashArray)
-                const hashkey = path_join(folder, hash + "." + suffix);
-                try {
-                    const response = await s3.send(new PutObjectCommand({ Bucket: bucket, Key: hashkey, Body: file, ContentType: file.type }))
-                    console.info(response);
-                    return `${accessHost}/${hashkey}`
-                } catch (e: any) {
-                    set.status = 400;
-                    console.error(e.message)
-                    return e.message
-                }
-            }, {
-                body: t.Object({
-                    key: t.String(),
-                    file: t.File()
-                })
-            })
-    )
+            if (!endpoint) {
+                set.status = 500;
+                return 'S3_ENDPOINT is not defined';
+            }
+            if (!accessKeyId) {
+                set.status = 500;
+                return 'S3_ACCESS_KEY_ID is not defined';
+            }
+            if (!secretAccessKey) {
+                set.status = 500;
+                return 'S3_SECRET_ACCESS_KEY is not defined';
+            }
+            if (!bucket) {
+                set.status = 500;
+                return 'S3_BUCKET is not defined';
+            }
+            if (!uid) {
+                set.status = 401;
+                return 'Unauthorized';
+            }
+            
+            const suffix = key.includes(".") ? key.split('.').pop() : "";
+            const hashArray = await crypto.subtle.digest(
+                { name: 'SHA-1' },
+                await file.arrayBuffer()
+            );
+            const hash = buf2hex(hashArray);
+            const hashkey = path_join(folder, hash + "." + suffix);
+            
+            try {
+                const response = await s3.send(new PutObjectCommand({
+                    Bucket: bucket,
+                    Key: hashkey,
+                    Body: file,
+                    ContentType: file.type
+                }));
+                console.info(response);
+                return `${accessHost}/${hashkey}`;
+            } catch (e: any) {
+                set.status = 400;
+                console.error(e.message);
+                return e.message;
+            }
+        }, {
+            type: 'object',
+            properties: {
+                key: { type: 'string' },
+                file: { type: 'file' }
+            }
+        });
+    });
+}
