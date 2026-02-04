@@ -141,6 +141,9 @@ console.log(`----------------------------`)
 console.log(`Patch D1`)
 await fixTopField(typ, DB_NAME, isInfoExistResult);
 console.log(`----------------------------`)
+console.log(`Migrate visits to HyperLogLog format`)
+await migrateVisitsToHLL(typ, DB_NAME);
+console.log(`----------------------------`)
 console.log(`Put secrets`)
 
 async function putSecret(name: string, value?: string) {
@@ -165,3 +168,91 @@ await $`echo -e "n\ny\n" | bunx wrangler deploy`
 console.log(`Deployed`)
 console.log(`----------------------------`)
 console.log(`🎉All Done.`)
+
+// Migrate existing visits data to HyperLogLog format
+async function migrateVisitsToHLL(typ: string, dbName: string) {
+    console.log(`Checking if HyperLogLog migration is needed...`);
+    
+    try {
+        // Check if visit_stats table has data
+        const { stdout: countResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT COUNT(*) as count FROM visit_stats WHERE hll_data != ''"`.quiet();
+        const migratedCount = parseInt(countResult.toString().match(/\d+/)?.[0] || '0');
+        
+        if (migratedCount > 0) {
+            console.log(`  ${migratedCount} feeds already have HLL data. Migration may already be complete.`);
+            return;
+        }
+        
+        // Check if there are visits to migrate
+        const { stdout: visitsCount } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT COUNT(*) as count FROM visits"`.quiet();
+        const totalVisits = parseInt(visitsCount.toString().match(/\d+/)?.[0] || '0');
+        
+        if (totalVisits === 0) {
+            console.log('  No visits to migrate. Skipping.');
+            return;
+        }
+        
+        console.log(`  Found ${totalVisits} visits to migrate to HyperLogLog format.`);
+        console.log('  Starting migration...');
+        
+        // Get all unique feed_ids from visits
+        const { stdout: feedIdsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT DISTINCT feed_id FROM visits"`.quiet();
+        const feedIds = feedIdsResult.toString()
+            .split('\n')
+            .filter(line => /^\d+$/.test(line.trim()))
+            .map(id => parseInt(id.trim()));
+        
+        console.log(`  Processing ${feedIds.length} feeds...`);
+        
+        // Process each feed
+        let processed = 0;
+        for (const feedId of feedIds) {
+            // Get all IPs for this feed
+            const { stdout: ipsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT ip FROM visits WHERE feed_id = ${feedId}"`.quiet();
+            const ips = ipsResult.toString()
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line && !/^\d+$/.test(line) && line !== 'ip');
+            
+            if (ips.length === 0) continue;
+            
+            // Create HLL and add all IPs
+            const hllData = await generateHLLData(ips);
+            
+            // Insert or update visit_stats
+            const pv = ips.length;
+            const uv = Math.round(await estimateUV(hllData));
+            
+            await $`bunx wrangler d1 execute ${dbName} --${typ} --command="INSERT OR REPLACE INTO visit_stats (feed_id, pv, hll_data, updated_at) VALUES (${feedId}, ${pv}, '${hllData}', ${Date.now() / 1000})"`.quiet();
+            
+            processed++;
+            if (processed % 10 === 0) {
+                console.log(`    Progress: ${processed}/${feedIds.length} feeds processed`);
+            }
+        }
+        
+        console.log(`\n✅ Migration completed! Processed ${processed} feeds.`);
+        
+    } catch (error) {
+        console.error('❌ Migration failed:', error);
+        throw error;
+    }
+}
+
+// Generate HLL data from IPs (simplified version for D1 migration)
+async function generateHLLData(ips: string[]): Promise<string> {
+    // Import HyperLogLog dynamically
+    const { HyperLogLog } = await import('../server/src/utils/hyperloglog');
+    const hll = new HyperLogLog();
+    for (const ip of ips) {
+        hll.add(ip);
+    }
+    return hll.serialize();
+}
+
+// Estimate UV from HLL data
+async function estimateUV(hllData: string): Promise<number> {
+    const { HyperLogLog } = await import('../server/src/utils/hyperloglog');
+    const hll = new HyperLogLog(hllData);
+    return hll.count();
+}
