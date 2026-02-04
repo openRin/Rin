@@ -169,14 +169,73 @@ console.log(`Deployed`)
 console.log(`----------------------------`)
 console.log(`🎉All Done.`)
 
+// Parse wrangler JSON output to extract count value (with --json flag)
+function parseWranglerCount(stdout: string): number {
+    try {
+        const json = JSON.parse(stdout);
+        // --json output format: [{ results: [{ count: N }], success: true, meta: {} }]
+        if (Array.isArray(json) && json.length > 0 && json[0].results && json[0].results.length > 0) {
+            return parseInt(json[0].results[0].count) || 0;
+        }
+    } catch (e) {
+        // Fallback to regex if JSON parsing fails
+        const match = stdout.match(/"count":\s*(\d+)/);
+        if (match) {
+            return parseInt(match[1]) || 0;
+        }
+    }
+    return 0;
+}
+
+// Parse wrangler JSON output to extract feed_id values (with --json flag)
+function parseWranglerFeedIds(stdout: string): number[] {
+    try {
+        const json = JSON.parse(stdout);
+        // --json output format: [{ results: [{ feed_id: N }, ...], success: true, meta: {} }]
+        if (Array.isArray(json) && json.length > 0 && json[0].results) {
+            return json[0].results
+                .map((row: any) => parseInt(row.feed_id))
+                .filter((id: number) => !isNaN(id));
+        }
+    } catch (e) {
+        // Fallback to line parsing if JSON parsing fails
+        return stdout
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => /^\d+$/.test(line))
+            .map(id => parseInt(id));
+    }
+    return [];
+}
+
+// Parse wrangler JSON output to extract IP addresses (with --json flag)
+function parseWranglerIPs(stdout: string): string[] {
+    try {
+        const json = JSON.parse(stdout);
+        // --json output format: { results: [{ ip: 'x.x.x.x' }, ...], success: true, meta: {} }
+        if (json.results) {
+            return json.results
+                .map((row: any) => row.ip)
+                .filter((ip: string) => ip && typeof ip === 'string');
+        }
+    } catch (e) {
+        // Fallback to line parsing if JSON parsing fails
+        return stdout
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line && !/^\d+$/.test(line) && line !== 'ip');
+    }
+    return [];
+}
+
 // Migrate existing visits data to HyperLogLog format
 async function migrateVisitsToHLL(typ: string, dbName: string) {
     console.log(`Checking if HyperLogLog migration is needed...`);
     
     try {
         // Check if visit_stats table has data
-        const { stdout: countResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT COUNT(*) as count FROM visit_stats WHERE hll_data != ''"`.quiet();
-        const migratedCount = parseInt(countResult.toString().match(/\d+/)?.[0] || '0');
+        const { stdout: countResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT COUNT(*) as count FROM visit_stats WHERE hll_data != ''"`.quiet();
+        const migratedCount = parseWranglerCount(countResult.toString());
         
         if (migratedCount > 0) {
             console.log(`  ${migratedCount} feeds already have HLL data. Migration may already be complete.`);
@@ -184,8 +243,8 @@ async function migrateVisitsToHLL(typ: string, dbName: string) {
         }
         
         // Check if there are visits to migrate
-        const { stdout: visitsCount } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT COUNT(*) as count FROM visits"`.quiet();
-        const totalVisits = parseInt(visitsCount.toString().match(/\d+/)?.[0] || '0');
+        const { stdout: visitsCount } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT COUNT(*) as count FROM visits"`.quiet();
+        const totalVisits = parseWranglerCount(visitsCount.toString());
         
         if (totalVisits === 0) {
             console.log('  No visits to migrate. Skipping.');
@@ -196,38 +255,60 @@ async function migrateVisitsToHLL(typ: string, dbName: string) {
         console.log('  Starting migration...');
         
         // Get all unique feed_ids from visits
-        const { stdout: feedIdsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT DISTINCT feed_id FROM visits"`.quiet();
-        const feedIds = feedIdsResult.toString()
-            .split('\n')
-            .filter(line => /^\d+$/.test(line.trim()))
-            .map(id => parseInt(id.trim()));
+        const { stdout: feedIdsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT DISTINCT feed_id FROM visits"`.quiet();
+        const feedIds = parseWranglerFeedIds(feedIdsResult.toString());
         
         console.log(`  Processing ${feedIds.length} feeds...`);
         
         // Process each feed
         let processed = 0;
         for (const feedId of feedIds) {
-            // Get all IPs for this feed
-            const { stdout: ipsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --command="SELECT ip FROM visits WHERE feed_id = ${feedId}"`.quiet();
-            const ips = ipsResult.toString()
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => line && !/^\d+$/.test(line) && line !== 'ip');
-            
-            if (ips.length === 0) continue;
-            
-            // Create HLL and add all IPs
-            const hllData = await generateHLLData(ips);
-            
-            // Insert or update visit_stats
-            const pv = ips.length;
-            const uv = Math.round(await estimateUV(hllData));
-            
-            await $`bunx wrangler d1 execute ${dbName} --${typ} --command="INSERT OR REPLACE INTO visit_stats (feed_id, pv, hll_data, updated_at) VALUES (${feedId}, ${pv}, '${hllData}', ${Date.now() / 1000})"`.quiet();
-            
-            processed++;
-            if (processed % 10 === 0) {
-                console.log(`    Progress: ${processed}/${feedIds.length} feeds processed`);
+            try {
+                // Get all IPs for this feed
+                const { stdout: ipsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT ip FROM visits WHERE feed_id = ${feedId}"`.quiet();
+                const ips = parseWranglerIPs(ipsResult.toString());
+                
+                if (ips.length === 0) {
+                    console.log(`    Feed ${feedId}: No IPs found, skipping`);
+                    continue;
+                }
+                
+                console.log(`    Feed ${feedId}: Found ${ips.length} visits`);
+                
+                // Create HLL and add all IPs
+                const hllData = await generateHLLData(ips);
+                
+                // Calculate UV
+                const uv = Math.round(await estimateUV(hllData));
+                const pv = ips.length;
+                const timestamp = Math.floor(Date.now() / 1000);
+                
+                console.log(`    Feed ${feedId}: PV=${pv}, UV=${uv}`);
+                
+                // Escape single quotes in hllData for SQL (though base64 shouldn't have them)
+                const escapedHllData = hllData.replace(/'/g, "''");
+                
+                // Build SQL command - use string concatenation to avoid template literal issues
+                const sqlCommand = `INSERT OR REPLACE INTO visit_stats (feed_id, pv, hll_data, updated_at) VALUES (${feedId}, ${pv}, '${escapedHllData}', ${timestamp})`;
+                
+                // Execute SQL with error handling
+                const result = await $`bunx wrangler d1 execute ${dbName} --${typ} --command=${sqlCommand}`.nothrow().quiet();
+                
+                if (result.exitCode !== 0) {
+                    console.error(`    ❌ Failed to insert feed ${feedId}: ${result.stderr}`);
+                    console.error(`    SQL: ${sqlCommand.substring(0, 100)}...`);
+                    continue;
+                }
+                
+                console.log(`    ✅ Feed ${feedId}: Inserted successfully`);
+                processed++;
+                
+                if (processed % 10 === 0) {
+                    console.log(`    Progress: ${processed}/${feedIds.length} feeds processed`);
+                }
+            } catch (error) {
+                console.error(`    ❌ Error processing feed ${feedId}:`, error);
+                continue;
             }
         }
         
