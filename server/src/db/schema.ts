@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
@@ -92,6 +92,18 @@ export const feedHashtags = sqliteTable("feed_hashtags", {
     createdAt: created_at,
     updatedAt: updated_at,
 });
+
+export const cache = sqliteTable("cache", {
+    id: integer("id").primaryKey(),
+    key: text("key").notNull(),
+    value: text("value").notNull(),
+    type: text("type").default("cache").notNull(),
+    createdAt: created_at,
+    updatedAt: updated_at,
+}, (table) => ({
+    // 复合唯一约束：key + type
+    keyTypeUnique: unique().on(table.key, table.type),
+}));
 
 export const feedsRelations = relations(feeds, ({ many, one }) => ({
     hashtags: many(feedHashtags),

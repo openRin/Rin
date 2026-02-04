@@ -10,16 +10,16 @@ export default {
     ): Promise<Response> {
         const url = new URL(request.url);
         const app = await createApp(env, url.pathname);
-        
+
         if (app) {
             return await app.handle(request, env);
         }
-        
+
         // Default handler for unmatched routes
         const defaultApp = createDefaultApp(env);
         return await defaultApp.handle(request, env);
     },
-    
+
     async scheduled(
         _controller: ScheduledController | null,
         env: Env,
@@ -37,7 +37,7 @@ export default {
         const { friendCrontab } = await import('./services/friends');
         const { rssCrontab } = await import('./services/rss');
 
-        // await friendCrontab(env, ctx, db, cache, serverConfig, clientConfig)
-        // await rssCrontab(env, db)
+        await friendCrontab(env, ctx, db, cache, serverConfig, clientConfig)
+        await rssCrontab(env, db)
     },
 }

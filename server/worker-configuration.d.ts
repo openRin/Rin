@@ -23,6 +23,7 @@ declare namespace Cloudflare {
 		JWT_SECRET: string;
 		S3_ACCESS_KEY_ID: string;
 		S3_SECRET_ACCESS_KEY: string;
+		CACHE_STORAGE_MODE: "database" | "s3";
 	}
 }
 interface Env extends Cloudflare.Env {}

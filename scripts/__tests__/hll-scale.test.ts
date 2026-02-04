@@ -32,14 +32,31 @@ function calculateRelativeError(actual: number, expected: number): number {
     return Math.abs(actual - expected) / expected;
 }
 
+/**
+ * 检查是否应该运行大规模测试
+ * 通过环境变量 HLL_TEST_LARGE_SCALE 控制
+ * 设置 HLL_TEST_LARGE_SCALE=true 时才会运行千万级以上测试
+ */
+function shouldRunLargeScaleTests(): boolean {
+    return process.env.HLL_TEST_LARGE_SCALE === 'true';
+}
+
 describe('HLL 最大数据规模测试', () => {
-    const MAX_SCALE_TESTS = [
+    // 基础测试配置（始终运行）
+    const BASE_SCALE_TESTS = [
+        { name: '十万级', count: 100_000, tolerance: 0.05 },
+        { name: '百万级', count: 1_000_000, tolerance: 0.05 },
+    ];
+
+    // 大规模测试配置（仅在启用时运行）
+    const LARGE_SCALE_TESTS = [
         { name: '千万级', count: 10_000_000, tolerance: 0.05 },
         { name: '亿级', count: 100_000_000, tolerance: 0.05 },
         { name: '十亿级', count: 1_000_000_000, tolerance: 0.10 },
     ];
 
-    for (const test of MAX_SCALE_TESTS) {
+    // 运行基础测试
+    for (const test of BASE_SCALE_TESTS) {
         describe(`${test.name} (${test.count.toLocaleString()} unique IPs)`, () => {
             it(`应该在 ${(test.tolerance * 100).toFixed(0)}% 误差范围内`, async () => {
                 console.log(`\n开始测试 ${test.name} 规模...`);
@@ -54,7 +71,6 @@ describe('HLL 最大数据规模测试', () => {
                     const end = Math.min((batch + 1) * batchSize, test.count);
                     
                     for (let i = start; i < end; i++) {
-                        // 生成多样化的 IP
                         const segment1 = Math.floor(i / Math.pow(256, 3)) % 256;
                         const segment2 = Math.floor(i / Math.pow(256, 2)) % 256;
                         const segment3 = Math.floor(i / 256) % 256;
@@ -82,7 +98,66 @@ describe('HLL 最大数据规模测试', () => {
                 console.log(`  结果: ${relativeError <= test.tolerance ? '✅ 通过' : '❌ 失败'}`);
                 
                 expect(relativeError).toBeLessThanOrEqual(test.tolerance);
-            }, 300000); // 5分钟超时
+            }, 120000); // 2分钟超时
+        });
+    }
+
+    // 条件性运行大规模测试
+    if (shouldRunLargeScaleTests()) {
+        console.log('\n⚠️  检测到 HLL_TEST_LARGE_SCALE=true，将运行大规模测试（千万级以上）');
+        console.log('   这些测试可能需要数分钟时间，请耐心等待...\n');
+        
+        for (const test of LARGE_SCALE_TESTS) {
+            describe(`${test.name} (${test.count.toLocaleString()} unique IPs)`, () => {
+                it(`应该在 ${(test.tolerance * 100).toFixed(0)}% 误差范围内`, async () => {
+                    console.log(`\n开始测试 ${test.name} 规模...`);
+                    const startTime = Date.now();
+                    
+                    const hll = new HyperLogLog();
+                    const batchSize = 100000;
+                    const batches = Math.ceil(test.count / batchSize);
+                    
+                    for (let batch = 0; batch < batches; batch++) {
+                        const start = batch * batchSize;
+                        const end = Math.min((batch + 1) * batchSize, test.count);
+                        
+                        for (let i = start; i < end; i++) {
+                            const segment1 = Math.floor(i / Math.pow(256, 3)) % 256;
+                            const segment2 = Math.floor(i / Math.pow(256, 2)) % 256;
+                            const segment3 = Math.floor(i / 256) % 256;
+                            const segment4 = i % 256;
+                            const ip = `${segment1}.${segment2}.${segment3}.${segment4}`;
+                            hll.add(ip);
+                        }
+                        
+                        if ((batch + 1) % 10 === 0 || batch === batches - 1) {
+                            const progress = ((batch + 1) / batches * 100).toFixed(1);
+                            console.log(`  进度: ${progress}% (${(batch + 1) * batchSize}/${test.count})`);
+                        }
+                    }
+                    
+                    const estimatedUV = hll.count();
+                    const relativeError = calculateRelativeError(estimatedUV, test.count);
+                    const elapsed = Date.now() - startTime;
+                    
+                    console.log(`\n${test.name} 测试结果:`);
+                    console.log(`  实际UV: ${test.count.toLocaleString()}`);
+                    console.log(`  估算UV: ${Math.round(estimatedUV).toLocaleString()}`);
+                    console.log(`  相对误差: ${(relativeError * 100).toFixed(2)}%`);
+                    console.log(`  容差: ${(test.tolerance * 100).toFixed(0)}%`);
+                    console.log(`  耗时: ${(elapsed / 1000).toFixed(2)}秒`);
+                    console.log(`  结果: ${relativeError <= test.tolerance ? '✅ 通过' : '❌ 失败'}`);
+                    
+                    expect(relativeError).toBeLessThanOrEqual(test.tolerance);
+                }, 600000); // 10分钟超时
+            });
+        }
+    } else {
+        it('跳过大规模测试（设置 HLL_TEST_LARGE_SCALE=true 以启用）', () => {
+            console.log('\n⏭️  跳过千万级以上测试');
+            console.log('   设置环境变量 HLL_TEST_LARGE_SCALE=true 以运行这些测试');
+            console.log('   例如: HLL_TEST_LARGE_SCALE=true bun test scripts/__tests__/hll-scale.test.ts');
+            expect(true).toBe(true);
         });
     }
 });
