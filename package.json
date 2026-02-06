@@ -49,5 +49,9 @@
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
     "remark-rehype": "^11.1.0"
-  }
+  },
+    "trustedDependencies": [
+          "puppeteer",
+              "puppeteer-core"
+      ]
 }
