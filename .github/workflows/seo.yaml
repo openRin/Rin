@@ -2,7 +2,7 @@ name: SEO Workflow
 
 on:
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "0 8 * * 1"
   workflow_dispatch:
   
 
@@ -45,5 +45,5 @@ jobs:
           S3_FORCE_PATH_STYLE: ${{ vars.S3_FORCE_PATH_STYLE }}
         run: |
           cd Rin/
-          bun install --frozen-lockfile --trusted-dependencies puppeteer
+          bun install --frozen-lockfile
           bun scripts/render.ts
