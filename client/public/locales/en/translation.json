@@ -117,7 +117,16 @@
   "listed": "Listed in articles",
   "load_more": "Load More",
   "login": {
+    "error": {
+      "empty": "Please enter username and password",
+      "failed": "Login failed",
+      "invalid": "Invalid username or password",
+      "network": "Network error, please try again"
+    },
+    "loading": "Logging in...",
+    "no_methods": "No login methods available",
     "oauth_only": "Please log in to continue",
+    "or": "or",
     "password": {
       "placeholder": "Please enter your password"
     },
@@ -289,5 +298,22 @@
     "self_only": "Visible to self only"
   },
   "writing": "Writing",
-  "year$year": "{{year}}"
+  "year$year": "{{year}}",
+  "profile": {
+    "title": "Profile",
+    "avatar": "Avatar",
+    "avatar_hint": "Click to upload avatar (max 2MB)",
+    "username": "Username",
+    "username_placeholder": "Enter your username",
+    "save": "Save",
+    "saving": "Saving...",
+    "success": "Saved successfully",
+    "error": {
+      "file_too_large": "File size cannot exceed 2MB",
+      "invalid_file_type": "Please upload an image file",
+      "empty_username": "Username cannot be empty",
+      "update_failed": "Update failed",
+      "network": "Network error, please try again"
+    }
+  }
 }

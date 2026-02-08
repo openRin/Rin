@@ -18,6 +18,7 @@ export interface Context {
     uid?: number;
     admin: boolean;
     username?: string;
+    env: Env;
 }
 
 export interface CookieValue {

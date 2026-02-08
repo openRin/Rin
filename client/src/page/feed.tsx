@@ -16,7 +16,6 @@ import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
 import { Button } from "../components/button";
 import { Tips } from "../components/tips";
-import { useLoginModal } from "../hooks/useLoginModal";
 import mermaid from "mermaid";
 import { AdjacentSection } from "../components/adjacent_feed.tsx";
 
@@ -409,7 +408,7 @@ function CommentInput({
   const [error, setError] = useState("");
   const { showAlert, AlertUI } = useAlert();
   const profile = useContext(ProfileContext);
-  const { LoginModal, setIsOpened } = useLoginModal()
+  const [, setLocation] = useLocation();
   function errorHumanize(error: string) {
     if (error === "Unauthorized") return t("login.required");
     else if (error === "Content is required") return t("comment.empty");
@@ -417,7 +416,7 @@ function CommentInput({
   }
   function submit() {
     if (!profile) {
-      setIsOpened(true)
+      setLocation('/login')
       return;
     }
     client.comment
@@ -455,11 +454,11 @@ function CommentInput({
         >
           {t("comment.submit")}
         </button>
-      </>) : (
+      </>      ) : (
         <div className="flex flex-row w-full items-center justify-center space-x-2 py-12">
           <button
             className="mt-2 bg-theme text-white px-4 py-2 rounded-full"
-            onClick={() => setIsOpened(true)}
+            onClick={() => setLocation('/login')}
           >
             {t("login.required")}
           </button>
@@ -467,7 +466,6 @@ function CommentInput({
       )}
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       <AlertUI />
-      <LoginModal />
     </div>
   );
 }

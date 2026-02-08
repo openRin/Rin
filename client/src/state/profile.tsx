@@ -7,4 +7,4 @@ export type Profile = {
   name: string
 }
 
-export const ProfileContext = createContext<Profile | undefined>(undefined);
+export const ProfileContext = createContext<Profile | undefined | null>(undefined);

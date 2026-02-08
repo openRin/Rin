@@ -38,6 +38,21 @@ class DatabaseStorageProvider implements StorageProvider {
     }
 
     async save(): Promise<void> {
+        // Get all existing keys from database for this cache type
+        const existingRows = await this.db.select({ key: cache.key }).from(cache).where(eq(cache.type, this.type));
+        const existingKeys = new Set(existingRows.map(row => row.key));
+        const currentKeys = new Set(this.cacheMap.keys());
+
+        // Delete keys from database that are no longer in memory
+        for (const key of existingKeys) {
+            if (!currentKeys.has(key)) {
+                await this.db.delete(cache)
+                    .where(and(eq(cache.key, key), eq(cache.type, this.type)));
+                console.log('Cache removed from database:', key);
+            }
+        }
+
+        // Save or update current cache entries
         for (const [key, value] of this.cacheMap.entries()) {
             if (value === undefined) {
                 console.warn(`Cache: Skipping undefined value for key "${key}"`);
@@ -46,11 +61,7 @@ class DatabaseStorageProvider implements StorageProvider {
 
             const valueStr = typeof value === 'string' ? value : JSON.stringify(value);
 
-            const existing = await this.db.select().from(cache).where(
-                and(eq(cache.key, key), eq(cache.type, this.type))
-            );
-
-            if (existing.length > 0) {
+            if (existingKeys.has(key)) {
                 await this.db.update(cache)
                     .set({ value: valueStr, updatedAt: new Date() })
                     .where(and(eq(cache.key, key), eq(cache.type, this.type)));

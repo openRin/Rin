@@ -49,8 +49,10 @@ All of the following variables are required (except Webhook) and must be encrypt
 
 | Name                     | Description                                              | Example Value                                                   |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------|
-| RIN_GITHUB_CLIENT_ID     | Client ID for GitHub OAuth                               | Ux66poMrKi1k11M1Q1b2                                            |
-| RIN_GITHUB_CLIENT_SECRET | Client secret for GitHub OAuth                           | 1234567890abcdef1234567890abcdef12345678                        |
+| RIN_GITHUB_CLIENT_ID     | Client ID for GitHub OAuth (optional, alternative to username/password) | Ux66poMrKi1k11M1Q1b2                                            |
+| RIN_GITHUB_CLIENT_SECRET | Client secret for GitHub OAuth (optional, alternative to username/password) | 1234567890abcdef1234567890abcdef12345678                        |
+| ADMIN_USERNAME           | Username for username/password login (optional, alternative to GitHub OAuth) | admin                                                           |
+| ADMIN_PASSWORD           | Password for username/password login (optional, alternative to GitHub OAuth) | your_secure_password                                            |
 | JWT_SECRET               | Secret key required for JWT authentication, can be any regular format password | J0sT%Ch@nge#Me1                                                |
 | S3_ACCESS_KEY_ID         | KEY ID required for accessing the S3 bucket, for Cloudflare R2 use an API token ID with R2 edit permissions | 1234567890abcdef1234567890abcd                                  |
 | S3_SECRET_ACCESS_KEY     | Secret required for accessing the S3 bucket, for Cloudflare R2 use an API token with R2 edit permissions | 1234567890abcdef1234567890abcd|

@@ -132,6 +132,14 @@ const serviceRegistry: ServiceLoader[] = [
             return UserService;
         }
     },
+    // Auth (password login)
+    {
+        pattern: /^\/auth/,
+        loader: async () => {
+            const { PasswordAuthService } = await import('./services/auth');
+            return PasswordAuthService;
+        }
+    },
 ];
 
 // Find matching services for a path

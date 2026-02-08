@@ -289,5 +289,22 @@
     "self_only": "僅自己可見"
   },
   "writing": "寫作",
-  "year$year": "{{year}} 年"
+  "year$year": "{{year}} 年",
+  "profile": {
+    "title": "個人資料",
+    "avatar": "頭像",
+    "avatar_hint": "點擊上傳頭像（最大 2MB）",
+    "username": "暱稱",
+    "username_placeholder": "請輸入暱稱",
+    "save": "儲存",
+    "saving": "儲存中...",
+    "success": "儲存成功",
+    "error": {
+      "file_too_large": "文件大小不能超過 2MB",
+      "invalid_file_type": "請上傳圖片文件",
+      "empty_username": "暱稱不能為空",
+      "update_failed": "更新失敗",
+      "network": "網絡錯誤，請重試"
+    }
+  }
 }

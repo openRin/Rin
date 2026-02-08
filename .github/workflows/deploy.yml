@@ -1,0 +1,299 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - trunk
+  pull_request:
+    branches:
+      - main
+      - master
+      - trunk
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # Production deployment for main/master
+  deploy-production:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.6
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run typecheck
+        run: bun run typecheck
+
+      - name: Run build
+        run: bun run build
+
+      - name: Deploy to Cloudflare (Production)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_NAME: ${{ vars.WORKER_NAME || 'rin-server' }}
+          PAGES_NAME: ${{ vars.PAGES_NAME || 'rin-client' }}
+          DB_NAME: ${{ vars.DB_NAME || 'rin' }}
+          NAME: ${{ vars.NAME || 'Rin' }}
+          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
+          AVATAR: ${{ vars.AVATAR || '' }}
+          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
+          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
+          R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME || '' }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || '' }}
+          S3_ACCESS_HOST: ${{ secrets.S3_ACCESS_HOST || '' }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET || '' }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID || '' }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY || '' }}
+          RIN_GITHUB_CLIENT_ID: ${{ secrets.RIN_GITHUB_CLIENT_ID || '' }}
+          RIN_GITHUB_CLIENT_SECRET: ${{ secrets.RIN_GITHUB_CLIENT_SECRET || '' }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME || 'admin' }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'admin123' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          WEBHOOK_URL: ${{ vars.WEBHOOK_URL || '' }}
+          RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
+          RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
+        run: |
+          export CF_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
+          bun run deploy
+
+  # Preview deployment for trunk branch
+  deploy-preview-trunk:
+    if: github.ref == 'refs/heads/trunk'
+    runs-on: ubuntu-latest
+    environment:
+      name: preview-trunk
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.6
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run typecheck
+        run: bun run typecheck
+
+      - name: Run build
+        run: bun run build
+
+      - name: Deploy to Cloudflare (Preview)
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_NAME: ${{ vars.WORKER_NAME || 'rin-server' }}-trunk
+          PAGES_NAME: ${{ vars.PAGES_NAME || 'rin-client' }}-trunk
+          DB_NAME: ${{ vars.DB_NAME || 'rin' }}-trunk
+          NAME: ${{ vars.NAME || 'Rin' }} (Trunk Preview)
+          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
+          AVATAR: ${{ vars.AVATAR || '' }}
+          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
+          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
+          R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME || '' }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || '' }}
+          S3_ACCESS_HOST: ${{ secrets.S3_ACCESS_HOST || '' }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET || '' }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID || '' }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY || '' }}
+          RIN_GITHUB_CLIENT_ID: ${{ secrets.RIN_GITHUB_CLIENT_ID || '' }}
+          RIN_GITHUB_CLIENT_SECRET: ${{ secrets.RIN_GITHUB_CLIENT_SECRET || '' }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME || 'admin' }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'admin123' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          WEBHOOK_URL: ${{ vars.WEBHOOK_URL || '' }}
+          RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
+          RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
+        run: |
+          export CF_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
+          bun run deploy
+          echo "url=https://${PAGES_NAME}.pages.dev" >> $GITHUB_OUTPUT
+
+      - name: Comment deployment URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}';
+            const workerUrl = 'https://${{ vars.WORKER_NAME || 'rin-server' }}-trunk.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev';
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `🚀 **Trunk Preview Deployed!**\n\n- Frontend: ${url}\n- Backend: ${workerUrl}`
+            });
+
+  # Preview deployment for Pull Requests
+  deploy-preview-pr:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: preview-pr-${{ github.event.number }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.6
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run typecheck
+        run: bun run typecheck
+
+      - name: Run build
+        run: bun run build
+
+      - name: Deploy to Cloudflare (PR Preview)
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_NAME: ${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ github.event.number }}
+          PAGES_NAME: ${{ vars.PAGES_NAME || 'rin-client' }}-pr-${{ github.event.number }}
+          DB_NAME: ${{ vars.DB_NAME || 'rin' }}-pr-${{ github.event.number }}
+          NAME: ${{ vars.NAME || 'Rin' }} (PR #${{ github.event.number }})
+          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
+          AVATAR: ${{ vars.AVATAR || '' }}
+          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
+          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
+          R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME || '' }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || '' }}
+          S3_ACCESS_HOST: ${{ secrets.S3_ACCESS_HOST || '' }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET || '' }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID || '' }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY || '' }}
+          RIN_GITHUB_CLIENT_ID: ${{ secrets.RIN_GITHUB_CLIENT_ID || '' }}
+          RIN_GITHUB_CLIENT_SECRET: ${{ secrets.RIN_GITHUB_CLIENT_SECRET || '' }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME || 'admin' }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'admin123' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          WEBHOOK_URL: ${{ vars.WEBHOOK_URL || '' }}
+          RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
+          RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
+        run: |
+          export CF_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
+          bun run deploy
+          echo "url=https://${PAGES_NAME}.pages.dev" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with deployment URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}';
+            const workerUrl = 'https://${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ github.event.number }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev';
+            const prNumber = ${{ github.event.number }};
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('Preview Deployed')
+            );
+            
+            const body = `🚀 **Preview Deployed!**\n\n- Frontend: ${url}\n- Backend: ${workerUrl}\n\n*This preview will be automatically updated when you push new commits.*`;
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
+
+  # Cleanup preview deployments when PR is closed
+  cleanup-preview-pr:
+    if: github.event_name == 'pull_request' && (github.event.action == 'closed' || contains(github.event.pull_request.state, 'closed'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.6
+
+      - name: Delete PR Preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          WORKER_NAME="${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ github.event.number }}"
+          PAGES_NAME="${{ vars.PAGES_NAME || 'rin-client' }}-pr-${{ github.event.number }}"
+          
+          echo "Deleting preview deployment for PR #${{ github.event.number }}..."
+          
+          # Delete Worker
+          bunx wrangler delete --name="$WORKER_NAME" --force || echo "Worker not found or already deleted"
+          
+          # Delete Pages project
+          bunx wrangler pages project delete "$PAGES_NAME" --force || echo "Pages project not found or already deleted"
+          
+          echo "✅ Preview deployment cleaned up"
+
+      - name: Comment PR cleanup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.number }};
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: '🧹 **Preview deployment has been cleaned up.**\n\nThe temporary preview environment for this PR has been deleted.'
+            });

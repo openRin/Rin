@@ -7,6 +7,8 @@ import { Padding } from './components/padding'
 import useTableOfContents from './hooks/useTableOfContents.tsx'
 import { client } from './main'
 import { CallbackPage } from './page/callback'
+import { LoginPage } from './page/login'
+import { ProfilePage } from './page/profile'
 import { FeedPage, TOCHeader } from './page/feed'
 import { FeedsPage } from './page/feeds'
 import { FriendsPage } from './page/friends'
@@ -28,7 +30,7 @@ import { ErrorPage } from './page/error.tsx'
 function App() {
   const ref = useRef(false)
   const { t } = useTranslation()
-  const [profile, setProfile] = useState<Profile | undefined>()
+  const [profile, setProfile] = useState<Profile | undefined | null>(undefined)
   const [config, setConfig] = useState<ConfigWrapper>(new ConfigWrapper({}, new Map()))
   useEffect(() => {
     // --- 自动缩放逻辑开始 ---
@@ -45,14 +47,17 @@ function App() {
     if (ref.current) return
     client.user.profile({
       headers: headersWithAuth()
-    }).then(({ data }) => {
+    }).then(({ data, error }) => {
       if (data) {
         setProfile({
           id: data.id,
           avatar: data.avatar || '',
-          permission: data.permission === 1,
+          permission: data.permission,
           name: data.username
         })
+      } else if (error) {
+        // User not authenticated
+        setProfile(null)
       }
     })
     const config = sessionStorage.getItem('config')
@@ -133,6 +138,14 @@ function App() {
 
             <RouteMe path="/callback" >
               <CallbackPage />
+            </RouteMe>
+
+            <RouteMe path="/login" >
+              <LoginPage />
+            </RouteMe>
+
+            <RouteMe path="/profile" >
+              <ProfilePage />
             </RouteMe>
 
             <RouteWithIndex path="/feed/:id">

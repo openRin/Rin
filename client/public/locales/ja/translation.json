@@ -289,5 +289,22 @@
     "self_only": "自分のみ可視"
   },
   "writing": "執筆",
-  "year$year": "{{year}} 年"
+  "year$year": "{{year}} 年",
+  "profile": {
+    "title": "プロフィール",
+    "avatar": "アバター",
+    "avatar_hint": "クリックしてアバターをアップロード（最大2MB）",
+    "username": "ユーザー名",
+    "username_placeholder": "ユーザー名を入力してください",
+    "save": "保存",
+    "saving": "保存中...",
+    "success": "保存しました",
+    "error": {
+      "file_too_large": "ファイルサイズは2MBを超えてはなりません",
+      "invalid_file_type": "画像ファイルをアップロードしてください",
+      "empty_username": "ユーザー名は空にできません",
+      "update_failed": "更新に失敗しました",
+      "network": "ネットワークエラー、もう一度お試しください"
+    }
+  }
 }

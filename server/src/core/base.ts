@@ -1,7 +1,7 @@
 import { Router, createRouter } from "./router";
 import { corsMiddleware, timingMiddleware } from "./middleware";
 import { deriveAuth, createCookieHelpers } from "./setup";
-import type { Context } from "./types";
+import type { Context, OAuth2Utils } from "./types";
 
 // Lazy initialization container
 class LazyInitContainer {
@@ -98,19 +98,18 @@ export function createBaseApp(env: Env): Router {
         });
 
         // Lazy load OAuth only when needed
-        const oauth2 = await container.get('oauth2', async () => {
-            const { createOAuthPlugin, GitHubProvider } = await import('../utils/oauth');
-            const clientId = env.RIN_GITHUB_CLIENT_ID;
-            const clientSecret = env.RIN_GITHUB_CLIENT_SECRET;
-            
-            if (!clientId || !clientSecret) {
-                throw new Error('GitHub OAuth credentials are not set');
-            }
-
-            return createOAuthPlugin({
-                GitHub: new GitHubProvider({ clientId, clientSecret })
+        let oauth2: OAuth2Utils | undefined = undefined;
+        if (env.RIN_GITHUB_CLIENT_ID && env.RIN_GITHUB_CLIENT_SECRET) {
+            oauth2 = await container.get('oauth2', async () => {
+                const { createOAuthPlugin, GitHubProvider } = await import('../utils/oauth');
+                return createOAuthPlugin({
+                    GitHub: new GitHubProvider({ 
+                        clientId: env.RIN_GITHUB_CLIENT_ID, 
+                        clientSecret: env.RIN_GITHUB_CLIENT_SECRET 
+                    })
+                });
             });
-        });
+        }
 
         // Set context store
         context.store = {

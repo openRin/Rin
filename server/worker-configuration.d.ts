@@ -20,6 +20,8 @@ declare namespace Cloudflare {
 		RSS_DESCRIPTION: "Development Environment";
 		RIN_GITHUB_CLIENT_ID: string;
 		RIN_GITHUB_CLIENT_SECRET: string;
+		ADMIN_USERNAME: string;
+		ADMIN_PASSWORD: string;
 		JWT_SECRET: string;
 		S3_ACCESS_KEY_ID: string;
 		S3_SECRET_ACCESS_KEY: string;

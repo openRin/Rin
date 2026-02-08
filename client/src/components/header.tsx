@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
 import { Link, useLocation } from "wouter";
-import { useLoginModal } from "../hooks/useLoginModal";
 import { Profile, ProfileContext } from "../state/profile";
 import { Button } from "./button";
 import { IconSmall } from "./icon";
@@ -11,6 +10,7 @@ import { Input } from "./input";
 import { Padding } from "./padding";
 import { ClientConfigContext } from "../state/config";
 import { client } from "../main";
+import { removeAuthToken } from "../utils/auth";
 
 
 export function Header({ children }: { children?: React.ReactNode }) {
@@ -252,32 +252,38 @@ function SearchButton({ className, onClose }: { className?: string, onClose?: ()
 }
 
 
-function UserAvatar({ className, profile, onClose }: { className?: string, profile?: Profile, onClose?: () => void }) {
+function UserAvatar({ className, profile }: { className?: string, profile?: Profile | null }) {
     const { t } = useTranslation()
-    const { LoginModal, setIsOpened } = useLoginModal(onClose)
+    const [, setLocation] = useLocation()
     const label = t('github_login')
     const config = useContext(ClientConfigContext);
 
-
     return (
         <> {config.get<boolean>('login.enabled') && <div className={className + " flex flex-row items-center"}>
-            {profile?.avatar ? <>
-                <div className="w-8 relative">
-                    <img src={profile.avatar} alt="Avatar" className="w-8 h-8 rounded-full border" />
-                    <div className="z-50 absolute left-0 top-0 w-10 h-8 opacity-0 hover:opacity-100 duration-300">
+            {profile ? <>
+                <div className="w-8 relative group">
+                    {profile.avatar ? (
+                        <img src={profile.avatar} alt="Avatar" className="w-8 h-8 rounded-full border cursor-pointer" onClick={() => setLocation('/profile')} />
+                    ) : (
+                        <div className="w-8 h-8 rounded-full border cursor-pointer bg-secondary flex items-center justify-center" onClick={() => setLocation('/profile')}>
+                            <i className="ri-user-line text-lg t-secondary"></i>
+                        </div>
+                    )}
+                    <div className="z-50 absolute left-0 top-0 w-10 h-8 opacity-0 group-hover:opacity-100 duration-300 flex flex-row gap-1">
+                        <IconSmall label={t('profile.title')} name="ri-user-settings-line" onClick={() => setLocation('/profile')} hover={false} />
                         <IconSmall label={t('logout')} name="ri-logout-circle-line" onClick={async () => {
                             await client.user.logout()
+                            removeAuthToken()
                             window.location.reload()
                         }} hover={false} />
                     </div>
                 </div>
             </> : <>
-                <button onClick={() => setIsOpened(true)} title={label} aria-label={label}
+                <button onClick={() => setLocation('/login')} title={label} aria-label={label}
                     className="flex rounded-full border dark:border-neutral-600 px-2 bg-w aspect-[1] items-center justify-center t-primary bg-button">
                     <i className="ri-user-received-line"></i>
                 </button>
             </>}
-            <LoginModal />
         </div>
         }</>)
 }

@@ -89,6 +89,9 @@ S3_FORCE_PATH_STYLE = "${env.S3_FORCE_PATH_STYLE || 'false'}"
 WEBHOOK_URL = "${env.WEBHOOK_URL || ''}"
 RSS_TITLE = "${env.RSS_TITLE || 'Rin Development'}"
 RSS_DESCRIPTION = "${env.RSS_DESCRIPTION || 'Development Environment'}"
+CACHE_STORAGE_MODE = "${env.CACHE_STORAGE_MODE || 's3'}"
+ADMIN_USERNAME = "${env.ADMIN_USERNAME}"
+ADMIN_PASSWORD = "${env.ADMIN_PASSWORD}"
 
 [[d1_databases]]
 binding = "DB"

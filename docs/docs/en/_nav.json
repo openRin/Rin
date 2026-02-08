@@ -14,6 +14,12 @@
     ]
   },
   {
+    "text": "Blog",
+    "items": [
+      { "text": "Rin 0.3.0 Released", "link": "/en/blog/v0.3.0-release" }
+    ]
+  },
+  {
     "text": "Configuration",
     "items": [
       { "text": "Environment Variables", "link": "/en/env" }

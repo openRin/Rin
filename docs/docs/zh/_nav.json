@@ -14,6 +14,12 @@
     ]
   },
   {
+    "text": "博客",
+    "items": [
+      { "text": "Rin 0.3.0 发布", "link": "/zh/blog/v0.3.0-release" }
+    ]
+  },
+  {
     "text": "配置",
     "items": [
       { "text": "环境变量", "link": "/zh/env" }

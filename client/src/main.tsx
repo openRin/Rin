@@ -15,6 +15,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { GlobalErrorBoundary } from './components/error-boundary.tsx'
 export const endpoint = process.env.API_URL || 'http://localhost:3001'
 export const oauth_url = process.env.API_URL + '/user/github'
+export const auth_url = process.env.API_URL + '/auth'
 export const client = createClient(endpoint)
 listenSystemMode()
 i18n

@@ -2,6 +2,7 @@
 // This client provides a clean, type-safe interface for all backend API endpoints
 
 import { endpoint } from "../main";
+import { getAuthToken } from "../utils/auth";
 
 // ============================================================================
 // Types
@@ -94,7 +95,7 @@ export interface UserProfile {
   id: number;
   username: string;
   avatar: string | null;
-  permission: number;
+  permission: boolean;
 }
 
 // Tag types
@@ -225,6 +226,12 @@ class HttpClient {
       'Accept': 'application/json',
       ...options?.headers,
     };
+
+    // Add Authorization header if token exists and not already provided
+    const token = getAuthToken();
+    if (token && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     const init: RequestInit = {
       method,
@@ -372,12 +379,53 @@ class FeedAPI {
   }
 }
 
+// Auth types
+export interface AuthStatus {
+  github: boolean;
+  password: boolean;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  token?: string;
+  user: UserProfile;
+}
+
+class AuthAPI {
+  constructor(private client: HttpClient) {}
+
+  // GET /auth/status
+  async status(options?: RequestOptions): Promise<ApiResponse<AuthStatus>> {
+    return this.client.get<AuthStatus>('/auth/status', options);
+  }
+
+  // POST /auth/login
+  async login(body: LoginRequest, options?: RequestOptions): Promise<ApiResponse<LoginResponse>> {
+    return this.client.post<LoginResponse>('/auth/login', body, options);
+  }
+}
+
+export interface UpdateProfileRequest {
+  username?: string;
+  avatar?: string | null;
+}
+
 class UserAPI {
   constructor(private client: HttpClient) {}
 
   // GET /user/profile
   async profile(options?: RequestOptions): Promise<ApiResponse<UserProfile>> {
     return this.client.get<UserProfile>('/user/profile', options);
+  }
+
+  // PUT /user/profile
+  async updateProfile(body: UpdateProfileRequest, options?: RequestOptions): Promise<ApiResponse<{ success: boolean }>> {
+    return this.client.put<{ success: boolean }>('/user/profile', body, options);
   }
 
   // POST /user/logout
@@ -618,6 +666,7 @@ export class ApiClient {
   
   public feed: FeedAPI;
   public user: UserAPI;
+  public auth: AuthAPI;
   public tag: TagAPI;
   public comment: CommentAPI;
   public friend: FriendAPI;
@@ -636,6 +685,7 @@ export class ApiClient {
     
     this.feed = new FeedAPI(this.http);
     this.user = new UserAPI(this.http);
+    this.auth = new AuthAPI(this.http);
     this.tag = new TagAPI(this.http);
     this.comment = new CommentAPI(this.http);
     this.friend = new FriendAPI(this.http);

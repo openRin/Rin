@@ -117,7 +117,16 @@
   "listed": "列出在文章中",
   "load_more": "加载更多",
   "login": {
+    "error": {
+      "empty": "请输入用户名和密码",
+      "failed": "登录失败",
+      "invalid": "用户名或密码错误",
+      "network": "网络错误，请重试"
+    },
+    "loading": "登录中...",
+    "no_methods": "没有可用的登录方式",
     "oauth_only": "请登录后继续",
+    "or": "或",
     "password": {
       "placeholder": "请输入密码"
     },
@@ -289,5 +298,22 @@
     "self_only": "仅自己可见"
   },
   "writing": "写作",
-  "year$year": "{{year}} 年"
+  "year$year": "{{year}} 年",
+  "profile": {
+    "title": "个人资料",
+    "avatar": "头像",
+    "avatar_hint": "点击上传头像（最大 2MB）",
+    "username": "昵称",
+    "username_placeholder": "请输入昵称",
+    "save": "保存",
+    "saving": "保存中...",
+    "success": "保存成功",
+    "error": {
+      "file_too_large": "文件大小不能超过 2MB",
+      "invalid_file_type": "请上传图片文件",
+      "empty_username": "昵称不能为空",
+      "update_failed": "更新失败",
+      "network": "网络错误，请重试"
+    }
+  }
 }

@@ -56,6 +56,51 @@ bun run dev
 
 Visit http://localhost:5173 to start hacking!
 
+### One-Command Deployment
+
+Deploy both frontend and backend to Cloudflare with a single command:
+
+```bash
+# Deploy everything (frontend + backend)
+bun run deploy
+
+# Deploy only backend
+bun run deploy:server
+
+# Deploy only frontend
+bun run deploy:client
+```
+
+**Required environment variables:**
+- `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
+- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+
+**Optional environment variables:**
+- `WORKER_NAME` - Backend worker name (default: `rin-server`)
+- `PAGES_NAME` - Frontend pages name (default: `rin-client`)
+- `DB_NAME` - D1 database name (default: `rin`)
+- `R2_BUCKET_NAME` - R2 bucket name (auto-discovered if not set)
+
+The deployment script will automatically:
+- Create D1 database if it doesn't exist
+- Auto-discover R2 bucket for image storage
+- Deploy backend to Workers
+- Build and deploy frontend to Pages
+- Run database migrations
+
+### GitHub Actions Auto-Deployment
+
+The repository includes a GitHub Actions workflow for automatic deployment on push to main/master branch.
+
+**Required secrets (Repository Settings → Secrets and variables → Actions):**
+- `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token with Workers and Pages permissions
+- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+
+**Optional configuration (Repository Settings → Secrets and variables → Variables):**
+- `WORKER_NAME`, `PAGES_NAME`, `DB_NAME` - Resource names
+- `NAME`, `DESCRIPTION`, `AVATAR` - Site configuration
+- `R2_BUCKET_NAME` - Specific R2 bucket to use
+
 Full documentation is available at https://docs.openrin.org.
 
 ## Community & Support

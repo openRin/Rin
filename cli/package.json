@@ -1,0 +1,19 @@
+{
+  "name": "rin-cli",
+  "version": "1.0.0",
+  "description": "Rin CLI - Unified command line interface for Rin blog platform",
+  "type": "module",
+  "bin": {
+    "rin": "./bin/rin.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "strip-indent": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.2",
+    "typescript": "^5.0.0"
+  }
+}

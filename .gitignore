@@ -4,6 +4,7 @@ dist/**
 .turbo
 *.db
 .env
+.secrets
 test.ts
 *.log
 .env.production
