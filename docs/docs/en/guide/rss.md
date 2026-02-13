@@ -20,14 +20,18 @@ You can add these environment variables in GitHub under `Settings` > `Secrets an
 In the Cloudflare Workers panel, open the details page of your domain, click `Workers Routes`, and add a new route. The route should be:
 
 ```
-<frontend domain>/sub/*
+<frontend domain>/*
 ```
 
 For example:
 
 ```
-xeu.life/sub/*
+xeu.life/*
 ```
+
+:::note
+Note: RSS subscription paths have been moved from `/sub/` to the root path. The old `/sub/` paths remain available for backward compatibility.
+:::
 
 Select the Worker you deployed, and click save.
 
@@ -40,17 +44,17 @@ If you have also configured domestic CDN acceleration, you will need to set the 
 The subscription address for RSS is:
 
 ```
-<frontend domain>/sub/rss.xml
+<frontend domain>/rss.xml
 ```
 
 The subscription address for Atom is:
 
 ```
-<frontend domain>/sub/atom.xml
+<frontend domain>/atom.xml
 ```
 
 The subscription address for Json is:
 
 ```
-<frontend domain>/sub/rss.json
+<frontend domain>/rss.json
 ```

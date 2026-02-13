@@ -35,13 +35,11 @@ bun run dev
 
 This will automatically:
 - ✅ Generate `wrangler.toml` configuration file
-- ✅ Generate `client/.env` frontend environment variables
 - ✅ Generate `.dev.vars` sensitive information file
 - ✅ Run database migrations
-- ✅ Start backend service (port 11498)
-- ✅ Start frontend service (port 5173)
+- ✅ Start development server (port 11498 - unified frontend and backend)
 
-Visit http://localhost:5173 to start developing!
+Visit http://localhost:11498 to start developing!
 
 ## Environment Variable Configuration
 

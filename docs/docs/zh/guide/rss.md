@@ -18,14 +18,18 @@ RSS_DESCRIPTION=<RSS 描述，默认为 Feed from Rin>
 在 Cloudflare Workers 面板中打开自己的域名详情页，点击 `Workers 路由`，添加一个新路由，路由填写为：
 
 ```
-<前端域名>/sub/*
+<前端域名>/*
 ```
 
 如：
 
 ```
-xeu.life/sub/*
+xeu.life/*
 ```
+
+:::note
+注意：RSS 订阅地址已经从 `/sub/` 路径迁移到根路径，旧的 `/sub/` 路径仍然可用以保持向后兼容。
+:::
 
 Worker 选择为部署的 Worker，点击保存。
 
@@ -39,17 +43,17 @@ Worker 选择为部署的 Worker，点击保存。
 RSS 的订阅地址为：
 
 ```
-<前端域名>/sub/rss.xml
+<前端域名>/rss.xml
 ```
 
 Atom 的订阅地址为：
 
 ```
-<前端域名>/sub/atom.xml
+<前端域名>/atom.xml
 ```
 
 Json 的订阅地址为：
 
 ```
-<前端域名>/sub/rss.json
+<前端域名>/rss.json
 ```

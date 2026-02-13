@@ -42,7 +42,7 @@ S3 configuration is not required, but if you want to use the image upload featur
 configuration.
 :::
 
-5. Copy the `client/.env.example` file to `client/.env` and change the necessary configuration.
+5. Fill in the required configuration in `.env.local` file.
 
 :::tip
 Typically, you only need to fill in `AVATAR`, `NAME` and `DESCRIPTION`.
