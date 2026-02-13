@@ -117,20 +117,34 @@ jobs:
 
       - name: Determine deployment config
         id: config
+        env:
+          # Repository-level variables (available before environment is set)
+          REPO_NAME: ${{ vars.NAME }}
+          REPO_DESCRIPTION: ${{ vars.DESCRIPTION }}
+          REPO_AVATAR: ${{ vars.AVATAR }}
+          REPO_PAGE_SIZE: ${{ vars.PAGE_SIZE }}
+          REPO_RSS_ENABLE: ${{ vars.RSS_ENABLE }}
+          REPO_WORKER_NAME: ${{ vars.WORKER_NAME }}
+          REPO_DB_NAME: ${{ vars.DB_NAME }}
         run: |
           if [[ "${{ needs.prepare.outputs.is_production }}" == "true" ]]; then
-            echo "worker_name=${{ vars.WORKER_NAME || 'rin-server' }}" >> $GITHUB_OUTPUT
-            echo "db_name=${{ vars.DB_NAME || 'rin' }}" >> $GITHUB_OUTPUT
-            echo "name=${{ vars.NAME || 'Rin' }}" >> $GITHUB_OUTPUT
+            echo "worker_name=${REPO_WORKER_NAME:-rin-server}" >> $GITHUB_OUTPUT
+            echo "db_name=${REPO_DB_NAME:-rin}" >> $GITHUB_OUTPUT
+            echo "name=${REPO_NAME:-Rin}" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.prepare.outputs.is_trunk }}" == "true" ]]; then
-            echo "worker_name=${{ vars.WORKER_NAME || 'rin-server' }}-trunk" >> $GITHUB_OUTPUT
-            echo "db_name=${{ vars.DB_NAME || 'rin' }}-trunk" >> $GITHUB_OUTPUT
-            echo "name=${{ vars.NAME || 'Rin' }} (Trunk Preview)" >> $GITHUB_OUTPUT
+            echo "worker_name=${REPO_WORKER_NAME:-rin-server}-trunk" >> $GITHUB_OUTPUT
+            echo "db_name=${REPO_DB_NAME:-rin}-trunk" >> $GITHUB_OUTPUT
+            echo "name=${REPO_NAME:-Rin} (Trunk Preview)" >> $GITHUB_OUTPUT
           else
-            echo "worker_name=${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
-            echo "db_name=${{ vars.DB_NAME || 'rin' }}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
-            echo "name=${{ vars.NAME || 'Rin' }} (PR #${{ needs.prepare.outputs.pr_number }})" >> $GITHUB_OUTPUT
+            echo "worker_name=${REPO_WORKER_NAME:-rin-server}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
+            echo "db_name=${REPO_DB_NAME:-rin}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
+            echo "name=${REPO_NAME:-Rin} (PR #${{ needs.prepare.outputs.pr_number }})" >> $GITHUB_OUTPUT
           fi
+          # Output repository-level vars for use in deploy step
+          echo "description=${REPO_DESCRIPTION}" >> $GITHUB_OUTPUT
+          echo "avatar=${REPO_AVATAR}" >> $GITHUB_OUTPUT
+          echo "page_size=${REPO_PAGE_SIZE}" >> $GITHUB_OUTPUT
+          echo "rss_enable=${REPO_RSS_ENABLE}" >> $GITHUB_OUTPUT
 
       - name: Deploy to Cloudflare
         id: deploy
@@ -140,10 +154,10 @@ jobs:
           WORKER_NAME: ${{ steps.config.outputs.worker_name }}
           DB_NAME: ${{ steps.config.outputs.db_name }}
           NAME: ${{ steps.config.outputs.name }}
-          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
-          AVATAR: ${{ vars.AVATAR || '' }}
-          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
-          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
+          DESCRIPTION: ${{ steps.config.outputs.description || 'A lightweight personal blogging system' }}
+          AVATAR: ${{ steps.config.outputs.avatar || '' }}
+          PAGE_SIZE: ${{ steps.config.outputs.page_size || '5' }}
+          RSS_ENABLE: ${{ steps.config.outputs.rss_enable || 'false' }}
           R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME || '' }}
           S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || '' }}
           S3_ACCESS_HOST: ${{ secrets.S3_ACCESS_HOST || '' }}

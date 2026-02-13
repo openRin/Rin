@@ -46,13 +46,40 @@ If you prefer simple username/password authentication over GitHub OAuth:
     - `ADMIN_USERNAME`: Your desired username
     - `ADMIN_PASSWORD`: Your desired password
 
-### Step 3: Specify Pages Name
+### Step 3: Remove Pages (Optional but Recommended)
 
-Starting from 0.3.0, Pages are also deployed via GitHub Action. You can set the Pages name by specifying the environment variable `PAGES_NAME`, or delete old Pages after deployment.
+Starting from 0.3.0, Rin now uses Workers to host static assets instead of Cloudflare Pages. Follow these steps to migrate:
+
+1. **Unbind Pages Domain**
+   - Go to Cloudflare Dashboard → Pages
+   - Select your Pages project → Custom domains
+   - Remove the bound domain
+
+2. **Bind Domain to Worker**
+   - Go to Cloudflare Dashboard → Workers & Pages
+   - Select your Worker (`rin-server`)
+   - Click "Triggers" → "Add Custom Domain"
+   - Enter your domain and save
+
+3. **Clean Up Extra Domain Bindings**
+   - Check the Worker's custom domain list
+   - Remove unnecessary bindings (e.g., `seo/*`, `sub/*`, etc.)
+
+4. **Update GitHub OAuth Callback**
+   - Go to GitHub → Settings → Developer settings → OAuth Apps
+   - Find your OAuth App
+   - Change the Authorization callback URL from:
+     - `https://<worker-domain>/user/github/callback`
+   - To:
+     - `https://<your-domain>/api/user/github/callback`
 
 ### Step 4: Update Cloudflare API Key Permissions
 
-The new version includes Pages deployment, so please add Pages editing permissions to your configured Cloudflare.
+Ensure your Cloudflare API Token has the following permissions:
+- **Cloudflare Workers**:Edit
+- **Account**:Read
+- **D1**:Edit
+- **R2**:Edit (if using R2 storage)
 
 ![1000000663](/cloudflare-api-key-en.png)
 

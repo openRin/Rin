@@ -46,16 +46,40 @@ GITHUB_CLIENT_SECRET  → RIN_GITHUB_CLIENT_SECRET
    - `ADMIN_USERNAME`: 您想要的用户名
    - `ADMIN_PASSWORD`: 您想要的密码
 
-### 第三步：指定 Pages 名称
+### 第三步：移除 Pages（可选但推荐）
 
-自 0.3.0 开始，Pages 也通过 GitHub Action 部署，可通过指定环境变量
-`PAGES_NAME` 设置 Pages 名称，或在部署后删除旧的 Pages
+自 0.3.0 开始，Rin 改为使用 Workers 托管静态资源，不再依赖 Cloudflare Pages。建议按以下步骤迁移：
 
+1. **解绑 Pages 域名**
+   - 进入 Cloudflare Dashboard → Pages
+   - 选择您的 Pages 项目 → 自定义域
+   - 删除绑定的域名
 
+2. **将域名绑定到 Worker**
+   - 进入 Cloudflare Dashboard → Workers & Pages
+   - 选择您的 Worker (`rin-server`)
+   - 点击"触发器" → "添加自定义域"
+   - 输入您的域名并保存
+
+3. **清理多余的域名绑定**
+   - 检查 Worker 的自定义域列表
+   - 删除不需要的绑定（如 `seo/*`、`sub/*` 等）
+
+4. **更新 GitHub OAuth Callback**
+   - 进入 GitHub → Settings → Developer settings → OAuth Apps
+   - 找到您的 OAuth App
+   - 将 Authorization callback URL 从：
+     - `https://<worker-domain>/user/github/callback`
+   - 修改为：
+     - `https://<your-domain>/api/user/github/callback`
 
 ### 第四步：更新 Cloudflare API Key 权限
 
-新版本包含 Pages 部署，因此请为配置的 Cloudflare 增加 Pages 编辑权限
+确保您的 Cloudflare API Token 具有以下权限：
+- **Cloudflare Workers**:Edit
+- **Account**:Read
+- **D1**:Edit
+- **R2**:Edit (如果使用 R2 存储)
 
 ![1000000663](/cloudflare-api-key-cn.png)
 

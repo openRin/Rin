@@ -50,6 +50,14 @@ const AVATAR = env("AVATAR", "")
 const PAGE_SIZE = env("PAGE_SIZE", "5")
 const RSS_ENABLE = env("RSS_ENABLE", "false")
 
+// Debug: Log environment variables
+console.log("Environment variables:")
+console.log(`  NAME: ${NAME}`)
+console.log(`  DESCRIPTION: ${DESCRIPTION}`)
+console.log(`  AVATAR: ${AVATAR}`)
+console.log(`  PAGE_SIZE: ${PAGE_SIZE}`)
+console.log(`  RSS_ENABLE: ${RSS_ENABLE}`)
+
 async function getR2BucketInfo(): Promise<{ name: string; endpoint: string; accessHost: string } | null> {
     try {
         // If R2 bucket name is explicitly provided, use it
@@ -117,13 +125,24 @@ async function getR2BucketInfo(): Promise<{ name: string; endpoint: string; acce
 async function buildClient(): Promise<void> {
     console.log("🔨 Building client...")
 
-    // Check if pre-built dist exists
-    const prebuiltDist = './dist/client'
-    const prebuiltIndexHtml = prebuiltDist + '/index.html'
-    const hasPrebuilt = await Bun.file(prebuiltIndexHtml).exists()
+    // Check if pre-built dist exists in artifacts location
+    const artifactDist = './dist/client'
+    const artifactIndexHtml = artifactDist + '/index.html'
+    const hasArtifact = await Bun.file(artifactIndexHtml).exists()
 
-    if (hasPrebuilt) {
-        console.log("✅ Using pre-built client from ./dist/client")
+    if (hasArtifact) {
+        console.log("✅ Using pre-built client from artifacts (./dist/client)")
+        return
+    }
+
+    // Check if client/dist exists (local development build)
+    const localDist = './client/dist'
+    const localIndexHtml = localDist + '/index.html'
+    const hasLocalBuild = await Bun.file(localIndexHtml).exists()
+
+    if (hasLocalBuild) {
+        console.log("✅ Using local build from ./client/dist")
+        await $`mkdir -p ./dist/client && cp -r ./client/dist/* ./dist/client/`.quiet()
         return
     }
 
@@ -159,11 +178,22 @@ async function deploy(): Promise<string> {
     // Build client
     await buildClient()
 
+    // Determine server entry point - use built dist if available, otherwise use source
+    const serverDistIndex = './server/dist/index.js'
+    const hasServerBuild = await Bun.file(serverDistIndex).exists()
+    const serverMain = hasServerBuild ? 'server/dist/index.js' : 'server/src/_worker.ts'
+    
+    if (hasServerBuild) {
+        console.log(`✅ Using pre-built server from ${serverMain}`)
+    } else {
+        console.log(`⚠️ No server build found, using source: ${serverMain}`)
+    }
+
     // Create wrangler.toml with assets configuration
     Bun.write('wrangler.toml', stripIndent(`
 #:schema node_modules/wrangler/config-schema.json
 name = "${WORKER_NAME}"
-main = "server/src/_worker.ts"
+main = "${serverMain}"
 compatibility_date = "2026-01-20"
 
 [assets]
