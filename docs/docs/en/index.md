@@ -22,12 +22,24 @@ features:
   - title: Dynamic
     details: No build for write, just write and edit real-time
     icon: 🪶
+  - title: Type Safety
+    details: End-to-end type safety with shared @rin/api types
+    icon: 🛡️
   - title: Health check
     details: Check your friends link every 20 minutes
     icon: 🧐
   - title: Hashtags
     details: Free to use hashtags in your article
     icon: 🏷️
+  - title: Comprehensive Testing
+    details: Full test coverage with Vitest & Bun test runner
+    icon: 🧪
+  - title: Modern API Client
+    details: Custom HTTP client replacing Eden for better type safety
+    icon: 🔌
+  - title: CI/CD Ready
+    details: GitHub Actions workflows for automated testing & deployment
+    icon: 🚀
   - title: Internationalization
     details: Support English, Simplified Chinese and Japanese
     icon: ✈️
