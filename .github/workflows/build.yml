@@ -74,11 +74,10 @@ jobs:
           mode: 'dry-run'
 
       # Build server (wrangler dry-run to output dist)
+      # Note: Must run from root dir where wrangler.toml exists
       - name: Build server
         run: |
-          cd server
-          bun run build
-          cd ..
+          bunx wrangler deploy --dry-run --outdir=server/dist
           ls -la ./server/dist/ || echo "Server dist not found"
 
       - name: Upload build artifacts
