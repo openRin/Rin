@@ -55,9 +55,8 @@ const requiredVars = [
     'RIN_GITHUB_CLIENT_SECRET',
     'JWT_SECRET',
     'S3_ACCESS_KEY_ID',
-    'S3_SECRET_ACCESS_KEY',
-    'BACKEND_PORT',
-    'FRONTEND_PORT'
+    'S3_SECRET_ACCESS_KEY'
+    // BACKEND_PORT and FRONTEND_PORT removed - now using unified port
 ];
 
 const missingVars = requiredVars.filter(v => !env[v]);
@@ -72,13 +71,23 @@ if (missingVars.length > 0) {
 const wranglerContent = `#:schema node_modules/wrangler/config-schema.json
 name = "${env.WORKER_NAME || 'rin-server'}"
 main = "server/src/_worker.ts"
-compatibility_date = "2026-01-20"
+compatibility_date = "2025-03-21"
+
+# Assets configuration - serves static files from ./dist/client
+# For development, we use wrangler dev with ASSETS to serve both frontend and backend on same port
+[assets]
+directory = "./dist/client"
+binding = "ASSETS"
+# Worker handles all requests first, static assets served by Worker logic
+run_worker_first = true
+# SPA support - serve index.html for unmatched routes
+not_found_handling = "single-page-application"
 
 [triggers]
 crons = ["*/20 * * * *"]
 
 [vars]
-FRONTEND_URL = "${env.FRONTEND_URL || 'http://localhost:5173'}"
+FRONTEND_URL = "${env.FRONTEND_URL || 'http://localhost:11498'}"
 S3_FOLDER = "${env.S3_FOLDER || 'images/'}"
 S3_CACHE_FOLDER = "${env.S3_CACHE_FOLDER || 'cache/'}"
 S3_REGION = "${env.S3_REGION || 'auto'}"

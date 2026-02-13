@@ -17,7 +17,6 @@ const renv = (name: string, defaultValue?: string) => env(name, defaultValue, tr
 
 const DB_NAME = renv("DB_NAME", 'rin')
 const WORKER_NAME = renv("WORKER_NAME", 'rin-server')
-const PAGES_NAME = renv("PAGES_NAME", 'rin-client')
 const FRONTEND_URL = env("FRONTEND_URL", "")
 
 // Auto-discover R2 bucket if not specified
@@ -66,21 +65,17 @@ async function getR2BucketInfo(): Promise<{ name: string; endpoint: string; acce
         // Try to auto-discover R2 bucket
         console.log("Auto-discovering R2 bucket...")
         const { stdout } = await $`bunx wrangler r2 bucket list`.quiet()
-        
+
         // Parse the output - wrangler r2 bucket list doesn't have --json flag
-        // Output format is typically:
-        // Name    Created
-        // bucket1 2024-01-01...
-        // bucket2 2024-01-02...
         const lines = stdout.toString().split('\n').filter(line => line.trim())
-        
-        // Skip header line (starts with "Name" or contains "Created")
-        const bucketLines = lines.filter(line => 
-            !line.startsWith('Name') && 
+
+        // Skip header line
+        const bucketLines = lines.filter(line =>
+            !line.startsWith('Name') &&
             !line.includes('Created') &&
             line.trim().length > 0
         )
-        
+
         if (bucketLines.length === 0) {
             console.log("No R2 buckets found. Skipping R2 configuration.")
             return null
@@ -95,7 +90,7 @@ async function getR2BucketInfo(): Promise<{ name: string; endpoint: string; acce
         // Use the first bucket or look for one with "rin" in the name
         const bucket = buckets.find(b => b.name.toLowerCase().includes('rin')) || buckets[0]
         console.log(`Found R2 bucket: ${bucket.name}`)
-        
+
         // Get account ID from wrangler config
         const accountId = process.env.CF_ACCOUNT_ID
         if (!accountId) {
@@ -118,22 +113,81 @@ async function getR2BucketInfo(): Promise<{ name: string; endpoint: string; acce
     }
 }
 
-async function deployServer(): Promise<string | null> {
-    console.log("🚀 Deploying backend (Workers)...")
-    
+// Build client with correct API URL
+async function buildClient(apiUrl: string): Promise<void> {
+    console.log("🔨 Building client...")
+
+    // Check if pre-built dist exists
+    const prebuiltDist = './dist/client'
+    const prebuiltIndexHtml = prebuiltDist + '/index.html'
+    const hasPrebuilt = await Bun.file(prebuiltIndexHtml).exists()
+
+    // Check if pre-built client has the correct API_URL
+    let usePrebuilt = false
+    if (hasPrebuilt) {
+        const expectedApiUrl = process.env.API_URL || apiUrl
+        const buildApiUrl = process.env.BUILD_API_URL
+
+        if (buildApiUrl && buildApiUrl === expectedApiUrl) {
+            usePrebuilt = true
+            console.log("✅ Using pre-built client (API URL matches)")
+        } else if (hasPrebuilt && !process.env.API_URL) {
+            usePrebuilt = true
+            console.log("✅ Using pre-built client (no custom API_URL)")
+        } else {
+            console.log(`⚠️ Rebuilding client for API_URL: ${expectedApiUrl}`)
+        }
+    }
+
+    if (usePrebuilt) {
+        console.log("Using pre-built client from ./dist/client")
+        return
+    }
+
+    // Create production env file with correct API URL
+    const envContent = `API_URL=${apiUrl}
+NAME=${NAME}
+DESCRIPTION=${DESCRIPTION}
+AVATAR=${AVATAR}
+PAGE_SIZE=${PAGE_SIZE}
+RSS_ENABLE=${RSS_ENABLE}
+`
+    await Bun.write('client/.env.production', envContent)
+    console.log("Created client/.env.production with API_URL=" + apiUrl)
+
+    // Build the client
+    await $`cd client && bun run build`.quiet()
+    console.log("✅ Client built successfully")
+
+    // Update dist/client with the new build
+    await $`mkdir -p ./dist/client && cp -r ./client/dist/* ./dist/client/`.quiet()
+}
+
+async function deploy(): Promise<string> {
+    console.log("🚀 Deploying Rin (Worker + Assets)...")
+
     // Get R2 bucket info
     const r2Info = await getR2BucketInfo()
-    
+
     // Use R2 if available and S3 not explicitly configured
     const finalS3Endpoint = S3_ENDPOINT || r2Info?.endpoint || ""
     const finalS3Bucket = S3_BUCKET || r2Info?.name || ""
     const finalS3AccessHost = S3_ACCESS_HOST || r2Info?.accessHost || finalS3Endpoint
 
+    // Build client first to get the API URL
+    const apiUrl = `https://${WORKER_NAME}.${process.env.CF_ACCOUNT_ID || 'workers'}.workers.dev`
+    await buildClient(apiUrl)
+
+    // Create wrangler.toml with assets configuration
     Bun.write('wrangler.toml', stripIndent(`
 #:schema node_modules/wrangler/config-schema.json
 name = "${WORKER_NAME}"
 main = "server/src/_worker.ts"
 compatibility_date = "2026-01-20"
+
+[assets]
+directory = "./dist/client"
+binding = "ASSETS"
 
 [triggers]
 crons = ["*/20 * * * *"]
@@ -162,6 +216,7 @@ mode = "smart"
         created_at: string,
     }
 
+    // Create D1 database
     const { exitCode, stderr, stdout } = await $`bunx wrangler d1 create ${DB_NAME}`.quiet().nothrow()
     if (exitCode !== 0) {
         if (!stderr.toString().includes('already exists')) {
@@ -176,13 +231,14 @@ mode = "smart"
     } else {
         console.log(`Created D1 "${DB_NAME}"`)
     }
+
+    // Get D1 database info
     console.log(`Searching D1 "${DB_NAME}"`)
     const listJsonString = await $`bunx wrangler d1 list --json`.quiet().text()
     const listJson = JSON.parse(listJsonString) as D1Item[] ?? []
     const existing = listJson.find((x: D1Item) => x.name === DB_NAME)
     if (existing) {
         console.log(`Found: ${existing.name}:${existing.uuid}`)
-        // append to the end of the file
         const configText = stripIndent(`
     [[d1_databases]]
     binding = "DB"
@@ -192,6 +248,7 @@ mode = "smart"
         console.log(`Appended to wrangler.toml`)
     }
 
+    // Run migrations
     console.log(`----------------------------`)
     console.log(`Migrating D1 "${DB_NAME}"`)
     const typ = 'remote';
@@ -217,7 +274,6 @@ mode = "smart"
         } else {
             const lastVersion = parseInt(sqlFiles[sqlFiles.length - 1].split('-')[0]);
             if (lastVersion > migrationVersion) {
-                // Update the migration version
                 await updateMigrationVersion(typ, DB_NAME, lastVersion);
             }
         }
@@ -257,129 +313,37 @@ mode = "smart"
 
     console.log(`Put Done.`)
     console.log(`----------------------------`)
-    console.log(`Deploying Worker`)
+    console.log(`Deploying Worker with Assets`)
+
+    // Deploy worker with assets
     const { stdout: deployOutput, stderr: deployStderr } = await $`echo -e "n\ny\n" | bunx wrangler deploy`
-    
-    // Combine stdout and stderr to capture all output
-    const fullOutput = deployOutput.toString() + deployStderr.toString()
-    
+
     // Extract worker URL from deploy output
-    // Output format: https://worker-name.account.workers.dev
-    // Look for the URL in the output (can be in stdout or stderr)
+    const fullOutput = deployOutput.toString() + deployStderr.toString()
     const urlMatch = fullOutput.match(/https:\/\/[^\s]+\.workers\.dev/)
     const workerUrl = urlMatch ? urlMatch[0] : null
-    
+
     if (workerUrl) {
         console.log(`🌐 Worker URL: ${workerUrl}`)
+        console.log(`✅ Deployment completed successfully!`)
+        console.log(``)
+        console.log(`Your app is now available at: ${workerUrl}`)
     } else {
         console.log(`⚠️ Could not extract Worker URL from output`)
         console.log(`Debug - Output preview: ${fullOutput.substring(0, 500)}`)
     }
-    
-    console.log(`✅ Backend deployed successfully`)
-    
-    return workerUrl
-}
 
-async function deployClient(workerUrl?: string): Promise<string> {
-    console.log("🚀 Deploying frontend (Pages)...")
-    
-    // Get the deployed worker URL
-    let apiUrl = workerUrl
-    if (!apiUrl) {
-        // Fallback: construct URL from worker name
-        apiUrl = `https://${WORKER_NAME}.${process.env.CF_ACCOUNT_ID || 'workers'}.dev`
-        console.log(`Using API URL: ${apiUrl}`)
-    } else {
-        console.log(`Using discovered API URL: ${apiUrl}`)
-    }
-
-    // Create production env file
-    const envContent = `API_URL=${apiUrl}
-NAME=${NAME}
-DESCRIPTION=${DESCRIPTION}
-AVATAR=${AVATAR}
-PAGE_SIZE=${PAGE_SIZE}
-RSS_ENABLE=${RSS_ENABLE}
-`
-    await Bun.write('client/.env.production', envContent)
-    console.log("Created client/.env.production")
-
-    // Build the client
-    console.log("Building client...")
-    await $`cd client && bun run build`.quiet()
-    console.log("✅ Client built successfully")
-
-    // Deploy to Pages
-    console.log("Deploying to Cloudflare Pages...")
-    
-    // Check if project exists
-    const { exitCode: projectExitCode } = await $`bunx wrangler pages project list --json`.quiet().nothrow()
-    let projectExists = false
-    
-    if (projectExitCode === 0) {
-        try {
-            const { stdout } = await $`bunx wrangler pages project list --json`.quiet()
-            const projects = JSON.parse(stdout.toString())
-            projectExists = projects.some((p: any) => p.name === PAGES_NAME)
-        } catch (e) {
-            console.log("Could not check if Pages project exists")
-        }
-    }
-
-    if (!projectExists) {
-        console.log(`Creating Pages project: ${PAGES_NAME}`)
-        await $`bunx wrangler pages project create ${PAGES_NAME} --production-branch=main`.quiet().nothrow()
-    }
-
-    // Deploy - use appropriate branch based on deployment type
-    const isPreview = PAGES_NAME.includes('-pr-') || PAGES_NAME.includes('-trunk')
-    const branch = isPreview ? 'preview' : 'main'
-    
-    try {
-        const { stdout: pagesOutput, stderr: pagesStderr } = await $`cd client && bunx wrangler pages deploy dist --project-name=${PAGES_NAME} --branch=${branch}`
-        
-        // Extract the actual Pages URL from the output
-        // Output format: "Take a peek over at https://xxxxx.pages.dev"
-        const fullPagesOutput = pagesOutput.toString() + pagesStderr.toString()
-        const pagesUrlMatch = fullPagesOutput.match(/https:\/\/[^\s]+\.pages\.dev/)
-        const actualPagesUrl = pagesUrlMatch ? pagesUrlMatch[0] : `https://${PAGES_NAME}.pages.dev`
-        
-        console.log(`✅ Frontend deployed successfully to Pages: ${actualPagesUrl}`)
-        
-        // Return the actual URL for use in the main function
-        return actualPagesUrl
-    } catch (e: any) {
-        // Check if it's an authentication error
-        if (e.stderr?.toString().includes('Authentication error') || e.stderr?.toString().includes('code: 10000')) {
-            console.error('\n❌ Authentication failed for Cloudflare Pages deployment.')
-            console.error('\nPossible causes:')
-            console.error('1. Your API Token does not have "Cloudflare Pages" permission')
-            console.error('2. The Pages project does not exist and could not be created')
-            console.error('\nTo fix this issue:')
-            console.error('1. Go to https://dash.cloudflare.com/profile/api-tokens')
-            console.error('2. Create a new token with these permissions:')
-            console.error('   - Account: Cloudflare Pages:Edit')
-            console.error('   - Account: Workers Scripts:Edit')
-            console.error('   - Zone: (your domain):Edit (if using custom domain)')
-            console.error('3. Update your CLOUDFLARE_API_TOKEN secret')
-            console.error('\nAlternatively, you can manually create the Pages project at:')
-            console.error(`https://dash.cloudflare.com/${process.env.CF_ACCOUNT_ID}/pages/new`)
-        }
-        throw e
-    }
+    return workerUrl || `https://${WORKER_NAME}.workers.dev`
 }
 
 // Parse wrangler JSON output to extract count value (with --json flag)
 function parseWranglerCount(stdout: string): number {
     try {
         const json = JSON.parse(stdout);
-        // --json output format: [{ results: [{ count: N }], success: true, meta: {} }]
         if (Array.isArray(json) && json.length > 0 && json[0].results && json[0].results.length > 0) {
             return parseInt(json[0].results[0].count) || 0;
         }
     } catch (e) {
-        // Fallback to regex if JSON parsing fails
         const match = stdout.match(/"count":\s*(\d+)/);
         if (match) {
             return parseInt(match[1]) || 0;
@@ -392,14 +356,12 @@ function parseWranglerCount(stdout: string): number {
 function parseWranglerFeedIds(stdout: string): number[] {
     try {
         const json = JSON.parse(stdout);
-        // --json output format: [{ results: [{ feed_id: N }, ...], success: true, meta: {} }]
         if (Array.isArray(json) && json.length > 0 && json[0].results) {
             return json[0].results
                 .map((row: any) => parseInt(row.feed_id))
                 .filter((id: number) => !isNaN(id));
         }
     } catch (e) {
-        // Fallback to line parsing if JSON parsing fails
         return stdout
             .split('\n')
             .map(line => line.trim())
@@ -413,14 +375,12 @@ function parseWranglerFeedIds(stdout: string): number[] {
 function parseWranglerIPs(stdout: string): string[] {
     try {
         const json = JSON.parse(stdout);
-        // --json output format: { results: [{ ip: 'x.x.x.x' }, ...], success: true, meta: {} }
         if (json.results) {
             return json.results
                 .map((row: any) => row.ip)
                 .filter((ip: string) => ip && typeof ip === 'string');
         }
     } catch (e) {
-        // Fallback to line parsing if JSON parsing fails
         return stdout
             .split('\n')
             .map(line => line.trim())
@@ -432,78 +392,65 @@ function parseWranglerIPs(stdout: string): string[] {
 // Migrate existing visits data to HyperLogLog format
 async function migrateVisitsToHLL(typ: string, dbName: string) {
     console.log(`Checking if HyperLogLog migration is needed...`);
-    
+
     try {
-        // Check if visit_stats table has data
         const { stdout: countResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT COUNT(*) as count FROM visit_stats WHERE hll_data != ''"`.quiet();
         const migratedCount = parseWranglerCount(countResult.toString());
-        
+
         if (migratedCount > 0) {
             console.log(`  ${migratedCount} feeds already have HLL data. Migration may already be complete.`);
             return;
         }
-        
-        // Check if there are visits to migrate
+
         const { stdout: visitsCount } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT COUNT(*) as count FROM visits"`.quiet();
         const totalVisits = parseWranglerCount(visitsCount.toString());
-        
+
         if (totalVisits === 0) {
             console.log('  No visits to migrate. Skipping.');
             return;
         }
-        
+
         console.log(`  Found ${totalVisits} visits to migrate to HyperLogLog format.`);
         console.log('  Starting migration...');
-        
-        // Get all unique feed_ids from visits
+
         const { stdout: feedIdsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT DISTINCT feed_id FROM visits"`.quiet();
         const feedIds = parseWranglerFeedIds(feedIdsResult.toString());
-        
+
         console.log(`  Processing ${feedIds.length} feeds...`);
-        
-        // Process each feed
+
         let processed = 0;
         for (const feedId of feedIds) {
             try {
-                // Get all IPs for this feed
                 const { stdout: ipsResult } = await $`bunx wrangler d1 execute ${dbName} --${typ} --json --command="SELECT ip FROM visits WHERE feed_id = ${feedId}"`.quiet();
                 const ips = parseWranglerIPs(ipsResult.toString());
-                
+
                 if (ips.length === 0) {
                     console.log(`    Feed ${feedId}: No IPs found, skipping`);
                     continue;
                 }
-                
+
                 console.log(`    Feed ${feedId}: Found ${ips.length} visits`);
-                
-                // Create HLL and add all IPs
+
                 const hllData = await generateHLLData(ips);
-                
-                // Calculate UV
                 const uv = Math.round(await estimateUV(hllData));
                 const pv = ips.length;
                 const timestamp = Math.floor(Date.now() / 1000);
-                
+
                 console.log(`    Feed ${feedId}: PV=${pv}, UV=${uv}`);
-                
-                // Escape single quotes in hllData for SQL (though base64 shouldn't have them)
+
                 const escapedHllData = hllData.replace(/'/g, "''");
-                
-                // Build SQL command - use string concatenation to avoid template literal issues
                 const sqlCommand = `INSERT OR REPLACE INTO visit_stats (feed_id, pv, hll_data, updated_at) VALUES (${feedId}, ${pv}, '${escapedHllData}', ${timestamp})`;
-                
-                // Execute SQL with error handling
+
                 const result = await $`bunx wrangler d1 execute ${dbName} --${typ} --command=${sqlCommand}`.nothrow().quiet();
-                
+
                 if (result.exitCode !== 0) {
                     console.error(`    ❌ Failed to insert feed ${feedId}: ${result.stderr}`);
-                    console.error(`    SQL: ${sqlCommand.substring(0, 100)}...`);
                     continue;
                 }
-                
+
                 console.log(`    ✅ Feed ${feedId}: Inserted successfully`);
                 processed++;
-                
+
                 if (processed % 10 === 0) {
                     console.log(`    Progress: ${processed}/${feedIds.length} feeds processed`);
                 }
@@ -512,18 +459,17 @@ async function migrateVisitsToHLL(typ: string, dbName: string) {
                 continue;
             }
         }
-        
+
         console.log(`\n✅ Migration completed! Processed ${processed} feeds.`);
-        
+
     } catch (error) {
         console.error('❌ Migration failed:', error);
         throw error;
     }
 }
 
-// Generate HLL data from IPs (simplified version for D1 migration)
+// Generate HLL data from IPs
 async function generateHLLData(ips: string[]): Promise<string> {
-    // Import HyperLogLog dynamically
     const { HyperLogLog } = await import('../server/src/utils/hyperloglog');
     const hll = new HyperLogLog();
     for (const ip of ips) {
@@ -539,7 +485,7 @@ async function estimateUV(hllData: string): Promise<number> {
     return hll.count();
 }
 
-// Main deployment logic
+// Main entry point
 async function main() {
     const args = process.argv.slice(2)
     const deployTarget = args[0] || 'all'
@@ -549,27 +495,9 @@ async function main() {
     console.log(``)
 
     try {
-        let workerUrl: string | null = null
-        let pagesUrl: string = `https://${PAGES_NAME}.pages.dev`
-
-        if (deployTarget === 'all' || deployTarget === 'server') {
-            workerUrl = await deployServer()
-        }
-
-        if (deployTarget === 'all' || deployTarget === 'client') {
-            // If deploying all, wait for server to be ready and get its URL
-            if (deployTarget === 'all') {
-                console.log("\n⏳ Waiting for backend to be ready...")
-                await new Promise(resolve => setTimeout(resolve, 5000))
-            }
-            pagesUrl = await deployClient(workerUrl || undefined)
-        }
-
-        console.log("\n🎉 Deployment completed successfully!")
-        
-        if (deployTarget === 'all' || deployTarget === 'client') {
-            console.log(`🌐 Frontend: ${pagesUrl}`)
-        }
+        const url = await deploy()
+        console.log(`\n🎉 Deployment completed successfully!`)
+        console.log(`🌐 App URL: ${url}`)
     } catch (error) {
         console.error("\n❌ Deployment failed:", error)
         process.exit(1)

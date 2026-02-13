@@ -3,7 +3,7 @@
  * Rin CLI - Unified command line interface for Rin blog platform
  * 
  * Usage:
- *   rin dev                    Start development server
+ *   rin dev                    Start unified development server on port 11498
  *   rin deploy                 Deploy to Cloudflare
  *   rin deploy --preview       Deploy to preview environment
  *   rin db migrate             Run database migrations
@@ -78,63 +78,138 @@ function checkPort(port: number): Promise<boolean> {
   });
 }
 
+async function setupDevEnv() {
+  const setupScript = join(process.cwd(), "scripts", "setup-dev.ts");
+  if (existsSync(setupScript)) {
+    logger.info("Setting up development environment...");
+    const proc = Bun.spawn(["bun", setupScript], {
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    await proc.exited;
+  }
+}
+
 // Commands
 async function devCommand(args: string[]) {
   const { values } = parseArgs({
     args,
     options: {
-      port: { type: "string", short: "p", default: "5173" },
-      "backend-port": { type: "string", short: "b", default: "11498" },
-      "client-only": { type: "boolean" },
-      "server-only": { type: "boolean" },
-      "no-migrate": { type: "boolean" },
+      port: { type: "string", short: "p", default: "11498" },
+      client: { type: "boolean", default: false },
+      server: { type: "boolean", default: false },
     },
+    strict: false,
   });
 
-  const env = await loadEnv();
-  const FRONTEND_PORT = parseInt(values.port || "5173");
-  const BACKEND_PORT = parseInt(values["backend-port"] || "11498");
+  const PORT = parseInt((values.port as string) || "11498");
 
-  // Check ports
-  if (!values["server-only"]) {
-    if (!(await checkPort(FRONTEND_PORT))) {
-      logger.error(`Port ${FRONTEND_PORT} is already in use`);
-      process.exit(1);
+  // Check port
+  if (!(await checkPort(PORT))) {
+    logger.error(`Port ${PORT} is already in use`);
+    process.exit(1);
+  }
+
+  // Setup environment first
+  await setupDevEnv();
+
+  // Run database migrations for server modes
+  if (!values.client) {
+    logger.info("Checking database migrations...");
+    const migrateScript = join(process.cwd(), "scripts", "db-migrate-local.ts");
+    if (existsSync(migrateScript)) {
+      const migrateProc = Bun.spawn(["bun", migrateScript], {
+        stdout: "inherit",
+        stderr: "inherit",
+      });
+      const migrateExit = await migrateProc.exited;
+      if (migrateExit !== 0) {
+        logger.error("Database migration failed");
+        process.exit(1);
+      }
+      logger.success("Database migrations completed");
     }
   }
 
-  if (!values["client-only"]) {
-    if (!(await checkPort(BACKEND_PORT))) {
-      logger.error(`Port ${BACKEND_PORT} is already in use`);
-      process.exit(1);
+  // Client-only mode: Just run Vite dev server
+  if (values.client) {
+    logger.info(`Starting client development server...`);
+    const proc = Bun.spawn(
+      ["bun", "--filter", "./client", "dev"],
+      {
+        stdout: "inherit",
+        stderr: "inherit",
+      }
+    );
+
+    const shutdown = () => {
+      logger.info("Shutting down client server...");
+      proc.kill("SIGTERM");
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+    return;
+  }
+
+  // Server-only mode: Just run wrangler dev
+  if (values.server) {
+    logger.info(`Starting server development server on port ${PORT}...`);
+    const proc = Bun.spawn(
+      ["bun", "wrangler", "dev", "--port", String(PORT), "--test-scheduled"],
+      {
+        stdout: "inherit",
+        stderr: "inherit",
+        cwd: join(process.cwd(), "server"),
+      }
+    );
+
+    const shutdown = () => {
+      logger.info("Shutting down server...");
+      proc.kill("SIGTERM");
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+    return;
+  }
+
+  // Unified mode: Build client and serve with wrangler dev
+  logger.info(`Starting unified development server at http://localhost:${PORT}`);
+  logger.info("This will serve both frontend and backend on the same port");
+
+  // Build client first
+  logger.info("Building client for development...");
+  const buildProc = Bun.spawn(
+    ["bun", "--filter", "./client", "build"],
+    {
+      stdout: "inherit",
+      stderr: "inherit",
     }
+  );
+  
+  const buildExit = await buildProc.exited;
+  if (buildExit !== 0) {
+    logger.error("Client build failed");
+    process.exit(1);
   }
+  logger.success("Client built successfully");
 
-  // Start servers
-  const processes: any[] = [];
-
-  if (!values["client-only"]) {
-    logger.info("Starting backend server...");
-    const backend = Bun.spawn(["bun", "wrangler", "dev", "--port", String(BACKEND_PORT)], {
+  // Start wrangler dev with assets
+  logger.info("Starting wrangler dev server with static assets...");
+  const proc = Bun.spawn(
+    ["bun", "wrangler", "dev", "--port", String(PORT), "--test-scheduled"],
+    {
       stdout: "inherit",
       stderr: "inherit",
-    });
-    processes.push(backend);
-  }
-
-  if (!values["server-only"]) {
-    logger.info("Starting frontend server...");
-    const frontend = Bun.spawn(["bun", "--filter", "./client", "dev", "--port", String(FRONTEND_PORT)], {
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-    processes.push(frontend);
-  }
+      cwd: join(process.cwd(), "server"),
+    }
+  );
 
   // Handle shutdown
   const shutdown = () => {
     logger.info("Shutting down...");
-    processes.forEach((p) => p.kill("SIGTERM"));
+    proc.kill("SIGTERM");
   };
 
   process.on("SIGINT", shutdown);
@@ -204,7 +279,8 @@ Examples:
   logger.info(`Creating release: ${version}`);
   const releaseScript = join(process.cwd(), "scripts", "release.ts");
   if (existsSync(releaseScript)) {
-    await $`bun ${releaseScript} ${version}`;
+    const versionArg = typeof version === "string" ? version : String(version);
+    await $`bun ${releaseScript} ${versionArg}`;
   } else {
     logger.error("Release script not found");
     process.exit(1);
@@ -213,34 +289,34 @@ Examples:
 
 // Main
 async function main() {
-  const { values, positionals } = parseArgs({
-    args: Bun.argv.slice(2),
-    options: {
-      help: { type: "boolean", short: "h" },
-      version: { type: "boolean", short: "v" },
-      debug: { type: "boolean", short: "d" },
-    },
-    allowPositionals: true,
-  });
+  const args = Bun.argv.slice(2);
+  const commandIndex = args.findIndex(arg => !arg.startsWith("-"));
+  const command = commandIndex >= 0 ? args[commandIndex] : null;
+  const cmdArgs = [...args.slice(0, commandIndex), ...args.slice(commandIndex + 1)];
 
-  if (values.help) {
+  if (!command) {
+    console.log("Usage: rin <command> [options]");
+    console.log('Run "rin --help" for more information');
+    process.exit(0);
+  }
+
+  // Handle global options
+  if (args.includes("-h") || args.includes("--help")) {
     console.log(`
 Rin CLI - Unified command line interface for Rin blog platform
 
 Usage: rin <command> [options]
 
 Commands:
-  dev                          Start development server
-    -p, --port <port>          Frontend port (default: 5173)
-    -b, --backend-port <port>  Backend port (default: 11498)
-    --client-only              Start only frontend
-    --server-only              Start only backend
-    --no-migrate               Skip database migration
+  dev                          Start unified development server
+    -p, --port <port>          Server port (default: 11498)
+    --client                   Start client-only dev server (Vite + HMR)
+    --server                   Start server-only dev server (wrangler)
 
   deploy                       Deploy to Cloudflare
     --preview                  Deploy to preview environment
-    --server                   Deploy only backend
-    --client                   Deploy only frontend
+    --server                   Deploy backend only
+    --client                   Deploy frontend only
 
   db                           Database operations
     migrate                    Run database migrations
@@ -254,25 +330,32 @@ Options:
   -d, --debug                  Enable debug mode
 
 Examples:
-  rin dev                      Start development server
+  rin dev                      Start unified dev server at http://localhost:11498
+  rin dev -p 3000              Use custom port
+  rin dev --client             Start client-only dev server with HMR
+  rin dev --server             Start server-only dev server
   rin deploy                   Deploy to production
-  rin deploy --preview         Deploy to preview
-  rin db migrate               Run database migrations
   rin release patch            Bump patch version
+
+Architecture:
+  Unified dev server (rin dev):
+    - Uses wrangler dev with ASSETS binding
+    - Serves frontend static files and backend API on same port
+    - Frontend built once at startup (no HMR)
+    
+  Client-only dev server (rin dev --client):
+    - Uses Vite dev server with HMR
+    - Separate backend server required
+    
+  Server-only dev server (rin dev --server):
+    - Uses wrangler dev
+    - Expects static assets in ./dist/client
     `);
     process.exit(0);
   }
 
-  if (values.version) {
-    console.log("rin-cli v1.0.0");
-    process.exit(0);
-  }
-
-  const [command, ...cmdArgs] = positionals;
-
-  if (!command) {
-    console.log("Usage: rin <command> [options]");
-    console.log('Run "rin --help" for more information');
+  if (args.includes("-v") || args.includes("--version")) {
+    console.log("rin-cli v1.1.0");
     process.exit(0);
   }
 
@@ -297,7 +380,7 @@ Examples:
     }
   } catch (error: any) {
     logger.error(error.message || error);
-    if (values.debug) {
+    if (args.includes("-d") || args.includes("--debug")) {
       console.error(error.stack);
     }
     process.exit(1);
