@@ -18,10 +18,18 @@ cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
 
 这将在每次提交之前运行以下检查：
 
-1. `tsc` 检查代码是否存在语法错误与未使用变量与引用
-2. 检查提交消息是否以以下之一开头：feat|chore|fix|docs|ci|style|test|pref
+1. **类型检查** - `bun run check` 验证所有包的 TypeScript 类型
+2. **代码格式化** - 检查代码格式和风格
+3. **提交消息格式** - 验证提交消息是否以以下之一开头：`feat|chore|fix|docs|ci|style|test|pref`
 
-如果您想跳过钩子，请使用 `--no-verify` 选项运行 `git commit`。
+:::warning 重要提示
+钩子还会运行测试。提交前请确保所有测试通过：
+```sh
+bun run test
+```
+:::
+
+如果您想跳过钩子（不推荐），请使用 `--no-verify` 选项运行 `git commit`。
 
 ## 设置开发环境
 
@@ -34,51 +42,68 @@ cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
     bun i
     ```
 
-4. 将 `wrangler.example.toml` 文件复制到 `wrangler.toml` 并填写必要信息   
+4. 在 `.env.local` 文件中填写必要的配置
 
-::: tip
-通常情况下，您只需要填写 `database_name` 和 `database_id` 两项\
-S3 相关配置非必须，但是如果您想要使用图片上传功能，您需要填写 S3 配置
+:::tip
+通常情况下，您只需要填写 `AVATAR`、`NAME` 和 `DESCRIPTION`。
+如需配置 GitHub OAuth，需要创建一个 OAuth App，回调地址为 `http://localhost:11498/user/github/callback`
 :::
 
-5. 将 `client/.env.example` 文件复制到 `client/.env` 并修改必要配置
-
-::: tip
-通常情况下，您只需要填写 `AVATAR`、`NAME` 和 `DESCRIPTION` 三项
-:::
-
-6. 执行数据库迁移
-
-::: caution
-如果您的数据库名称(`wrangler.toml`中`database_name`)不为 `rin`\
-请在执行迁移之前修改 `scripts/dev-migrator.sh` 中的 `DB_NAME` 字段
-:::
+5. 运行设置脚本生成配置文件
 ```sh
-bun m
+bun run dev:setup
 ```
 
-7. 配置 `.dev.vars` 文件
-   将 `.dev.example.vars` 复制到 `.dev.vars` 并填写必要信息
+这将根据您的 `.env.local` 配置自动生成 `wrangler.toml` 和 `.dev.vars` 文件。
 
-::: tip
-通常情况下，您需要填写 `RIN_GITHUB_CLIENT_ID` 和 `RIN_GITHUB_CLIENT_SECRET` 以及 `JWT_SECRET` 三项 \
-开发环境下需要单独创建一个 Github OAuth 服务，回调地址为 `http://localhost:11498/user/github/callback` \
-如果手动修改过 server 的监听端口，请同时修改回调地址中的端口号
-:::
+6. 执行数据库迁移
+```sh
+bun run db:migrate
+```
+
+7.（可选）配置 S3/R2 用于图片上传
+
+如需使用图片上传功能，请在 `.env.local` 中填写 S3 配置：
+- `S3_ENDPOINT`
+- `S3_BUCKET`
+- `S3_ACCESS_KEY_ID`
+- `S3_SECRET_ACCESS_KEY`
 
 8. 启动开发服务器
     ```sh
-    bun dev
+    bun run dev
     ```
 
 9. 为了更好地控制开发服务器，您可以分别在两个终端中分别运行客户端与服务端的 dev 命令：
     ```sh
     # tty1
-    bun dev:client
+    bun run dev:client
     
     # tty2
-    bun dev:server
+    bun run dev:server
     ```
+
+## 测试要求
+
+在提交 Pull Request 之前，请确保所有测试通过：
+
+```sh
+# 运行所有测试
+bun run test
+
+# 运行类型检查
+bun run check
+
+# 运行格式化检查
+bun run format:check
+```
+
+### 为新功能添加测试
+
+添加新的 API 端点时：
+1. 在 `packages/api/src/types.ts` 中定义类型（客户端和服务端共享）
+2. 在 `server/src/**/__tests__/*.test.ts` 中添加服务端测试
+3. 如有需要，在 `client/src/**/__tests__/*.test.ts` 中添加客户端测试
 
 ## 提交更改
 

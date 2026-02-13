@@ -2,27 +2,29 @@
   {
     "text": "Guide",
     "items": [
-      { "text": "Introduction", "link": "/en/guide/" },
-      { "text": "Deploy", "link": "/en/guide/deploy" },
-      { "text": "Development", "link": "/en/guide/development" },
-      { "text": "SEO", "link": "/en/guide/seo" },
-      { "text": "RSS", "link": "/en/guide/rss" },
-      { "text": "Changelog", "link": "/en/guide/changelog" },
-      { "text": "Contribution", "link": "/en/guide/contribution" },
-      { "text": "Commit Convention", "link": "/en/guide/commit-convention" },
-      { "text": "Release Process", "link": "/en/guide/release" }
+      { "text": "Introduction", "link": "/guide/" },
+      { "text": "Deploy", "link": "/guide/deploy" },
+      { "text": "Development", "link": "/guide/development" },
+      { "text": "SEO", "link": "/guide/seo" },
+      { "text": "RSS", "link": "/guide/rss" },
+      { "text": "Migration", "link": "/guide/migration" },
+      { "text": "Changelog", "link": "/guide/changelog" },
+      { "text": "Testing", "link": "/guide/testing" },
+      { "text": "Contribution", "link": "/guide/contribution" },
+      { "text": "Commit Convention", "link": "/guide/commit-convention" },
+      { "text": "Release Process", "link": "/guide/release" }
     ]
   },
   {
     "text": "Blog",
     "items": [
-      { "text": "Rin 0.3.0 Released", "link": "/en/blog/v0.3.0-release" }
+      { "text": "Rin 0.3.0 Released", "link": "/blog/v0.3.0-release" }
     ]
   },
   {
     "text": "Configuration",
     "items": [
-      { "text": "Environment Variables", "link": "/en/env" }
+      { "text": "Environment Variables", "link": "/env" }
     ]
   }
 ]

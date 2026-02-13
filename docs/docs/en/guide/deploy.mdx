@@ -158,6 +158,39 @@ The deployment script will automatically run database migrations. If it fails:
 
 ---
 
+## GitHub Actions Workflows
+
+The repository includes several GitHub Actions workflows that automate testing, building, and deployment:
+
+### CI Workflow (`ci.yml`)
+Runs on every push and pull request to check code quality:
+- TypeScript type checking
+- Code formatting verification
+- Build verification
+
+### Test Workflow (`test.yml`)
+Runs comprehensive tests on every push and PR:
+- **Server tests**: Unit and integration tests using Bun
+- **Client tests**: Component tests using Vitest
+- **Coverage report**: Uploads coverage to Codecov
+
+### Build Workflow (`build.yml`)
+Runs on pushes to main and develop branches:
+- Builds both frontend and backend
+- Validates build artifacts
+- Triggers deployment workflow on success
+
+### Deploy Workflow (`deploy.yml`)
+Triggered manually or by build completion:
+- Deploys frontend to Cloudflare Pages
+- Deploys backend to Cloudflare Workers
+- Runs database migrations
+
+### PR Preview
+When you create a Pull Request, a preview deployment will be automatically generated so you can test changes before merging.
+
+---
+
 ## Updating Your Blog
 
 When a new version is released:

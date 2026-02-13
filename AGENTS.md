@@ -24,10 +24,15 @@ bun run format:write      # Fix formatting
 # Deployment (using Rin CLI)
 bun run deploy            # Deploy both frontend (Pages) and backend (Workers)
 bun run deploy:server     # Deploy backend only
-bun run deploy:client     # Deploy frontend only
+ bun run deploy:client     # Deploy frontend only
 
 # Release (using Rin CLI)
 bun run release <version> # Create a new release (patch/minor/major/x.y.z)
+
+# Testing
+bun run test              # Run all tests (client + server)
+bun run test:server       # Run server tests only
+ bun run test:coverage     # Run tests with coverage report
 ```
 
 ## Rin CLI
@@ -42,7 +47,32 @@ The project uses a unified CLI tool located at `cli/bin/rin.ts`. All development
 
 ## Testing
 
-**No test runner configured.** The project uses `@cloudflare/vitest-pool-workers` in devDependencies but no test scripts are defined. To add tests, create a `test` script in the appropriate package.json.
+The project has comprehensive test coverage for both client and server:
+
+### Client Tests (Vitest)
+- **Location**: `client/src/**/__tests__/*.test.ts`
+- **Runner**: Vitest with jsdom environment
+- **Commands**:
+  ```bash
+  cd client && bun run test          # Run tests once
+  cd client && bun run test:watch    # Watch mode
+  cd client && bun run test:coverage # With coverage report
+  ```
+
+### Server Tests (Bun)
+- **Location**: `server/src/**/__tests__/*.test.ts`, `server/tests/`
+- **Runner**: Bun's native test runner (`bun:test`)
+- **Commands**:
+  ```bash
+  cd server && bun run test          # Run tests once
+  cd server && bun run test:coverage # With coverage report
+  ```
+
+### Test Structure
+- Unit tests for services, utilities, and core functionality
+- Integration tests for API endpoints
+- Security tests for mock isolation
+- Fixtures and mocks in `server/tests/fixtures/`
 
 ## Code Style Guidelines
 
@@ -133,13 +163,20 @@ ln -s ../../scripts/git-commit-msg.sh .git/hooks/commit-msg
 │   │   ├── db/         # Database schema
 │   │   ├── core/       # Router and types
 │   │   └── utils/      # Utilities
-├── docs/           # Rspress documentation
-└── scripts/        # Build and dev scripts
+├── packages/        # Shared packages
+│   └── api/         # @rin/api - Shared API types
+├── cli/             # Rin CLI tool
+│   └── bin/
+│       └── rin.ts   # CLI entry point
+├── docs/            # Rspress documentation
+└── scripts/         # Build and dev scripts
 ```
 
 ### Key Technologies
 
-- **Client**: React 18, Vite, TailwindCSS, Wouter (routing), i18next
-- **Server**: Hono-like router, Drizzle ORM, Cloudflare Workers/D1
+- **Client**: React 18, Vite, TailwindCSS, Wouter (routing), i18next, Vitest
+- **Server**: Hono-like router, Drizzle ORM, Cloudflare Workers/D1, bun:test
+- **Shared Types**: @rin/api package for type-safe API communication
 - **Package Manager**: Bun
 - **Build**: Turbo for monorepo orchestration
+- **Testing**: Vitest (client), Bun native test runner (server)

@@ -105,11 +105,16 @@ bun run build
 bun run clean
 
 # Run type checking
-bun run typecheck
+bun run check
 
 # Format code
 bun run format:write
 bun run format:check
+
+# Run tests
+bun run test              # Run all tests
+bun run test:server       # Run server tests only
+ bun run test:coverage     # Run tests with coverage
 ```
 
 ## Development Workflow
@@ -134,6 +139,74 @@ bun run format:check
 1. Modify `server/src/db/schema.ts`
 2. Run `bun run db:generate` to generate migration files
 3. Run `bun run db:migrate` to apply migrations
+
+## Testing
+
+The project uses different testing frameworks for client and server:
+
+### Client Testing (Vitest)
+
+Client tests use Vitest with jsdom environment for React component testing.
+
+```bash
+# Run client tests
+cd client && bun run test
+
+# Watch mode
+cd client && bun run test:watch
+
+# With coverage
+cd client && bun run test:coverage
+```
+
+Test files location: `client/src/**/__tests__/*.test.ts`
+
+### Server Testing (Bun)
+
+Server tests use Bun's native test runner with in-memory SQLite database.
+
+```bash
+# Run server tests
+cd server && bun run test
+
+# With coverage
+cd server && bun run test:coverage
+```
+
+Test files location:
+- Unit tests: `server/src/**/__tests__/*.test.ts`
+- Integration tests: `server/tests/integration/`
+- Security tests: `server/tests/security/`
+
+### Adding New Tests
+
+When adding new features, please include corresponding tests:
+
+1. **Client**: Add tests in `client/src/**/__tests__/*.test.ts`
+2. **Server**: Add tests in `server/src/**/__tests__/*.test.ts` or `server/tests/`
+
+## API Architecture
+
+### Custom API Client
+
+The project uses a custom HTTP client instead of Eden for type-safe API communication:
+
+- **Location**: `client/src/api/client.ts`
+- **Features**: Type-safe requests, error handling, auth token management
+- **Usage**: All API calls go through the typed client
+
+### Shared Types (@rin/api)
+
+The `@rin/api` package provides shared TypeScript types for both client and server:
+
+- **Location**: `packages/api/`
+- **Purpose**: End-to-end type safety for API contracts
+- **Usage**: Import types from `@rin/api` in both client and server code
+
+When adding new API endpoints:
+1. Define types in `packages/api/src/types.ts`
+2. Implement server handler in `server/src/services/`
+3. Client automatically gets type safety through shared types
 
 ## Troubleshooting
 
@@ -175,18 +248,26 @@ GitHub OAuth needs to be configured for local development:
 
 ```
 .
-├── client/                 # Frontend code
+├── client/                 # Frontend code (React + Vite)
 │   ├── src/
 │   │   ├── page/          # Page components
-│   │   ├── state/         # State management
+│   │   ├── api/           # API client
+│   │   ├── components/    # React components
 │   │   └── utils/         # Utility functions
 │   └── package.json
-├── server/                 # Backend code
+├── server/                 # Backend code (Cloudflare Workers)
 │   ├── src/
 │   │   ├── services/      # Business services
-│   │   ├── db/            # Database
+│   │   ├── db/            # Database schema
+│   │   ├── core/          # Router and core types
 │   │   └── utils/         # Utility functions
+│   ├── tests/             # Test files
 │   └── package.json
+├── packages/               # Shared packages
+│   └── api/                # @rin/api - Shared API types
+├── cli/                    # Rin CLI tool
+│   └── bin/
+│       └── rin.ts          # CLI entry point
 ├── scripts/                # Development scripts
 │   ├── dev.ts             # Development server
 │   ├── setup-dev.ts       # Configuration generation

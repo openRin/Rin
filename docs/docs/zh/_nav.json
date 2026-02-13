@@ -2,27 +2,29 @@
   {
     "text": "指南",
     "items": [
-      { "text": "简介", "link": "/zh/guide/" },
-      { "text": "部署", "link": "/zh/guide/deploy" },
-      { "text": "本地开发", "link": "/zh/guide/development" },
-      { "text": "SEO", "link": "/zh/guide/seo" },
-      { "text": "RSS", "link": "/zh/guide/rss" },
-      { "text": "更新日志", "link": "/zh/guide/changelog" },
-      { "text": "贡献指南", "link": "/zh/guide/contribution" },
-      { "text": "提交规范", "link": "/zh/guide/commit-convention" },
-      { "text": "发布流程", "link": "/zh/guide/release" }
+      { "text": "简介", "link": "/guide/" },
+      { "text": "部署", "link": "/guide/deploy" },
+      { "text": "本地开发", "link": "/guide/development" },
+      { "text": "SEO", "link": "/guide/seo" },
+      { "text": "RSS", "link": "/guide/rss" },
+      { "text": "迁移指南", "link": "/guide/migration" },
+      { "text": "更新日志", "link": "/guide/changelog" },
+      { "text": "测试指南", "link": "/guide/testing" },
+      { "text": "贡献指南", "link": "/guide/contribution" },
+      { "text": "提交规范", "link": "/guide/commit-convention" },
+      { "text": "发布流程", "link": "/guide/release" }
     ]
   },
   {
     "text": "博客",
     "items": [
-      { "text": "Rin 0.3.0 发布", "link": "/zh/blog/v0.3.0-release" }
+      { "text": "Rin 0.3.0 发布", "link": "/blog/v0.3.0-release" }
     ]
   },
   {
     "text": "配置",
     "items": [
-      { "text": "环境变量", "link": "/zh/env" }
+      { "text": "环境变量", "link": "/env" }
     ]
   }
 ]

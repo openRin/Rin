@@ -33,6 +33,7 @@ https://xeu.life
 - **Webhook Notifications**: Receive real-time alerts for new comments via configurable webhooks.
 - **Featured Images**: Automatically detect the first image in an article and use it as the cover image in listings.
 - **Tag Parsing**: Input tags like `#Blog #Cloudflare` and have them automatically parsed and displayed.
+- **Type Safety**: End-to-end type safety with shared TypeScript types between client and server via `@rin/api` package.
 - ...and more! Explore all features at https://xeu.life.
 
 ## Documentation
@@ -55,6 +56,21 @@ bun run dev
 ```
 
 Visit http://localhost:5173 to start hacking!
+
+### Testing
+
+Run the test suite to ensure everything works:
+
+```bash
+# Run all tests (client + server)
+bun run test
+
+# Run server tests only
+bun run test:server
+
+# Run tests with coverage
+bun run test:coverage
+```
 
 ### One-Command Deployment
 
@@ -88,9 +104,14 @@ The deployment script will automatically:
 - Build and deploy frontend to Pages
 - Run database migrations
 
-### GitHub Actions Auto-Deployment
+### GitHub Actions Workflows
 
-The repository includes a GitHub Actions workflow for automatic deployment on push to main/master branch.
+The repository includes several automated workflows:
+
+- **`ci.yml`** - Runs type checking and formatting validation on every push/PR
+- **`test.yml`** - Runs comprehensive tests (server + client) with coverage reporting
+- **`build.yml`** - Builds the project and triggers deployment
+- **`deploy.yml`** - Deploys to Cloudflare Pages and Workers
 
 **Required secrets (Repository Settings → Secrets and variables → Actions):**
 - `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token with Workers and Pages permissions

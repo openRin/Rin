@@ -18,10 +18,18 @@ cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
 
 This will run the following checks before each commit:
 
-1. `tsc` Checks the code for syntax errors and unused variables and references.
-2. check that the commit message starts with one of the following: feature|chore|fix|docs|ci|style|test|pref
+1. **Type checking** - `bun run check` validates TypeScript types across all packages
+2. **Linting** - checks code formatting and style
+3. **Commit message format** - verifies the commit message starts with one of: `feat|chore|fix|docs|ci|style|test|pref`
 
-If you want to skip the hook, run `git commit` with the `--no-verify` option.
+:::warning Important
+The hook also runs tests. Make sure all tests pass before committing:
+```sh
+bun run test
+```
+:::
+
+If you want to skip the hook (not recommended), run `git commit` with the `--no-verify` option.
 
 ## Setting up your development environment
 
@@ -34,56 +42,69 @@ If you want to skip the hook, run `git commit` with the `--no-verify` option.
     bun i
     ```
 
-4. Copy the `wrangler.example.toml` file to `wrangler.toml` and fill in the necessary information
-
-:::tip
-Normally, you only need to fill in the `database_name` and `database_id` fields.\
-S3 configuration is not required, but if you want to use the image upload feature, you need to fill in the S3
-configuration.
-:::
-
-5. Fill in the required configuration in `.env.local` file.
+4. Fill in the required configuration in `.env.local` file.
 
 :::tip
 Typically, you only need to fill in `AVATAR`, `NAME` and `DESCRIPTION`.
+For GitHub OAuth, you need to create a separate OAuth App with a callback address of `http://localhost:11498/user/github/callback`
 :::
 
-6. Perform the database migration
-
-:::tip
-If your database name (`database_name` in `wrangler.toml`) is not `rin`\
-Please modify the `DB_NAME` field in `scripts/dev-migrator.sh` before performing the migration
-:::
+5. Run the setup script to generate configuration files
 ```sh
-bun m
+bun run dev:setup
 ```
 
-7. Configuring the `.dev.vars' file
-   Copy `.dev.example.vars` to `.dev.vars` and fill in the required information
+This will automatically generate `wrangler.toml` and `.dev.vars` files based on your `.env.local` configuration.
 
-:::tip
-Typically, you need to fill in the `RIN_GITHUB_CLIENT_ID` and `RIN_GITHUB_CLIENT_SECRET` as well as
-   the `JWT_SECRET` fields.
-In the development environment, you need to create a separate GitHub OAuth service with a callback address
-   of `http://localhost:11498/user/github/callback` \
-If you have changed the listening port of the server manually, please also change the port number in the callback
-   address.
-:::
+6. Perform the database migration
+```sh
+bun run db:migrate
+```
+
+7. (Optional) Configure S3/R2 for image upload
+
+If you want to use the image upload feature, fill in the S3 configuration in `.env.local`:
+- `S3_ENDPOINT`
+- `S3_BUCKET`
+- `S3_ACCESS_KEY_ID`
+- `S3_SECRET_ACCESS_KEY`
 
 8. Start the development server
     ```sh
-    bun dev
+    bun run dev
     ```
 
 9. For better control of the development server, you can run the client and server dev commands in two separate
    terminals:
     ```sh
     # tty1
-    bun dev:client
+    bun run dev:client
     
     # tty2
-    bun dev:server
+    bun run dev:server
     ```
+
+## Testing Requirements
+
+Before submitting a pull request, please ensure all tests pass:
+
+```sh
+# Run all tests
+bun run test
+
+# Run type checking
+bun run check
+
+# Run formatting check
+bun run format:check
+```
+
+### Adding Tests for New Features
+
+When adding new API endpoints:
+1. Define types in `packages/api/src/types.ts` (shared between client and server)
+2. Add server tests in `server/src/**/__tests__/*.test.ts`
+3. Add client tests in `client/src/**/__tests__/*.test.ts` if applicable
 
 ## Committing Changes
 

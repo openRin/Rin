@@ -159,6 +159,39 @@ Rin 目前支持账号密码登录与 Github OAuth 登录，可二选一或同�
 
 ---
 
+## GitHub Actions 工作流
+
+仓库包含多个 GitHub Actions 工作流，用于自动化测试、构建和部署：
+
+### CI 工作流 (`ci.yml`)
+每次推送和 Pull Request 时运行，检查代码质量：
+- TypeScript 类型检查
+- 代码格式化验证
+- 构建验证
+
+### 测试工作流 (`test.yml`)
+每次推送和 PR 时运行全面的测试：
+- **服务端测试**：使用 Bun 的单元测试和集成测试
+- **客户端测试**：使用 Vitest 的组件测试
+- **覆盖率报告**：上传覆盖率到 Codecov
+
+### 构建工作流 (`build.yml`)
+在推送到 main 和 develop 分支时运行：
+- 构建前端和后端
+- 验证构建产物
+- 成功后触发部署工作流
+
+### 部署工作流 (`deploy.yml`)
+手动触发或由构建完成时触发：
+- 部署前端到 Cloudflare Pages
+- 部署后端到 Cloudflare Workers
+- 运行数据库迁移
+
+### PR 预览
+创建 Pull Request 时，会自动生成预览部署，方便在合并前测试更改。
+
+---
+
 ## 更新博客
 
 当有新版本发布时：
