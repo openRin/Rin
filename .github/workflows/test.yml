@@ -1,0 +1,109 @@
+name: CI - Test and Type Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Run server tests
+        run: bun run test
+        working-directory: ./server
+      
+      - name: Type check server
+        run: bun run check
+        working-directory: ./server
+
+  test-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Run client tests
+        run: bun run test
+        working-directory: ./client
+      
+      - name: Type check client
+        run: bun run check
+        working-directory: ./client
+      
+      - name: Build client
+        run: bun run build
+        working-directory: ./client
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Run type check
+        run: bun run typecheck
+
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Check formatting
+        run: bun run format:check
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Run tests with coverage
+        run: bun run test:coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./server/coverage/lcov.info,./client/coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella

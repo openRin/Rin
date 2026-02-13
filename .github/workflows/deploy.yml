@@ -1,95 +1,98 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
-      - master
-      - trunk
-  pull_request:
-    branches:
-      - main
-      - master
-      - trunk
-    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Build workflow run ID (optional)'
+        required: false
+        type: string
 
 permissions:
   contents: read
   pull-requests: write
+  actions: read
 
 jobs:
-  # Production deployment for main/master
-  deploy-production:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+  prepare:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      event_name: ${{ steps.meta.outputs.event_name }}
+      ref: ${{ steps.meta.outputs.ref }}
+      pr_number: ${{ steps.meta.outputs.pr_number }}
+      sha: ${{ steps.meta.outputs.sha }}
+      head_sha: ${{ steps.meta.outputs.head_sha }}
+      is_production: ${{ steps.meta.outputs.is_production }}
+      is_trunk: ${{ steps.meta.outputs.is_trunk }}
+      is_pr: ${{ steps.meta.outputs.is_pr }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
+          name: build-${{ github.event.workflow_run.id }}
+          path: ./artifacts
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.6
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Run typecheck
-        run: bun run typecheck
-
-      - name: Run build
-        run: bun run build
-
-      - name: Deploy to Cloudflare (Production)
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          WORKER_NAME: ${{ vars.WORKER_NAME || 'rin-server' }}
-          PAGES_NAME: ${{ vars.PAGES_NAME || 'rin-client' }}
-          DB_NAME: ${{ vars.DB_NAME || 'rin' }}
-          NAME: ${{ vars.NAME || 'Rin' }}
-          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
-          AVATAR: ${{ vars.AVATAR || '' }}
-          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
-          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
-          R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME || '' }}
-          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || '' }}
-          S3_ACCESS_HOST: ${{ secrets.S3_ACCESS_HOST || '' }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET || '' }}
-          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID || '' }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY || '' }}
-          RIN_GITHUB_CLIENT_ID: ${{ secrets.RIN_GITHUB_CLIENT_ID || '' }}
-          RIN_GITHUB_CLIENT_SECRET: ${{ secrets.RIN_GITHUB_CLIENT_SECRET || '' }}
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME || 'admin' }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'admin123' }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
-          WEBHOOK_URL: ${{ vars.WEBHOOK_URL || '' }}
-          RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
-          RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
+      - name: Read metadata
+        id: meta
         run: |
-          export CF_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
-          bun run deploy
+          EVENT_NAME=$(cat ./artifacts/build-meta/event_name)
+          REF=$(cat ./artifacts/build-meta/ref)
+          PR_NUMBER=$(cat ./artifacts/build-meta/pr_number)
+          SHA=$(cat ./artifacts/build-meta/sha)
+          HEAD_SHA=$(cat ./artifacts/build-meta/head_sha)
 
-  # Preview deployment for trunk branch
-  deploy-preview-trunk:
-    if: github.ref == 'refs/heads/trunk'
+          echo "event_name=$EVENT_NAME" >> $GITHUB_OUTPUT
+          echo "ref=$REF" >> $GITHUB_OUTPUT
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
+
+          # Determine deployment type
+          if [[ "$REF" == "refs/heads/main" || "$REF" == "refs/heads/master" ]]; then
+            echo "is_production=true" >> $GITHUB_OUTPUT
+            echo "is_trunk=false" >> $GITHUB_OUTPUT
+            echo "is_pr=false" >> $GITHUB_OUTPUT
+          elif [[ "$REF" == "refs/heads/trunk" ]]; then
+            echo "is_production=false" >> $GITHUB_OUTPUT
+            echo "is_trunk=true" >> $GITHUB_OUTPUT
+            echo "is_pr=false" >> $GITHUB_OUTPUT
+          elif [[ "$EVENT_NAME" == "pull_request" ]]; then
+            echo "is_production=false" >> $GITHUB_OUTPUT
+            echo "is_trunk=false" >> $GITHUB_OUTPUT
+            echo "is_pr=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_production=false" >> $GITHUB_OUTPUT
+            echo "is_trunk=false" >> $GITHUB_OUTPUT
+            echo "is_pr=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    needs: prepare
     runs-on: ubuntu-latest
     environment:
-      name: preview-trunk
+      name: ${{ needs.prepare.outputs.is_production == 'true' && 'production' || needs.prepare.outputs.is_trunk == 'true' && 'preview-trunk' || format('preview-pr-{0}', needs.prepare.outputs.pr_number) }}
       url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ needs.prepare.outputs.head_sha }}
           fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.event.workflow_run.id }}
+          path: ./artifacts
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -104,21 +107,40 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Run typecheck
-        run: bun run typecheck
+      - name: Restore build artifacts
+        run: |
+          cp -r ./artifacts/dist ./dist
+          cp -r ./artifacts/server/dist ./server/dist 2>/dev/null || true
+          echo "Checking build artifacts..."
+          ls -la ./dist/client/ || echo "No client dist found"
+          ls -la ./server/dist/ || echo "No server dist found"
 
-      - name: Run build
-        run: bun run build
+      - name: Determine deployment config
+        id: config
+        run: |
+          if [[ "${{ needs.prepare.outputs.is_production }}" == "true" ]]; then
+            echo "worker_name=${{ vars.WORKER_NAME || 'rin-server' }}" >> $GITHUB_OUTPUT
+            echo "db_name=${{ vars.DB_NAME || 'rin' }}" >> $GITHUB_OUTPUT
+            echo "name=${{ vars.NAME || 'Rin' }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.prepare.outputs.is_trunk }}" == "true" ]]; then
+            echo "worker_name=${{ vars.WORKER_NAME || 'rin-server' }}-trunk" >> $GITHUB_OUTPUT
+            echo "db_name=${{ vars.DB_NAME || 'rin' }}-trunk" >> $GITHUB_OUTPUT
+            echo "name=${{ vars.NAME || 'Rin' }} (Trunk Preview)" >> $GITHUB_OUTPUT
+          else
+            echo "worker_name=${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
+            echo "db_name=${{ vars.DB_NAME || 'rin' }}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
+            echo "name=${{ vars.NAME || 'Rin' }} (PR #${{ needs.prepare.outputs.pr_number }})" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Deploy to Cloudflare (Preview)
+      - name: Deploy to Cloudflare
         id: deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          WORKER_NAME: ${{ vars.WORKER_NAME || 'rin-server' }}-trunk
-          PAGES_NAME: ${{ vars.PAGES_NAME || 'rin-client' }}-trunk
-          DB_NAME: ${{ vars.DB_NAME || 'rin' }}-trunk
-          NAME: ${{ vars.NAME || 'Rin' }} (Trunk Preview)
+          WORKER_NAME: ${{ steps.config.outputs.worker_name }}
+          DB_NAME: ${{ steps.config.outputs.db_name }}
+          API_URL: https://${{ steps.config.outputs.worker_name }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev
+          NAME: ${{ steps.config.outputs.name }}
           DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
           AVATAR: ${{ vars.AVATAR || '' }}
           PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
@@ -131,169 +153,61 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY || '' }}
           RIN_GITHUB_CLIENT_ID: ${{ secrets.RIN_GITHUB_CLIENT_ID || '' }}
           RIN_GITHUB_CLIENT_SECRET: ${{ secrets.RIN_GITHUB_CLIENT_SECRET || '' }}
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME || 'admin' }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'admin123' }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
           WEBHOOK_URL: ${{ vars.WEBHOOK_URL || '' }}
           RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
           RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
         run: |
-          export CF_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
           bun run deploy
-          echo "url=https://${PAGES_NAME}.pages.dev" >> $GITHUB_OUTPUT
+          echo "url=https://${WORKER_NAME}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev" >> $GITHUB_OUTPUT
 
       - name: Comment deployment URL
+        if: ${{ needs.prepare.outputs.is_pr == 'true' || needs.prepare.outputs.is_trunk == 'true' }}
         uses: actions/github-script@v7
         with:
           script: |
             const url = '${{ steps.deploy.outputs.url }}';
-            const workerUrl = 'https://${{ vars.WORKER_NAME || 'rin-server' }}-trunk.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev';
-            github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body: `🚀 **Trunk Preview Deployed!**\n\n- Frontend: ${url}\n- Backend: ${workerUrl}`
-            });
+            const isPr = '${{ needs.prepare.outputs.is_pr }}' === 'true';
+            const prNumber = parseInt('${{ needs.prepare.outputs.pr_number }}');
 
-  # Preview deployment for Pull Requests
-  deploy-preview-pr:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    environment:
-      name: preview-pr-${{ github.event.number }}
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.6
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Run typecheck
-        run: bun run typecheck
-
-      - name: Run build
-        run: bun run build
-
-      - name: Deploy to Cloudflare (PR Preview)
-        id: deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          WORKER_NAME: ${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ github.event.number }}
-          PAGES_NAME: ${{ vars.PAGES_NAME || 'rin-client' }}-pr-${{ github.event.number }}
-          DB_NAME: ${{ vars.DB_NAME || 'rin' }}-pr-${{ github.event.number }}
-          NAME: ${{ vars.NAME || 'Rin' }} (PR #${{ github.event.number }})
-          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
-          AVATAR: ${{ vars.AVATAR || '' }}
-          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
-          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
-          R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME || '' }}
-          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || '' }}
-          S3_ACCESS_HOST: ${{ secrets.S3_ACCESS_HOST || '' }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET || '' }}
-          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID || '' }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY || '' }}
-          RIN_GITHUB_CLIENT_ID: ${{ secrets.RIN_GITHUB_CLIENT_ID || '' }}
-          RIN_GITHUB_CLIENT_SECRET: ${{ secrets.RIN_GITHUB_CLIENT_SECRET || '' }}
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME || 'admin' }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'admin123' }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
-          WEBHOOK_URL: ${{ vars.WEBHOOK_URL || '' }}
-          RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
-          RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
-        run: |
-          export CF_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
-          bun run deploy
-          echo "url=https://${PAGES_NAME}.pages.dev" >> $GITHUB_OUTPUT
-
-      - name: Comment PR with deployment URL
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const url = '${{ steps.deploy.outputs.url }}';
-            const workerUrl = 'https://${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ github.event.number }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev';
-            const prNumber = ${{ github.event.number }};
-            
-            // Find existing comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber
-            });
-            
-            const botComment = comments.find(comment => 
-              comment.user.type === 'Bot' && comment.body.includes('Preview Deployed')
-            );
-            
-            const body = `🚀 **Preview Deployed!**\n\n- Frontend: ${url}\n- Backend: ${workerUrl}\n\n*This preview will be automatically updated when you push new commits.*`;
-            
-            if (botComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
+            if (isPr && prNumber) {
+              // Find existing comment
+              const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
+                issue_number: prNumber
               });
+
+              const botComment = comments.find(comment =>
+                comment.user.type === 'Bot' && comment.body.includes('Preview Deployed')
+              );
+
+              const body = `🚀 **Preview Deployed!**\n\n- URL: ${url}\n\n*This preview will be automatically updated when you push new commits.*`;
+
+              if (botComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: botComment.id,
+                  body: body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: body
+                });
+              }
             } else {
-              // Create new comment
-              await github.rest.issues.createComment({
+              // Trunk deployment - comment on commit
+              const sha = '${{ needs.prepare.outputs.head_sha }}';
+              await github.rest.repos.createCommitComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: prNumber,
-                body: body
+                commit_sha: sha,
+                body: `🚀 **Trunk Preview Deployed!**\n\n- URL: ${url}`
               });
             }
-
-  # Cleanup preview deployments when PR is closed
-  cleanup-preview-pr:
-    if: github.event_name == 'pull_request' && (github.event.action == 'closed' || contains(github.event.pull_request.state, 'closed'))
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.6
-
-      - name: Delete PR Preview
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          WORKER_NAME="${{ vars.WORKER_NAME || 'rin-server' }}-pr-${{ github.event.number }}"
-          PAGES_NAME="${{ vars.PAGES_NAME || 'rin-client' }}-pr-${{ github.event.number }}"
-          
-          echo "Deleting preview deployment for PR #${{ github.event.number }}..."
-          
-          # Delete Worker
-          bunx wrangler delete --name="$WORKER_NAME" --force || echo "Worker not found or already deleted"
-          
-          # Delete Pages project
-          bunx wrangler pages project delete "$PAGES_NAME" --force || echo "Pages project not found or already deleted"
-          
-          echo "✅ Preview deployment cleaned up"
-
-      - name: Comment PR cleanup
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = ${{ github.event.number }};
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: '🧹 **Preview deployment has been cleaned up.**\n\nThe temporary preview environment for this PR has been deleted.'
-            });

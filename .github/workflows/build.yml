@@ -1,0 +1,90 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - trunk
+  pull_request:
+    branches:
+      - main
+      - master
+      - trunk
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.6
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run typecheck
+        run: bun run typecheck
+
+      # Save build metadata for deploy workflow
+      - name: Save build metadata
+        run: |
+          mkdir -p ./build-meta
+          echo "${{ github.event_name }}" > ./build-meta/event_name
+          echo "${{ github.ref }}" > ./build-meta/ref
+          echo "${{ github.event.number || '0' }}" > ./build-meta/pr_number
+          echo "${{ github.sha }}" > ./build-meta/sha
+          echo "${{ github.event.pull_request.head.sha || github.sha }}" > ./build-meta/head_sha
+
+      # Build server (wrangler dry-run to output dist)
+      - name: Build server
+        run: |
+          cd server
+          bun run build
+          cd ..
+          ls -la ./server/dist/ || echo "Server dist not found"
+
+      # Build client with production environment variables
+      - name: Build client for production
+        env:
+          API_URL: ${{ vars.API_URL || 'https://rin-server.your-account-id.workers.dev' }}
+          BUILD_API_URL: ${{ vars.API_URL || 'https://rin-server.your-account-id.workers.dev' }}
+          NAME: ${{ vars.NAME || 'Rin' }}
+          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
+          AVATAR: ${{ vars.AVATAR || '' }}
+          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
+          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
+        run: |
+          mkdir -p ./dist/client
+          cd client
+          echo "API_URL=${API_URL}" > .env.production
+          echo "NAME=${NAME}" >> .env.production
+          echo "DESCRIPTION=${DESCRIPTION}" >> .env.production
+          echo "AVATAR=${AVATAR}" >> .env.production
+          echo "PAGE_SIZE=${PAGE_SIZE}" >> .env.production
+          echo "RSS_ENABLE=${RSS_ENABLE}" >> .env.production
+          bun run build
+          cd ..
+          cp -r ./client/dist/* ./dist/client/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.run_id }}
+          path: |
+            ./dist
+            ./server/dist
+            ./build-meta
+          retention-days: 1

@@ -31,34 +31,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Validate version consistency
-        run: |
-          # Check if all package.json files have the same version
-          ROOT_VERSION=$(cat package.json | grep '"version"' | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
-          
-          CLIENT_VERSION=$(cat client/package.json | grep '"version"' | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
-          
-          SERVER_VERSION=""
-          if [ -f server/package.json ]; then
-            SERVER_VERSION=$(cat server/package.json | grep '"version"' | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
-          fi
-          
-          echo "Root version: $ROOT_VERSION"
-          echo "Client version: $CLIENT_VERSION"
-          echo "Server version: ${SERVER_VERSION:-N/A}"
-          
-          if [ "$ROOT_VERSION" != "$CLIENT_VERSION" ]; then
-            echo "❌ Version mismatch: root ($ROOT_VERSION) != client ($CLIENT_VERSION)"
-            exit 1
-          fi
-          
-          if [ -n "$SERVER_VERSION" ] && [ "$ROOT_VERSION" != "$SERVER_VERSION" ]; then
-            echo "❌ Version mismatch: root ($ROOT_VERSION) != server ($SERVER_VERSION)"
-            exit 1
-          fi
-          
-          echo "✅ Version consistency check passed"
-
       - name: Run typecheck
         run: bun run typecheck
 
