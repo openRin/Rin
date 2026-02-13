@@ -48,6 +48,11 @@ jobs:
       - name: Run typecheck
         run: bun run check
 
+      - name: Setup Wrangler
+        uses: ./.github/actions/setup-wrangler
+        with:
+          mode: 'dry-run'
+
       - name: Run build
         run: bun run build
 
