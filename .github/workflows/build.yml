@@ -48,6 +48,12 @@ jobs:
           echo "${{ github.sha }}" > ./build-meta/sha
           echo "${{ github.event.pull_request.head.sha || github.sha }}" > ./build-meta/head_sha
 
+      # Generate wrangler.toml for build (required by wrangler deploy --dry-run)
+      - name: Setup Wrangler
+        uses: ./.github/actions/setup-wrangler
+        with:
+          mode: 'dry-run'
+
       # Build server (wrangler dry-run to output dist)
       - name: Build server
         run: |

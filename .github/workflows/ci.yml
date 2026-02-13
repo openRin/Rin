@@ -37,5 +37,10 @@ jobs:
       - name: Run format check
         run: bun run format:check
 
+      - name: Setup Wrangler
+        uses: ./.github/actions/setup-wrangler
+        with:
+          mode: 'dry-run'
+
       - name: Run build
         run: bun run build

@@ -1,0 +1,48 @@
+name: 'Setup Wrangler'
+description: 'Generate wrangler.toml for CI builds'
+
+inputs:
+  mode:
+    description: 'Build mode (dry-run or deploy)'
+    required: false
+    default: 'dry-run'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate wrangler.toml
+      shell: bash
+      run: |
+        cat > wrangler.toml << 'EOF'
+        #:schema node_modules/wrangler/config-schema.json
+        name = "rin-server"
+        main = "server/src/_worker.ts"
+        compatibility_date = "2025-03-21"
+
+        [assets]
+        directory = "./dist/client"
+        binding = "ASSETS"
+        run_worker_first = true
+        not_found_handling = "single-page-application"
+
+        [triggers]
+        crons = ["*/20 * * * *"]
+
+        [vars]
+        S3_FOLDER = "images/"
+        S3_CACHE_FOLDER = "cache/"
+        S3_REGION = "auto"
+        S3_ENDPOINT = "https://example.s3.endpoint"
+        S3_ACCESS_HOST = "https://example.s3.endpoint"
+        S3_BUCKET = "rin-bucket"
+        S3_FORCE_PATH_STYLE = "false"
+        RSS_TITLE = "Rin"
+        RSS_DESCRIPTION = "A lightweight personal blogging system"
+        CACHE_STORAGE_MODE = "s3"
+
+        [[d1_databases]]
+        binding = "DB"
+        database_name = "rin"
+        database_id = "local"
+        EOF
+        echo "✅ Generated wrangler.toml for ${{ inputs.mode }}"
