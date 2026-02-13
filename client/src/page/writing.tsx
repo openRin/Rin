@@ -10,7 +10,6 @@ import Loading from 'react-loading';
 import {ShowAlertType, useAlert} from '../components/dialog';
 import {Checkbox, Input} from "../components/input";
 import {client} from "../main";
-import {headersWithAuth} from "../utils/auth";
 import {Cache} from '../utils/cache';
 import {siteName} from "../utils/constants";
 import mermaid from 'mermaid';
@@ -50,9 +49,6 @@ async function publish({
       listed,
       draft,
       createdAt: createdAt?.toISOString(),
-    },
-    {
-      headers: headersWithAuth(),
     }
   );
   if (onCompleted) {
@@ -106,9 +102,6 @@ async function update({
       listed,
       draft,
       createdAt: createdAt?.toISOString(),
-    },
-    {
-      headers: headersWithAuth(),
     }
   );
   if (onCompleted) {
@@ -192,9 +185,7 @@ export function WritingPage({ id }: { id?: number }) {
   useEffect(() => {
     if (id) {
       client.feed
-        .get(id, {
-          headers: headersWithAuth(),
-        })
+        .get(id)
         .then(({ data }) => {
           if (data) {
             if (title == "" && data.title) setTitle(data.title);

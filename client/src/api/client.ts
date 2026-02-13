@@ -1,290 +1,134 @@
 // API Client for Rin - Type-safe HTTP client to replace Eden
 // This client provides a clean, type-safe interface for all backend API endpoints
 
-import { endpoint } from "../main";
 import { getAuthToken } from "../utils/auth";
+import { endpoint } from "../config";
 
-// ============================================================================
-// Types
-// ============================================================================
+// Import shared types
+import type {
+  ApiResponse,
+  RequestOptions,
+  Feed,
+  FeedListResponse,
+  TimelineItem,
+  CreateFeedRequest,
+  UpdateFeedRequest,
+  UserProfile,
+  UpdateProfileRequest,
+  Tag,
+  TagDetail,
+  Comment,
+  CreateCommentRequest,
+  Friend,
+  FriendListResponse,
+  CreateFriendRequest,
+  UpdateFriendRequest,
+  Moment,
+  CreateMomentRequest,
+  ConfigType,
+  ConfigResponse,
+  AIConfig,
+  UploadResponse,
+  AuthStatus,
+  LoginRequest,
+  LoginResponse,
+} from "@rin/api";
 
-export interface ApiResponse<T> {
-  data?: T;
-  error?: {
-    status: number;
-    value: string;
-  };
-}
+// Re-export for external use
+export type {
+  ApiResponse,
+  RequestOptions,
+  Feed,
+  FeedListResponse,
+  TimelineItem,
+  CreateFeedRequest,
+  UpdateFeedRequest,
+  UserProfile,
+  UpdateProfileRequest,
+  Tag,
+  TagDetail,
+  Comment,
+  CreateCommentRequest,
+  Friend,
+  FriendListResponse,
+  CreateFriendRequest,
+  UpdateFriendRequest,
+  Moment,
+  CreateMomentRequest,
+  ConfigType,
+  ConfigResponse,
+  AIConfig,
+  UploadResponse,
+  AuthStatus,
+  LoginRequest,
+  LoginResponse,
+} from "@rin/api";
 
-export interface RequestOptions {
-  headers?: Record<string, string>;
-}
-
-// Feed types
-export interface Feed {
-  id: number;
-  title: string | null;
-  content: string;
-  uid: number;
-  createdAt: string;
-  updatedAt: string;
-  ai_summary: string;
-  hashtags: Array<{ id: number; name: string }>;
-  user: {
-    avatar: string | null;
-    id: number;
-    username: string;
-  };
-  pv: number;
-  uv: number;
-  top?: number;
-}
-
-export interface FeedListResponse {
-  size: number;
-  data: Array<{
-    id: number;
-    title: string | null;
-    summary: string;
-    hashtags: Array<{ id: number; name: string }>;
-    user: {
-      avatar: string | null;
-      id: number;
-      username: string;
-    };
-    avatar: string | null;
-    createdAt: string;
-    updatedAt: string;
-    pv: number;
-    uv: number;
-  }>;
-  hasNext: boolean;
-}
-
-export interface TimelineItem {
-  id: number;
-  title: string | null;
-  createdAt: string;
-}
-
-export interface CreateFeedRequest {
-  title: string;
-  content: string;
-  summary?: string;
-  alias?: string;
-  draft: boolean;
-  listed: boolean;
-  createdAt?: string;
-  tags: string[];
-}
-
-export interface UpdateFeedRequest {
-  title?: string;
-  content?: string;
-  summary?: string;
-  alias?: string;
-  listed?: boolean;
-  draft?: boolean;
-  createdAt?: string;
-  tags?: string[];
-  top?: number;
-}
-
-// User types
-export interface UserProfile {
-  id: number;
-  username: string;
-  avatar: string | null;
-  permission: boolean;
-}
-
-// Tag types
-export interface Tag {
-  id: number;
-  name: string;
-  count: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TagDetail extends Tag {
-  feeds: Feed[];
-}
-
-// Comment types
-export interface Comment {
-  id: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  user: {
-    id: number;
-    username: string;
-    avatar: string | null;
-    permission: number | null;
-  };
-}
-
-export interface CreateCommentRequest {
-  content: string;
-}
-
-// Friend types
-export interface Friend {
-  id: number;
-  name: string;
-  desc: string | null;
-  avatar: string;
-  url: string;
-  accepted: number;
-  sort_order: number | null;
-  createdAt: string;
-  uid: number;
-  updatedAt: string;
-  health: string;
-}
-
-export interface FriendListResponse {
-  friend_list: Friend[];
-  apply_list: Friend | null;
-}
-
-export interface CreateFriendRequest {
-  name: string;
-  desc: string;
-  avatar: string;
-  url: string;
-}
-
-export interface UpdateFriendRequest {
-  name?: string;
-  desc?: string;
-  avatar?: string;
-  url?: string;
-  accepted?: number;
-  sort_order?: number;
-}
-
-// Moment types
-export interface Moment {
-  id: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  user: {
-    id: number;
-    username: string;
-    avatar: string;
-  };
-}
-
-export interface CreateMomentRequest {
-  content: string;
-}
-
-// Config types
-export type ConfigType = 'client' | 'server';
-
-export interface ConfigResponse {
-  [key: string]: any;
-}
-
-// AI Config types
-export interface AIConfig {
-  enabled: boolean;
-  provider: string;
-  model: string;
-  api_key: string;
-  api_url: string;
-}
-
-// Storage types
-export interface UploadResponse {
-  url: string;
-}
-
-// ============================================================================
-// Base HTTP Client
-// ============================================================================
-
+/**
+ * HTTP client for making API requests
+ */
 class HttpClient {
-  private baseUrl: string;
-
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
-  }
+  constructor(private baseUrl: string) {}
 
   private async request<T>(
     method: string,
     path: string,
-    body?: any,
+    body?: unknown,
     options?: RequestOptions
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${path}`;
-    
     const headers: Record<string, string> = {
-      'Accept': 'application/json',
+      Accept: "application/json",
       ...options?.headers,
     };
 
-    // Add Authorization header if token exists and not already provided
+    // Add auth token if available
     const token = getAuthToken();
-    if (token && !headers['Authorization']) {
-      headers['Authorization'] = `Bearer ${token}`;
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const init: RequestInit = {
-      method,
-      headers,
-      credentials: 'include',
-    };
-
-    if (body !== undefined) {
-      if (body instanceof FormData) {
-        // Don't set Content-Type for FormData - browser will set it with boundary
-        delete headers['Content-Type'];
-        init.body = body;
-      } else {
-        headers['Content-Type'] = 'application/json';
-        init.body = JSON.stringify(body);
-      }
+    if (body !== undefined && !(body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
     }
 
     try {
-      const response = await fetch(url, init);
-      
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+        credentials: "include",
+      });
+
+      // Handle 204 No Content
+      if (response.status === 204) {
+        return { data: undefined as T };
+      }
+
       if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        let errorValue: any;
-        
-        if (contentType?.includes('application/json')) {
-          // Try to parse structured error response
-          try {
-            const errorData = await response.json();
-            errorValue = errorData;
-          } catch {
-            errorValue = await response.text();
-          }
-        } else {
+        let errorValue: unknown;
+        try {
+          errorValue = await response.json();
+        } catch {
           errorValue = await response.text();
         }
-        
         return {
           error: {
             status: response.status,
-            value: errorValue || response.statusText,
+            value: typeof errorValue === 'string' ? errorValue : String(errorValue ?? response.statusText),
           },
         };
       }
 
-      // Handle empty responses
-      const contentLength = response.headers.get('content-length');
-      if (contentLength === '0' || response.status === 204) {
+      // Check if response has content
+      const contentLength = response.headers.get("content-length");
+      if (contentLength === "0") {
         return { data: undefined as T };
       }
 
-      const contentType = response.headers.get('content-type');
-      if (contentType?.includes('application/json')) {
+      // Try to parse JSON, fallback to text
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
         const data = await response.json();
         return { data };
       }
@@ -295,406 +139,385 @@ class HttpClient {
       return {
         error: {
           status: 0,
-          value: error instanceof Error ? error.message : 'Network error',
+          value: error instanceof Error ? error.message : "Network error",
         },
       };
     }
   }
 
   async get<T>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('GET', path, undefined, options);
+    return this.request<T>("GET", path, undefined, options);
   }
 
-  async post<T>(path: string, body?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('POST', path, body, options);
+  async post<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+    return this.request<T>("POST", path, body, options);
   }
 
-  async put<T>(path: string, body?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('PUT', path, body, options);
+  async put<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+    return this.request<T>("PUT", path, body, options);
   }
 
-  async patch<T>(path: string, body?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('PATCH', path, body, options);
+  async patch<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+    return this.request<T>("PATCH", path, body, options);
   }
 
   async delete<T>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('DELETE', path, undefined, options);
+    return this.request<T>("DELETE", path, undefined, options);
   }
 }
 
-// ============================================================================
-// API Services
-// ============================================================================
-
+/**
+ * Feed API methods
+ */
 class FeedAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // GET /feed
-  async list(
-    params?: { page?: number; limit?: number; type?: 'draft' | 'unlisted' | 'normal' },
-    options?: RequestOptions
-  ): Promise<ApiResponse<FeedListResponse>> {
+  // GET /api/feed
+  async list(params?: { page?: number; limit?: number; type?: 'draft' | 'unlisted' | 'normal' }): Promise<ApiResponse<FeedListResponse>> {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.type) searchParams.set('type', params.type);
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
+    if (params?.type) searchParams.set("type", params.type);
     
     const query = searchParams.toString();
-    return this.client.get<FeedListResponse>(`/feed${query ? `?${query}` : ''}`, options);
+    return this.http.get<FeedListResponse>(`/api/feed${query ? `?${query}` : ""}`);
   }
 
-  // GET /feed/timeline
-  async timeline(options?: RequestOptions): Promise<ApiResponse<TimelineItem[]>> {
-    return this.client.get<TimelineItem[]>('/feed/timeline', options);
+  // GET /api/feed/timeline
+  async timeline(): Promise<ApiResponse<TimelineItem[]>> {
+    return this.http.get<TimelineItem[]>("/api/feed/timeline");
   }
 
-  // GET /feed/:id
-  async get(id: number | string, options?: RequestOptions): Promise<ApiResponse<Feed>> {
-    return this.client.get<Feed>(`/feed/${id}`, options);
+  // GET /api/feed/:id
+  async get(id: number | string): Promise<ApiResponse<Feed>> {
+    return this.http.get<Feed>(`/api/feed/${id}`);
   }
 
-  // POST /feed
-  async create(body: CreateFeedRequest, options?: RequestOptions): Promise<ApiResponse<{ insertedId: number }>> {
-    return this.client.post<{ insertedId: number }>('/feed', body, options);
+  // POST /api/feed
+  async create(body: CreateFeedRequest): Promise<ApiResponse<{ insertedId: number }>> {
+    return this.http.post<{ insertedId: number }>("/api/feed", body);
   }
 
-  // POST /feed/:id
-  async update(id: number, body: UpdateFeedRequest, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.post<void>(`/feed/${id}`, body, options);
+  // POST /api/feed/:id
+  async update(id: number, body: UpdateFeedRequest): Promise<ApiResponse<void>> {
+    return this.http.post<void>(`/api/feed/${id}`, body);
   }
 
-  // DELETE /feed/:id
-  async delete(id: number, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/feed/${id}`, options);
+  // DELETE /api/feed/:id
+  async delete(id: number): Promise<ApiResponse<void>> {
+    return this.http.delete<void>(`/api/feed/${id}`);
   }
 
-  // GET /feed/adjacent/:id
-  async adjacent(id: number | string, options?: RequestOptions): Promise<ApiResponse<{ prev: Feed | null; next: Feed | null }>> {
-    return this.client.get<{ prev: Feed | null; next: Feed | null }>(`/feed/adjacent/${id}`, options);
+  // GET /api/feed/adjacent/:id
+  async adjacent(id: number | string): Promise<ApiResponse<{ prev: Feed | null; next: Feed | null }>> {
+    return this.http.get<{ prev: Feed | null; next: Feed | null }>(`/api/feed/adjacent/${id}`);
   }
 
-  // POST /feed/top/:id
-  async setTop(id: number, top: number, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.post<void>(`/feed/top/${id}`, { top }, options);
-  }
-}
-
-// Auth types
-export interface AuthStatus {
-  github: boolean;
-  password: boolean;
-}
-
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  success: boolean;
-  token?: string;
-  user: UserProfile;
-}
-
-class AuthAPI {
-  constructor(private client: HttpClient) {}
-
-  // GET /auth/status
-  async status(options?: RequestOptions): Promise<ApiResponse<AuthStatus>> {
-    return this.client.get<AuthStatus>('/auth/status', options);
-  }
-
-  // POST /auth/login
-  async login(body: LoginRequest, options?: RequestOptions): Promise<ApiResponse<LoginResponse>> {
-    return this.client.post<LoginResponse>('/auth/login', body, options);
+  // POST /api/feed/top/:id
+  async setTop(id: number, top: number): Promise<ApiResponse<void>> {
+    return this.http.post<void>(`/api/feed/top/${id}`, { top });
   }
 }
 
-export interface UpdateProfileRequest {
-  username?: string;
-  avatar?: string | null;
-}
-
-class UserAPI {
-  constructor(private client: HttpClient) {}
-
-  // GET /user/profile
-  async profile(options?: RequestOptions): Promise<ApiResponse<UserProfile>> {
-    return this.client.get<UserProfile>('/user/profile', options);
-  }
-
-  // PUT /user/profile
-  async updateProfile(body: UpdateProfileRequest, options?: RequestOptions): Promise<ApiResponse<{ success: boolean }>> {
-    return this.client.put<{ success: boolean }>('/user/profile', body, options);
-  }
-
-  // POST /user/logout
-  async logout(options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.post<void>('/user/logout', undefined, options);
-  }
-
-  // GET /user/github
-  githubAuth(): string {
-    return `${endpoint}/user/github`;
-  }
-}
-
+/**
+ * Tag API methods
+ */
 class TagAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // GET /tag
-  async list(options?: RequestOptions): Promise<ApiResponse<Tag[]>> {
-    return this.client.get<Tag[]>('/tag', options);
+  // GET /api/tag
+  async list(): Promise<ApiResponse<Tag[]>> {
+    return this.http.get<Tag[]>("/api/tag");
   }
 
-  // GET /tag/:name
-  async get(name: string, options?: RequestOptions): Promise<ApiResponse<TagDetail>> {
-    return this.client.get<TagDetail>(`/tag/${encodeURIComponent(name)}`, options);
+  // GET /api/tag/:name
+  async get(name: string): Promise<ApiResponse<TagDetail>> {
+    return this.http.get<TagDetail>(`/api/tag/${encodeURIComponent(name)}`);
   }
 }
 
+/**
+ * Comment API methods
+ */
 class CommentAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // GET /feed/comment/:feed
-  async list(feedId: number, options?: RequestOptions): Promise<ApiResponse<Comment[]>> {
-    return this.client.get<Comment[]>(`/feed/comment/${feedId}`, options);
+  // GET /api/comment/:feed
+  async list(feedId: number): Promise<ApiResponse<Comment[]>> {
+    return this.http.get<Comment[]>(`/api/comment/${feedId}`);
   }
 
-  // POST /feed/comment/:feed
-  async create(feedId: number, body: CreateCommentRequest, options?: RequestOptions): Promise<ApiResponse<Comment>> {
-    return this.client.post<Comment>(`/feed/comment/${feedId}`, body, options);
+  // POST /api/comment/:feed
+  async create(feedId: number, body: CreateCommentRequest): Promise<ApiResponse<Comment>> {
+    return this.http.post<Comment>(`/api/comment/${feedId}`, body);
   }
 
-  // DELETE /comment/:id
-  async delete(id: number, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/comment/${id}`, options);
+  // DELETE /api/comment/:id
+  async delete(id: number): Promise<ApiResponse<void>> {
+    return this.http.delete<void>(`/api/comment/${id}`);
   }
 }
 
+/**
+ * User API methods
+ */
+class UserAPI {
+  constructor(private http: HttpClient) {}
+
+  // GET /api/user/profile
+  async profile(): Promise<ApiResponse<UserProfile>> {
+    return this.http.get<UserProfile>("/api/user/profile");
+  }
+
+  // PUT /api/user/profile
+  async updateProfile(body: UpdateProfileRequest): Promise<ApiResponse<{ success: boolean }>> {
+    return this.http.put<{ success: boolean }>("/api/user/profile", body);
+  }
+
+  // POST /api/user/logout
+  async logout(): Promise<ApiResponse<void>> {
+    return this.http.post<void>("/api/user/logout");
+  }
+
+  // GET /api/user/github
+  githubAuth(): string {
+    return `${endpoint}/api/user/github`;
+  }
+}
+
+/**
+ * Friend API methods
+ */
 class FriendAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // GET /friend
-  async list(options?: RequestOptions): Promise<ApiResponse<FriendListResponse>> {
-    return this.client.get<FriendListResponse>('/friend', options);
+  // GET /api/friend
+  async list(): Promise<ApiResponse<FriendListResponse>> {
+    return this.http.get<FriendListResponse>("/api/friend");
   }
 
-  // POST /friend
-  async create(body: CreateFriendRequest, options?: RequestOptions): Promise<ApiResponse<Friend>> {
-    return this.client.post<Friend>('/friend', body, options);
+  // POST /api/friend
+  async create(body: CreateFriendRequest): Promise<ApiResponse<Friend>> {
+    return this.http.post<Friend>("/api/friend", body);
   }
 
-  // PUT /friend/:id
-  async update(id: number, body: UpdateFriendRequest, options?: RequestOptions): Promise<ApiResponse<Friend>> {
-    return this.client.put<Friend>(`/friend/${id}`, body, options);
+  // PUT /api/friend/:id
+  async update(id: number, body: UpdateFriendRequest): Promise<ApiResponse<Friend>> {
+    return this.http.put<Friend>(`/api/friend/${id}`, body);
   }
 
-  // DELETE /friend/:id
-  async delete(id: number, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/friend/${id}`, options);
+  // DELETE /api/friend/:id
+  async delete(id: number): Promise<ApiResponse<void>> {
+    return this.http.delete<void>(`/api/friend/${id}`);
   }
 }
 
-class MomentAPI {
-  constructor(private client: HttpClient) {}
+/**
+ * Moments API methods
+ */
+class MomentsAPI {
+  constructor(private http: HttpClient) {}
 
-  // GET /moments
-  async list(params?: { page?: number; limit?: number }, options?: RequestOptions): Promise<ApiResponse<{ data: Moment[]; hasNext: boolean }>> {
+  // GET /api/moments
+  async list(params?: { page?: number; limit?: number }): Promise<ApiResponse<{ data: Moment[]; hasNext: boolean }>> {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
     
     const query = searchParams.toString();
-    return this.client.get<{ data: Moment[]; hasNext: boolean }>(`/moments${query ? `?${query}` : ''}`, options);
+    return this.http.get<{ data: Moment[]; hasNext: boolean }>(`/api/moments${query ? `?${query}` : ""}`);
   }
 
-  // POST /moments
-  async create(body: CreateMomentRequest, options?: RequestOptions): Promise<ApiResponse<Moment>> {
-    return this.client.post<Moment>('/moments', body, options);
+  // POST /api/moments
+  async create(body: CreateMomentRequest): Promise<ApiResponse<Moment>> {
+    return this.http.post<Moment>("/api/moments", body);
   }
 
-  // POST /moments/:id
-  async update(id: number, body: CreateMomentRequest, options?: RequestOptions): Promise<ApiResponse<Moment>> {
-    return this.client.post<Moment>(`/moments/${id}`, body, options);
+  // POST /api/moments/:id
+  async update(id: number, body: CreateMomentRequest): Promise<ApiResponse<Moment>> {
+    return this.http.post<Moment>(`/api/moments/${id}`, body);
   }
 
-  // DELETE /moments/:id
-  async delete(id: number, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/moments/${id}`, options);
+  // DELETE /api/moments/:id
+  async delete(id: number): Promise<ApiResponse<void>> {
+    return this.http.delete<void>(`/api/moments/${id}`);
   }
 }
 
+/**
+ * Config API methods
+ */
 class ConfigAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // GET /config/:type
-  async get(type: ConfigType, options?: RequestOptions): Promise<ApiResponse<ConfigResponse>> {
-    return this.client.get<ConfigResponse>(`/config/${type}`, options);
+  // GET /api/config/:type
+  async get(type: ConfigType): Promise<ApiResponse<ConfigResponse>> {
+    return this.http.get<ConfigResponse>(`/api/config/${type}`);
   }
 
-  // POST /config/:type
-  async update(type: ConfigType, body: Record<string, any>, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.post<void>(`/config/${type}`, body, options);
+  // POST /api/config/:type
+  async update(type: ConfigType, body: Record<string, unknown>): Promise<ApiResponse<void>> {
+    return this.http.post<void>(`/api/config/${type}`, body);
   }
 
-  // DELETE /config/cache
-  async clearCache(options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.delete<void>('/config/cache', options);
+  // DELETE /api/config/cache
+  async clearCache(): Promise<ApiResponse<void>> {
+    return this.http.delete<void>("/api/config/cache");
   }
 }
 
+/**
+ * AI Config API methods
+ */
 class AIConfigAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // GET /ai-config
-  async get(options?: RequestOptions): Promise<ApiResponse<AIConfig>> {
-    return this.client.get<AIConfig>('/ai-config', options);
+  // GET /api/ai-config
+  async get(): Promise<ApiResponse<AIConfig>> {
+    return this.http.get<AIConfig>("/api/ai-config");
   }
 
-  // POST /ai-config
-  async update(body: Partial<AIConfig>, options?: RequestOptions): Promise<ApiResponse<void>> {
-    return this.client.post<void>('/ai-config', body, options);
+  // POST /api/ai-config
+  async update(body: Partial<AIConfig>): Promise<ApiResponse<void>> {
+    return this.http.post<void>("/api/ai-config", body);
   }
 }
 
+/**
+ * Storage API methods
+ */
 class StorageAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // POST /storage
-  async upload(file: File, key?: string, options?: RequestOptions): Promise<ApiResponse<UploadResponse>> {
+  // POST /api/storage
+  async upload(file: File, key?: string): Promise<ApiResponse<UploadResponse>> {
     const formData = new FormData();
-    formData.append('file', file);
-    if (key) formData.append('key', key);
+    formData.append("file", file);
+    if (key) formData.append("key", key);
     
-    return this.client.post<UploadResponse>('/storage', formData, options);
+    return this.http.post<UploadResponse>("/api/storage", formData);
   }
 }
 
-class FaviconAPI {
-  constructor(private client: HttpClient) {}
-
-  // GET /favicon
-  async get(options?: RequestOptions): Promise<ApiResponse<Blob>> {
-    const response = await fetch(`${endpoint}/favicon`, {
-      ...options,
-      credentials: 'include',
-    });
-    
-    if (!response.ok) {
-      return {
-        error: {
-          status: response.status,
-          value: response.statusText,
-        },
-      };
-    }
-    
-    return { data: await response.blob() };
-  }
-
-  // GET /favicon/original
-  async getOriginal(options?: RequestOptions): Promise<ApiResponse<Blob>> {
-    const response = await fetch(`${endpoint}/favicon/original`, {
-      ...options,
-      credentials: 'include',
-    });
-    
-    if (!response.ok) {
-      return {
-        error: {
-          status: response.status,
-          value: response.statusText,
-        },
-      };
-    }
-    
-    return { data: await response.blob() };
-  }
-
-  // POST /favicon
-  async upload(file: File, options?: RequestOptions): Promise<ApiResponse<void>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    return this.client.post<void>('/favicon', formData, options);
-  }
-}
-
+/**
+ * Search API methods
+ */
 class SearchAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // GET /search/:keyword
-  async search(keyword: string, options?: RequestOptions): Promise<ApiResponse<FeedListResponse>> {
-    return this.client.get<FeedListResponse>(`/search/${encodeURIComponent(keyword)}`, options);
+  // GET /api/search/:keyword
+  async search(keyword: string): Promise<ApiResponse<FeedListResponse>> {
+    return this.http.get<FeedListResponse>(`/api/search/${encodeURIComponent(keyword)}`);
   }
 }
 
+/**
+ * Auth API methods
+ */
+class AuthAPI {
+  constructor(private http: HttpClient) {}
+
+  // GET /api/auth/status
+  async status(): Promise<ApiResponse<AuthStatus>> {
+    return this.http.get<AuthStatus>("/api/auth/status");
+  }
+
+  // POST /api/auth/login
+  async login(body: LoginRequest): Promise<ApiResponse<LoginResponse>> {
+    return this.http.post<LoginResponse>("/api/auth/login", body);
+  }
+}
+
+/**
+ * WordPress Import API methods
+ */
 class WordPressAPI {
-  constructor(private client: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-  // POST /wp
-  async import(xmlContent: string, options?: RequestOptions): Promise<ApiResponse<{ imported: number }>> {
-    return this.client.post<{ imported: number }>('/wp', { xml: xmlContent }, options);
+  // POST /api/wp
+  async import(xml: string): Promise<ApiResponse<{ imported: number }>> {
+    return this.http.post<{ imported: number }>("/api/wp", { xml });
   }
 }
 
+/**
+ * RSS API methods - direct fetch for RSS feeds
+ */
 class RSSAPI {
   constructor(private baseUrl: string) {}
 
-  // GET /sub/:name
-  getUrl(name: string): string {
-    return `${this.baseUrl}/sub/${encodeURIComponent(name)}`;
+  // GET /rss.xml
+  async getRSS(): Promise<string> {
+    const response = await fetch(`${this.baseUrl}/rss.xml`);
+    return response.text();
+  }
+
+  // GET /atom.xml
+  async getAtom(): Promise<string> {
+    const response = await fetch(`${this.baseUrl}/atom.xml`);
+    return response.text();
+  }
+
+  // GET /rss.json
+  async getJSON(): Promise<unknown> {
+    const response = await fetch(`${this.baseUrl}/rss.json`);
+    return response.json();
   }
 }
 
+/**
+ * SEO API methods
+ */
 class SEOAPI {
   constructor(private baseUrl: string) {}
 
-  // GET /seo/*
-  getUrl(path: string): string {
-    return `${this.baseUrl}/seo${path}`;
+  // GET /robots.txt
+  async getRobots(): Promise<string> {
+    const response = await fetch(`${this.baseUrl}/robots.txt`);
+    return response.text();
+  }
+
+  // GET /sitemap.xml
+  async getSitemap(): Promise<string> {
+    const response = await fetch(`${this.baseUrl}/sitemap.xml`);
+    return response.text();
   }
 }
 
 // ============================================================================
-// Main API Client
+// Main API Client Class
 // ============================================================================
 
 export class ApiClient {
   private http: HttpClient;
-  
-  public feed: FeedAPI;
-  public user: UserAPI;
-  public auth: AuthAPI;
-  public tag: TagAPI;
-  public comment: CommentAPI;
-  public friend: FriendAPI;
-  public moments: MomentAPI;
-  public config: ConfigAPI;
-  public aiConfig: AIConfigAPI;
-  public storage: StorageAPI;
-  public favicon: FaviconAPI;
-  public search: SearchAPI;
-  public wp: WordPressAPI;
-  public rss: RSSAPI;
-  public seo: SEOAPI;
+  feed: FeedAPI;
+  tag: TagAPI;
+  comment: CommentAPI;
+  user: UserAPI;
+  friend: FriendAPI;
+  moments: MomentsAPI;
+  config: ConfigAPI;
+  aiConfig: AIConfigAPI;
+  storage: StorageAPI;
+  search: SearchAPI;
+  auth: AuthAPI;
+  wp: WordPressAPI;
+  rss: RSSAPI;
+  seo: SEOAPI;
 
   constructor(baseUrl: string) {
     this.http = new HttpClient(baseUrl);
-    
     this.feed = new FeedAPI(this.http);
-    this.user = new UserAPI(this.http);
-    this.auth = new AuthAPI(this.http);
     this.tag = new TagAPI(this.http);
     this.comment = new CommentAPI(this.http);
+    this.user = new UserAPI(this.http);
     this.friend = new FriendAPI(this.http);
-    this.moments = new MomentAPI(this.http);
+    this.moments = new MomentsAPI(this.http);
     this.config = new ConfigAPI(this.http);
     this.aiConfig = new AIConfigAPI(this.http);
     this.storage = new StorageAPI(this.http);
-    this.favicon = new FaviconAPI(this.http);
     this.search = new SearchAPI(this.http);
+    this.auth = new AuthAPI(this.http);
     this.wp = new WordPressAPI(this.http);
     this.rss = new RSSAPI(baseUrl);
     this.seo = new SEOAPI(baseUrl);

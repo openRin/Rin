@@ -11,7 +11,6 @@ import { Markdown } from "../components/markdown";
 import { client } from "../main";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
-import { headersWithAuth } from "../utils/auth";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
 import { Button } from "../components/button";
@@ -87,9 +86,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
       () => {
         if (!feed) return;
         client.feed
-          .delete(feed.id, {
-            headers: headersWithAuth(),
-          })
+          .delete(feed.id)
           .then(({ error }) => {
             if (error) {
               showAlert(error.value as string);
@@ -110,9 +107,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
       () => {
         if (!feed) return;
         client.feed
-          .setTop(feed.id, topNew, {
-            headers: headersWithAuth(),
-          })
+          .setTop(feed.id, topNew)
           .then(({ error }) => {
             if (error) {
               showAlert(error.value as string);
@@ -129,9 +124,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
     setError(undefined);
     setHeadImage(undefined);
     client.feed
-      .get(id, {
-        headers: headersWithAuth(),
-      })
+      .get(id)
       .then(({ data, error }) => {
         if (error) {
           setError(error.value as string);
@@ -420,9 +413,7 @@ function CommentInput({
       return;
     }
     client.comment
-      .create(parseInt(id), { content }, {
-        headers: headersWithAuth(),
-      })
+      .create(parseInt(id), { content })
       .then(({ error }) => {
         if (error) {
           setError(errorHumanize(error.value as string));
@@ -492,9 +483,7 @@ function Comments({ id }: { id: string }) {
 
   function loadComments() {
     client.comment
-      .list(parseInt(id), {
-        headers: headersWithAuth(),
-      })
+      .list(parseInt(id))
       .then(({ data, error }) => {
         if (error) {
           setError(error.value as string);
@@ -560,9 +549,7 @@ function CommentItem({
       t("delete.comment.confirm"),
       async () => {
         client.comment
-          .delete(comment.id, {
-            headers: headersWithAuth(),
-          })
+          .delete(comment.id)
           .then(({ error }) => {
             if (error) {
               showAlert(error.value as string);

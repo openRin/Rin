@@ -5,13 +5,27 @@ import { visualizer } from "rollup-plugin-visualizer";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const isDev = mode === 'development';
+  
   return {
     define: {
       'process.env': JSON.stringify(env)
     },
+    build: {
+      outDir: '../dist/client',
+      emptyOutDir: true,
+    },
     plugins: [
       react(),
-      visualizer({ open: true }) // 自动开启分析页面
+      // Only open visualizer in build mode
+      visualizer({ open: !isDev })
     ],
+    // Vitest configuration
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.ts',
+      css: true,
+    },
   }
 })

@@ -10,7 +10,7 @@ import { Waiting } from "../components/loading";
 import { client } from "../main";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
-import { headersWithAuth } from "../utils/auth";
+
 import { siteName } from "../utils/constants";
 
 
@@ -35,8 +35,6 @@ async function publish({ name, avatar, desc, url, showAlert }: { name: string, a
         name,
         desc,
         url
-    }, {
-        headers: headersWithAuth()
     })
     if (error) {
         showAlert(error.value as string)
@@ -65,9 +63,7 @@ export function FriendsPage() {
     const { showAlert, AlertUI } = useAlert()
     useEffect(() => {
         if (ref.current) return
-        client.friend.list({
-            headers: headersWithAuth()
-        }).then(({ data }) => {
+        client.friend.list().then(({ data }) => {
             if (data) {
                 const friend_list = data.friend_list || []
                 const friends_available = friend_list.filter(({ health, accepted }: any) => health.length === 0 && accepted === 1) || []
@@ -163,9 +159,7 @@ function Friend({ friend }: { friend: FriendItem }) {
             t('delete.title'),
             t('delete.confirm'),
             () => {
-                client.friend.delete(friend.id, {
-                    headers: headersWithAuth()
-                }).then(({ error }) => {
+                client.friend.delete(friend.id).then(({ error }) => {
                     if (error) {
                         showAlert(error.value as string)
                     } else {
@@ -185,8 +179,6 @@ function Friend({ friend }: { friend: FriendItem }) {
             url,
             accepted: status,
             sort_order: sortOrder
-        }, {
-            headers: headersWithAuth()
         }).then(({ error }) => {
             if (error) {
                 showAlert(error.value as string)

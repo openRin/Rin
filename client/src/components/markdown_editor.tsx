@@ -6,7 +6,7 @@ import Loading from 'react-loading';
 import { useColorMode } from "../utils/darkModeUtils";
 import { Markdown } from "./markdown";
 import { client } from "../main";
-import { headersWithAuth } from "../utils/auth";
+
 
 interface MarkdownEditorProps {
   content: string;
@@ -25,9 +25,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
 
   function uploadImage(file: File, onSuccess: (url: string) => void, showAlert: (msg: string) => void) {
     client.storage
-      .upload(file, file.name, {
-        headers: headersWithAuth(),
-      })
+      .upload(file, file.name)
       .then(({ data, error }) => {
         if (error) {
           showAlert(t("upload.failed"));

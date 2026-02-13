@@ -15,7 +15,7 @@ import {
     defaultServerConfigWrapper,
     ServerConfigContext
 } from "../state/config.tsx";
-import { headersWithAuth } from "../utils/auth.ts";
+
 import '../utils/thumb.css';
 
 
@@ -34,9 +34,7 @@ export function Settings() {
 
     useEffect(() => {
         if (ref.current) return;
-        client.config.get('client', {
-            headers: headersWithAuth()
-        }).then(({ data }) => {
+        client.config.get('client').then(({ data }) => {
             if (data) {
                 sessionStorage.setItem('config', JSON.stringify(data));
                 const config = new ConfigWrapper(data, defaultClientConfig)
@@ -47,9 +45,7 @@ export function Settings() {
         }).finally(() => {
             setClientLoading(false);
         })
-        client.config.get('server', {
-            headers: headersWithAuth()
-        }).then(({ data }) => {
+        client.config.get('server').then(({ data }) => {
             if (data) {
                 const config = new ConfigWrapper(data, defaultServerConfig)
                 setServerConfig(config)
@@ -78,7 +74,6 @@ export function Settings() {
             formData.append('file', file);
             const response = await fetch(`${endpoint}/favicon`, {
                 method: 'POST',
-                headers: headersWithAuth(),
                 body: formData,
                 credentials: 'include',
             });
@@ -100,9 +95,7 @@ export function Settings() {
             const reader = new FileReader();
             reader.onload = async (event) => {
                 const xmlContent = event.target?.result as string;
-                await client.wp.import(xmlContent, {
-                    headers: headersWithAuth()
-                }).then(({ data, error }) => {
+                await client.wp.import(xmlContent).then(({ data, error }) => {
                     if (data) {
                         setMsg(t('settings.import_success$success$skipped', { success: data.imported, skipped: 0 }))
                         setMsgList([])
@@ -146,9 +139,7 @@ export function Settings() {
                             />
                             <ItemInput title={t('settings.footer.title')} description={t('settings.footer.desc')} type="client" configKey="footer" configKeyTitle="Footer HTML" />
                             <ItemButton title={t('settings.cache.clear.title')} description={t('settings.cache.clear.desc')} buttonTitle={t('clear')} onConfirm={async () => {
-                                await client.config.clearCache({
-                                    headers: headersWithAuth()
-                                })
+                                await client.config.clearCache()
                                     .then(({ error }) => {
                                         if (error) {
                                             showAlert(t('settings.cache.clear_failed$message', { message: error.value }))
@@ -248,8 +239,6 @@ function ItemSwitch({ title, description, type, configKey }: { title: string, de
         setLoading(true);
         client.config.update(type, {
             [key]: value
-        }, {
-            headers: headersWithAuth()
         }).then(({ error }) => {
             if (error) {
                 setChecked(checkedValue);
@@ -314,8 +303,6 @@ function ItemInput({ title, configKeyTitle, description, type, configKey }: { ti
         setLoading(true);
         client.config.update(type, {
             [key]: value
-        }, {
-            headers: headersWithAuth()
         }).then(() => {
             if (type === 'client') {
                 const config = sessionStorage.getItem('config')
@@ -617,9 +604,7 @@ function AISummarySettings() {
     useEffect(() => {
         const loadConfig = async () => {
             try {
-                const response = await fetch(`${endpoint}/ai-config`, {
-                    headers: headersWithAuth()
-                });
+                const response = await fetch(`${endpoint}/ai-config`);
                 if (response.ok) {
                     const data = await response.json() as {
                         enabled?: boolean;
@@ -648,7 +633,6 @@ function AISummarySettings() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...headersWithAuth()
                 },
                 body: JSON.stringify(updates)
             });
@@ -672,9 +656,7 @@ function AISummarySettings() {
         await updateConfig({ enabled: checked });
         // Refresh client config to update ai_summary.enabled in global state
         try {
-            const { data } = await client.config.get('client', {
-                headers: headersWithAuth()
-            });
+            const { data } = await client.config.get('client');
             if (data) {
                 sessionStorage.setItem('config', JSON.stringify(data));
                 // Trigger a storage event to notify other components

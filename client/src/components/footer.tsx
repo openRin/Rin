@@ -42,9 +42,9 @@ function Footer() {
     return (
         <footer>
             <Helmet>
-                <link rel="alternate" type="application/rss+xml" title={siteName} href="/sub/rss.xml" />
-                <link rel="alternate" type="application/atom+xml" title={siteName} href="/sub/atom.xml" />
-                <link rel="alternate" type="application/json" title={siteName} href="/sub/rss.json" />
+                <link rel="alternate" type="application/rss+xml" title={siteName} href="/rss.xml" />
+                <link rel="alternate" type="application/atom+xml" title={siteName} href="/atom.xml" />
+                <link rel="alternate" type="application/json" title={siteName} href="/rss.json" />
             </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
                 {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
@@ -76,13 +76,13 @@ function Footer() {
                                     {t('footer.rss')}
                                 </p>
                                 <p>
-                                    <a href='/sub/rss.xml'>
+                                    <a href='/rss.xml'>
                                         RSS
                                     </a> <Spliter />
-                                    <a href='/sub/atom.xml'>
+                                    <a href='/atom.xml'>
                                         Atom
                                     </a> <Spliter />
-                                    <a href='/sub/rss.json'>
+                                    <a href='/rss.json'>
                                         JSON
                                     </a>
                                 </p>

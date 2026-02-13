@@ -5,7 +5,7 @@ import { ButtonWithLoading } from "../components/button";
 import { Input } from "../components/input";
 import { client } from "../main";
 import { ProfileContext } from "../state/profile";
-import { headersWithAuth } from "../utils/auth";
+
 
 export function ProfilePage() {
     const profile = useContext(ProfileContext);
@@ -76,8 +76,6 @@ export function ProfilePage() {
             const { error: apiError } = await client.user.updateProfile({ 
                 username: username.trim(),
                 avatar: avatar || null
-            }, {
-                headers: headersWithAuth()
             });
 
             if (apiError) {

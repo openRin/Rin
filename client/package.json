@@ -9,9 +9,13 @@
     "check": "tsc",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "i18n": "i18next"
+    "i18n": "i18next",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@rin/api": "workspace:*",
     "@astroimg/timeago": "^1.1.6",
     "@monaco-editor/react": "^4.6.0",
     "@prosemirror-adapter/react": "^0.2.6",
@@ -52,6 +56,10 @@
     "remark-rehype": "^11.1.0"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^0.1.1",
+    "@testing-library/jest-dom": "^6.4.5",
+    "@testing-library/react": "^15.0.7",
+    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
@@ -63,7 +71,8 @@
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-visualizer": "^5.12.0",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0",
+    "vite": "^6.0.0",
+    "wrangler": "^3.101.0",
     "autoprefixer": "^10.4.19",
     "i18next-parser": "^9.0.0",
     "postcss": "^8.4.38",

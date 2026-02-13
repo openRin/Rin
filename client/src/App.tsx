@@ -19,7 +19,6 @@ import { TimelinePage } from './page/timeline'
 import { WritingPage } from './page/writing'
 import { ClientConfigContext, ConfigWrapper, defaultClientConfig } from './state/config.tsx'
 import { Profile, ProfileContext } from './state/profile'
-import { headersWithAuth } from './utils/auth'
 import { tryInt } from './utils/int'
 import { SearchPage } from './page/search.tsx'
 import { Tips, TipsPage } from './components/tips.tsx'
@@ -45,9 +44,7 @@ function App() {
     applyScaling();
     // --- 自动缩放逻辑结束 ---
     if (ref.current) return
-    client.user.profile({
-      headers: headersWithAuth()
-    }).then(({ data, error }) => {
+    client.user.profile().then(({ data, error }) => {
       if (data) {
         setProfile({
           id: data.id,

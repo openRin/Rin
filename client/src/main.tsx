@@ -13,9 +13,8 @@ import { siteName } from './utils/constants'
 import { listenSystemMode } from './utils/darkModeUtils'
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { GlobalErrorBoundary } from './components/error-boundary.tsx'
-export const endpoint = process.env.API_URL || 'http://localhost:3001'
-export const oauth_url = process.env.API_URL + '/user/github'
-export const auth_url = process.env.API_URL + '/auth'
+import { endpoint, oauth_url } from './config'
+export { endpoint, oauth_url }
 export const client = createClient(endpoint)
 listenSystemMode()
 i18n

@@ -3,7 +3,6 @@ import {Helmet} from 'react-helmet'
 import {Link} from "wouter"
 import {Waiting} from "../components/loading"
 import {client} from "../main"
-import {headersWithAuth} from "../utils/auth"
 import {siteName} from "../utils/constants"
 import {useTranslation} from "react-i18next";
 
@@ -19,9 +18,7 @@ export function TimelinePage() {
     const ref = useRef(false)
     const { t } = useTranslation()
     function fetchFeeds() {
-        client.feed.timeline({
-            headers: headersWithAuth()
-        })
+        client.feed.timeline()
         .then(({ data }) => {
             if (data) {
                 const arr = Array.isArray(data) ? data : []

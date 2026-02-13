@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { Helmet } from 'react-helmet'
 import { client } from "../main"
-import { headersWithAuth } from "../utils/auth"
+
 import { siteName } from "../utils/constants"
 import { useTranslation } from "react-i18next"
 import { ProfileContext } from "../state/profile"
@@ -58,8 +58,6 @@ export function MomentsPage() {
         client.moments.list({
             page: page,
             limit: limit
-        }, {
-            headers: headersWithAuth()
         }).then(({ data }) => {
             if (data) {
                 setLength(data.data.length)
@@ -94,7 +92,7 @@ export function MomentsPage() {
         setLoading(true)
         
         if (editingMoment) {
-            client.moments.update(editingMoment.id, { content }, { headers: headersWithAuth() })
+            client.moments.update(editingMoment.id, { content })
             .then(({ error }) => {
                 if (error) {
                     showAlert(t('update.failed$message', { message: error.value }))
@@ -109,7 +107,7 @@ export function MomentsPage() {
                 setLoading(false)
             })
         } else {
-            client.moments.create({ content }, { headers: headersWithAuth() })
+            client.moments.create({ content })
             .then(({ error }) => {
                 if (error) {
                     showAlert(t('publish.failed$message', { message: error.value }))
@@ -136,9 +134,7 @@ export function MomentsPage() {
             t("delete.title"),
             t("delete.confirm"),
             () => {
-                client.moments.delete(id, {
-                    headers: headersWithAuth()
-                }).then(({ error }) => {
+                client.moments.delete(id).then(({ error }) => {
                     if (error) {
                         showAlert(t('delete.failed$message', { message: error.value }))
                     } else {
