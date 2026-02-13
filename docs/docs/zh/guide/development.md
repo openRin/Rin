@@ -49,7 +49,6 @@ bun run dev
 
 | 变量名 | 必填 | 说明 | 示例 |
 |--------|------|------|------|
-| `API_URL` | 是 | 后端 API 地址 | `http://localhost:11498` |
 | `NAME` | 是 | 网站名称 | `My Blog` |
 | `AVATAR` | 是 | 头像地址 | `https://...` |
 | `DESCRIPTION` | 否 | 网站描述 | `A blog` |

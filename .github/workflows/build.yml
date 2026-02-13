@@ -51,8 +51,6 @@ jobs:
       # Build client with production environment variables (must be before server build)
       - name: Build client for production
         env:
-          API_URL: ${{ vars.API_URL || 'https://rin-server.your-account-id.workers.dev' }}
-          BUILD_API_URL: ${{ vars.API_URL || 'https://rin-server.your-account-id.workers.dev' }}
           NAME: ${{ vars.NAME || 'Rin' }}
           DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
           AVATAR: ${{ vars.AVATAR || '' }}
@@ -61,15 +59,13 @@ jobs:
         run: |
           mkdir -p ./dist/client
           cd client
-          echo "API_URL=${API_URL}" > .env.production
-          echo "NAME=${NAME}" >> .env.production
+          echo "NAME=${NAME}" > .env.production
           echo "DESCRIPTION=${DESCRIPTION}" >> .env.production
           echo "AVATAR=${AVATAR}" >> .env.production
           echo "PAGE_SIZE=${PAGE_SIZE}" >> .env.production
           echo "RSS_ENABLE=${RSS_ENABLE}" >> .env.production
           bun run build
           cd ..
-          cp -r ./client/dist/* ./dist/client/
 
       # Generate wrangler.toml for build (required by wrangler deploy --dry-run)
       - name: Setup Wrangler

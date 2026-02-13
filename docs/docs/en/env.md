@@ -4,7 +4,6 @@
 
 | Name         | Required | Description                             | Default Value | Example Value                                       |
 |--------------|----------|-----------------------------------------|---------------|----------------------------------------------------|
-| API_URL      | Yes      | Backend URL                             | None          | http://localhost:3001                              |
 | AVATAR       | Yes      | Avatar URL for the top left of the site | None          | https://avatars.githubusercontent.com/u/36541432   |
 | NAME         | Yes      | Name & Title for the top left of the site | None          | Xeu                                                |
 | DESCRIPTION  | No       | Description for the top left of the site | None          | Omnivore                                           |

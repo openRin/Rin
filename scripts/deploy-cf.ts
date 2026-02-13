@@ -113,8 +113,8 @@ async function getR2BucketInfo(): Promise<{ name: string; endpoint: string; acce
     }
 }
 
-// Build client with correct API URL
-async function buildClient(apiUrl: string): Promise<void> {
+// Build client
+async function buildClient(): Promise<void> {
     console.log("🔨 Building client...")
 
     // Check if pre-built dist exists
@@ -122,38 +122,20 @@ async function buildClient(apiUrl: string): Promise<void> {
     const prebuiltIndexHtml = prebuiltDist + '/index.html'
     const hasPrebuilt = await Bun.file(prebuiltIndexHtml).exists()
 
-    // Check if pre-built client has the correct API_URL
-    let usePrebuilt = false
     if (hasPrebuilt) {
-        const expectedApiUrl = process.env.API_URL || apiUrl
-        const buildApiUrl = process.env.BUILD_API_URL
-
-        if (buildApiUrl && buildApiUrl === expectedApiUrl) {
-            usePrebuilt = true
-            console.log("✅ Using pre-built client (API URL matches)")
-        } else if (hasPrebuilt && !process.env.API_URL) {
-            usePrebuilt = true
-            console.log("✅ Using pre-built client (no custom API_URL)")
-        } else {
-            console.log(`⚠️ Rebuilding client for API_URL: ${expectedApiUrl}`)
-        }
-    }
-
-    if (usePrebuilt) {
-        console.log("Using pre-built client from ./dist/client")
+        console.log("✅ Using pre-built client from ./dist/client")
         return
     }
 
-    // Create production env file with correct API URL
-    const envContent = `API_URL=${apiUrl}
-NAME=${NAME}
+    // Create production env file
+    const envContent = `NAME=${NAME}
 DESCRIPTION=${DESCRIPTION}
 AVATAR=${AVATAR}
 PAGE_SIZE=${PAGE_SIZE}
 RSS_ENABLE=${RSS_ENABLE}
 `
     await Bun.write('client/.env.production', envContent)
-    console.log("Created client/.env.production with API_URL=" + apiUrl)
+    console.log("Created client/.env.production")
 
     // Build the client
     await $`cd client && bun run build`.quiet()
@@ -174,9 +156,8 @@ async function deploy(): Promise<string> {
     const finalS3Bucket = S3_BUCKET || r2Info?.name || ""
     const finalS3AccessHost = S3_ACCESS_HOST || r2Info?.accessHost || finalS3Endpoint
 
-    // Build client first to get the API URL
-    const apiUrl = `https://${WORKER_NAME}.${process.env.CF_ACCOUNT_ID || 'workers'}.workers.dev`
-    await buildClient(apiUrl)
+    // Build client
+    await buildClient()
 
     // Create wrangler.toml with assets configuration
     Bun.write('wrangler.toml', stripIndent(`

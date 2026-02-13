@@ -49,7 +49,6 @@ All configurations are centralized in the `.env.local` file:
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
-| `API_URL` | Yes | Backend API address | `http://localhost:11498` |
 | `NAME` | Yes | Website name | `My Blog` |
 | `AVATAR` | Yes | Avatar URL | `https://...` |
 | `DESCRIPTION` | No | Website description | `A blog` |

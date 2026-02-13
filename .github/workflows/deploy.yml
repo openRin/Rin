@@ -139,7 +139,6 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           WORKER_NAME: ${{ steps.config.outputs.worker_name }}
           DB_NAME: ${{ steps.config.outputs.db_name }}
-          API_URL: https://${{ steps.config.outputs.worker_name }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev
           NAME: ${{ steps.config.outputs.name }}
           DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
           AVATAR: ${{ vars.AVATAR || '' }}

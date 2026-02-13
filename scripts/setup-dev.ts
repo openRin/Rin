@@ -46,7 +46,6 @@ const env = parseEnv(envContent);
 
 // 验证必要的环境变量
 const requiredVars = [
-    'API_URL',
     'NAME',
     'AVATAR',
     'S3_ENDPOINT',
@@ -112,8 +111,7 @@ fs.writeFileSync(path.join(ROOT_DIR, 'wrangler.toml'), wranglerContent);
 console.log('✅ 已生成 wrangler.toml');
 
 // 生成 client/.env
-const clientEnvContent = `API_URL=${env.API_URL}
-NAME=${env.NAME}
+const clientEnvContent = `NAME=${env.NAME}
 DESCRIPTION=${env.DESCRIPTION || ''}
 AVATAR=${env.AVATAR}
 PAGE_SIZE=${env.PAGE_SIZE || '5'}
