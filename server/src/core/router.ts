@@ -12,9 +12,14 @@ export class Router {
         return this;
     }
 
-    state<T>(key: string, value: T): this {
-        this.appState.set(key, value);
-        return this;
+    state<T>(key: string, value: T): this;
+    state<T>(key: string): T | undefined;
+    state<T>(key: string, value?: T): this | T | undefined {
+        if (arguments.length === 2) {
+            this.appState.set(key, value!);
+            return this;
+        }
+        return this.appState.get(key);
     }
 
     private addRoute(method: string, path: string, handler: Handler, schema?: any): this {
@@ -226,7 +231,8 @@ export class Router {
             oauth2: this.appState.get('oauth2'),
             uid: undefined,
             admin: false,
-            username: undefined
+            username: undefined,
+            env
         };
 
         // Parse headers

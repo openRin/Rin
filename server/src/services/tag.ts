@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import type { DB } from "../context";
+import type { DB } from "../server";
 import { feedHashtags, hashtags } from "../db/schema";
 import { Router } from "../core/router";
 import type { Context } from "../core/types";
@@ -16,7 +16,7 @@ export function TagService(router: Router): void {
                 }
             });
             
-            return tag_list.map((tag) => ({
+            return tag_list.map((tag: any) => ({
                 ...tag,
                 feeds: tag.feeds.length
             }));
@@ -51,11 +51,11 @@ export function TagService(router: Router): void {
                 }
             });
             
-            const tagFeeds = tag?.feeds.map((tag: any) => {
-                if (!tag.feed) return null;
+            const tagFeeds = tag?.feeds.map((tagFeed: any) => {
+                if (!tagFeed.feed) return null;
                 return {
-                    ...tag.feed,
-                    hashtags: tag.feed.hashtags.map((tag: any) => tag.hashtag)
+                    ...tagFeed.feed,
+                    hashtags: tagFeed.feed.hashtags.map((hashtag: any) => hashtag.hashtag)
                 };
             }).filter((feed: any) => feed !== null);
             

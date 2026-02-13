@@ -1,15 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 import { comments, feeds, users } from "../db/schema";
 import { Router } from "../core/router";
-import { t } from "../core/types";
 import type { Context } from "../core/types";
 import { Config } from "../utils/config";
 import { notify } from "../utils/webhook";
+import { commentCreateSchema } from "@rin/api";
 
 export function CommentService(router: Router): void {
-    // Group /feed/comment
-    router.group('/feed/comment', (group) => {
-        // GET /feed/comment/:feed
+    router.group('/comment', (group) => {
         group.get('/:feed', async (ctx: Context) => {
             const { params, store: { db } } = ctx;
             const feedId = parseInt(params.feed);
@@ -28,7 +26,6 @@ export function CommentService(router: Router): void {
             return comment_list;
         });
 
-        // POST /feed/comment/:feed
         group.post('/:feed', async (ctx: Context) => {
             const { uid, set, params, body, store: { db, env, serverConfig } } = ctx;
             const { content } = body;
@@ -68,17 +65,8 @@ export function CommentService(router: Router): void {
             const webhookUrl = await serverConfig.get(Config.webhookUrl) || env.WEBHOOK_URL;
             await notify(webhookUrl, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
             return 'OK';
-        }, {
-            type: 'object',
-            properties: {
-                content: { type: 'string' }
-            }
-        });
-    });
+        }, commentCreateSchema);
 
-    // Group /comment
-    router.group('/comment', (group) => {
-        // DELETE /comment/:id
         group.delete('/:id', async (ctx: Context) => {
             const { uid, admin, set, params, store: { db } } = ctx;
             

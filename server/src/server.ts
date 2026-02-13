@@ -4,17 +4,17 @@ import { Router } from "./core/router";
 
 export type DB = DrizzleD1Database<typeof import("./db/schema")>
 
-// Service loader type
+// Service loader type - simple prefix matching instead of regex
 interface ServiceLoader {
-    pattern: RegExp;
+    prefix: string;
     loader: () => Promise<(router: Router) => void>;
 }
 
-// Service registry - order matters (more specific patterns first)
+// Service registry - order matters (longer prefixes first for specificity)
 const serviceRegistry: ServiceLoader[] = [
     // AI Config
     {
-        pattern: /^\/ai-config/,
+        prefix: '/ai-config',
         loader: async () => {
             const { AIConfigService } = await import('./services/ai-config');
             return AIConfigService;
@@ -22,23 +22,15 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Config
     {
-        pattern: /^\/config/,
+        prefix: '/config',
         loader: async () => {
             const { ConfigService } = await import('./services/config');
             return ConfigService;
         }
     },
-    // Feed Comments (more specific than feed)
+    // Comment (more specific than feed)
     {
-        pattern: /^\/feed\/comment/,
-        loader: async () => {
-            const { CommentService } = await import('./services/comments');
-            return CommentService;
-        }
-    },
-    // Comment delete (standalone)
-    {
-        pattern: /^\/comment/,
+        prefix: '/comment',
         loader: async () => {
             const { CommentService } = await import('./services/comments');
             return CommentService;
@@ -46,7 +38,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Feed
     {
-        pattern: /^\/feed/,
+        prefix: '/feed',
         loader: async () => {
             const { FeedService } = await import('./services/feed');
             return FeedService;
@@ -54,7 +46,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Search (separate from feed)
     {
-        pattern: /^\/search/,
+        prefix: '/search',
         loader: async () => {
             const { FeedService } = await import('./services/feed');
             return FeedService;
@@ -62,7 +54,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // WordPress import
     {
-        pattern: /^\/wp/,
+        prefix: '/wp',
         loader: async () => {
             const { FeedService } = await import('./services/feed');
             return FeedService;
@@ -70,7 +62,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Tag
     {
-        pattern: /^\/tag/,
+        prefix: '/tag',
         loader: async () => {
             const { TagService } = await import('./services/tag');
             return TagService;
@@ -78,7 +70,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Storage
     {
-        pattern: /^\/storage/,
+        prefix: '/storage',
         loader: async () => {
             const { StorageService } = await import('./services/storage');
             return StorageService;
@@ -86,7 +78,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Friend
     {
-        pattern: /^\/friend/,
+        prefix: '/friend',
         loader: async () => {
             const { FriendService } = await import('./services/friends');
             return FriendService;
@@ -94,15 +86,45 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // SEO
     {
-        pattern: /^\/seo/,
+        prefix: '/seo',
         loader: async () => {
             const { SEOService } = await import('./services/seo');
             return SEOService;
         }
     },
-    // RSS/Sub
+    // RSS Feeds - now served from root path (native RSS support)
+    // Matches: /rss.xml, /atom.xml, /feed.json, /feed.xml (legacy)
     {
-        pattern: /^\/sub/,
+        prefix: '/rss.xml',
+        loader: async () => {
+            const { RSSService } = await import('./services/rss');
+            return RSSService;
+        }
+    },
+    {
+        prefix: '/atom.xml',
+        loader: async () => {
+            const { RSSService } = await import('./services/rss');
+            return RSSService;
+        }
+    },
+    {
+        prefix: '/rss.json',
+        loader: async () => {
+            const { RSSService } = await import('./services/rss');
+            return RSSService;
+        }
+    },
+    {
+        prefix: '/feed.json',
+        loader: async () => {
+            const { RSSService } = await import('./services/rss');
+            return RSSService;
+        }
+    },
+    // Legacy RSS sub path support (for backward compatibility)
+    {
+        prefix: '/sub',
         loader: async () => {
             const { RSSService } = await import('./services/rss');
             return RSSService;
@@ -110,7 +132,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Moments
     {
-        pattern: /^\/moments/,
+        prefix: '/moments',
         loader: async () => {
             const { MomentsService } = await import('./services/moments');
             return MomentsService;
@@ -118,7 +140,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Favicon
     {
-        pattern: /^\/favicon/,
+        prefix: '/favicon',
         loader: async () => {
             const { FaviconService } = await import('./services/favicon');
             return FaviconService;
@@ -126,7 +148,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // User
     {
-        pattern: /^\/user/,
+        prefix: '/user',
         loader: async () => {
             const { UserService } = await import('./services/user');
             return UserService;
@@ -134,7 +156,7 @@ const serviceRegistry: ServiceLoader[] = [
     },
     // Auth (password login)
     {
-        pattern: /^\/auth/,
+        prefix: '/auth',
         loader: async () => {
             const { PasswordAuthService } = await import('./services/auth');
             return PasswordAuthService;
@@ -142,9 +164,19 @@ const serviceRegistry: ServiceLoader[] = [
     },
 ];
 
-// Find matching services for a path
+// Find matching services for a path using simple prefix matching
 function findMatchingServices(pathname: string): ServiceLoader[] {
-    return serviceRegistry.filter(service => service.pattern.test(pathname));
+    // Sort by prefix length (descending) to match more specific paths first
+    const sorted = [...serviceRegistry].sort((a, b) => b.prefix.length - a.prefix.length);
+    
+    // Find the first matching service
+    for (const service of sorted) {
+        if (pathname === service.prefix || pathname.startsWith(service.prefix + '/')) {
+            return [service];
+        }
+    }
+    
+    return [];
 }
 
 // Create app with lazy-loaded services
@@ -157,7 +189,8 @@ export async function createApp(env: Env, pathname: string): Promise<Router | nu
     
     const app = createBaseApp(env);
     
-    // Load and register all matching services
+    // Load and register the first matching service
+    // (each service registers its own routes via router.group())
     for (const service of matchingServices) {
         const serviceFn = await service.loader();
         serviceFn(app);

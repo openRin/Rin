@@ -1,8 +1,8 @@
 import { count, desc, eq } from "drizzle-orm";
 import { moments } from "../db/schema";
 import { Router } from "../core/router";
-import { t } from "../core/types";
 import type { Context } from "../core/types";
+import { momentCreateSchema, momentUpdateSchema } from "@rin/api";
 
 export function MomentsService(router: Router): void {
     router.group('/moments', (group) => {
@@ -85,12 +85,7 @@ export function MomentsService(router: Router): void {
             } else {
                 return result[0];
             }
-        }, {
-            type: 'object',
-            properties: {
-                content: { type: 'string' }
-            }
-        });
+        }, momentCreateSchema);
 
         // POST /moments/:id
         group.post('/:id', async (ctx: Context) => {
@@ -127,12 +122,7 @@ export function MomentsService(router: Router): void {
             
             await cache.deletePrefix('moments_');
             return 'Updated';
-        }, {
-            type: 'object',
-            properties: {
-                content: { type: 'string' }
-            }
-        });
+        }, momentUpdateSchema);
 
         // DELETE /moments/:id
         group.delete('/:id', async (ctx: Context) => {

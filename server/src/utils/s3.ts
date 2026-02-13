@@ -15,7 +15,7 @@ export async function putObject(
     client: AwsClient,
     env: Env,
     key: string,
-    body: Blob | Buffer | ArrayBuffer | string,
+    body: Blob | ArrayBuffer | Uint8Array | string,
     contentType?: string
 ) {
     const endpoint = env.S3_ENDPOINT;
@@ -29,7 +29,7 @@ export async function putObject(
     
     const response = await client.fetch(url, {
         method: "PUT",
-        body,
+        body: body as BodyInit,
         headers,
     });
     

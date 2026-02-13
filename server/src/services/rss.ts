@@ -37,8 +37,10 @@ async function initRSSModules() {
 }
 
 export function RSSService(router: Router): void {
-    router.get('/sub/:name', async (ctx: Context) => {
-        const { set, params, store: { env } } = ctx;
+    // Serve RSS feeds directly from root path (native RSS support)
+    // Routes: /rss.xml, /atom.xml, /feed.json
+    router.get('/:name', async (ctx: Context) => {
+        const { set, params, store: { env, db } } = ctx;
         const { name } = params;
 
         const endpoint = env.S3_ENDPOINT;
@@ -46,50 +48,103 @@ export function RSSService(router: Router): void {
         const folder = env.S3_CACHE_FOLDER || 'cache/';
         const host = `${(accessHost.startsWith("http://") || accessHost.startsWith("https://") ? '' : 'https://')}${accessHost}`;
 
-        if (!host) {
-            set.status = 500;
-            return 'S3_ACCESS_HOST is not defined';
-        }
-
         let fileName = name;
+        // Support legacy feed.xml redirect to rss.xml
         if (fileName === 'feed.xml') {
             fileName = 'rss.xml';
         }
 
-        if (['rss.xml', 'atom.xml', 'rss.json'].includes(fileName)) {
-            const key = path_join(folder, fileName);
-            try {
-                const url = `${host}/${key}`;
-                console.log(`Fetching ${url}`);
-                const response = await fetch(new Request(url));
-                const contentType = fileName === 'rss.xml'
-                    ? 'application/rss+xml; charset=UTF-8'
-                    : fileName === 'atom.xml'
-                        ? 'application/atom+xml; charset=UTF-8'
-                        : 'application/feed+json; charset=UTF-8';
-
-                return new Response(response.body, {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: {
-                        'Content-Type': contentType,
-                        'Cache-Control': response.headers.get('Cache-Control') || 'public, max-age=3600',
-                    }
-                });
-            } catch (e: any) {
-                console.error(e);
-                set.status = 500;
-                return e.message;
-            }
+        if (!['rss.xml', 'atom.xml', 'rss.json', 'feed.json'].includes(fileName)) {
+            set.status = 404;
+            return 'Not Found';
         }
 
-        set.status = 404;
-        return 'Not Found';
+        // Map file extensions to proper MIME types
+        const contentTypeMap: Record<string, string> = {
+            'rss.xml': 'application/rss+xml; charset=UTF-8',
+            'atom.xml': 'application/atom+xml; charset=UTF-8',
+            'rss.json': 'application/feed+json; charset=UTF-8',
+            'feed.json': 'application/feed+json; charset=UTF-8',
+        };
+        const contentType = contentTypeMap[fileName] || 'application/xml';
+
+        // Try to fetch from S3 first (if configured)
+        const key = path_join(folder, fileName);
+        const cleanHost = host.endsWith('/') ? host.slice(0, -1) : host;
+        const url = `${cleanHost}/${key}`;
+        
+        // Check if S3 is properly configured (not default/placeholder values)
+        const s3Configured = host && 
+                           !host.includes('your-') && 
+                           !host.includes('undefined') &&
+                           env.S3_BUCKET && 
+                           !env.S3_BUCKET.includes('your-bucket');
+        
+        if (s3Configured) {
+            try {
+                console.log(`[RSS] Fetching from S3: ${url}`);
+                const response = await fetch(url, { 
+                    cf: { cacheTtl: 60 } 
+                });
+                
+                if (response.ok) {
+                    console.log(`[RSS] S3 hit!`);
+                    const text = await response.text();
+                    return new Response(text, {
+                        headers: {
+                            'Content-Type': contentType,
+                            'Cache-Control': 'public, max-age=3600',
+                        }
+                    });
+                }
+                
+                if (response.status !== 404) {
+                    console.log(`[RSS] S3 error: ${response.status}, falling back to generation`);
+                }
+            } catch (e: any) {
+                console.log(`[RSS] S3 fetch failed: ${e.message}, falling back to generation`);
+            }
+        } else {
+            console.log(`[RSS] S3 not configured, generating feed in real-time`);
+        }
+        
+        // Generate feed in real-time (fallback or primary mode)
+        try {
+            console.log(`[RSS] Generating ${fileName} in real-time...`);
+            const feed = await generateFeed(env, db);
+            
+            let content: string;
+            switch (fileName) {
+                case 'rss.xml':
+                    content = feed.rss2();
+                    break;
+                case 'atom.xml':
+                    content = feed.atom1();
+                    break;
+                case 'rss.json':
+                case 'feed.json':
+                    content = feed.json1();
+                    break;
+                default:
+                    content = feed.rss2();
+            }
+            
+            return new Response(content, {
+                headers: {
+                    'Content-Type': contentType,
+                    'Cache-Control': 'public, max-age=300', // Shorter cache for real-time
+                }
+            });
+        } catch (genError: any) {
+            console.error('[RSS] Generation failed:', genError);
+            set.status = 500;
+            return `RSS generation failed: ${genError.message}`;
+        }
     });
 }
 
-export async function rssCrontab(env: Env, db: DB) {
-    // Initialize RSS modules lazily
+// Extract feed generation logic for reuse
+async function generateFeed(env: Env, db: DB) {
     await initRSSModules();
     
     const frontendUrl = `${env.FRONTEND_URL.startsWith("http://") || env.FRONTEND_URL.startsWith("https://") ? "" : "https://"}${env.FRONTEND_URL}`;
@@ -105,9 +160,10 @@ export async function rssCrontab(env: Env, db: DB) {
         updated: new Date(),
         generator: "Feed from Rin",
         feedLinks: {
-            rss: `${frontendUrl}/sub/rss.xml`,
-            json: `${frontendUrl}/sub/rss.json`,
-            atom: `${frontendUrl}/sub/atom.xml`,
+            // Native RSS support - feeds are now served from root path
+            rss: `${frontendUrl}/rss.xml`,
+            json: `${frontendUrl}/rss.json`,
+            atom: `${frontendUrl}/atom.xml`,
         },
     };
 
@@ -118,28 +174,32 @@ export async function rssCrontab(env: Env, db: DB) {
         }
     }
 
-    for (const [_mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
-        const originFaviconKey = path_join(env.S3_FOLDER || "", `originFavicon${ext}`);
-        try {
-            const response = await fetch(new Request(`${accessHost}/${originFaviconKey}`));
-            if (response.ok) {
-                feedConfig.image = `${accessHost}/${originFaviconKey}`;
-                break;
+    // Try to get favicon from S3
+    if (accessHost && !accessHost.includes('your-') && !accessHost.includes('undefined')) {
+        for (const [_mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
+            const originFaviconKey = path_join(env.S3_FOLDER || "", `originFavicon${ext}`);
+            try {
+                const response = await fetch(new Request(`${accessHost}/${originFaviconKey}`));
+                if (response.ok) {
+                    feedConfig.image = `${accessHost}/${originFaviconKey}`;
+                    break;
+                }
+            } catch (error) {
+                continue;
             }
-        } catch (error) {
-            continue;
         }
-    }
 
-    try {
-        const response = await fetch(new Request(`${accessHost}/${faviconKey}`));
-        if (response.ok) {
-            feedConfig.favicon = `${accessHost}/${faviconKey}`;
-        }
-    } catch (error) { }
+        try {
+            const response = await fetch(new Request(`${accessHost}/${faviconKey}`));
+            if (response.ok) {
+                feedConfig.favicon = `${accessHost}/${faviconKey}`;
+            }
+        } catch (error) { }
+    }
 
     const feed = new Feed(feedConfig);
 
+    // Get published feeds
     const feed_list = await db.query.feeds.findMany({
         where: and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
         orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
@@ -151,13 +211,23 @@ export async function rssCrontab(env: Env, db: DB) {
 
     for (const f of feed_list) {
         const { summary, content, user, ...other } = f;
-        const file = await unified()
-            .use(remarkParse)
-            .use(remarkGfm)
-            .use(remarkRehype)
-            .use(rehypeStringify)
-            .process(content);
-        let contentHtml = file.toString();
+        
+        // Convert markdown to HTML
+        let contentHtml = '';
+        if (content) {
+            try {
+                const file = await unified()
+                    .use(remarkParse)
+                    .use(remarkGfm)
+                    .use(remarkRehype)
+                    .use(rehypeStringify)
+                    .process(content);
+                contentHtml = file.toString();
+            } catch (e) {
+                console.error('[RSS] Markdown conversion error:', e);
+                contentHtml = content;
+            }
+        }
 
         feed.addItem({
             title: other.title || "No title",
@@ -170,13 +240,19 @@ export async function rssCrontab(env: Env, db: DB) {
                     ? content.slice(0, 100)
                     : content,
             content: contentHtml,
-            author: [{ name: user.username }],
+            author: user ? [{ name: user.username }] : undefined,
             image: extractImage(content),
         });
     }
+    
+    return feed;
+}
 
-    // save rss.xml to s3
-    console.log("save rss.xml to s3");
+export async function rssCrontab(env: Env, db: DB) {
+    // Generate feed
+    const feed = await generateFeed(env, db);
+    
+    // Save to S3 (if configured)
     const folder = env.S3_CACHE_FOLDER || "cache/";
     const s3 = createS3Client(env);
 
@@ -190,15 +266,13 @@ export async function rssCrontab(env: Env, db: DB) {
                 data,
                 name.endsWith('.json') ? 'application/json' : 'application/xml'
             );
+            console.log(`[RSS] Saved ${name} to S3`);
         } catch (e: any) {
-            console.error(e.message);
+            console.error(`[RSS] Failed to save ${name}:`, e.message);
         }
     }
 
     await save("rss.xml", feed.rss2());
-    console.log("Saved atom.xml to s3");
     await save("atom.xml", feed.atom1());
-    console.log("Saved rss.json to s3");
     await save("rss.json", feed.json1());
-    console.log("Saved rss.xml to s3");
 }

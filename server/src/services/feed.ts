@@ -4,6 +4,14 @@ import { HyperLogLog } from "../utils/hyperloglog";
 import { Router } from "../core/router";
 import { t } from "../core/types";
 import type { Context } from "../core/types";
+import {
+    feedListSchema,
+    feedCreateSchema,
+    feedUpdateSchema,
+    feedSetTopSchema,
+    searchSchema,
+    wpImportSchema,
+} from "@rin/api";
 import { generateAISummary } from "../utils/ai";
 import { CacheImpl } from "../utils/cache";
 import { extractImage } from "../utils/image";
@@ -95,14 +103,7 @@ export function FeedService(router: Router): void {
             }
             
             return data;
-        }, {
-            type: 'object',
-            properties: {
-                page: { type: 'number', optional: true },
-                limit: { type: 'number', optional: true },
-                type: { type: 'string', optional: true }
-            }
-        });
+        }, feedListSchema);
 
         // GET /feed/timeline
         group.get('/timeline', async (ctx: Context) => {
@@ -177,19 +178,7 @@ export function FeedService(router: Router): void {
             } else {
                 return result[0];
             }
-        }, {
-            type: 'object',
-            properties: {
-                title: { type: 'string' },
-                content: { type: 'string' },
-                summary: { type: 'string' },
-                alias: { type: 'string', optional: true },
-                draft: { type: 'boolean' },
-                listed: { type: 'boolean' },
-                createdAt: { type: 'string', format: 'date-time', optional: true },
-                tags: { type: 'array', items: { type: 'string' } }
-            }
-        });
+        }, feedCreateSchema);
 
         // GET /feed/:id
         group.get('/:id', async (ctx: Context) => {
@@ -427,20 +416,7 @@ export function FeedService(router: Router): void {
             
             await clearFeedCache(cache, id_num, feed.alias, alias || null);
             return 'Updated';
-        }, {
-            type: 'object',
-            properties: {
-                title: { type: 'string', optional: true },
-                alias: { type: 'string', optional: true },
-                content: { type: 'string', optional: true },
-                summary: { type: 'string', optional: true },
-                listed: { type: 'boolean' },
-                draft: { type: 'boolean', optional: true },
-                createdAt: { type: 'string', format: 'date-time', optional: true },
-                tags: { type: 'array', items: { type: 'string' }, optional: true },
-                top: { type: 'number', optional: true }
-            }
-        });
+        }, feedUpdateSchema);
 
         // POST /feed/top/:id
         group.post('/top/:id', async (ctx: Context) => {
@@ -464,12 +440,7 @@ export function FeedService(router: Router): void {
             await db.update(feeds).set({ top }).where(eq(feeds.id, feed.id));
             await clearFeedCache(cache, feed.id, null, null);
             return 'Updated';
-        }, {
-            type: 'object',
-            properties: {
-                top: { type: 'number' }
-            }
-        });
+        }, feedSetTopSchema);
 
         // DELETE /feed/:id
         group.delete('/:id', async (ctx: Context) => {
@@ -548,16 +519,10 @@ export function FeedService(router: Router): void {
                 hasNext: true
             };
         }
-    }, {
-        type: 'object',
-        properties: {
-            page: { type: 'number', optional: true },
-            limit: { type: 'number', optional: true }
-        }
-    });
+    }, searchSchema);
 
     // POST /wp - WordPress import
-    router.post('wp', async (ctx: Context) => {
+    router.post('/wp', async (ctx: Context) => {
         const { set, admin, body, store: { db, cache } } = ctx;
         const { data } = body;
         
@@ -647,12 +612,7 @@ export function FeedService(router: Router): void {
         
         cache.deletePrefix('feeds_');
         return { success, skipped, skippedList };
-    }, {
-        type: 'object',
-        properties: {
-            data: { type: 'file' }
-        }
-    });
+    }, wpImportSchema);
 }
 
 type FeedItem = {

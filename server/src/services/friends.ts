@@ -6,10 +6,11 @@ import { friends } from "../db/schema";
 import type { CacheImpl } from "../utils/cache";
 import { Config } from "../utils/config";
 import { notify } from "../utils/webhook";
-import type { DB } from "../core/setup";
+import type { DB } from "../server";
+import { friendCreateSchema, friendUpdateSchema } from "@rin/api";
 
 export function FriendService(router: Router): void {
-    router.group('/friend', (group) => {
+    router.group('/api/friend', (group) => {
         // GET /friend
         group.get('/', async (ctx: Context) => {
             const { admin, uid, store: { db } } = ctx;
@@ -78,15 +79,7 @@ export function FriendService(router: Router): void {
                 await notify(webhookUrl, content);
             }
             return 'OK';
-        }, {
-            type: 'object',
-            properties: {
-                name: { type: 'string' },
-                desc: { type: 'string' },
-                avatar: { type: 'string' },
-                url: { type: 'string' }
-            }
-        });
+        }, friendCreateSchema);
 
         // PUT /friend/:id
         group.put('/:id', async (ctx: Context) => {
@@ -142,17 +135,7 @@ export function FriendService(router: Router): void {
                 await notify(webhookUrl, content);
             }
             return 'OK';
-        }, {
-            type: 'object',
-            properties: {
-                name: { type: 'string' },
-                desc: { type: 'string' },
-                avatar: { type: 'string', optional: true },
-                url: { type: 'string' },
-                accepted: { type: 'number', optional: true },
-                sort_order: { type: 'number', optional: true }
-            }
-        });
+        }, friendUpdateSchema);
 
         // DELETE /friend/:id
         group.delete('/:id', async (ctx: Context) => {

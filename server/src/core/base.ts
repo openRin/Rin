@@ -49,46 +49,49 @@ export function createBaseApp(env: Env): Router {
         // Initialize cookies
         context.cookie = createCookieHelpers(context);
         
-        // Lazy load database and other dependencies only when needed
-        const db = await container.get('db', async () => {
+        // Use pre-existing state if provided (for tests), otherwise lazy-load
+        // This allows tests to inject mock databases via app.state('db', mockDb)
+        const db = context.store?.db ?? await container.get('db', async () => {
             const { drizzle } = await import('drizzle-orm/d1');
             const schema = await import('../db/schema');
             return drizzle(env.DB, { schema });
         });
 
-        // Lazy load cache only when needed
-        const cache = await container.get('cache', async () => {
+        // Use pre-existing cache if provided, otherwise lazy-load
+        const cache = context.store?.cache ?? await container.get('cache', async () => {
             const { CacheImpl } = await import('../utils/cache');
-            const db = await container.get('db', async () => {
+            const lazyDb = await container.get('db', async () => {
                 const { drizzle } = await import('drizzle-orm/d1');
                 const schema = await import('../db/schema');
                 return drizzle(env.DB, { schema });
             });
-            return new CacheImpl(db, env, "cache");
+            return new CacheImpl(lazyDb, env, "cache");
         });
 
-        const serverConfig = await container.get('serverConfig', async () => {
+        // Use pre-existing serverConfig if provided, otherwise lazy-load
+        const serverConfig = context.store?.serverConfig ?? await container.get('serverConfig', async () => {
             const { CacheImpl } = await import('../utils/cache');
-            const db = await container.get('db', async () => {
+            const lazyDb = await container.get('db', async () => {
                 const { drizzle } = await import('drizzle-orm/d1');
                 const schema = await import('../db/schema');
                 return drizzle(env.DB, { schema });
             });
-            return new CacheImpl(db, env, "server.config");
+            return new CacheImpl(lazyDb, env, "server.config");
         });
 
-        const clientConfig = await container.get('clientConfig', async () => {
+        // Use pre-existing clientConfig if provided, otherwise lazy-load
+        const clientConfig = context.store?.clientConfig ?? await container.get('clientConfig', async () => {
             const { CacheImpl } = await import('../utils/cache');
-            const db = await container.get('db', async () => {
+            const lazyDb = await container.get('db', async () => {
                 const { drizzle } = await import('drizzle-orm/d1');
                 const schema = await import('../db/schema');
                 return drizzle(env.DB, { schema });
             });
-            return new CacheImpl(db, env, "client.config");
+            return new CacheImpl(lazyDb, env, "client.config");
         });
 
-        // Lazy load JWT only when needed
-        const jwt = await container.get('jwt', async () => {
+        // Use pre-existing jwt if provided, otherwise lazy-load
+        const jwt = context.store?.jwt ?? await container.get('jwt', async () => {
             const { default: createJWT } = await import('../utils/jwt');
             const secret = env.JWT_SECRET;
             if (!secret) {

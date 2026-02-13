@@ -1,7 +1,7 @@
 import { Router } from "../core/router";
-import { t } from "../core/types";
 import type { Context } from "../core/types";
 import { getAIConfigForFrontend, setAIConfig } from "../utils/db-config";
+import { aiConfigUpdateSchema } from "@rin/api";
 
 /**
  * AI Configuration Service
@@ -9,7 +9,7 @@ import { getAIConfigForFrontend, setAIConfig } from "../utils/db-config";
  * API key is never exposed to frontend
  */
 export function AIConfigService(router: Router): void {
-    router.group('/ai-config', (group) => {
+    router.group('/api/ai-config', (group) => {
         // Get AI configuration (with masked API key)
         group.get('/', async (ctx: Context) => {
             const { set, admin, store: { db } } = ctx;
@@ -40,15 +40,6 @@ export function AIConfigService(router: Router): void {
             });
 
             return { success: true };
-        }, {
-            type: 'object',
-            properties: {
-                enabled: { type: 'boolean', optional: true },
-                provider: { type: 'string', optional: true },
-                model: { type: 'string', optional: true },
-                api_key: { type: 'string', optional: true },
-                api_url: { type: 'string', optional: true }
-            }
-        });
+        }, aiConfigUpdateSchema);
     });
 }
