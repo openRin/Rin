@@ -46,7 +46,7 @@ jobs:
           echo "✅ Version consistency check passed"
 
       - name: Run typecheck
-        run: bun run typecheck
+        run: bun run check
 
       - name: Run build
         run: bun run build

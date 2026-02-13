@@ -186,7 +186,7 @@ async function runPreReleaseChecks(version: string, options: ReleaseOptions): Pr
   // Check 4: TypeScript
   console.log('  ⏳ Running typecheck...');
   try {
-    await $`bun run typecheck`.quiet();
+    await $`bun run check`.quiet();
     console.log('  ✅ TypeScript check passed');
     checks.push(true);
   } catch {

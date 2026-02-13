@@ -45,7 +45,7 @@ Rin 使用[语义化版本控制](https://semver.org/lang/zh-CN/)，并遵循结
 
 - [ ] 所有功能/修复已合并到 `main`
 - [ ] 所有提交遵循[常规提交格式](./commit-convention.md)
-- [ ] 测试通过（`bun run typecheck`、`bun run build`）
+- [ ] 测试通过（`bun run check`、`bun run build`）
 
 ### 2. 运行发布脚本
 
@@ -177,7 +177,7 @@ git push origin main
 
 在创建发布之前：
 
-- [ ] 所有测试通过（`bun run typecheck`、`bun run build`）
+- [ ] 所有测试通过（`bun run check`、`bun run build`）
 - [ ] 所有提交遵循常规格式
 - [ ] CHANGELOG.md 模板已生成并编辑
 - [ ] 包含迁移指南（用于破坏性变更）

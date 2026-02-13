@@ -45,7 +45,7 @@ See [Commit Convention](./commit-convention.md) for detailed guidelines.
 
 - [ ] All features/fixes merged to `main`
 - [ ] All commits follow [conventional commit format](./commit-convention.md)
-- [ ] Tests passing (`bun run typecheck`, `bun run build`)
+- [ ] Tests passing (`bun run check`, `bun run build`)
 
 ### 2. Run the Release Script
 
@@ -177,7 +177,7 @@ git push origin main
 
 Before creating a release:
 
-- [ ] All tests pass (`bun run typecheck`, `bun run build`)
+- [ ] All tests pass (`bun run check`, `bun run build`)
 - [ ] All commits follow conventional format
 - [ ] CHANGELOG.md template generated and edited
 - [ ] Migration guide included (for breaking changes)

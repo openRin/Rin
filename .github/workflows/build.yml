@@ -36,7 +36,7 @@ jobs:
         run: bun install
 
       - name: Run typecheck
-        run: bun run typecheck
+        run: bun run check
 
       # Save build metadata for deploy workflow
       - name: Save build metadata
