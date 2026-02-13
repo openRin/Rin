@@ -4,13 +4,17 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
+    "build": "wrangler deploy --dry-run --outdir=dist",
     "cf:deploy": "wrangler deploy",
     "dev": "bun wrangler dev --port 11498",
     "dev:cron": "bun wrangler dev --port 11498 --test-scheduled #see https://developers.cloudflare.com/workers/configuration/cron-triggers/#test-cron-triggers",
     "cf-typegen": "wrangler types",
     "db:gen": "bun drizzle-kit generate",
     "preview": "wrangler pages dev dist --compatibility-date=2023-12-20",
-    "migrate:visits": "bun run scripts/migrate-visits.ts"
+    "migrate:visits": "bun run scripts/migrate-visits.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "check": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "^1.1.2",
@@ -24,6 +28,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@rin/api": "workspace:*",
     "arctic": "^3.7.0",
     "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.30.10",

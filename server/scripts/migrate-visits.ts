@@ -6,11 +6,13 @@
  * Usage: bun run scripts/migrate-visits.ts
  */
 
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
-import { visits, visitStats } from '../src/db/schema';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { Database } from 'bun:sqlite';
+import * as schema from '../src/db/schema';
 import { HyperLogLog } from '../src/utils/hyperloglog';
 import { eq } from 'drizzle-orm';
+
+const { visits, visitStats } = schema;
 
 const dbPath = process.env.DB_PATH || './data.db';
 
@@ -19,7 +21,7 @@ async function migrate() {
     console.log(`Using database: ${dbPath}`);
     
     const sqlite = new Database(dbPath);
-    const db = drizzle(sqlite);
+    const db = drizzle(sqlite, { schema });
     
     try {
         // Get all visits grouped by feed_id
