@@ -6,6 +6,14 @@ import { getAIConfigForFrontend } from "../utils/db-config";
 // Sensitive fields that should not be exposed to frontend
 const SENSITIVE_FIELDS = ['ai_summary.api_key'];
 
+// Client config keys that should use environment variables as defaults
+const CLIENT_CONFIG_ENV_DEFAULTS: Record<string, string> = {
+    'site.name': 'NAME',
+    'site.description': 'DESCRIPTION',
+    'site.avatar': 'AVATAR',
+    'site.page_size': 'PAGE_SIZE',
+};
+
 function maskSensitiveFields(config: Map<string, any>): Record<string, any> {
     const result: Record<string, any> = {};
     for (const [key, value] of config) {
@@ -15,6 +23,32 @@ function maskSensitiveFields(config: Map<string, any>): Record<string, any> {
             result[key] = value;
         }
     }
+    return result;
+}
+
+// Get client config with environment variable defaults
+async function getClientConfigWithDefaults(
+    clientConfig: any,
+    env: Env
+): Promise<Record<string, any>> {
+    const all = await clientConfig.all();
+    const result: Record<string, any> = Object.fromEntries(all);
+
+    // Apply environment variable defaults for unset configs
+    for (const [configKey, envKey] of Object.entries(CLIENT_CONFIG_ENV_DEFAULTS)) {
+        if (result[configKey] === undefined || result[configKey] === '') {
+            const envValue = env[envKey as keyof Env];
+            if (envValue) {
+                result[configKey] = envValue;
+            }
+        }
+    }
+
+    // Set default page_size if not set
+    if (result['site.page_size'] === undefined || result['site.page_size'] === '') {
+        result['site.page_size'] = 5;
+    }
+
     return result;
 }
 
@@ -35,16 +69,14 @@ export function ConfigService(router: Router): void {
                 return 'Unauthorized';
             }
             
-            const config = type === 'server' ? serverConfig : clientConfig;
-            const all = await config.all();
-            
             // Mask sensitive fields for server config
             if (type === 'server') {
+                const all = await serverConfig.all();
                 return maskSensitiveFields(all);
             }
             
-            // For client config, include AI summary enabled status
-            const clientConfigData = Object.fromEntries(all);
+            // For client config, apply environment variable defaults and include AI summary status
+            const clientConfigData = await getClientConfigWithDefaults(clientConfig, ctx.env);
             const aiConfig = await getAIConfigForFrontend(db);
             return {
                 ...clientConfigData,

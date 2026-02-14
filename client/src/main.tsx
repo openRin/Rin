@@ -1,7 +1,6 @@
 import i18n from "i18next"
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Helmet } from 'react-helmet'
 import Backend from 'i18next-http-backend';
 import { initReactI18next } from "react-i18next"
 import Modal from 'react-modal'
@@ -9,7 +8,6 @@ import { createClient } from './api/client'
 import App from './App'
 import './index.css'
 import './components.css'
-import { siteName } from './utils/constants'
 import { listenSystemMode } from './utils/darkModeUtils'
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { GlobalErrorBoundary } from './components/error-boundary.tsx'
@@ -35,9 +33,6 @@ i18n
   });
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Helmet>
-      <title>{siteName}</title>
-    </Helmet>
     <GlobalErrorBoundary>
       <App />
     </GlobalErrorBoundary>

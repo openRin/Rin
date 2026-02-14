@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { HashTag } from "../components/hashtag";
 import { Waiting } from "../components/loading";
 import { client } from "../main";
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants";
 
 type Hashtag = {
@@ -17,6 +18,7 @@ type Hashtag = {
 
 export function HashtagsPage() {
     const { t } = useTranslation();
+    const siteConfig = useSiteConfig();
     const [hashtags, setHashtags] = useState<Hashtag[]>();
     const ref = useRef(false);
     useEffect(() => {
@@ -31,10 +33,10 @@ export function HashtagsPage() {
     return (
         <>
             <Helmet>
-                <title>{`${t('hashtags')} - ${process.env.NAME}`}</title>
+                <title>{`${t('hashtags')} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('hashtags')} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>

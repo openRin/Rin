@@ -5,6 +5,11 @@ export const defaultClientConfig = new Map(Object.entries({
     "friend_apply_enable": true,
     "comment.enabled": true,
     "login.enabled": true,
+    // Site configuration defaults
+    "site.name": "Rin",
+    "site.description": "A lightweight personal blogging system",
+    "site.avatar": "",
+    "site.page_size": 5,
 }))
 
 export const defaultServerConfig = new Map(Object.entries({

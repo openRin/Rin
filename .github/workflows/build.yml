@@ -48,25 +48,13 @@ jobs:
           echo "${{ github.sha }}" > ./build-meta/sha
           echo "${{ github.event.pull_request.head.sha || github.sha }}" > ./build-meta/head_sha
 
-      # Build client with production environment variables (must be before server build)
-      - name: Build client for production
-        env:
-          NAME: ${{ vars.NAME || 'Rin' }}
-          DESCRIPTION: ${{ vars.DESCRIPTION || 'A lightweight personal blogging system' }}
-          AVATAR: ${{ vars.AVATAR || '' }}
-          PAGE_SIZE: ${{ vars.PAGE_SIZE || '5' }}
-          RSS_ENABLE: ${{ vars.RSS_ENABLE || 'false' }}
+      # Build client (no env vars needed, config is fetched from server at runtime)
+      # Note: vite.config.ts builds directly to ../dist/client
+      - name: Build client
         run: |
-          mkdir -p ./dist/client
           cd client
-          echo "NAME=${NAME}" > .env.production
-          echo "DESCRIPTION=${DESCRIPTION}" >> .env.production
-          echo "AVATAR=${AVATAR}" >> .env.production
-          echo "PAGE_SIZE=${PAGE_SIZE}" >> .env.production
-          echo "RSS_ENABLE=${RSS_ENABLE}" >> .env.production
           bun run build
           cd ..
-          cp -r ./client/dist/* ./dist/client/
 
       # Generate wrangler.toml for build (required by wrangler deploy --dry-run)
       - name: Setup Wrangler

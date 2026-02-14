@@ -124,43 +124,20 @@ async function getR2BucketInfo(): Promise<{ name: string; endpoint: string; acce
 async function buildClient(): Promise<void> {
     console.log("🔨 Building client...")
 
-    // Check if pre-built dist exists in artifacts location
+    // Check if pre-built dist exists (vite.config.ts builds to ../dist/client)
     const artifactDist = './dist/client'
     const artifactIndexHtml = artifactDist + '/index.html'
     const hasArtifact = await Bun.file(artifactIndexHtml).exists()
 
     if (hasArtifact) {
-        console.log("✅ Using pre-built client from artifacts (./dist/client)")
+        console.log("✅ Using pre-built client from (./dist/client)")
         return
     }
 
-    // Check if client/dist exists (local development build)
-    const localDist = './client/dist'
-    const localIndexHtml = localDist + '/index.html'
-    const hasLocalBuild = await Bun.file(localIndexHtml).exists()
-
-    if (hasLocalBuild) {
-        console.log("✅ Using local build from ./client/dist")
-        await $`mkdir -p ./dist/client && cp -r ./client/dist/* ./dist/client/`.quiet()
-        return
-    }
-
-    // Create production env file
-    const envContent = `NAME=${NAME}
-DESCRIPTION=${DESCRIPTION}
-AVATAR=${AVATAR}
-PAGE_SIZE=${PAGE_SIZE}
-RSS_ENABLE=${RSS_ENABLE}
-`
-    await Bun.write('client/.env.production', envContent)
-    console.log("Created client/.env.production")
-
-    // Build the client
+    // Build the client (vite.config.ts outputs to ../dist/client)
+    // Note: Client config is fetched from server at runtime, no env vars needed at build time
     await $`cd client && bun run build`.quiet()
     console.log("✅ Client built successfully")
-
-    // Update dist/client with the new build
-    await $`mkdir -p ./dist/client && cp -r ./client/dist/* ./dist/client/`.quiet()
 }
 
 async function deploy(): Promise<string> {

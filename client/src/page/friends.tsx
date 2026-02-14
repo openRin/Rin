@@ -11,6 +11,7 @@ import { client } from "../main";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
 
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants";
 
 
@@ -47,6 +48,7 @@ async function publish({ name, avatar, desc, url, showAlert }: { name: string, a
 
 export function FriendsPage() {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const config = useContext(ClientConfigContext)
     let [apply] = useState<FriendItem>()
     const [name, setName] = useState("")
@@ -84,10 +86,10 @@ export function FriendsPage() {
     }
     return (<>
         <Helmet>
-            <title>{`${t('friends.title')} - ${process.env.NAME}`}</title>
+            <title>{`${t('friends.title')} - ${siteConfig.name}`}</title>
             <meta property="og:site_name" content={siteName} />
             <meta property="og:title" content={t('friends.title')} />
-            <meta property="og:image" content={process.env.AVATAR} />
+            <meta property="og:image" content={siteConfig.avatar} />
             <meta property="og:type" content="article" />
             <meta property="og:url" content={document.URL} />
         </Helmet>

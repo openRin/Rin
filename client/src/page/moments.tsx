@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { Helmet } from 'react-helmet'
 import { client } from "../main"
 
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
 import { useTranslation } from "react-i18next"
 import { ProfileContext } from "../state/profile"
@@ -35,6 +36,7 @@ export function MomentsPage() {
     const query = new URLSearchParams(useSearch());
     const ref = useRef(false)
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const profile = useContext(ProfileContext);
     const { showAlert, AlertUI } = useAlert()
     const { showConfirm, ConfirmUI } = useConfirm()
@@ -43,7 +45,7 @@ export function MomentsPage() {
     const [hasNextPage, setHasNextPage] = useState(false)
     const [loadingMore, setLoadingMore] = useState(false)
     
-    const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
+    const limit = tryInt(10, query.get("limit"), siteConfig.pageSize)
     
     function fetchMoments(page = 1, append = false) {
         if (loadingMore) return
@@ -161,10 +163,10 @@ export function MomentsPage() {
     return (
         <>
             <Helmet>
-                <title>{`${t('moments.title')} - ${process.env.NAME}`}</title>
+                <title>{`${t('moments.title')} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('moments.title')} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>
