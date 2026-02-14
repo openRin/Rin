@@ -7,10 +7,18 @@ on:
       - completed
   workflow_dispatch:
     inputs:
-      run_id:
-        description: 'Build workflow run ID (optional)'
-        required: false
+      artifact_url:
+        description: 'Cloudflare build artifact URL (.tar.gz, e.g., build-v1.0.0-cloudflare.tar.gz)'
+        required: true
         type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - preview
 
 permissions:
   contents: read
@@ -20,18 +28,12 @@ permissions:
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     outputs:
-      event_name: ${{ steps.meta.outputs.event_name }}
-      ref: ${{ steps.meta.outputs.ref }}
-      pr_number: ${{ steps.meta.outputs.pr_number }}
-      sha: ${{ steps.meta.outputs.sha }}
-      head_sha: ${{ steps.meta.outputs.head_sha }}
       is_production: ${{ steps.meta.outputs.is_production }}
-      is_trunk: ${{ steps.meta.outputs.is_trunk }}
-      is_pr: ${{ steps.meta.outputs.is_pr }}
     steps:
-      - name: Download build artifacts
+      - name: Download build artifacts from workflow
+        if: ${{ github.event_name == 'workflow_run' }}
         uses: actions/download-artifact@v4
         with:
           name: build-${{ github.event.workflow_run.id }}
@@ -39,60 +41,65 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Read metadata
+      - name: Download artifacts from URL
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          URL="${{ github.event.inputs.artifact_url }}"
+          echo "Downloading from: $URL"
+          
+          mkdir -p ./artifacts
+          if [[ "$URL" == *.zip ]]; then
+            curl -L "$URL" -o ./artifacts/build.zip
+            unzip -q ./artifacts/build.zip -d ./artifacts
+            rm ./artifacts/build.zip
+          else
+            curl -L "$URL" -o ./artifacts/build.tar.gz
+            tar -xzf ./artifacts/build.tar.gz -C ./artifacts
+            rm ./artifacts/build.tar.gz
+          fi
+
+      - name: Set deployment type
         id: meta
         run: |
-          EVENT_NAME=$(cat ./artifacts/build-meta/event_name)
-          REF=$(cat ./artifacts/build-meta/ref)
-          PR_NUMBER=$(cat ./artifacts/build-meta/pr_number)
-          SHA=$(cat ./artifacts/build-meta/sha)
-          HEAD_SHA=$(cat ./artifacts/build-meta/head_sha)
-
-          echo "event_name=$EVENT_NAME" >> $GITHUB_OUTPUT
-          echo "ref=$REF" >> $GITHUB_OUTPUT
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
-          echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
-
-          # Determine deployment type
-          if [[ "$REF" == "refs/heads/main" || "$REF" == "refs/heads/master" ]]; then
-            echo "is_production=true" >> $GITHUB_OUTPUT
-            echo "is_trunk=false" >> $GITHUB_OUTPUT
-            echo "is_pr=false" >> $GITHUB_OUTPUT
-          elif [[ "$REF" == "refs/heads/trunk" ]]; then
-            echo "is_production=false" >> $GITHUB_OUTPUT
-            echo "is_trunk=true" >> $GITHUB_OUTPUT
-            echo "is_pr=false" >> $GITHUB_OUTPUT
-          elif [[ "$EVENT_NAME" == "pull_request" ]]; then
-            echo "is_production=false" >> $GITHUB_OUTPUT
-            echo "is_trunk=false" >> $GITHUB_OUTPUT
-            echo "is_pr=true" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Manual deployment
+            if [ "${{ github.event.inputs.environment }}" == "production" ]; then
+              echo "is_production=true" >> $GITHUB_OUTPUT
+            else
+              echo "is_production=false" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "is_production=false" >> $GITHUB_OUTPUT
-            echo "is_trunk=false" >> $GITHUB_OUTPUT
-            echo "is_pr=false" >> $GITHUB_OUTPUT
+            # Auto deployment from workflow_run - check ref
+            REF=$(cat ./artifacts/build-meta/ref 2>/dev/null || echo "unknown")
+            if [[ "$REF" == "refs/heads/main" || "$REF" == "refs/heads/master" ]]; then
+              echo "is_production=true" >> $GITHUB_OUTPUT
+            else
+              echo "is_production=false" >> $GITHUB_OUTPUT
+            fi
           fi
+
+      - name: Upload artifacts for deploy job
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-artifacts-${{ github.run_id }}
+          path: ./artifacts
+          retention-days: 1
 
   deploy:
     needs: prepare
     runs-on: ubuntu-latest
     environment:
-      name: ${{ needs.prepare.outputs.is_production == 'true' && 'production' || needs.prepare.outputs.is_trunk == 'true' && 'preview-trunk' || format('preview-pr-{0}', needs.prepare.outputs.pr_number) }}
+      name: ${{ needs.prepare.outputs.is_production == 'true' && 'production' || 'preview' }}
       url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prepare.outputs.head_sha }}
-          fetch-depth: 0
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-${{ github.event.workflow_run.id }}
+          name: deploy-artifacts-${{ github.run_id }}
           path: ./artifacts
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -110,10 +117,9 @@ jobs:
       - name: Restore build artifacts
         run: |
           cp -r ./artifacts/dist ./dist
-          cp -r ./artifacts/server/dist ./server/dist 2>/dev/null || true
           echo "Checking build artifacts..."
           ls -la ./dist/client/ || echo "No client dist found"
-          ls -la ./server/dist/ || echo "No server dist found"
+          ls -la ./dist/server/ || echo "No server dist found"
 
       - name: Determine deployment config
         id: config
@@ -131,14 +137,10 @@ jobs:
             echo "worker_name=${REPO_WORKER_NAME:-rin-server}" >> $GITHUB_OUTPUT
             echo "db_name=${REPO_DB_NAME:-rin}" >> $GITHUB_OUTPUT
             echo "name=${REPO_NAME:-Rin}" >> $GITHUB_OUTPUT
-          elif [[ "${{ needs.prepare.outputs.is_trunk }}" == "true" ]]; then
-            echo "worker_name=${REPO_WORKER_NAME:-rin-server}-trunk" >> $GITHUB_OUTPUT
-            echo "db_name=${REPO_DB_NAME:-rin}-trunk" >> $GITHUB_OUTPUT
-            echo "name=${REPO_NAME:-Rin} (Trunk Preview)" >> $GITHUB_OUTPUT
           else
-            echo "worker_name=${REPO_WORKER_NAME:-rin-server}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
-            echo "db_name=${REPO_DB_NAME:-rin}-pr-${{ needs.prepare.outputs.pr_number }}" >> $GITHUB_OUTPUT
-            echo "name=${REPO_NAME:-Rin} (PR #${{ needs.prepare.outputs.pr_number }})" >> $GITHUB_OUTPUT
+            echo "worker_name=${REPO_WORKER_NAME:-rin-server}-preview" >> $GITHUB_OUTPUT
+            echo "db_name=${REPO_DB_NAME:-rin-preview}" >> $GITHUB_OUTPUT
+            echo "name=${REPO_NAME:-Rin} (Preview)" >> $GITHUB_OUTPUT
           fi
           # Output repository-level vars for use in deploy step
           echo "description=${REPO_DESCRIPTION}" >> $GITHUB_OUTPUT
@@ -176,39 +178,3 @@ jobs:
           bun run deploy
           echo "url=https://${WORKER_NAME}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev" >> $GITHUB_OUTPUT
 
-      - name: Comment deployment URL
-        if: ${{ needs.prepare.outputs.is_pr == 'true' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const url = '${{ steps.deploy.outputs.url }}';
-            const prNumber = parseInt('${{ needs.prepare.outputs.pr_number }}');
-
-            // Find existing comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber
-            });
-
-            const botComment = comments.find(comment =>
-              comment.user.type === 'Bot' && comment.body.includes('Preview Deployed')
-            );
-
-            const body = `🚀 **Preview Deployed!**\n\n- URL: ${url}\n\n*This preview will be automatically updated when you push new commits.*`;
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                body: body
-              });
-            }

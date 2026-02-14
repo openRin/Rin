@@ -178,9 +178,9 @@ async function deploy(): Promise<string> {
     await buildClient()
 
     // Determine server entry point - use built dist if available, otherwise use source
-    const serverDistIndex = './server/dist/index.js'
+    const serverDistIndex = './dist/server/_worker.js'
     const hasServerBuild = await Bun.file(serverDistIndex).exists()
-    const serverMain = hasServerBuild ? 'server/dist/index.js' : 'server/src/_worker.ts'
+    const serverMain = hasServerBuild ? 'dist/server/_worker.js' : 'server/src/_worker.ts'
     
     if (hasServerBuild) {
         console.log(`✅ Using pre-built server from ${serverMain}`)

@@ -66,6 +66,7 @@ jobs:
           echo "RSS_ENABLE=${RSS_ENABLE}" >> .env.production
           bun run build
           cd ..
+          cp -r ./client/dist/* ./dist/client/
 
       # Generate wrangler.toml for build (required by wrangler deploy --dry-run)
       - name: Setup Wrangler
@@ -77,8 +78,8 @@ jobs:
       # Note: Must run from root dir where wrangler.toml exists
       - name: Build server
         run: |
-          bunx wrangler deploy --dry-run --outdir=server/dist
-          ls -la ./server/dist/ || echo "Server dist not found"
+          mkdir -p ./dist/server
+          bunx wrangler deploy --dry-run --outdir=dist/server
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -86,6 +87,5 @@ jobs:
           name: build-${{ github.run_id }}
           path: |
             ./dist
-            ./server/dist
             ./build-meta
           retention-days: 1
