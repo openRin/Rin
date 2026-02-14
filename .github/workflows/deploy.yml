@@ -177,50 +177,38 @@ jobs:
           echo "url=https://${WORKER_NAME}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev" >> $GITHUB_OUTPUT
 
       - name: Comment deployment URL
-        if: ${{ needs.prepare.outputs.is_pr == 'true' || needs.prepare.outputs.is_trunk == 'true' }}
+        if: ${{ needs.prepare.outputs.is_pr == 'true' }}
         uses: actions/github-script@v7
         with:
           script: |
             const url = '${{ steps.deploy.outputs.url }}';
-            const isPr = '${{ needs.prepare.outputs.is_pr }}' === 'true';
             const prNumber = parseInt('${{ needs.prepare.outputs.pr_number }}');
 
-            if (isPr && prNumber) {
-              // Find existing comment
-              const { data: comments } = await github.rest.issues.listComments({
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('Preview Deployed')
+            );
+
+            const body = `🚀 **Preview Deployed!**\n\n- URL: ${url}\n\n*This preview will be automatically updated when you push new commits.*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: prNumber
+                comment_id: botComment.id,
+                body: body
               });
-
-              const botComment = comments.find(comment =>
-                comment.user.type === 'Bot' && comment.body.includes('Preview Deployed')
-              );
-
-              const body = `🚀 **Preview Deployed!**\n\n- URL: ${url}\n\n*This preview will be automatically updated when you push new commits.*`;
-
-              if (botComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: botComment.id,
-                  body: body
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: prNumber,
-                  body: body
-                });
-              }
             } else {
-              // Trunk deployment - comment on commit
-              const sha = '${{ needs.prepare.outputs.head_sha }}';
-              await github.rest.repos.createCommitComment({
+              await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                commit_sha: sha,
-                body: `🚀 **Trunk Preview Deployed!**\n\n- URL: ${url}`
+                issue_number: prNumber,
+                body: body
               });
             }
