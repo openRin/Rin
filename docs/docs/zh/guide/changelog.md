@@ -93,8 +93,7 @@ CACHE_STORAGE_MODE=<缓存存储模式：database 或 s3，默认 database>
 - 由于引入 SEO 优化导致需要在 GitHub 中配置 S3 存储的环境变量，因此需要额外在 GitHub 中配置以下环境变量（明文，添加到 Variables）：
 
 ```ini
-SEO_BASE_URL=<SEO 基础地址，用于 SEO 索引，默认为 FRONTEND_URL>
-SEO_BASE_URL=<SEO 基础地址，用于 SEO 索引，默认为 FRONTEND_URL>
+SEO_BASE_URL=<SEO 基础地址，用于 SEO 索引>
 SEO_CONTAINS_KEY=<SEO 索引时只索引以 SEO_BASE_URL 开头或包含SEO_CONTAINS_KEY 关键字的链接，默认为空>
 S3_FOLDER=<S3 图片资源存储的文件夹，默认为 'images/'>
 S3_CACHE_FOLDER=<S3 缓存文件夹（用于 SEO、高频请求缓存），默认为 'cache/'>

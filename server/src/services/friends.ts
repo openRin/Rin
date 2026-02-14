@@ -75,7 +75,8 @@ export function FriendService(router: Router): void {
 
             if (!admin) {
                 const webhookUrl = await serverConfig.get(Config.webhookUrl) || env.WEBHOOK_URL;
-                const content = `${env.FRONTEND_URL}/friends\n${username} 申请友链: ${name}\n${desc}\n${url}`;
+                const frontendUrl = ctx.url.origin;
+                const content = `${frontendUrl}/friends\n${username} 申请友链: ${name}\n${desc}\n${url}`;
                 await notify(webhookUrl, content);
             }
             return 'OK';
@@ -131,7 +132,8 @@ export function FriendService(router: Router): void {
             
             if (!admin) {
                 const webhookUrl = await serverConfig.get(Config.webhookUrl) || env.WEBHOOK_URL;
-                const content = `${env.FRONTEND_URL}/friends\n${username} 更新友链: ${name}\n${desc}\n${url}`;
+                const frontendUrl = ctx.url.origin;
+                const content = `${frontendUrl}/friends\n${username} 更新友链: ${name}\n${desc}\n${url}`;
                 await notify(webhookUrl, content);
             }
             return 'OK';

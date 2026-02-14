@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer';
 import path from "node:path"
 
 const env = process.env;
-const baseUrl = env.SEO_BASE_URL || env.FRONTEND_URL || '';
+const baseUrl = env.SEO_BASE_URL || '';
 const containsKey = env.SEO_CONTAINS_KEY || '';
 const region = env.S3_REGION;
 const endpoint = env.S3_ENDPOINT;

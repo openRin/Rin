@@ -20,7 +20,6 @@ declare namespace Cloudflare {
 	interface Env {
 		DB: D1Database;
 		ASSETS?: Fetcher;
-		FRONTEND_URL: "http://localhost:5173";
 		S3_FOLDER: "images/";
 		S3_CACHE_FOLDER: "cache/";
 		S3_REGION: "auto";

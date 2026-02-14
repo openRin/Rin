@@ -59,7 +59,6 @@ bun run dev
 
 | 变量名 | 必填 | 说明 | 示例 |
 |--------|------|------|------|
-| `FRONTEND_URL` | 是 | 前端地址 | `http://localhost:5173` |
 | `S3_ENDPOINT` | 是 | S3/R2 端点 | `https://...r2.cloudflarestorage.com` |
 | `S3_BUCKET` | 是 | 存储桶名称 | `images` |
 | `S3_REGION` | 否 | 区域 | `auto` |

@@ -86,7 +86,6 @@ not_found_handling = "single-page-application"
 crons = ["*/20 * * * *"]
 
 [vars]
-FRONTEND_URL = "${env.FRONTEND_URL || 'http://localhost:11498'}"
 S3_FOLDER = "${env.S3_FOLDER || 'images/'}"
 S3_CACHE_FOLDER = "${env.S3_CACHE_FOLDER || 'cache/'}"
 S3_REGION = "${env.S3_REGION || 'auto'}"

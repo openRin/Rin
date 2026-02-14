@@ -59,7 +59,6 @@ All configurations are centralized in the `.env.local` file:
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
-| `FRONTEND_URL` | Yes | Frontend address | `http://localhost:5173` |
 | `S3_ENDPOINT` | Yes | S3/R2 endpoint | `https://...r2.cloudflarestorage.com` |
 | `S3_BUCKET` | Yes | Bucket name | `images` |
 | `S3_REGION` | No | Region | `auto` |

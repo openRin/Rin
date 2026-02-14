@@ -31,7 +31,6 @@ The following variables can remain unencrypted in Cloudflare Workers.
 
 | Name              | Required | Description                                           | Default Value  | Example Value                                                     |
 |-------------------|----------|-------------------------------------------------------|----------------|-------------------------------------------------------------------|
-| FRONTEND_URL      | Temporarily required | Required for including comment article link in comment notification Webhook, can be left blank | None          | https://xeu.life                                                  |
 | S3_FOLDER         | Yes      | File path for storing resources when uploading images | None           | images/                                                           |
 | S3_BUCKET         | Yes      | Name of the S3 bucket                                 | None           | images                                                            |
 | S3_REGION         | Yes      | Region of the S3 bucket, use 'auto' for Cloudflare R2 | None           | auto                                                              |

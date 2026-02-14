@@ -49,7 +49,7 @@ If you're upgrading from v0.1.0, follow these steps:
 
 1. **Add new environment variables to GitHub Variables**:
    ```ini
-   SEO_BASE_URL=<SEO base URL, defaults to FRONTEND_URL>
+   SEO_BASE_URL=<SEO base URL>
    SEO_CONTAINS_KEY=<SEO filter keyword, optional>
    S3_FOLDER=<S3 images folder, default: 'images/'>
    S3_CACHE_FOLDER=<S3 cache folder, default: 'cache/'>

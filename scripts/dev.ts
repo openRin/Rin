@@ -128,7 +128,7 @@ async function startDev() {
 
     if (!frontendAvailable) {
         log('Error', `端口 ${FRONTEND_PORT} 已被占用`, colors.red);
-        log('Help', '请检查是否有其他进程占用了该端口，或修改 .env.local 中的 FRONTEND_URL', colors.yellow);
+        log('Help', '请检查是否有其他进程占用了该端口，或修改 .env.local 中的 FRONTEND_PORT', colors.yellow);
         process.exit(1);
     }
 

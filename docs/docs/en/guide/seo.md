@@ -15,7 +15,7 @@ Prerendering is a simple crawler. Starting from the provided SEO_BASE_URL, it re
 ### Environment Variables
 When deploying the backend, you need to configure the following environment variables in GitHub (plain text):
 ```ini
-SEO_BASE_URL=<SEO base URL for SEO indexing, defaults to FRONTEND_URL>
+SEO_BASE_URL=<SEO base URL for SEO indexing>
 SEO_CONTAINS_KEY=<SEO indexing only includes links starting with SEO_BASE_URL or containing the SEO_CONTAINS_KEY keyword, defaults to empty>
 S3_FOLDER=<Folder for storing S3 image resources, defaults to 'images/'>
 S3_CACHE_FOLDER=<S3 cache folder (for SEO and high-frequency request caching), defaults to 'cache/'>

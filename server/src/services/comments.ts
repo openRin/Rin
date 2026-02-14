@@ -63,7 +63,8 @@ export function CommentService(router: Router): void {
             });
 
             const webhookUrl = await serverConfig.get(Config.webhookUrl) || env.WEBHOOK_URL;
-            await notify(webhookUrl, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
+            const frontendUrl = ctx.url.origin;
+            await notify(webhookUrl, `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
             return 'OK';
         }, commentCreateSchema);
 

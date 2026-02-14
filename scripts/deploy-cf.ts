@@ -17,7 +17,6 @@ const renv = (name: string, defaultValue?: string) => env(name, defaultValue, tr
 
 const DB_NAME = renv("DB_NAME", 'rin')
 const WORKER_NAME = renv("WORKER_NAME", 'rin-server')
-const FRONTEND_URL = env("FRONTEND_URL", "")
 
 // Auto-discover R2 bucket if not specified
 const R2_BUCKET_NAME = env("R2_BUCKET_NAME", "rin-storage")
@@ -204,7 +203,6 @@ binding = "ASSETS"
 crons = ["*/20 * * * *"]
 
 [vars]
-FRONTEND_URL = "${FRONTEND_URL}"
 S3_FOLDER = "${S3_FOLDER}"
 S3_CACHE_FOLDER="${S3_CACHE_FOLDER}"
 S3_REGION = "${S3_REGION}"

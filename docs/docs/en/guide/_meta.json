@@ -4,7 +4,9 @@
   "development",
   "seo",
   "rss",
+  "migration",
   "changelog",
+  "testing",
   "contribution",
   "commit-convention",
   "release"
