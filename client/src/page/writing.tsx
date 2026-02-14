@@ -11,6 +11,7 @@ import {ShowAlertType, useAlert} from '../components/dialog';
 import {Checkbox, Input} from "../components/input";
 import {client} from "../main";
 import {Cache} from '../utils/cache';
+import {useSiteConfig} from "../hooks/useSiteConfig";
 import {siteName} from "../utils/constants";
 import mermaid from 'mermaid';
 import { MarkdownEditor } from '../components/markdown_editor';
@@ -120,6 +121,7 @@ async function update({
 // 写作页面
 export function WritingPage({ id }: { id?: number }) {
   const { t } = useTranslation();
+  const siteConfig = useSiteConfig();
   const cache = Cache.with(id);
   const [title, setTitle] = cache.useCache("title", "");
   const [summary, setSummary] = cache.useCache("summary", "");
@@ -295,10 +297,10 @@ export function WritingPage({ id }: { id?: number }) {
   return (
     <>
       <Helmet>
-        <title>{`${t('writing')} - ${process.env.NAME}`}</title>
+        <title>{`${t('writing')} - ${siteConfig.name}`}</title>
         <meta property="og:site_name" content={siteName} />
         <meta property="og:title" content={t('writing')} />
-        <meta property="og:image" content={process.env.AVATAR} />
+        <meta property="og:image" content={siteConfig.avatar} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={document.URL} />
       </Helmet>

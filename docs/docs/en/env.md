@@ -1,14 +1,24 @@
 # Environment Variables List
 
-## Frontend Environment Variables List
+## Site Configuration Variables
 
-| Name         | Required | Description                             | Default Value | Example Value                                       |
-|--------------|----------|-----------------------------------------|---------------|----------------------------------------------------|
-| AVATAR       | Yes      | Avatar URL for the top left of the site | None          | https://avatars.githubusercontent.com/u/36541432   |
-| NAME         | Yes      | Name & Title for the top left of the site | None          | Xeu                                                |
-| DESCRIPTION  | No       | Description for the top left of the site | None          | Omnivore                                           |
-| PAGE_SIZE    | No       | Default pagination limit                | 5             | 5                                                  |
-| RSS_ENABLE   | No       | Enable RSS (displays RSS link at the bottom of the site if enabled) | false | true                                              |
+:::tip
+Site configuration (name, description, avatar, pagination size, etc.) is now served dynamically from the backend, eliminating the need for frontend environment variables at build time.
+
+Configuration priority: **Settings Page** > **Environment Variables** > **Default Values**
+:::
+
+| Name         | Required | Description                             | Default Value | Config Key          |
+|--------------|----------|-----------------------------------------|---------------|--------------------|
+| NAME         | No       | Site Name & Title                       | Rin           | `site.name`        |
+| DESCRIPTION  | No       | Site Description                        | A lightweight personal blogging system | `site.description` |
+| AVATAR       | No       | Site Avatar URL                         | None          | `site.avatar`      |
+| PAGE_SIZE    | No       | Default pagination limit                | 5             | `site.page_size`   |
+| RSS_ENABLE   | No       | Enable RSS (displays RSS link at the bottom of the site if enabled) | false | `rss`              |
+
+:::note
+You can modify these configurations after deployment via the **Settings Page** in the "Site Information" section. Environment variables are only used as initial default values.
+:::
 
 **Deployment Environment Variables**
 

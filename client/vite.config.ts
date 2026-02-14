@@ -4,13 +4,11 @@ import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
   const isDev = mode === 'development';
   
   return {
-    define: {
-      'process.env': JSON.stringify(env)
-    },
+    // Note: Client configuration is fetched from server at runtime
+    // No environment variables are injected at build time
     build: {
       outDir: '../dist/client',
       emptyOutDir: true,

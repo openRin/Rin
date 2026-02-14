@@ -255,6 +255,29 @@
     "other": {
       "title": "其他设置"
     },
+    "site": {
+      "title": "站点信息",
+      "name": {
+        "title": "站点名称",
+        "desc": "设置显示在站点标题和导航栏的网站名称",
+        "label": "站点名称"
+      },
+      "description": {
+        "title": "站点描述",
+        "desc": "设置显示在导航栏的简短描述",
+        "label": "站点描述"
+      },
+      "avatar": {
+        "title": "站点头像",
+        "desc": "设置显示在导航栏的头像 URL",
+        "label": "头像 URL"
+      },
+      "page_size": {
+        "title": "分页大小",
+        "desc": "设置文章列表每页显示的数量",
+        "label": "每页文章数"
+      }
+    },
     "rss": {
       "desc": "启用站点底部 RSS 订阅链接",
       "title": "RSS 订阅链接"

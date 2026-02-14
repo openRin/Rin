@@ -11,6 +11,7 @@ import { Markdown } from "../components/markdown";
 import { client } from "../main";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
 import { Button } from "../components/button";
@@ -43,6 +44,7 @@ type Feed = {
 
 export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Element, clean: (id: string) => void }) {
   const { t } = useTranslation();
+  const siteConfig = useSiteConfig();
   const profile = useContext(ProfileContext);
   const [feed, setFeed] = useState<Feed>();
   const [error, setError] = useState<string>();
@@ -168,10 +170,10 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
     <Waiting for={feed || error}>
       {feed && (
         <Helmet>
-          <title>{`${feed.title ?? "Unnamed"} - ${process.env.NAME}`}</title>
+          <title>{`${feed.title ?? "Unnamed"} - ${siteConfig.name}`}</title>
           <meta property="og:site_name" content={siteName} />
           <meta property="og:title" content={feed.title ?? ""} />
-          <meta property="og:image" content={headImage ?? process.env.AVATAR} />
+          <meta property="og:image" content={headImage ?? siteConfig.avatar} />
           <meta property="og:type" content="article" />
           <meta property="og:url" content={document.URL} />
           <meta

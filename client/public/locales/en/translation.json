@@ -255,6 +255,29 @@
     "other": {
       "title": "Other Settings"
     },
+    "site": {
+      "title": "Site Information",
+      "name": {
+        "title": "Site Name",
+        "desc": "Set the website name displayed in the site title and navigation bar",
+        "label": "Site Name"
+      },
+      "description": {
+        "title": "Site Description",
+        "desc": "Set the short description displayed in the navigation bar",
+        "label": "Site Description"
+      },
+      "avatar": {
+        "title": "Site Avatar",
+        "desc": "Set the avatar URL displayed in the navigation bar",
+        "label": "Avatar URL"
+      },
+      "page_size": {
+        "title": "Page Size",
+        "desc": "Set the number of articles displayed per page in the list",
+        "label": "Articles per page"
+      }
+    },
     "rss": {
       "desc": "Enable RSS subscription link at the site footer",
       "title": "RSS Subscription Link"

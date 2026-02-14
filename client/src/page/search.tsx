@@ -6,6 +6,7 @@ import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
 import { client } from "../main"
 
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
 import { tryInt } from "../utils/int"
 
@@ -17,11 +18,12 @@ type FeedsData = {
 
 export function SearchPage({ keyword }: { keyword: string }) {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const query = new URLSearchParams(useSearch());
     const [status, setStatus] = useState<'loading' | 'idle'>('idle')
     const [feeds, setFeeds] = useState<FeedsData>()
     const page = tryInt(1, query.get("page"))
-    const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
+    const limit = tryInt(10, query.get("limit"), siteConfig.pageSize)
     const ref = useRef("")
     function fetchFeeds() {
         if (!keyword) return
@@ -43,10 +45,10 @@ export function SearchPage({ keyword }: { keyword: string }) {
     return (
         <>
             <Helmet>
-                <title>{`${title} - ${process.env.NAME}`}</title>
+                <title>{`${title} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={title} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>

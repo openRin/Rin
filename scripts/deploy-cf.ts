@@ -134,17 +134,8 @@ async function buildClient(): Promise<void> {
         return
     }
 
-    // Create production env file
-    const envContent = `NAME=${NAME}
-DESCRIPTION=${DESCRIPTION}
-AVATAR=${AVATAR}
-PAGE_SIZE=${PAGE_SIZE}
-RSS_ENABLE=${RSS_ENABLE}
-`
-    await Bun.write('client/.env.production', envContent)
-    console.log("Created client/.env.production")
-
     // Build the client (vite.config.ts outputs to ../dist/client)
+    // Note: Client config is fetched from server at runtime, no env vars needed at build time
     await $`cd client && bun run build`.quiet()
     console.log("✅ Client built successfully")
 }

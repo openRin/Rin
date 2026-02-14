@@ -5,7 +5,9 @@ import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
 import { client } from "../main"
 
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
+
 
 type FeedsData = {
     name: string;
@@ -33,6 +35,7 @@ type FeedsData = {
 
 export function HashtagPage({ name }: { name: string }) {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const [status, setStatus] = useState<'loading' | 'idle'>('idle')
     const [hashtag, setHashtag] = useState<FeedsData>()
     const ref = useRef("")
@@ -54,10 +57,10 @@ export function HashtagPage({ name }: { name: string }) {
     return (
         <>
             <Helmet>
-                <title>{`${hashtag?.name} - ${process.env.NAME}`}</title>
+                <title>{`${hashtag?.name} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={hashtag?.name} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>

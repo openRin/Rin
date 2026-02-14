@@ -125,6 +125,11 @@ export function Settings() {
                             <ItemSwitch title={t('settings.friend.apply.title')} description={t('settings.friend.apply.desc')} type="client" configKey="friend_apply_enable" />
                             <ItemSwitch title={t('settings.friend.health.title')} description={t('settings.friend.health.desc')} type="server" configKey="friend_crontab" />
                             <ItemInput title={t('settings.friend.health.ua.title')} description={t('settings.friend.health.ua.desc')} type="server" configKey="friend_ua" configKeyTitle="User-Agent" />
+                            <ItemTitle title={t('settings.site.title')} />
+                            <ItemInput title={t('settings.site.name.title')} description={t('settings.site.name.desc')} type="client" configKey="site.name" configKeyTitle={t('settings.site.name.label')} />
+                            <ItemInput title={t('settings.site.description.title')} description={t('settings.site.description.desc')} type="client" configKey="site.description" configKeyTitle={t('settings.site.description.label')} />
+                            <ItemInput title={t('settings.site.avatar.title')} description={t('settings.site.avatar.desc')} type="client" configKey="site.avatar" configKeyTitle={t('settings.site.avatar.label')} />
+                            <ItemInput title={t('settings.site.page_size.title')} description={t('settings.site.page_size.desc')} type="client" configKey="site.page_size" configKeyTitle={t('settings.site.page_size.label')} />
                             <ItemTitle title={t('settings.other.title')} />
                             <ItemSwitch title={t('settings.login.enable.title')} description={t('settings.login.enable.desc', { "url": oauth_url })} type="client" configKey="login.enabled" />
                             <ItemSwitch title={t('settings.comment.enable.title')} description={t('settings.comment.enable.desc')} type="client" configKey="comment.enabled" />

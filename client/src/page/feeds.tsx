@@ -6,6 +6,7 @@ import { Waiting } from "../components/loading"
 import { client } from "../main"
 import { ProfileContext } from "../state/profile"
 
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
 import { tryInt } from "../utils/int"
 import { useTranslation } from "react-i18next";
@@ -24,6 +25,7 @@ type FeedsMap = {
 
 export function FeedsPage() {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const query = new URLSearchParams(useSearch());
     const profile = useContext(ProfileContext);
     const [listState, _setListState] = useState<FeedType>(query.get("type") as FeedType || 'normal')
@@ -34,7 +36,7 @@ export function FeedsPage() {
         normal: { size: 0, data: [], hasNext: false }
     })
     const page = tryInt(1, query.get("page"))
-    const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
+    const limit = tryInt(10, query.get("limit"), siteConfig.pageSize)
     const ref = useRef("")
     function fetchFeeds(type: FeedType) {
         client.feed.list({
@@ -65,10 +67,10 @@ export function FeedsPage() {
     return (
         <>
             <Helmet>
-                <title>{`${t('article.title')} - ${process.env.NAME}`}</title>
+                <title>{`${t('article.title')} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('article.title')} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>

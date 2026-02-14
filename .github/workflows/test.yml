@@ -2,9 +2,9 @@ name: CI - Test and Type Check
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, trunk]
   pull_request:
-    branches: [main, develop]
+    branches: [main, trunk]
 
 jobs:
   test-server:
