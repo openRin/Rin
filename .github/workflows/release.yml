@@ -78,13 +78,12 @@ jobs:
         with:
           mode: 'dry-run'
 
+      # Note: vite.config.ts builds directly to ../dist/client
       - name: Build client
         run: |
-          mkdir -p ./dist/client
           cd client
           bun run build
           cd ..
-          cp -r ./client/dist/* ./dist/client/
 
       - name: Build server
         run: |
