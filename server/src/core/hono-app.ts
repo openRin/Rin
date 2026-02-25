@@ -121,5 +121,13 @@ export function createHonoApp(): Hono<{
         }, 500);
     });
 
-    return app;
+
+    const apiApp = new Hono<{
+        Bindings: Env;
+        Variables: Variables;
+    }>();
+
+    apiApp.route("/api", app)
+
+    return apiApp;
 }
