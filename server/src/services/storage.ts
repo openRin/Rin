@@ -73,7 +73,7 @@ export function StorageService(): Hono {
             );
             endTime(c, 's3-put');
             endTime(c, 'storage-upload');
-            return c.text(`${accessHost}/${hashkey}`);
+            return c.json({ url: `${accessHost}/${hashkey}` });
         } catch (e: any) {
             console.error(e.message);
             endTime(c, 'storage-upload');

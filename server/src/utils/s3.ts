@@ -1,4 +1,5 @@
 import { AwsClient } from "aws4fetch";
+import { path_join } from "./path";
 
 export function createS3Client(env: Env): AwsClient {
     const accessKeyId = env.S3_ACCESS_KEY_ID;
@@ -20,7 +21,17 @@ export async function putObject(
 ) {
     const endpoint = env.S3_ENDPOINT;
     const bucket = env.S3_BUCKET;
-    const url = `${endpoint}/${bucket}/${key}`;
+    const forcePathStyle = env.S3_FORCE_PATH_STYLE === 'true';
+
+    // Construct URL based on path-style or virtual-hosted style
+    let url: string;
+    if (forcePathStyle) {
+        url = path_join(endpoint, bucket, key);
+    } else {
+        // Virtual-hosted style: https://bucket.endpoint/key
+        const urlObj = new URL(endpoint);
+        url = `${urlObj.protocol}//${bucket}.${urlObj.host}/${key}`;
+    }
     
     const headers: Record<string, string> = {};
     if (contentType) {
