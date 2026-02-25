@@ -4,7 +4,6 @@ import { getCookie, setCookie } from "hono/cookie";
 import { drizzle } from "drizzle-orm/d1";
 import type { AppContext, Variables, JWTUtils, OAuth2Utils } from "./hono-types";
 import { eq } from "drizzle-orm";
-import { timing } from "hono/timing";
 
 // Lazy initialization container
 class LazyInitContainer {
@@ -140,8 +139,13 @@ export const authMiddleware = createMiddleware<{
     await next();
 });
 
-// Timing middleware using Hono's built-in timing
-export const timingMiddleware = timing();
+// Timing middleware
+export const timingMiddleware = createMiddleware(async (c, next) => {
+    const start = Date.now();
+    await next();
+    const duration = Date.now() - start;
+    c.header('Server-Timing', `total;dur=${duration}`);
+});
 
 // Helper to set JWT cookie
 export function setJWTCookie(c: AppContext, token: string) {
