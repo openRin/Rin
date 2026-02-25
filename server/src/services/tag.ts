@@ -1,72 +1,76 @@
 import { and, eq } from "drizzle-orm";
-import type { DB } from "../server";
+import { Hono } from "hono";
+import type { DB } from "../core/hono-types";
 import { feedHashtags, hashtags } from "../db/schema";
-import { Router } from "../core/router";
-import type { Context } from "../core/types";
+import type { AppContext } from "../core/hono-types";
 
-export function TagService(router: Router): void {
-    router.group('/tag', (group) => {
-        // GET /tag
-        group.get('/', async (ctx: Context) => {
-            const { store: { db } } = ctx;
-            
-            const tag_list = await db.query.hashtags.findMany({
-                with: {
-                    feeds: { columns: { feedId: true } }
-                }
-            });
-            
-            return tag_list.map((tag: any) => ({
-                ...tag,
-                feeds: tag.feeds.length
-            }));
+export function TagService(): Hono {
+    const app = new Hono();
+
+    // GET /tag
+    app.get('/', async (c: AppContext) => {
+        const db = c.get('db');
+        
+        const tag_list = await db.query.hashtags.findMany({
+            with: {
+                feeds: { columns: { feedId: true } }
+            }
         });
+        
+        const result = tag_list.map((tag: any) => ({
+            ...tag,
+            feeds: tag.feeds.length
+        }));
+        
+        return c.json(result);
+    });
 
-        // GET /tag/:name
-        group.get('/:name', async (ctx: Context) => {
-            const { admin, set, params, store: { db } } = ctx;
-            const nameDecoded = decodeURI(params.name);
-            
-            const tag = await db.query.hashtags.findFirst({
-                where: eq(hashtags.name, nameDecoded),
-                with: {
-                    feeds: {
-                        with: {
-                            feed: {
-                                columns: {
-                                    id: true, title: true, summary: true, content: true, 
-                                    createdAt: true, updatedAt: true, draft: false, listed: false
-                                },
-                                with: {
-                                    user: { columns: { id: true, username: true, avatar: true } },
-                                    hashtags: {
-                                        columns: {},
-                                        with: { hashtag: { columns: { id: true, name: true } } }
-                                    }
-                                },
-                                where: (feeds: any) => admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1))
-                            } as any
-                        }
+    // GET /tag/:name
+    app.get('/:name', async (c: AppContext) => {
+        const db = c.get('db');
+        const admin = c.get('admin');
+        const nameDecoded = decodeURI(c.req.param('name'));
+        
+        const tag = await db.query.hashtags.findFirst({
+            where: eq(hashtags.name, nameDecoded),
+            with: {
+                feeds: {
+                    with: {
+                        feed: {
+                            columns: {
+                                id: true, title: true, summary: true, content: true, 
+                                createdAt: true, updatedAt: true, draft: false, listed: false
+                            },
+                            with: {
+                                user: { columns: { id: true, username: true, avatar: true } },
+                                hashtags: {
+                                    columns: {},
+                                    with: { hashtag: { columns: { id: true, name: true } } }
+                                }
+                            },
+                            where: (feeds: any) => admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1))
+                        } as any
                     }
                 }
-            });
-            
-            const tagFeeds = tag?.feeds.map((tagFeed: any) => {
-                if (!tagFeed.feed) return null;
-                return {
-                    ...tagFeed.feed,
-                    hashtags: tagFeed.feed.hashtags.map((hashtag: any) => hashtag.hashtag)
-                };
-            }).filter((feed: any) => feed !== null);
-            
-            if (!tag) {
-                set.status = 404;
-                return 'Not found';
             }
-            
-            return { ...tag, feeds: tagFeeds };
         });
+        
+        const tagFeeds = tag?.feeds.map((tagFeed: any) => {
+            if (!tagFeed.feed) return null;
+            return {
+                ...tagFeed.feed,
+                hashtags: tagFeed.feed.hashtags.map((hashtag: any) => hashtag.hashtag)
+            };
+        }).filter((feed: any) => feed !== null);
+        
+        if (!tag) {
+            return c.text('Not found', 404);
+        }
+        
+        return c.json({ ...tag, feeds: tagFeeds });
     });
+
+    return app;
 }
 
 export async function bindTagToPost(db: DB, feedId: number, tags: string[]) {

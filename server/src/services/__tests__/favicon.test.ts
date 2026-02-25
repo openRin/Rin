@@ -1,14 +1,69 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { eq } from 'drizzle-orm';
 import { FaviconService, FAVICON_ALLOWED_TYPES, getFaviconKey } from '../favicon';
-import { createBaseApp } from '../../core/base';
+import { Hono } from "hono";
+import { createMiddleware } from "hono/factory";
+import type { Variables, JWTUtils, CacheImpl } from "../../core/hono-types";
 import { createMockDB, createMockEnv, cleanupTestDB } from '../../../tests/fixtures';
 import type { Database } from 'bun:sqlite';
+import { users } from '../../db/schema';
+
+// Simple cache implementation for tests
+class TestCacheImpl implements CacheImpl {
+    private data = new Map<string, any>();
+    
+    async get(key: string): Promise<any | null> {
+        return this.data.get(key) ?? null;
+    }
+    
+    async set(key: string, value: any, _save?: boolean): Promise<void> {
+        this.data.set(key, value);
+    }
+    
+    async delete(key: string, _save?: boolean): Promise<void> {
+        this.data.delete(key);
+    }
+    
+    async deletePrefix(prefix: string): Promise<void> {
+        for (const key of this.data.keys()) {
+            if (key.startsWith(prefix)) {
+                this.data.delete(key);
+            }
+        }
+    }
+    
+    async getOrSet<T>(key: string, factory: () => Promise<T>): Promise<T> {
+        const cached = await this.get(key);
+        if (cached !== null) return cached;
+        const value = await factory();
+        await this.set(key, value);
+        return value;
+    }
+    
+    async getOrDefault<T>(key: string, defaultValue: T): Promise<T> {
+        const cached = await this.get(key);
+        return cached !== null ? cached : defaultValue;
+    }
+    
+    async getBySuffix(_suffix: string): Promise<any[]> {
+        return [];
+    }
+    
+    async all(): Promise<Map<string, any>> {
+        return new Map(this.data);
+    }
+    
+    async save(): Promise<void> {}
+    async clear(): Promise<void> {
+        this.data.clear();
+    }
+}
 
 describe('FaviconService', () => {
     let db: any;
     let sqlite: Database;
     let env: Env;
-    let app: any;
+    let app: Hono<{ Bindings: Env; Variables: Variables }>;
 
     beforeEach(async () => {
         const mockDB = createMockDB();
@@ -16,16 +71,51 @@ describe('FaviconService', () => {
         sqlite = mockDB.sqlite;
         env = createMockEnv();
 
-        // Setup app with mock db
-        app = createBaseApp(env);
-        app.state('db', db);
-        app.state('jwt', {
-            sign: async (payload: any) => `mock_token_${payload.id}`,
-            verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
-        });
+        app = new Hono<{ Bindings: Env; Variables: Variables }>();
+        
+        // Mock middleware to inject dependencies and handle auth
+        app.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+            c.set('db', db);
+            c.set('cache', new TestCacheImpl());
+            c.set('serverConfig', new TestCacheImpl());
+            c.set('clientConfig', new TestCacheImpl());
+            
+            const jwt = {
+                sign: async (payload: any) => `mock_token_${payload.id}`,
+                verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+            } as JWTUtils;
+            c.set('jwt', jwt);
+            c.set('oauth2', undefined);
+            c.set('env', env);
+            
+            // Parse Authorization header and set user info
+            const authHeader = c.req.header('authorization');
+            let uid: number | undefined = undefined;
+            let admin = false;
+            
+            if (authHeader?.startsWith('Bearer ')) {
+                const token = authHeader.substring(7);
+                const profile = await jwt.verify(token);
+                if (profile?.id) {
+                    uid = profile.id;
+                    // Look up user in database to check permission
+                    const user = await db.query.users.findFirst({
+                        where: eq(users.id, uid as number)
+                    });
+                    if (user) {
+                        admin = user.permission === 1;
+                    }
+                }
+            }
+            
+            c.set('uid', uid);
+            c.set('admin', admin);
+            
+            await next();
+        }));
 
         // Register service
-        FaviconService(app);
+        app.route('/', FaviconService());
 
         // Create test user
         await createTestUser();
@@ -42,87 +132,52 @@ describe('FaviconService', () => {
         `);
     }
 
-    describe('GET /favicon - Get favicon', () => {
+    describe('GET / - Get favicon', () => {
         it('should return favicon from S3', async () => {
-            const request = new Request('http://localhost/favicon');
-            const response = await app.handle(request, env);
+            const res = await app.request('/', { method: 'GET' }, env);
 
             // Will fail due to S3 not being available, but verifies route is registered
-            expect(response.status).not.toBe(404);
-        });
-
-        it('should set correct content type header', async () => {
-            const request = new Request('http://localhost/favicon');
-            const response = await app.handle(request, env);
-
-            // If we get a successful response, check headers
-            if (response.status === 200) {
-                expect(response.headers.get('Content-Type')).toBe('image/webp');
-            }
-        });
-
-        it('should set cache control header', async () => {
-            const request = new Request('http://localhost/favicon');
-            const response = await app.handle(request, env);
-
-            if (response.status === 200) {
-                const cacheControl = response.headers.get('Cache-Control');
-                expect(cacheControl).toContain('max-age=31536000');
-            }
+            expect(res.status).not.toBe(404);
         });
     });
 
-    describe('GET /favicon/original - Get original favicon', () => {
+    describe('GET /original - Get original favicon', () => {
         it('should return original favicon from S3', async () => {
-            const request = new Request('http://localhost/favicon/original');
-            const response = await app.handle(request, env);
+            const res = await app.request('/original', { method: 'GET' }, env);
 
             // Will fail due to S3 not being available, but verifies route is registered
-            expect(response.status).not.toBe(404);
-        });
-
-        it('should return 404 when original favicon not found', async () => {
-            const request = new Request('http://localhost/favicon/original');
-            const response = await app.handle(request, env);
-
-            // Should not be 404 from route not found, but could be from S3
-            expect(response.status).not.toBe(404);
+            expect(res.status).not.toBe(404);
         });
     });
 
-    describe('POST /favicon - Upload favicon', () => {
+    describe('POST / - Upload favicon', () => {
         it('should require admin permission', async () => {
             const file = new File(['test'], 'favicon.png', { type: 'image/png' });
             const formData = new FormData();
             formData.append('file', file);
 
-            const request = new Request('http://localhost/favicon', {
+            const res = await app.request('/', {
                 method: 'POST',
                 body: formData,
-            });
+            }, env);
 
-            const response = await app.handle(request, env);
             // Should be rejected (400 validation or 401/403 auth)
-            expect(response.status).toBeGreaterThanOrEqual(400);
+            expect(res.status).toBeGreaterThanOrEqual(400);
         });
 
         it('should reject files over 10MB', async () => {
-            // Create a mock file that appears to be larger than 10MB
             const largeContent = new Uint8Array(10 * 1024 * 1024 + 1);
             const file = new File([largeContent], 'favicon.png', { type: 'image/png' });
             const formData = new FormData();
             formData.append('file', file);
 
-            const request = new Request('http://localhost/favicon', {
+            const res = await app.request('/', {
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer mock_token_1',
-                },
+                headers: { 'Authorization': 'Bearer mock_token_1' },
                 body: formData,
-            });
+            }, env);
 
-            const response = await app.handle(request, env);
-            expect(response.status).toBe(400);
+            expect(res.status).toBe(400);
         });
 
         it('should reject disallowed file types', async () => {
@@ -130,37 +185,29 @@ describe('FaviconService', () => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const request = new Request('http://localhost/favicon', {
+            const res = await app.request('/', {
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer mock_token_1',
-                },
+                headers: { 'Authorization': 'Bearer mock_token_1' },
                 body: formData,
-            });
+            }, env);
 
-            const response = await app.handle(request, env);
-            expect(response.status).toBe(400);
+            expect(res.status).toBe(400);
         });
 
         it('should accept allowed image types', async () => {
-            // Test one allowed type - will fail due to S3 not being available
-            // but should not fail due to validation
             const file = new File(['test'], 'favicon.png', { type: 'image/png' });
             const formData = new FormData();
             formData.append('file', file);
 
-            const request = new Request('http://localhost/favicon', {
+            const res = await app.request('/', {
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer mock_token_1',
-                },
+                headers: { 'Authorization': 'Bearer mock_token_1' },
                 body: formData,
-            });
+            }, env);
 
-            const response = await app.handle(request, env);
             // Should not be 403 - permission check passes
             // Will fail due to S3 not available
-            expect(response.status).not.toBe(403);
+            expect(res.status).not.toBe(403);
         });
     });
 

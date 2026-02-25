@@ -1,12 +1,12 @@
 import { and, desc, eq } from "drizzle-orm";
-import { Router } from "../core/router";
-import type { Context } from "../core/types";
+import { Hono } from "hono";
+import type { AppContext } from "../core/hono-types";
 import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
 import { path_join } from "../utils/path";
 import { createS3Client, putObject } from "../utils/s3";
 import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
-import type { DB } from "../server";
+import type { DB } from "../core/hono-types";
 
 // Lazy-loaded modules for RSS generation
 let Feed: any;
@@ -36,112 +36,123 @@ async function initRSSModules() {
     }
 }
 
-export function RSSService(router: Router): void {
-    // Serve RSS feeds directly from root path (native RSS support)
-    // Routes: /rss.xml, /atom.xml, /feed.json
-    router.get('/:name', async (ctx: Context) => {
-        const { set, params, store: { env, db } } = ctx;
-        const { name } = params;
+export function RSSService(): Hono {
+    const app = new Hono();
 
-        const endpoint = env.S3_ENDPOINT;
-        const accessHost = env.S3_ACCESS_HOST || endpoint;
-        const folder = env.S3_CACHE_FOLDER || 'cache/';
-        const host = `${(accessHost.startsWith("http://") || accessHost.startsWith("https://") ? '' : 'https://')}${accessHost}`;
-
-        let fileName = name;
-        // Support legacy feed.xml redirect to rss.xml
-        if (fileName === 'feed.xml') {
-            fileName = 'rss.xml';
-        }
-
-        if (!['rss.xml', 'atom.xml', 'rss.json', 'feed.json'].includes(fileName)) {
-            set.status = 404;
-            return 'Not Found';
-        }
-
-        // Map file extensions to proper MIME types
-        const contentTypeMap: Record<string, string> = {
-            'rss.xml': 'application/rss+xml; charset=UTF-8',
-            'atom.xml': 'application/atom+xml; charset=UTF-8',
-            'rss.json': 'application/feed+json; charset=UTF-8',
-            'feed.json': 'application/feed+json; charset=UTF-8',
-        };
-        const contentType = contentTypeMap[fileName] || 'application/xml';
-
-        // Try to fetch from S3 first (if configured)
-        const key = path_join(folder, fileName);
-        const cleanHost = host.endsWith('/') ? host.slice(0, -1) : host;
-        const url = `${cleanHost}/${key}`;
-        
-        // Check if S3 is properly configured (not default/placeholder values)
-        const s3Configured = host && 
-                           !host.includes('your-') && 
-                           !host.includes('undefined') &&
-                           env.S3_BUCKET && 
-                           !env.S3_BUCKET.includes('your-bucket');
-        
-        if (s3Configured) {
-            try {
-                console.log(`[RSS] Fetching from S3: ${url}`);
-                const response = await fetch(url, { 
-                    cf: { cacheTtl: 60 } 
-                });
-                
-                if (response.ok) {
-                    console.log(`[RSS] S3 hit!`);
-                    const text = await response.text();
-                    return new Response(text, {
-                        headers: {
-                            'Content-Type': contentType,
-                            'Cache-Control': 'public, max-age=3600',
-                        }
-                    });
-                }
-                
-                if (response.status !== 404) {
-                    console.log(`[RSS] S3 error: ${response.status}, falling back to generation`);
-                }
-            } catch (e: any) {
-                console.log(`[RSS] S3 fetch failed: ${e.message}, falling back to generation`);
-            }
-        } else {
-            console.log(`[RSS] S3 not configured, generating feed in real-time`);
-        }
-        
-        // Generate feed in real-time (fallback or primary mode)
-        try {
-            console.log(`[RSS] Generating ${fileName} in real-time...`);
-            const frontendUrl = ctx.url.origin;
-            const feed = await generateFeed(env, db, frontendUrl);
-            
-            let content: string;
-            switch (fileName) {
-                case 'rss.xml':
-                    content = feed.rss2();
-                    break;
-                case 'atom.xml':
-                    content = feed.atom1();
-                    break;
-                case 'rss.json':
-                case 'feed.json':
-                    content = feed.json1();
-                    break;
-                default:
-                    content = feed.rss2();
-            }
-            
-            return new Response(content, {
-                headers: {
-                    'Content-Type': contentType,
-                    'Cache-Control': 'public, max-age=300', // Shorter cache for real-time
-                }
-            });
-        } catch (genError: any) {
-            console.error('[RSS] Generation failed:', genError);
-            set.status = 500;
-            return `RSS generation failed: ${genError.message}`;
-        }
+    // GET /rss.xml
+    app.get('/rss.xml', async (c: AppContext) => {
+        return handleFeed(c, 'rss.xml');
     });
+
+    // GET /atom.xml
+    app.get('/atom.xml', async (c: AppContext) => {
+        return handleFeed(c, 'atom.xml');
+    });
+
+    // GET /rss.json
+    app.get('/rss.json', async (c: AppContext) => {
+        return handleFeed(c, 'rss.json');
+    });
+
+    // GET /feed.json
+    app.get('/feed.json', async (c: AppContext) => {
+        return handleFeed(c, 'feed.json');
+    });
+
+    // Support legacy feed.xml - redirect to rss.xml
+    app.get('/feed.xml', async (c: AppContext) => {
+        return c.redirect('/rss.xml', 301);
+    });
+
+    return app;
+}
+
+async function handleFeed(c: AppContext, fileName: string) {
+    const env = c.get('env');
+    const db = c.get('db');
+
+    const endpoint = env.S3_ENDPOINT;
+    const accessHost = env.S3_ACCESS_HOST || endpoint;
+    const folder = env.S3_CACHE_FOLDER || 'cache/';
+    const host = `${(accessHost.startsWith("http://") || accessHost.startsWith("https://") ? '' : 'https://')}${accessHost}`;
+
+    // Map file extensions to proper MIME types
+    const contentTypeMap: Record<string, string> = {
+        'rss.xml': 'application/rss+xml; charset=UTF-8',
+        'atom.xml': 'application/atom+xml; charset=UTF-8',
+        'rss.json': 'application/feed+json; charset=UTF-8',
+        'feed.json': 'application/feed+json; charset=UTF-8',
+    };
+    const contentType = contentTypeMap[fileName] || 'application/xml';
+
+    // Try to fetch from S3 first (if configured)
+    const key = path_join(folder, fileName);
+    const cleanHost = host.endsWith('/') ? host.slice(0, -1) : host;
+    const url = `${cleanHost}/${key}`;
+    
+    // Check if S3 is properly configured (not default/placeholder values)
+    const s3Configured = host && 
+                       !host.includes('your-') && 
+                       !host.includes('undefined') &&
+                       env.S3_BUCKET && 
+                       !env.S3_BUCKET.includes('your-bucket');
+    
+    if (s3Configured) {
+        try {
+            console.log(`[RSS] Fetching from S3: ${url}`);
+            const response = await fetch(url, { 
+                cf: { cacheTtl: 60 } 
+            });
+            
+            if (response.ok) {
+                console.log(`[RSS] S3 hit!`);
+                const text = await response.text();
+                return c.text(text, 200, {
+                    'Content-Type': contentType,
+                    'Cache-Control': 'public, max-age=3600',
+                });
+            }
+            
+            if (response.status !== 404) {
+                console.log(`[RSS] S3 error: ${response.status}, falling back to generation`);
+            }
+        } catch (e: any) {
+            console.log(`[RSS] S3 fetch failed: ${e.message}, falling back to generation`);
+        }
+    } else {
+        console.log(`[RSS] S3 not configured, generating feed in real-time`);
+    }
+    
+    // Generate feed in real-time (fallback or primary mode)
+    try {
+        console.log(`[RSS] Generating ${fileName} in real-time...`);
+        const frontendUrl = new URL(c.req.url).origin;
+        const feed = await generateFeed(env, db, frontendUrl);
+        
+        let content: string;
+        switch (fileName) {
+            case 'rss.xml':
+                content = feed.rss2();
+                break;
+            case 'atom.xml':
+                content = feed.atom1();
+                break;
+            case 'rss.json':
+            case 'feed.json':
+                content = feed.json1();
+                break;
+            default:
+                content = feed.rss2();
+        }
+        
+        return c.text(content, 200, {
+            'Content-Type': contentType,
+            'Cache-Control': 'public, max-age=300', // Shorter cache for real-time
+        });
+    } catch (genError: any) {
+        console.error('[RSS] Generation failed:', genError);
+        return c.text(`RSS generation failed: ${genError.message}`, 500);
+    }
 }
 
 // Extract feed generation logic for reuse

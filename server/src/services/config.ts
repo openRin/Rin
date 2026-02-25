@@ -1,7 +1,7 @@
-import { Router } from "../core/router";
-import type { Context } from "../core/types";
+import { Hono } from "hono";
+import type { AppContext } from "../core/hono-types";
 import { getAIConfigForFrontend, setAIConfig, getAIConfig } from "../utils/db-config";
-import { testAIModel, generateAISummary } from "../utils/ai";
+import { testAIModel } from "../utils/ai";
 
 // Sensitive fields that should not be exposed to frontend
 const SENSITIVE_FIELDS = ['ai_summary.api_key'];
@@ -61,143 +61,143 @@ async function getClientConfigWithDefaults(
     return result;
 }
 
-export function ConfigService(router: Router): void {
-    router.group('/config', (group) => {
-        // POST /config/test-ai - Test AI model configuration
-        // NOTE: Must be defined BEFORE /:type route to avoid being captured as a type parameter
-        group.post('/test-ai', async (ctx: Context) => {
-            const { set, admin, body, store: { db, env } } = ctx;
+export function ConfigService(): Hono {
+    const app = new Hono();
 
-            if (!admin) {
-                set.status = 401;
-                return { error: 'Unauthorized' };
-            }
+    // POST /config/test-ai - Test AI model configuration
+    // NOTE: Must be defined BEFORE /:type route to avoid being captured as a type parameter
+    app.post('/test-ai', async (c: AppContext) => {
+        const admin = c.get('admin');
 
-            // Get current AI config from database
-            const config = await getAIConfig(db);
+        if (!admin) {
+            return c.json({ error: 'Unauthorized' }, 401);
+        }
 
-            // Build test config with overrides
-            const testConfig = {
-                provider: body.provider || config.provider,
-                model: body.model || config.model,
-                api_url: body.api_url !== undefined ? body.api_url : config.api_url,
-                api_key: body.api_key !== undefined ? body.api_key : config.api_key,
-            };
+        const db = c.get('db');
+        const env = c.get('env');
+        const body = await c.req.json();
 
-            // Test prompt
-            const testPrompt = body.testPrompt || "Hello! This is a test message. Please respond with a simple greeting.";
+        // Get current AI config from database
+        const config = await getAIConfig(db);
 
-            // Use unified test function
-            return await testAIModel(env, testConfig, testPrompt);
-        }, {
-            type: 'object',
-            properties: {
-                provider: { type: 'string', optional: true },
-                model: { type: 'string', optional: true },
-                api_url: { type: 'string', optional: true },
-                api_key: { type: 'string', optional: true },
-                testPrompt: { type: 'string', optional: true }
-            }
-        });
+        // Build test config with overrides
+        const testConfig = {
+            provider: body.provider || config.provider,
+            model: body.model || config.model,
+            api_url: body.api_url !== undefined ? body.api_url : config.api_url,
+            api_key: body.api_key !== undefined ? body.api_key : config.api_key,
+        };
 
-        // GET /config/:type
-        group.get('/:type', async (ctx: Context) => {
-            const { set, admin, params, store: { db, serverConfig, clientConfig } } = ctx;
-            const { type } = params;
+        // Test prompt
+        const testPrompt = body.testPrompt || "Hello! This is a test message. Please respond with a simple greeting.";
+
+        // Use unified test function
+        const result = await testAIModel(env, testConfig, testPrompt);
+        return c.json(result);
+    });
+
+    // GET /config/:type
+    app.get('/:type', async (c: AppContext) => {
+        const admin = c.get('admin');
+        const type = c.req.param('type');
+        
+        if (type !== 'server' && type !== 'client') {
+            return c.text('Invalid type', 400);
+        }
+        
+        if (type === 'server' && !admin) {
+            return c.text('Unauthorized', 401);
+        }
+        
+        const db = c.get('db');
+        const serverConfig = c.get('serverConfig');
+        const clientConfig = c.get('clientConfig');
+        const env = c.get('env');
+        
+        // Server config: includes regular server config + AI config
+        if (type === 'server') {
+            const all = await serverConfig.all();
+            const configObj = Object.fromEntries(all);
             
-            if (type !== 'server' && type !== 'client') {
-                set.status = 400;
-                return 'Invalid type';
-            }
-            
-            if (type === 'server' && !admin) {
-                set.status = 401;
-                return 'Unauthorized';
-            }
-            
-            // Server config: includes regular server config + AI config
-            if (type === 'server') {
-                const all = await serverConfig.all();
-                const configObj = Object.fromEntries(all);
-                
-                // Get AI config and merge into server config with flattened keys
-                const aiConfig = await getAIConfigForFrontend(db);
-                configObj['ai_summary.enabled'] = String(aiConfig.enabled);
-                configObj['ai_summary.provider'] = aiConfig.provider;
-                configObj['ai_summary.model'] = aiConfig.model;
-                configObj['ai_summary.api_url'] = aiConfig.api_url;
-                configObj['ai_summary.api_key'] = aiConfig.api_key_set ? '••••••••' : '';
-                
-                return maskSensitiveFields(configObj);
-            }
-            
-            // Client config: apply environment variable defaults and include AI summary status
-            const clientConfigData = await getClientConfigWithDefaults(clientConfig, ctx.env);
+            // Get AI config and merge into server config with flattened keys
             const aiConfig = await getAIConfigForFrontend(db);
-            return {
-                ...clientConfigData,
-                'ai_summary.enabled': aiConfig.enabled ?? false
-            };
-        });
-
-        // POST /config/:type
-        group.post('/:type', async (ctx: Context) => {
-            const { set, admin, body, params, store: { db, serverConfig, clientConfig } } = ctx;
-            const { type } = params;
+            configObj['ai_summary.enabled'] = String(aiConfig.enabled);
+            configObj['ai_summary.provider'] = aiConfig.provider;
+            configObj['ai_summary.model'] = aiConfig.model;
+            configObj['ai_summary.api_url'] = aiConfig.api_url;
+            configObj['ai_summary.api_key'] = aiConfig.api_key_set ? '••••••••' : '';
             
-            if (type !== 'server' && type !== 'client') {
-                set.status = 400;
-                return 'Invalid type';
-            }
-            
-            if (!admin) {
-                set.status = 401;
-                return 'Unauthorized';
-            }
-            
-            // Separate AI config from regular config
-            const regularConfig: Record<string, any> = {};
-            const aiConfigUpdates: Record<string, any> = {};
-            
-            for (const key in body) {
-                if (isAIConfigKey(key)) {
-                    // Convert flat key to nested key for AI config
-                    const nestedKey = key.replace('ai_summary.', '');
-                    aiConfigUpdates[nestedKey] = body[key];
-                } else {
-                    regularConfig[key] = body[key];
-                }
-            }
-            
-            // Save regular config
-            const config = type === 'server' ? serverConfig : clientConfig;
-            for (const key in regularConfig) {
-                await config.set(key, regularConfig[key], false);
-            }
-            await config.save();
-            
-            // Save AI config if there are any AI config updates
-            if (Object.keys(aiConfigUpdates).length > 0) {
-                await setAIConfig(db, aiConfigUpdates);
-            }
-            
-            return 'OK';
-        }, {
-            type: 'object',
-            additionalProperties: true
-        });
-
-        // DELETE /config/cache
-        group.delete('/cache', async (ctx: Context) => {
-            const { set, admin, store: { cache } } = ctx;
-            
-            if (!admin) {
-                set.status = 401;
-                return 'Unauthorized';
-            }
-            
-            await cache.clear();
-            return 'OK';
+            return c.json(maskSensitiveFields(configObj));
+        }
+        
+        // Client config: apply environment variable defaults and include AI summary status
+        const clientConfigData = await getClientConfigWithDefaults(clientConfig, env);
+        const aiConfig = await getAIConfigForFrontend(db);
+        return c.json({
+            ...clientConfigData,
+            'ai_summary.enabled': aiConfig.enabled ?? false
         });
     });
+
+    // POST /config/:type
+    app.post('/:type', async (c: AppContext) => {
+        const admin = c.get('admin');
+        const type = c.req.param('type');
+        
+        if (type !== 'server' && type !== 'client') {
+            return c.text('Invalid type', 400);
+        }
+        
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+        
+        const db = c.get('db');
+        const serverConfig = c.get('serverConfig');
+        const clientConfig = c.get('clientConfig');
+        const body = await c.req.json();
+        
+        // Separate AI config from regular config
+        const regularConfig: Record<string, any> = {};
+        const aiConfigUpdates: Record<string, any> = {};
+        
+        for (const key in body) {
+            if (isAIConfigKey(key)) {
+                // Convert flat key to nested key for AI config
+                const nestedKey = key.replace('ai_summary.', '');
+                aiConfigUpdates[nestedKey] = body[key];
+            } else {
+                regularConfig[key] = body[key];
+            }
+        }
+        
+        // Save regular config
+        const config = type === 'server' ? serverConfig : clientConfig;
+        for (const key in regularConfig) {
+            await config.set(key, regularConfig[key], false);
+        }
+        await config.save();
+        
+        // Save AI config if there are any AI config updates
+        if (Object.keys(aiConfigUpdates).length > 0) {
+            await setAIConfig(db, aiConfigUpdates);
+        }
+        
+        return c.text('OK');
+    });
+
+    // DELETE /config/cache
+    app.delete('/cache', async (c: AppContext) => {
+        const admin = c.get('admin');
+        
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+        
+        const cache = c.get('cache');
+        await cache.clear();
+        return c.text('OK');
+    });
+
+    return app;
 }

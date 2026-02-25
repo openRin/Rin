@@ -1,5 +1,5 @@
 import { eq, and, like } from "drizzle-orm";
-import type { DB } from "../server";
+import type { DB } from "../core/hono-types";
 import { cache } from "../db/schema";
 import { path_join } from "./path";
 
@@ -40,7 +40,7 @@ class DatabaseStorageProvider implements StorageProvider {
     async save(): Promise<void> {
         // Get all existing keys from database for this cache type
         const existingRows = await this.db.select({ key: cache.key }).from(cache).where(eq(cache.type, this.type));
-        const existingKeys = new Set(existingRows.map(row => row.key));
+        const existingKeys = new Set(existingRows.map((row: { key: string }) => row.key));
         const currentKeys = new Set(this.cacheMap.keys());
 
         // Delete keys from database that are no longer in memory

@@ -1,21 +1,23 @@
-import { Router } from "../core/router";
-import type { Context } from "../core/types";
+import { Hono } from "hono";
+import type { AppContext } from "../core/hono-types";
 import { path_join } from "../utils/path";
 
-export function SEOService(router: Router): void {
-    router.get('/seo/*', async (ctx: Context) => {
-        const { set, params, query, store: { env } } = ctx;
+export function SEOService(): Hono {
+    const app = new Hono();
+    
+    app.get('*', async (c: AppContext) => {
+        const env = c.get('env');
         
         const endpoint = env.S3_ENDPOINT;
         const accessHost = env.S3_ACCESS_HOST || endpoint;
         const folder = env.S3_CACHE_FOLDER || 'cache/';
         
         if (!accessHost) {
-            set.status = 500;
-            return 'S3_ACCESS_HOST is not defined';
+            return c.text('S3_ACCESS_HOST is not defined', 500);
         }
         
-        let url = params['*'];
+        let url = c.req.param('*');
+        const query = c.req.query();
         
         // query concat
         for (const key in query) {
@@ -38,8 +40,9 @@ export function SEOService(router: Router): void {
             });
         } catch (e: any) {
             console.error(e);
-            set.status = 500;
-            return e.message;
+            return c.text(e.message, 500);
         }
     });
+    
+    return app;
 }

@@ -1,70 +1,54 @@
-// Type definitions for the lightweight framework
+// Core types for Rin server
+import type { Context as HonoContext } from "hono";
 
+// Re-export from hono-types
+export type { DB, Variables, AppContext, JWTUtils, OAuth2Utils } from "./hono-types";
+
+// Middleware type
+export type Middleware = (context: Context, env: Env) => Promise<Response | void>;
+
+// Context type matching the error handler needs
 export interface Context {
     request: Request;
     url: URL;
-    params: Record<string, string>;
-    query: Record<string, any>;
-    headers: Record<string, string>;
-    body: any;
-    store: Record<string, any>;
+    headers: Headers;
     set: {
-        status: number;
         headers: Headers;
     };
-    cookie: Record<string, CookieValue>;
-    jwt?: JWTUtils;
-    oauth2?: OAuth2Utils;
-    uid?: number;
-    admin: boolean;
-    username?: string;
-    env: Env;
 }
 
-export interface CookieValue {
-    value: string;
-    expires?: Date;
-    path?: string;
-    httpOnly?: boolean;
-    secure?: boolean;
-    sameSite?: 'strict' | 'lax' | 'none';
-    set(options: { value: string; expires?: Date; path?: string; httpOnly?: boolean; secure?: boolean; sameSite?: 'strict' | 'lax' | 'none' }): void;
-}
-
-export interface JWTUtils {
-    sign(payload: any): Promise<string>;
-    verify(token: string): Promise<any | null>;
-}
-
-export interface OAuth2Utils {
-    generateState(): string;
-    createRedirectUrl(state: string, provider: string): string;
-    authorize(provider: string, code: string): Promise<{ accessToken: string } | null>;
-}
-
-export type Handler = (context: Context) => Promise<any> | any;
-export type Middleware = (context: Context, env: Env, container?: any) => Promise<Response | void> | Response | void;
+// Legacy types for backward compatibility
+export type Handler = (context: Context) => Promise<any>;
 
 export interface RouteDefinition {
+    method: string;
     path: string;
     handler: Handler;
-    schema?: any;
 }
 
-// Schema types (TypeBox compatible)
-export const t = {
-    Object: (properties: Record<string, any>, options?: { additionalProperties?: boolean }) => ({
-        type: 'object',
-        properties,
-        ...options
-    }),
-    String: (options?: { optional?: boolean }) => ({ type: 'string', optional: options?.optional }),
-    Number: (options?: { optional?: boolean }) => ({ type: 'number', optional: options?.optional }),
-    Boolean: (options?: { optional?: boolean }) => ({ type: 'boolean', optional: options?.optional }),
-    Integer: (options?: { optional?: boolean }) => ({ type: 'number', optional: options?.optional }),
-    Date: (options?: { optional?: boolean }) => ({ type: 'string', format: 'date-time', optional: options?.optional }),
-    Array: (items: any, options?: { optional?: boolean }) => ({ type: 'array', items, optional: options?.optional }),
-    File: (options?: { optional?: boolean }) => ({ type: 'file', optional: options?.optional }),
-    Optional: (schema: any) => ({ ...schema, optional: true }),
-    Numeric: (options?: { optional?: boolean }) => ({ type: 'number', optional: options?.optional }),
+export type CookieValue = {
+    value: string;
+    options?: {
+        httpOnly?: boolean;
+        secure?: boolean;
+        sameSite?: 'strict' | 'lax' | 'none';
+        maxAge?: number;
+        expires?: Date;
+        path?: string;
+        domain?: string;
+    };
 };
+
+// CacheImpl interface
+export interface CacheImpl {
+    get(key: string): Promise<any | null>;
+    set(key: string, value: any, save?: boolean): Promise<void>;
+    delete(key: string, save?: boolean): Promise<void>;
+    deletePrefix(prefix: string): Promise<void>;
+    getOrSet<T>(key: string, factory: () => Promise<T>): Promise<T>;
+    getOrDefault<T>(key: string, defaultValue: T): Promise<T>;
+    getBySuffix(suffix: string): Promise<any[]>;
+    all(): Promise<Map<string, any>>;
+    save(): Promise<void>;
+    clear(): Promise<void>;
+}

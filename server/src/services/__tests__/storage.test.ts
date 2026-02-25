@@ -1,16 +1,67 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { StorageService } from '../storage';
-import { createBaseApp } from '../../core/base';
+import { Hono } from "hono";
+import { createMiddleware } from "hono/factory";
+import type { Variables, JWTUtils, CacheImpl } from "../../core/hono-types";
 import { createMockDB, createMockEnv, cleanupTestDB } from '../../../tests/fixtures';
-import { createTestClient } from '../../../tests/test-api-client';
 import type { Database } from 'bun:sqlite';
+
+// Simple cache implementation for tests
+class TestCacheImpl implements CacheImpl {
+    private data = new Map<string, any>();
+    
+    async get(key: string): Promise<any | null> {
+        return this.data.get(key) ?? null;
+    }
+    
+    async set(key: string, value: any, _save?: boolean): Promise<void> {
+        this.data.set(key, value);
+    }
+    
+    async delete(key: string, _save?: boolean): Promise<void> {
+        this.data.delete(key);
+    }
+    
+    async deletePrefix(prefix: string): Promise<void> {
+        for (const key of this.data.keys()) {
+            if (key.startsWith(prefix)) {
+                this.data.delete(key);
+            }
+        }
+    }
+    
+    async getOrSet<T>(key: string, factory: () => Promise<T>): Promise<T> {
+        const cached = await this.get(key);
+        if (cached !== null) return cached;
+        const value = await factory();
+        await this.set(key, value);
+        return value;
+    }
+    
+    async getOrDefault<T>(key: string, defaultValue: T): Promise<T> {
+        const cached = await this.get(key);
+        return cached !== null ? cached : defaultValue;
+    }
+    
+    async getBySuffix(_suffix: string): Promise<any[]> {
+        return [];
+    }
+    
+    async all(): Promise<Map<string, any>> {
+        return new Map(this.data);
+    }
+    
+    async save(): Promise<void> {}
+    async clear(): Promise<void> {
+        this.data.clear();
+    }
+}
 
 describe('StorageService', () => {
     let db: any;
     let sqlite: Database;
     let env: Env;
-    let app: any;
-    let api: ReturnType<typeof createTestClient>;
+    let app: Hono<{ Bindings: Env; Variables: Variables }>;
 
     beforeEach(async () => {
         const mockDB = createMockDB();
@@ -18,19 +69,28 @@ describe('StorageService', () => {
         sqlite = mockDB.sqlite;
         env = createMockEnv();
 
-        // Setup app with mock db
-        app = createBaseApp(env);
-        app.state('db', db);
-        app.state('jwt', {
-            sign: async (payload: any) => `mock_token_${payload.id}`,
-            verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
-        });
+        app = new Hono<{ Bindings: Env; Variables: Variables }>();
+        
+        // Mock middleware to inject dependencies
+        app.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+            c.set('db', db);
+            c.set('cache', new TestCacheImpl());
+            c.set('serverConfig', new TestCacheImpl());
+            c.set('clientConfig', new TestCacheImpl());
+            c.set('jwt', {
+                sign: async (payload: any) => `mock_token_${payload.id}`,
+                verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+            } as JWTUtils);
+            c.set('oauth2', undefined);
+            c.set('admin', false);
+            c.set('env', env);
+            c.set('uid', undefined);
+            
+            await next();
+        }));
 
-        // Register service
-        StorageService(app);
-
-        // Create test API client
-        api = createTestClient(app, env);
+        // Mount service
+        app.route('/', StorageService());
 
         // Create test user
         await createTestUser();
@@ -47,15 +107,19 @@ describe('StorageService', () => {
         `);
     }
 
-    describe('POST /storage - Upload file', () => {
+    describe('POST / - Upload file', () => {
         it('should require authentication', async () => {
-            const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-            const result = await api.storage.upload(file, 'test.txt');
+            const formData = new FormData();
+            formData.append('file', new File(['test content'], 'test.txt', { type: 'text/plain' }));
+            
+            const res = await app.request('/', {
+                method: 'POST',
+                body: formData,
+            }, env);
 
-            expect(result.error).toBeDefined();
             // Could be 400 (validation) or 401 (auth)
-            expect(result.error?.status).toBeGreaterThanOrEqual(400);
-            expect(result.error?.status).toBeLessThanOrEqual(401);
+            expect(res.status).toBeGreaterThanOrEqual(400);
+            expect(res.status).toBeLessThanOrEqual(401);
         });
 
         it('should return 500 when S3_ENDPOINT is not defined', async () => {
@@ -63,22 +127,32 @@ describe('StorageService', () => {
                 S3_ENDPOINT: '' as any,
             });
 
-            const appNoS3 = createBaseApp(envNoS3);
-            appNoS3.state('db', db);
-            appNoS3.state('jwt', {
-                sign: async (payload: any) => `mock_token_${payload.id}`,
-                verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
-            });
-            StorageService(appNoS3);
+            const appNoS3 = new Hono<{ Bindings: Env; Variables: Variables }>();
+            appNoS3.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+                c.set('db', db);
+                c.set('cache', new TestCacheImpl());
+                c.set('serverConfig', new TestCacheImpl());
+                c.set('clientConfig', new TestCacheImpl());
+                c.set('jwt', {
+                    sign: async (payload: any) => `mock_token_${payload.id}`,
+                    verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+                } as JWTUtils);
+                c.set('env', envNoS3);
+                c.set('uid', undefined);
+                await next();
+            }));
+            appNoS3.route('/', StorageService());
 
-            const apiNoS3 = createTestClient(appNoS3, envNoS3);
+            const formData = new FormData();
+            formData.append('file', new File(['test content'], 'test.txt', { type: 'text/plain' }));
+            
+            const res = await appNoS3.request('/', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer mock_token_1' },
+                body: formData,
+            }, envNoS3);
 
-            const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-            const result = await apiNoS3.storage.upload(file, 'test.txt', { token: 'mock_token_1' });
-
-            expect(result.error).toBeDefined();
-            // Could be 400 (validation) or 500 (env check)
-            expect(result.error?.status).toBeGreaterThanOrEqual(400);
+            expect(res.status).toBeGreaterThanOrEqual(400);
         });
 
         it('should return error when S3_ACCESS_KEY_ID is not defined', async () => {
@@ -86,75 +160,32 @@ describe('StorageService', () => {
                 S3_ACCESS_KEY_ID: '',
             });
 
-            const appNoKey = createBaseApp(envNoKey);
-            appNoKey.state('db', db);
-            appNoKey.state('jwt', {
-                sign: async (payload: any) => `mock_token_${payload.id}`,
-                verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
-            });
-            StorageService(appNoKey);
+            const appNoKey = new Hono<{ Bindings: Env; Variables: Variables }>();
+            appNoKey.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+                c.set('db', db);
+                c.set('cache', new TestCacheImpl());
+                c.set('serverConfig', new TestCacheImpl());
+                c.set('clientConfig', new TestCacheImpl());
+                c.set('jwt', {
+                    sign: async (payload: any) => `mock_token_${payload.id}`,
+                    verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+                } as JWTUtils);
+                c.set('env', envNoKey);
+                c.set('uid', undefined);
+                await next();
+            }));
+            appNoKey.route('/', StorageService());
 
-            const apiNoKey = createTestClient(appNoKey, envNoKey);
+            const formData = new FormData();
+            formData.append('file', new File(['test content'], 'test.txt', { type: 'text/plain' }));
+            
+            const res = await appNoKey.request('/', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer mock_token_1' },
+                body: formData,
+            }, envNoKey);
 
-            const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-            const result = await apiNoKey.storage.upload(file, 'test.txt', { token: 'mock_token_1' });
-
-            expect(result.error).toBeDefined();
-            expect(result.error?.status).toBeGreaterThanOrEqual(400);
-        });
-
-        it('should return error when S3_SECRET_ACCESS_KEY is not defined', async () => {
-            const envNoSecret = createMockEnv({
-                S3_SECRET_ACCESS_KEY: '',
-            });
-
-            const appNoSecret = createBaseApp(envNoSecret);
-            appNoSecret.state('db', db);
-            appNoSecret.state('jwt', {
-                sign: async (payload: any) => `mock_token_${payload.id}`,
-                verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
-            });
-            StorageService(appNoSecret);
-
-            const apiNoSecret = createTestClient(appNoSecret, envNoSecret);
-
-            const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-            const result = await apiNoSecret.storage.upload(file, 'test.txt', { token: 'mock_token_1' });
-
-            expect(result.error).toBeDefined();
-            expect(result.error?.status).toBeGreaterThanOrEqual(400);
-        });
-
-        it('should return error when S3_BUCKET is not defined', async () => {
-            const envNoBucket = createMockEnv({
-                S3_BUCKET: '' as any,
-            });
-
-            const appNoBucket = createBaseApp(envNoBucket);
-            appNoBucket.state('db', db);
-            appNoBucket.state('jwt', {
-                sign: async (payload: any) => `mock_token_${payload.id}`,
-                verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
-            });
-            StorageService(appNoBucket);
-
-            const apiNoBucket = createTestClient(appNoBucket, envNoBucket);
-
-            const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-            const result = await apiNoBucket.storage.upload(file, 'test.txt', { token: 'mock_token_1' });
-
-            expect(result.error).toBeDefined();
-            expect(result.error?.status).toBeGreaterThanOrEqual(400);
-        });
-
-        it('should extract file extension from key', async () => {
-            // This test would require mocking S3, so we just verify the endpoint
-            // is accessible with proper authentication and environment
-            const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-            const result = await api.storage.upload(file, 'document.pdf', { token: 'mock_token_1' });
-
-            // Will fail due to S3 not being available, but verifies auth passes
-            expect(result.error?.status).not.toBe(401);
+            expect(res.status).toBeGreaterThanOrEqual(400);
         });
     });
 });

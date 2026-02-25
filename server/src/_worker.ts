@@ -1,6 +1,16 @@
 import { drizzle } from "drizzle-orm/d1";
-import { createApp, createDefaultApp } from "./server";
+import { createHonoApp } from "./core/hono-app";
 import { CacheImpl } from "./utils/cache";
+
+// Create app instance (singleton)
+let app: ReturnType<typeof createHonoApp> | null = null;
+
+function getApp() {
+    if (!app) {
+        app = createHonoApp();
+    }
+    return app;
+}
 
 export default {
     async fetch(
@@ -13,27 +23,15 @@ export default {
         // Handle RSS feeds directly (native RSS support at root path)
         // Matches: /rss.xml, /atom.xml, /rss.json, /feed.json, /feed.xml
         if (path.match(/^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/)) {
-            const app = await createApp(env, path);
-            if (app) {
-                return await app.handle(request, env);
-            }
-            return new Response('RSS Feed Not Found', { status: 404 });
+            const honoApp = getApp();
+            return await honoApp.fetch(request, env);
         }
 
         // Try API routes first (all APIs are under /api/)
         if (path.startsWith('/api/')) {
-            // Remove /api prefix before passing to services
-            const apiPath = path.slice(4); // removes '/api'
-            const app = await createApp(env, apiPath);
-            if (app) {
-                // Create a new request with the modified URL (without /api prefix)
-                // so that router.handle() can match routes correctly
-                const modifiedUrl = new URL(apiPath + url.search, url.origin);
-                const modifiedRequest = new Request(modifiedUrl, request);
-                return await app.handle(modifiedRequest, env);
-            }
-            // API path not found, return 404
-            return new Response('Not Found', { status: 404 });
+            const honoApp = getApp();
+            // Pass the original request - Hono will handle the routing
+            return await honoApp.fetch(request, env);
         }
 
         // Serve static assets (for files with extensions)
@@ -63,9 +61,8 @@ export default {
             }
         }
 
-        // Fallback to default app
-        const defaultApp = createDefaultApp(env);
-        return await defaultApp.handle(request, env);
+        // Fallback: return a simple hello
+        return new Response('Hi', { status: 200 });
     },
 
     async scheduled(
