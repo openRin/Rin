@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { startTime, endTime } from "hono/timing";
 import type { AppContext, DB } from "../core/hono-types";
 import * as schema from "../db/schema";
 import { friends } from "../db/schema";
@@ -12,10 +13,12 @@ export function FriendService(): Hono {
 
     // GET /friend
     app.get('/', async (c: AppContext) => {
+        startTime(c, 'friend-list');
         const admin = c.get('admin');
         const uid = c.get('uid');
         const db = c.get('db');
         
+        startTime(c, 'db-query');
         const friend_list = await (admin
             ? db.query.friends.findMany({
                 orderBy: (friends: any, { asc, desc }: { asc: any, desc: any }) => [
@@ -30,13 +33,18 @@ export function FriendService(): Hono {
                     asc(friends.createdAt)
                 ]
             }));
+        endTime(c, 'db-query');
             
+        startTime(c, 'db-apply-query');
         const apply_list = uid ? await db.query.friends.findFirst({ where: eq(friends.uid, uid) }) : null;
+        endTime(c, 'db-apply-query');
+        endTime(c, 'friend-list');
         return c.json({ friend_list, apply_list });
     });
 
     // POST /friend
     app.post('/', async (c: AppContext) => {
+        startTime(c, 'friend-create');
         const admin = c.get('admin');
         const uid = c.get('uid');
         const username = c.get('username');
@@ -47,46 +55,62 @@ export function FriendService(): Hono {
         const body = await c.req.json();
         const { name, desc, avatar, url } = body;
         
+        startTime(c, 'config-get');
         const enable = await clientConfig.getOrDefault('friend_apply_enable', true);
+        endTime(c, 'config-get');
         if (!enable && !admin) {
+            endTime(c, 'friend-create');
             return c.text('Friend Link Apply Disabled', 403);
         }
         
         if (name.length > 20 || desc.length > 100 || avatar.length > 100 || url.length > 100) {
+            endTime(c, 'friend-create');
             return c.text('Invalid input', 400);
         }
         
         if (name.length === 0 || desc.length === 0 || avatar.length === 0 || url.length === 0) {
+            endTime(c, 'friend-create');
             return c.text('Invalid input', 400);
         }
         
         if (!uid) {
+            endTime(c, 'friend-create');
             return c.text('Unauthorized', 401);
         }
         
         if (!admin) {
+            startTime(c, 'db-check-exist');
             const exist = await db.query.friends.findFirst({ where: eq(friends.uid, uid) });
+            endTime(c, 'db-check-exist');
             if (exist) {
+                endTime(c, 'friend-create');
                 return c.text('Already sent', 400);
             }
         }
         
         const accepted = admin ? 1 : 0;
+        startTime(c, 'db-insert');
         await db.insert(friends).values({
             name, desc, avatar, url, uid: uid, accepted
         });
+        endTime(c, 'db-insert');
 
         if (!admin) {
+            startTime(c, 'config-get-webhook');
             const webhookUrl = await serverConfig.get(Config.webhookUrl) || env.WEBHOOK_URL;
+            endTime(c, 'config-get-webhook');
             const frontendUrl = new URL(c.req.url).origin;
-            const content = `${frontendUrl}/friends\n${username} 申请友链: ${name}\n${desc}\n${url}`;
-            await notify(webhookUrl, content);
+            startTime(c, 'webhook-notify');
+            await notify(webhookUrl, `${frontendUrl}/friends\n${username} 申请友链: ${name}\n${desc}\n${url}`);
+            endTime(c, 'webhook-notify');
         }
+        endTime(c, 'friend-create');
         return c.text('OK');
     });
 
     // PUT /friend/:id
     app.put('/:id', async (c: AppContext) => {
+        startTime(c, 'friend-update');
         const admin = c.get('admin');
         const uid = c.get('uid');
         const username = c.get('username');
@@ -98,21 +122,29 @@ export function FriendService(): Hono {
         const body = await c.req.json();
         const { name, desc, avatar, url, accepted, sort_order } = body;
         
+        startTime(c, 'config-get');
         const enable = await clientConfig.getOrDefault('friend_apply_enable', true);
+        endTime(c, 'config-get');
         if (!enable && !admin) {
+            endTime(c, 'friend-update');
             return c.text('Friend Link Apply Disabled', 403);
         }
         
         if (!uid) {
+            endTime(c, 'friend-update');
             return c.text('Unauthorized', 401);
         }
         
+        startTime(c, 'db-query');
         const exist = await db.query.friends.findFirst({ where: eq(friends.id, parseInt(id)) });
+        endTime(c, 'db-query');
         if (!exist) {
+            endTime(c, 'friend-update');
             return c.text('Not found', 404);
         }
         
         if (!admin && exist.uid !== uid) {
+            endTime(c, 'friend-update');
             return c.text('Permission denied', 403);
         }
         
@@ -128,6 +160,7 @@ export function FriendService(): Hono {
             return s ? s.length === 0 ? undefined : s : undefined;
         }
         
+        startTime(c, 'db-update');
         await db.update(friends).set({
             name: wrap(name),
             desc: wrap(desc),
@@ -136,37 +169,51 @@ export function FriendService(): Hono {
             accepted: finalAccepted === undefined ? undefined : finalAccepted,
             sort_order: finalSortOrder === undefined ? undefined : finalSortOrder,
         }).where(eq(friends.id, parseInt(id)));
+        endTime(c, 'db-update');
         
         if (!admin) {
+            startTime(c, 'config-get-webhook');
             const webhookUrl = await serverConfig.get(Config.webhookUrl) || env.WEBHOOK_URL;
+            endTime(c, 'config-get-webhook');
             const frontendUrl = new URL(c.req.url).origin;
-            const content = `${frontendUrl}/friends\n${username} 更新友链: ${name}\n${desc}\n${url}`;
-            await notify(webhookUrl, content);
+            startTime(c, 'webhook-notify');
+            await notify(webhookUrl, `${frontendUrl}/friends\n${username} 更新友链: ${name}\n${desc}\n${url}`);
+            endTime(c, 'webhook-notify');
         }
+        endTime(c, 'friend-update');
         return c.text('OK');
     });
 
     // DELETE /friend/:id
     app.delete('/:id', async (c: AppContext) => {
+        startTime(c, 'friend-delete');
         const admin = c.get('admin');
         const uid = c.get('uid');
         const db = c.get('db');
         const id = c.req.param('id');
         
         if (!uid) {
+            endTime(c, 'friend-delete');
             return c.text('Unauthorized', 401);
         }
         
+        startTime(c, 'db-query');
         const exist = await db.query.friends.findFirst({ where: eq(friends.id, parseInt(id)) });
+        endTime(c, 'db-query');
         if (!exist) {
+            endTime(c, 'friend-delete');
             return c.text('Not found', 404);
         }
         
         if (!admin && exist.uid !== uid) {
+            endTime(c, 'friend-delete');
             return c.text('Permission denied', 403);
         }
         
+        startTime(c, 'db-delete');
         await db.delete(friends).where(eq(friends.id, parseInt(id)));
+        endTime(c, 'db-delete');
+        endTime(c, 'friend-delete');
         return c.text('OK');
     });
 

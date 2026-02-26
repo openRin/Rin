@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { startTime, endTime } from "hono/timing";
 import type { AppContext } from "../core/hono-types";
 import { getAIConfigForFrontend, setAIConfig, getAIConfig } from "../utils/db-config";
 import { testAIModel } from "../utils/ai";
@@ -67,9 +68,11 @@ export function ConfigService(): Hono {
     // POST /config/test-ai - Test AI model configuration
     // NOTE: Must be defined BEFORE /:type route to avoid being captured as a type parameter
     app.post('/test-ai', async (c: AppContext) => {
+        startTime(c, 'config-test-ai');
         const admin = c.get('admin');
 
         if (!admin) {
+            endTime(c, 'config-test-ai');
             return c.json({ error: 'Unauthorized' }, 401);
         }
 
@@ -78,7 +81,9 @@ export function ConfigService(): Hono {
         const body = await c.req.json();
 
         // Get current AI config from database
+        startTime(c, 'db-get-ai-config');
         const config = await getAIConfig(db);
+        endTime(c, 'db-get-ai-config');
 
         // Build test config with overrides
         const testConfig = {
@@ -92,47 +97,63 @@ export function ConfigService(): Hono {
         const testPrompt = body.testPrompt || "Hello! This is a test message. Please respond with a simple greeting.";
 
         // Use unified test function
+        startTime(c, 'ai-test');
         const result = await testAIModel(env, testConfig, testPrompt);
+        endTime(c, 'ai-test');
+        endTime(c, 'config-test-ai');
         return c.json(result);
     });
 
     // GET /config/:type
     app.get('/:type', async (c: AppContext) => {
+        startTime(c, 'config-get');
         const admin = c.get('admin');
         const type = c.req.param('type');
-        
+
         if (type !== 'server' && type !== 'client') {
+            endTime(c, 'config-get');
             return c.text('Invalid type', 400);
         }
-        
+
         if (type === 'server' && !admin) {
+            endTime(c, 'config-get');
             return c.text('Unauthorized', 401);
         }
-        
+
         const db = c.get('db');
         const serverConfig = c.get('serverConfig');
         const clientConfig = c.get('clientConfig');
         const env = c.get('env');
-        
+
         // Server config: includes regular server config + AI config
         if (type === 'server') {
+            startTime(c, 'config-all');
             const all = await serverConfig.all();
+            endTime(c, 'config-all');
             const configObj = Object.fromEntries(all);
-            
+
             // Get AI config and merge into server config with flattened keys
+            startTime(c, 'db-get-ai-config');
             const aiConfig = await getAIConfigForFrontend(db);
+            endTime(c, 'db-get-ai-config');
             configObj['ai_summary.enabled'] = String(aiConfig.enabled);
             configObj['ai_summary.provider'] = aiConfig.provider;
             configObj['ai_summary.model'] = aiConfig.model;
             configObj['ai_summary.api_url'] = aiConfig.api_url;
             configObj['ai_summary.api_key'] = aiConfig.api_key_set ? '••••••••' : '';
-            
+
+            endTime(c, 'config-get');
             return c.json(maskSensitiveFields(configObj));
         }
-        
+
         // Client config: apply environment variable defaults and include AI summary status
+        startTime(c, 'client-config-get');
         const clientConfigData = await getClientConfigWithDefaults(clientConfig, env);
+        endTime(c, 'client-config-get');
+        startTime(c, 'db-get-ai-config');
         const aiConfig = await getAIConfigForFrontend(db);
+        endTime(c, 'db-get-ai-config');
+        endTime(c, 'config-get');
         return c.json({
             ...clientConfigData,
             'ai_summary.enabled': aiConfig.enabled ?? false
@@ -141,14 +162,17 @@ export function ConfigService(): Hono {
 
     // POST /config/:type
     app.post('/:type', async (c: AppContext) => {
+        startTime(c, 'config-post');
         const admin = c.get('admin');
         const type = c.req.param('type');
         
         if (type !== 'server' && type !== 'client') {
+            endTime(c, 'config-post');
             return c.text('Invalid type', 400);
         }
         
         if (!admin) {
+            endTime(c, 'config-post');
             return c.text('Unauthorized', 401);
         }
         
@@ -173,29 +197,39 @@ export function ConfigService(): Hono {
         
         // Save regular config
         const config = type === 'server' ? serverConfig : clientConfig;
+        startTime(c, 'config-save');
         for (const key in regularConfig) {
             await config.set(key, regularConfig[key], false);
         }
         await config.save();
+        endTime(c, 'config-save');
         
         // Save AI config if there are any AI config updates
         if (Object.keys(aiConfigUpdates).length > 0) {
+            startTime(c, 'db-set-ai-config');
             await setAIConfig(db, aiConfigUpdates);
+            endTime(c, 'db-set-ai-config');
         }
         
+        endTime(c, 'config-post');
         return c.text('OK');
     });
 
     // DELETE /config/cache
     app.delete('/cache', async (c: AppContext) => {
+        startTime(c, 'config-cache-clear');
         const admin = c.get('admin');
         
         if (!admin) {
+            endTime(c, 'config-cache-clear');
             return c.text('Unauthorized', 401);
         }
         
         const cache = c.get('cache');
+        startTime(c, 'cache-clear');
         await cache.clear();
+        endTime(c, 'cache-clear');
+        endTime(c, 'config-cache-clear');
         return c.text('OK');
     });
 

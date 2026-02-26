@@ -1,5 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { startTime, endTime } from "hono/timing";
 import type { AppContext } from "../core/hono-types";
 import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
@@ -41,26 +42,40 @@ export function RSSService(): Hono {
 
     // GET /rss.xml
     app.get('/rss.xml', async (c: AppContext) => {
-        return handleFeed(c, 'rss.xml');
+        startTime(c, 'rss-feed');
+        const result = await handleFeed(c, 'rss.xml');
+        endTime(c, 'rss-feed');
+        return result;
     });
 
     // GET /atom.xml
     app.get('/atom.xml', async (c: AppContext) => {
-        return handleFeed(c, 'atom.xml');
+        startTime(c, 'atom-feed');
+        const result = await handleFeed(c, 'atom.xml');
+        endTime(c, 'atom-feed');
+        return result;
     });
 
     // GET /rss.json
     app.get('/rss.json', async (c: AppContext) => {
-        return handleFeed(c, 'rss.json');
+        startTime(c, 'rss-json');
+        const result = await handleFeed(c, 'rss.json');
+        endTime(c, 'rss-json');
+        return result;
     });
 
     // GET /feed.json
     app.get('/feed.json', async (c: AppContext) => {
-        return handleFeed(c, 'feed.json');
+        startTime(c, 'feed-json');
+        const result = await handleFeed(c, 'feed.json');
+        endTime(c, 'feed-json');
+        return result;
     });
 
     // Support legacy feed.xml - redirect to rss.xml
     app.get('/feed.xml', async (c: AppContext) => {
+        startTime(c, 'legacy-feed');
+        endTime(c, 'legacy-feed');
         return c.redirect('/rss.xml', 301);
     });
 
@@ -68,6 +83,7 @@ export function RSSService(): Hono {
 }
 
 async function handleFeed(c: AppContext, fileName: string) {
+    startTime(c, 'handleFeed');
     const env = c.get('env');
     const db = c.get('db');
 
@@ -89,30 +105,33 @@ async function handleFeed(c: AppContext, fileName: string) {
     const key = path_join(folder, fileName);
     const cleanHost = host.endsWith('/') ? host.slice(0, -1) : host;
     const url = `${cleanHost}/${key}`;
-    
+
     // Check if S3 is properly configured (not default/placeholder values)
-    const s3Configured = host && 
-                       !host.includes('your-') && 
+    const s3Configured = host &&
+                       !host.includes('your-') &&
                        !host.includes('undefined') &&
-                       env.S3_BUCKET && 
+                       env.S3_BUCKET &&
                        !env.S3_BUCKET.includes('your-bucket');
-    
+
     if (s3Configured) {
         try {
             console.log(`[RSS] Fetching from S3: ${url}`);
-            const response = await fetch(url, { 
-                cf: { cacheTtl: 60 } 
+            startTime(c, 's3-fetch');
+            const response = await fetch(url, {
+                cf: { cacheTtl: 60 }
             });
-            
+            endTime(c, 's3-fetch');
+
             if (response.ok) {
                 console.log(`[RSS] S3 hit!`);
                 const text = await response.text();
+                endTime(c, 'handleFeed');
                 return c.text(text, 200, {
                     'Content-Type': contentType,
                     'Cache-Control': 'public, max-age=3600',
                 });
             }
-            
+
             if (response.status !== 404) {
                 console.log(`[RSS] S3 error: ${response.status}, falling back to generation`);
             }
@@ -122,13 +141,15 @@ async function handleFeed(c: AppContext, fileName: string) {
     } else {
         console.log(`[RSS] S3 not configured, generating feed in real-time`);
     }
-    
+
     // Generate feed in real-time (fallback or primary mode)
     try {
         console.log(`[RSS] Generating ${fileName} in real-time...`);
         const frontendUrl = new URL(c.req.url).origin;
+        startTime(c, 'generateFeed');
         const feed = await generateFeed(env, db, frontendUrl);
-        
+        endTime(c, 'generateFeed');
+
         let content: string;
         switch (fileName) {
             case 'rss.xml':
@@ -144,13 +165,15 @@ async function handleFeed(c: AppContext, fileName: string) {
             default:
                 content = feed.rss2();
         }
-        
+
+        endTime(c, 'handleFeed');
         return c.text(content, 200, {
             'Content-Type': contentType,
             'Cache-Control': 'public, max-age=300', // Shorter cache for real-time
         });
     } catch (genError: any) {
         console.error('[RSS] Generation failed:', genError);
+        endTime(c, 'handleFeed');
         return c.text(`RSS generation failed: ${genError.message}`, 500);
     }
 }
