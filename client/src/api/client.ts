@@ -107,10 +107,11 @@ class HttpClient {
 
       if (!response.ok) {
         let errorValue: unknown;
+        const responseClone = response.clone();
         try {
           errorValue = await response.json();
         } catch {
-          errorValue = await response.text();
+          errorValue = await responseClone.text();
         }
         // Extract error message from various formats
         let errorMessage: string;
