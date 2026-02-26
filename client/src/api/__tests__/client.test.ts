@@ -12,6 +12,16 @@ describe('API Client', () => {
     mockFetch.mockClear()
   })
 
+  // Helper to create mock response with clone method
+  const createMockResponse = (response: any) => {
+    return {
+      ...response,
+      clone() {
+        return this
+      },
+    }
+  }
+
   describe('Feed API', () => {
     it('should fetch feed list', async () => {
       const mockResponse = {
@@ -23,11 +33,11 @@ describe('API Client', () => {
         hasNext: false,
       }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.feed.list({ page: 1, limit: 10 })
 
@@ -39,13 +49,13 @@ describe('API Client', () => {
     })
 
     it('should handle feed list error', async () => {
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
         headers: new Map(),
         json: async () => ({ error: 'Server error' }),
-      })
+      }))
 
       const result = await api.feed.list({ page: 1 })
 
@@ -56,11 +66,11 @@ describe('API Client', () => {
     it('should fetch single feed', async () => {
       const mockResponse = { id: 1, title: 'Feed 1', content: 'Content 1' }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.feed.get(1)
 
@@ -81,11 +91,11 @@ describe('API Client', () => {
         tags: [],
       }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.feed.create(feedData)
 
@@ -107,11 +117,11 @@ describe('API Client', () => {
         { id: 2, name: 'tag2', feeds: 3 },
       ]
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.tag.list()
 
@@ -121,11 +131,11 @@ describe('API Client', () => {
     it('should fetch tag by name', async () => {
       const mockResponse = { id: 1, name: 'tag1', feeds: [{ id: 1, title: 'Feed 1' }] }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.tag.get('tag1')
 
@@ -144,11 +154,11 @@ describe('API Client', () => {
         { id: 2, content: 'Comment 2', user: { id: 2, username: 'user2' } },
       ]
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.comment.list(1)
 
@@ -163,11 +173,11 @@ describe('API Client', () => {
       const mockResponse = { id: 1, content: 'New comment', user: { id: 1, username: 'user1' } }
       const commentData = { content: 'New comment' }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.comment.create(1, commentData)
 
@@ -191,11 +201,11 @@ describe('API Client', () => {
         permission: false,
       }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.user.profile()
 
@@ -206,11 +216,11 @@ describe('API Client', () => {
       const mockResponse = { success: true }
       const profileData = { username: 'newname' }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.user.updateProfile(profileData)
 
@@ -234,11 +244,11 @@ describe('API Client', () => {
       }
       const loginData = { username: 'test', password: 'pass' }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.auth.login(loginData)
 
@@ -255,11 +265,11 @@ describe('API Client', () => {
     it('should check auth status', async () => {
       const mockResponse = { github: true, password: true }
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => mockResponse,
-      })
+      }))
 
       const result = await api.auth.status()
 
@@ -278,12 +288,12 @@ describe('API Client', () => {
     })
 
     it('should handle JSON parsing errors', async () => {
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => { throw new Error('Invalid JSON') },
         text: async () => 'Invalid JSON',
-      })
+      }))
 
       const result = await api.feed.list()
 
@@ -293,11 +303,11 @@ describe('API Client', () => {
     })
 
     it('should include credentials by default', async () => {
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
         headers: new Map([['content-type', 'application/json']]),
         json: async () => ({}),
-      })
+      }))
 
       await api.feed.list()
 
