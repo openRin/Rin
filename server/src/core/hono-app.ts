@@ -28,19 +28,6 @@ export function createHonoApp(): Hono<{
         Variables: Variables;
     }>();
 
-    // Global middleware
-    app.use('*', cors({
-        origin: (origin) => origin,
-        allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowHeaders: ['content-type', 'authorization', 'x-csrf-token'],
-        maxAge: 600,
-        credentials: true,
-    }));
-
-    app.use('*', timingMiddleware);
-    app.use('*', initContainerMiddleware);
-    app.use('*', authMiddleware);
-
     // Health check
     app.get('/', (c) => c.text('Hi'));
 
@@ -123,6 +110,20 @@ export function createHonoApp(): Hono<{
         Bindings: Env;
         Variables: Variables;
     }>();
+
+    
+    // Global middleware
+    app.use('*', cors({
+        origin: (origin) => origin,
+        allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowHeaders: ['content-type', 'authorization', 'x-csrf-token'],
+        maxAge: 600,
+        credentials: true,
+    }));
+
+    app.use('*', timingMiddleware);
+    app.use('*', initContainerMiddleware);
+    app.use('*', authMiddleware);
 
     apiApp.route("/api", app)
 
