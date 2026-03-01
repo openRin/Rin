@@ -143,7 +143,7 @@ describe('FaviconService', () => {
 
     describe('GET /original - Get original favicon', () => {
         it('should return original favicon from S3', async () => {
-            const res = await app.request('/original', { method: 'GET' }, env);
+            const res = await app.request('/favicon/original', { method: 'GET' }, env);
 
             // Will fail due to S3 not being available, but verifies route is registered
             expect(res.status).not.toBe(404);
@@ -156,7 +156,7 @@ describe('FaviconService', () => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const res = await app.request('/', {
+            const res = await app.request('/favicon', {
                 method: 'POST',
                 body: formData,
             }, env);
@@ -171,7 +171,7 @@ describe('FaviconService', () => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const res = await app.request('/', {
+            const res = await app.request('/favicon', {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer mock_token_1' },
                 body: formData,
@@ -185,7 +185,7 @@ describe('FaviconService', () => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const res = await app.request('/', {
+            const res = await app.request('/favicon', {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer mock_token_1' },
                 body: formData,
@@ -199,7 +199,7 @@ describe('FaviconService', () => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const res = await app.request('/', {
+            const res = await app.request('/favicon', {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer mock_token_1' },
                 body: formData,
