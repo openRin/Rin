@@ -134,7 +134,7 @@ describe('FaviconService', () => {
 
     describe('GET / - Get favicon', () => {
         it('should return favicon from S3', async () => {
-            const res = await app.request('/', { method: 'GET' }, env);
+            const res = await app.request('/favicon.ico', { method: 'GET' }, env);
 
             // Will fail due to S3 not being available, but verifies route is registered
             expect(res.status).not.toBe(404);
