@@ -77,9 +77,6 @@ export function createHonoApp(): Hono<{
     // SEO service
     app.route('/seo', SEOService());
 
-    // RSS service (native RSS endpoints at root)
-    app.route('/', RSSService());
-
     // Favicon service
     app.route('/', FaviconService());
 
@@ -129,5 +126,8 @@ export function createHonoApp(): Hono<{
 
     apiApp.route("/api", app)
 
+    // RSS service (native RSS endpoints at root)
+    apiApp.route('/', RSSService());
+    
     return apiApp;
 }
