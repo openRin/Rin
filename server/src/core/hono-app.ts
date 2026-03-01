@@ -113,7 +113,7 @@ export function createHonoApp(): Hono<{
 
     
     // Global middleware
-    app.use('*', cors({
+    apiApp.use('*', cors({
         origin: (origin) => origin,
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowHeaders: ['content-type', 'authorization', 'x-csrf-token'],
@@ -121,9 +121,9 @@ export function createHonoApp(): Hono<{
         credentials: true,
     }));
 
-    app.use('*', timingMiddleware);
-    app.use('*', initContainerMiddleware);
-    app.use('*', authMiddleware);
+    apiApp.use('*', timingMiddleware);
+    apiApp.use('*', initContainerMiddleware);
+    apiApp.use('*', authMiddleware);
 
     apiApp.route("/api", app)
 
