@@ -1,6 +1,10 @@
 import { drizzle } from "drizzle-orm/d1";
 import { createHonoApp } from "./core/hono-app";
 import { CacheImpl } from "./utils/cache";
+import { FaviconService } from "./services/favicon";
+import { Hono } from "hono";
+import type { Variables } from "hono/types";
+import { initContainerMiddleware, timingMiddleware } from "./core/hono-middleware";
 
 // Create app instance (singleton)
 let app: ReturnType<typeof createHonoApp> | null = null;
@@ -20,9 +24,22 @@ export default {
         const url = new URL(request.url);
         const path = url.pathname;
 
+        if (path.startsWith('/favicon.ico')) {
+
+            const app = new Hono<{
+                Bindings: Env;
+                Variables: Variables;
+            }>();
+        
+            app.use('*', timingMiddleware);
+            app.use('*', initContainerMiddleware);
+            app.route('/', FaviconService());
+            return await app.fetch(request, env);
+        }
+
         // Handle RSS feeds directly (native RSS support at root path)
         // Matches: /rss.xml, /atom.xml, /rss.json, /feed.json, /feed.xml
-        if (path.match(/^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/) || path.startsWith('/api/') || path.startsWith('/favicon.ico')) {
+        if (path.match(/^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/) || path.startsWith('/api/')) {
             const honoApp = getApp();
             return await honoApp.fetch(request, env);
         }
