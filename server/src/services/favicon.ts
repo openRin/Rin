@@ -19,8 +19,8 @@ export function getFaviconKey(env: Env) {
 export function FaviconService(): Hono {
     const app = new Hono();
 
-    // GET /favicon
-    app.get("/", async (c: AppContext) => {
+    // GET /favicon.ico
+    app.get("/favicon.ico", async (c: AppContext) => {
         startTime(c, 'favicon-get');
         const env = c.get('env');
         const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;

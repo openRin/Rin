@@ -81,7 +81,7 @@ export function createHonoApp(): Hono<{
     app.route('/', RSSService());
 
     // Favicon service
-    app.route('/favicon', FaviconService());
+    app.route('/', FaviconService());
 
     // 404 handler
     app.notFound((c) => {

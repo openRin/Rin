@@ -22,15 +22,8 @@ export default {
 
         // Handle RSS feeds directly (native RSS support at root path)
         // Matches: /rss.xml, /atom.xml, /rss.json, /feed.json, /feed.xml
-        if (path.match(/^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/)) {
+        if (path.match(/^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/) || path.startsWith('/api/') || path.startsWith('/favicon.ico')) {
             const honoApp = getApp();
-            return await honoApp.fetch(request, env);
-        }
-
-        // Try API routes first (all APIs are under /api/)
-        if (path.startsWith('/api/')) {
-            const honoApp = getApp();
-            // Pass the original request - Hono will handle the routing
             return await honoApp.fetch(request, env);
         }
 
