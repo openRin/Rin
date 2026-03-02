@@ -427,7 +427,7 @@ export function FeedService(): Hono<{
 
         const [previousFeed, nextFeed] = await Promise.all([getPreviousFeed(), getNextFeed()]);
         endTime(c, 'feed-adjacent');
-        return c.json({ previousFeed, nextFeed });
+        return c.json({ prev: previousFeed, next: nextFeed });
     });
 
     // POST /feed/:id - Update feed
