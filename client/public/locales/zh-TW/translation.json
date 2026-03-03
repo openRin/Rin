@@ -41,7 +41,7 @@
   "clear": "清除",
   "close": "關閉",
   "comment": {
-    "empty": "留言内容不能為空",
+    "empty": "留言內容不能為空",
     "placeholder": {
       "title": "說點什麼吧"
     },
@@ -52,7 +52,7 @@
   "comparison": "比較",
   "confirm": "確認",
   "content": {
-    "empty": "内容不能為空"
+    "empty": "內容不能為空"
   },
   "count": {
     "pv": "瀏覽數",
@@ -117,7 +117,16 @@
   "listed": "列出在文章中",
   "load_more": "載入更多",
   "login": {
+    "error":{      
+      "empty": "請輸入用戶名和密碼",
+      "failed": "登入失敗",
+      "invalid": "用戶名或密碼錯誤",
+      "network": "網路錯誤，請重試"
+    },
+    "loading": "登入中...",
+    "no_methods": "沒有可用的登入方式",
     "oauth_only": "請登入後繼續",
+    "or": "或",
     "password": {
       "placeholder": "請輸入密碼"
     },
@@ -181,8 +190,8 @@
       }
     },
     "footer": {
-      "desc": "設定顯示於網站底部的内容（HTML）",
-      "title": "網站底部内容"
+      "desc": "設定顯示於網站底部的內容（HTML）",
+      "title": "網站底部內容"
     },
     "friend": {
       "apply": {
@@ -249,12 +258,35 @@
     "import_success$success$skipped": "匯入成功，{{success}} 篇文章匯入成功，{{skipped}} 篇文章跳過",
     "login": {
       "enable": {
-        "desc": "開啟/關閉右上角登入按钮，關閉後可通過「雙擊」底部文字 “© 2024 Powered by” 「三次」觸發登入入口",
-        "title": "啟用右上角登入按钮"
+        "desc": "開啟/關閉右上角登入按鈕，關閉後可通過「雙擊」底部文字 “© 2026 Powered by” 「三次」觸發登入入口",
+        "title": "啟用右上角登入按鈕"
       }
     },
     "other": {
       "title": "其他設定"
+    },
+    "site": {
+      "title": "網站訊息",
+      "name": {
+        "title": "網站名稱",
+        "desc": "設定顯示在網站標題和導覽列的網站名稱",
+        "label": "網站名稱"
+      },
+      "description": {
+        "title": "網站描述",
+        "desc": "設定顯示在導覽列的簡短描述",
+        "label": "網站描述"
+      },
+      "avatar": {
+        "title": "網站頭像",
+        "desc": "設定顯示在導覽列的頭像 URL",
+        "label": "頭像 URL"
+      },
+      "page_size": {
+        "title": "分頁大小",
+        "desc": "設定文章列表每頁顯示的數量",
+        "label": "每頁文章數量"
+      }
     },
     "rss": {
       "desc": "啟用網站底部 RSS 訂閱連結",
@@ -314,7 +346,7 @@
       "invalid_file_type": "請上傳圖片文件",
       "empty_username": "暱稱不能為空",
       "update_failed": "更新失敗",
-      "network": "網絡錯誤，請重試"
+      "network": "網路錯誤，請重試"
     }
   }
 }
