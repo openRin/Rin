@@ -2,7 +2,6 @@
 
 English | [简体中文](./README_zh_CN.md)
 
-
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/openRin/Rin?style=for-the-badge)
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/openRin/Rin/main?style=for-the-badge)
 ![GitHub top language](https://img.shields.io/github/languages/top/openRin/Rin?style=for-the-badge)
@@ -21,6 +20,7 @@ Rin is a modern, serverless blog platform built entirely on Cloudflare's develop
 https://xeu.life
 
 ## Features
+
 - **Authentication & Management**: GitHub OAuth login. The first registered user becomes an administrator, while subsequent users join as regular members.
 - **Content Creation**: Write and edit articles with a rich, intuitive editor.
 - **Real-time Autosave**: Local drafts are saved automatically in real-time, with isolation between different articles.
@@ -88,16 +88,19 @@ bun run deploy:client
 ```
 
 **Required environment variables:**
+
 - `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
 - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
 
 **Optional environment variables:**
+
 - `WORKER_NAME` - Backend worker name (default: `rin-server`)
 - `PAGES_NAME` - Frontend pages name (default: `rin-client`)
 - `DB_NAME` - D1 database name (default: `rin`)
 - `R2_BUCKET_NAME` - R2 bucket name (auto-discovered if not set)
 
 The deployment script will automatically:
+
 - Create D1 database if it doesn't exist
 - Auto-discover R2 bucket for image storage
 - Deploy backend to Workers
@@ -114,10 +117,12 @@ The repository includes several automated workflows:
 - **`deploy.yml`** - Deploys to Cloudflare Pages and Workers
 
 **Required secrets (Repository Settings → Secrets and variables → Actions):**
+
 - `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token with Workers and Pages permissions
 - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
 
 **Optional configuration (Repository Settings → Secrets and variables → Variables):**
+
 - `WORKER_NAME`, `PAGES_NAME`, `DB_NAME` - Resource names
 - `NAME`, `DESCRIPTION`, `AVATAR` - Site configuration
 - `R2_BUCKET_NAME` - Specific R2 bucket to use
