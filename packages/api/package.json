@@ -1,6 +1,6 @@
 {
   "name": "@rin/api",
-  "version": "0.3.0",
+  "version": "0.3.0-rc.1",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
