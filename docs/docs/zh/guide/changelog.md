@@ -90,7 +90,6 @@ CACHE_STORAGE_MODE=<缓存存储模式：database 或 s3，默认 database>
 
 ### v0.2.0 迁移指南
 
-- 由于引入 SEO 优化导致需要在 GitHub 中配置 S3 存储的环境变量，因此需要额外在 GitHub 中配置以下环境变量（明文，添加到 Variables）：
 
 ```ini
 SEO_BASE_URL=<SEO 基础地址，用于 SEO 索引>

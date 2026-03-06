@@ -641,25 +641,6 @@ class RSSAPI {
   }
 }
 
-/**
- * SEO API methods
- */
-class SEOAPI {
-  constructor(private baseUrl: string) {}
-
-  // GET /robots.txt
-  async getRobots(): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/robots.txt`);
-    return response.text();
-  }
-
-  // GET /sitemap.xml
-  async getSitemap(): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/sitemap.xml`);
-    return response.text();
-  }
-}
-
 // ============================================================================
 // Main API Client Class
 // ============================================================================
@@ -679,7 +660,6 @@ export class ApiClient {
   auth: AuthAPI;
   wp: WordPressAPI;
   rss: RSSAPI;
-  seo: SEOAPI;
 
   constructor(baseUrl: string) {
     this.http = new HttpClient(baseUrl);
@@ -696,7 +676,6 @@ export class ApiClient {
     this.auth = new AuthAPI(this.http);
     this.wp = new WordPressAPI(this.http);
     this.rss = new RSSAPI(baseUrl);
-    this.seo = new SEOAPI(baseUrl);
   }
 }
 

@@ -360,9 +360,6 @@ export const API_PATHS = {
 
   // RSS
   RSS_GET: (name: string) => `/${encodeURIComponent(name)}`,
-
-  // SEO
-  SEO_GET: (path: string) => `/seo${path}`,
 } as const;
 
 export type APIEndpoint = typeof API_PATHS;

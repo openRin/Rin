@@ -27,7 +27,6 @@ docs/
 │   │   ├── guide/       # 指南
 │   │   │   ├── index.md # 简介
 │   │   │   ├── deploy.mdx # 部署指南
-│   │   │   ├── seo.md   # SEO 配置
 │   │   │   ├── rss.md   # RSS 配置
 │   │   │   ├── changelog.md # 更新日志
 │   │   │   └── contribution.md # 贡献指南
@@ -47,7 +46,6 @@ docs/
 本文档与主仓库中的文档保持同步：
 - `docs/docs/zh/guide/deploy.mdx` ↔ `DEPLOY.md`
 - `docs/docs/zh/env.md` ↔ `ENV.md`
-- `docs/docs/zh/guide/seo.md` ↔ `SEO.md`
 - `docs/docs/zh/guide/rss.md` ↔ `RSS.md`
 - `docs/docs/zh/guide/contribution.md` ↔ `CONTRIBUTING_zh_CN.md`
 
