@@ -47,7 +47,7 @@ export const DEFAULT_AI_CONFIG: AIConfig = {
   provider: "openai",
   model: "gpt-4o-mini",
   api_key: "",
-  api_url: "https://api.openai.com/v1/chat/completions",
+  api_url: "https://api.openai.com/v1",
 };
 
 export class ConfigWrapper {
