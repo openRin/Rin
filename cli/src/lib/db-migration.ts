@@ -3,6 +3,15 @@ import { getWranglerEnv } from "./wrangler";
 const bunExec = process.execPath;
 const wranglerCwd = "server";
 
+export function getMigrationFileVersion(fileName: string) {
+  const match = /^(\d+)(?:\D.*)?\.sql$/i.exec(fileName.trim());
+  if (!match) {
+    return null;
+  }
+
+  return Number.parseInt(match[1] || "", 10);
+}
+
 async function runWranglerJson(args: string[]) {
   const proc = Bun.spawn([bunExec, "x", "wrangler", ...args], {
     cwd: wranglerCwd,

@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
-import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from "../lib/db-migration";
+import { fixTopField, getMigrationFileVersion, getMigrationVersion, isInfoExist, updateMigrationVersion } from "../lib/db-migration";
 
 export async function runLocalDbMigrate(dbName = "rin") {
   const sqlDir = path.join(process.cwd(), "server", "sql");
@@ -13,8 +13,13 @@ export async function runLocalDbMigrate(dbName = "rin") {
     .readdirSync(sqlDir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
     .map((entry) => entry.name)
-    .filter((file) => parseInt(file.split("-")[0]) > migrationVersion)
-    .sort();
+    .filter((file) => {
+      const version = getMigrationFileVersion(file);
+      return version !== null && version > migrationVersion;
+    })
+    .sort((left, right) => {
+      return (getMigrationFileVersion(left) || 0) - (getMigrationFileVersion(right) || 0);
+    });
 
   console.log("migration_version:", migrationVersion, "Migration SQL List: ", sqlFiles);
 
@@ -32,8 +37,8 @@ export async function runLocalDbMigrate(dbName = "rin") {
   if (sqlFiles.length === 0) {
     console.log("No migration needed.");
   } else {
-    const lastVersion = parseInt(sqlFiles[sqlFiles.length - 1].split("-")[0]);
-    if (lastVersion > migrationVersion) {
+    const lastVersion = getMigrationFileVersion(sqlFiles[sqlFiles.length - 1] || "");
+    if (lastVersion !== null && lastVersion > migrationVersion) {
       await updateMigrationVersion(type, dbName, lastVersion);
     }
   }

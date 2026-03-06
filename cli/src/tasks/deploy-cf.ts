@@ -1,7 +1,7 @@
 import { $ } from "bun";
 import { readdir } from "node:fs/promises";
 import stripIndent from "strip-indent";
-import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from "../lib/db-migration";
+import { fixTopField, getMigrationFileVersion, getMigrationVersion, isInfoExist, updateMigrationVersion } from "../lib/db-migration";
 const bunExec = process.execPath;
 
 function env(name: string, defaultValue?: string, required = false) {
@@ -185,15 +185,23 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   const files = await readdir("./server/sql", { recursive: false });
   const sqlFiles = files
     .filter((name) => name.endsWith(".sql"))
-    .filter((name) => parseInt(name.split("-")[0]) > migrationVersion)
-    .sort();
+    .filter((name) => {
+      const version = getMigrationFileVersion(name);
+      return version !== null && version > migrationVersion;
+    })
+    .sort((left, right) => {
+      return (getMigrationFileVersion(left) || 0) - (getMigrationFileVersion(right) || 0);
+    });
 
   for (const file of sqlFiles) {
     await $`${bunExec} x wrangler d1 execute ${dbName} --remote --file ./server/sql/${file} -y`;
     console.log(`Migrated ${file}`);
   }
   if (sqlFiles.length > 0) {
-    await updateMigrationVersion("remote", dbName, parseInt(sqlFiles[sqlFiles.length - 1].split("-")[0]));
+    const lastVersion = getMigrationFileVersion(sqlFiles[sqlFiles.length - 1] || "");
+    if (lastVersion !== null) {
+      await updateMigrationVersion("remote", dbName, lastVersion);
+    }
   }
   await fixTopField("remote", dbName, infoExists);
 
