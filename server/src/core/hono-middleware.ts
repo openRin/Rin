@@ -139,14 +139,6 @@ export const authMiddleware = createMiddleware<{
     await next();
 });
 
-// Timing middleware
-export const timingMiddleware = createMiddleware(async (c, next) => {
-    const start = Date.now();
-    await next();
-    const duration = Date.now() - start;
-    c.header('Server-Timing', `total;dur=${duration}`);
-});
-
 // Helper to set JWT cookie
 export function setJWTCookie(c: AppContext, token: string) {
     setCookie(c, 'token', token, {

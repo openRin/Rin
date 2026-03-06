@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { Database } from 'bun:sqlite';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
+import { timing } from 'hono/timing';
 import { eq } from 'drizzle-orm';
 import * as schema from '../../src/db/schema';
 import type { Variables, JWTUtils, OAuth2Utils, CacheImpl } from '../../src/core/hono-types';
@@ -275,6 +276,7 @@ export async function setupTestApp(
     const env = createMockEnv(envOverrides);
 
     const app = new Hono<{ Bindings: Env; Variables: Variables }>();
+    app.use('*', timing());
 
     // Mock middleware to inject dependencies and handle auth
     app.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {

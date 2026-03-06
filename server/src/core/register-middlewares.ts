@@ -1,5 +1,6 @@
 import { cors } from "hono/cors";
-import { authMiddleware, initContainerMiddleware, timingMiddleware } from "./hono-middleware";
+import { timing } from "hono/timing";
+import { authMiddleware, initContainerMiddleware } from "./hono-middleware";
 import type { RinApp } from "./app-types";
 
 export function registerMiddlewares(app: RinApp) {
@@ -14,7 +15,7 @@ export function registerMiddlewares(app: RinApp) {
     }),
   );
 
-  app.use("*", timingMiddleware);
+  app.use("*", timing());
   app.use("*", initContainerMiddleware);
   app.use("*", authMiddleware);
 }

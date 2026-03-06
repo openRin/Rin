@@ -601,6 +601,8 @@ describe("ConfigService", () => {
             expect(requests[0].url).toContain("message=hello webhook");
             expect(requests[0].init?.method).toBe("GET");
             expect(requests[0].init?.body).toBeUndefined();
+            expect(res.headers.get("Server-Timing")).toContain("webhook_send");
+            expect(res.headers.get("Server-Timing")).toContain("total");
         });
 
         it("should return a readable error when webhook settings are invalid", async () => {

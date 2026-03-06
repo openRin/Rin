@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { wrapTime } from "hono/timing";
 import type { AppContext } from "../core/hono-types";
 import { getAIConfigForFrontend, setAIConfig, getAIConfig } from "../utils/db-config";
 import { testAIModel } from "../utils/ai";
@@ -35,10 +36,10 @@ export function ConfigService(): Hono {
 
         const db = c.get('db');
         const env = c.get('env');
-        const body = await c.req.json();
+        const body = await wrapTime(c, 'request_body', c.req.json(), 'Read request body');
 
         // Get current AI config from database
-        const config = await getAIConfig(db);
+        const config = await wrapTime(c, 'ai_config', getAIConfig(db), 'Load AI config');
 
         // Build test config with overrides
         const testConfig = {
@@ -52,7 +53,7 @@ export function ConfigService(): Hono {
         const testPrompt = body.testPrompt || "Hello! This is a test message. Please respond with a simple greeting.";
 
         // Use unified test function
-        const result = await testAIModel(env, testConfig, testPrompt);
+        const result = await wrapTime(c, 'ai_test', testAIModel(env, testConfig, testPrompt), 'Run AI test');
         return c.json(result);
     });
 
@@ -65,7 +66,7 @@ export function ConfigService(): Hono {
 
         const env = c.get('env');
         const serverConfig = c.get('serverConfig');
-        const body = await c.req.json() as {
+        const body = await wrapTime(c, 'request_body', c.req.json(), 'Read request body') as {
             webhook_url?: string;
             "webhook.method"?: string;
             "webhook.content_type"?: string;
@@ -74,11 +75,23 @@ export function ConfigService(): Hono {
             test_message?: string;
         };
 
-        const webhookUrl = body.webhook_url ?? await serverConfig.get(WEBHOOK_URL_KEY) ?? env.WEBHOOK_URL;
-        const webhookMethod = body["webhook.method"] ?? await serverConfig.get("webhook.method") as string | undefined;
-        const webhookContentType = body["webhook.content_type"] ?? await serverConfig.get("webhook.content_type") as string | undefined;
-        const webhookHeaders = body["webhook.headers"] ?? await serverConfig.get("webhook.headers") as string | undefined;
-        const webhookBodyTemplate = body["webhook.body_template"] ?? await serverConfig.get("webhook.body_template") as string | undefined;
+        const [storedWebhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate] = await wrapTime(
+            c,
+            'webhook_config',
+            Promise.all([
+                serverConfig.get(WEBHOOK_URL_KEY),
+                serverConfig.get("webhook.method"),
+                serverConfig.get("webhook.content_type"),
+                serverConfig.get("webhook.headers"),
+                serverConfig.get("webhook.body_template"),
+            ]),
+            'Load webhook config',
+        ) as Array<string | undefined>;
+        const webhookUrl = body.webhook_url ?? storedWebhookUrl ?? env.WEBHOOK_URL;
+        const resolvedWebhookMethod = body["webhook.method"] ?? webhookMethod;
+        const resolvedWebhookContentType = body["webhook.content_type"] ?? webhookContentType;
+        const resolvedWebhookHeaders = body["webhook.headers"] ?? webhookHeaders;
+        const resolvedWebhookBodyTemplate = body["webhook.body_template"] ?? webhookBodyTemplate;
         const frontendUrl = new URL(c.req.url).origin;
         const testMessage = body.test_message?.trim() || "This is a test webhook message from Rin settings.";
 
@@ -87,23 +100,28 @@ export function ConfigService(): Hono {
         }
 
         try {
-            const response = await notify(
-                webhookUrl,
-                {
-                    event: "webhook.test",
-                    message: testMessage,
-                    title: "Webhook Test",
-                    url: `${frontendUrl}/admin/settings`,
-                    username: "admin",
-                    content: testMessage,
-                    description: "Manual webhook test triggered from settings.",
-                },
-                {
-                    method: webhookMethod,
-                    contentType: webhookContentType,
-                    headers: webhookHeaders,
-                    bodyTemplate: webhookBodyTemplate,
-                },
+            const response = await wrapTime(
+                c,
+                'webhook_send',
+                notify(
+                    webhookUrl,
+                    {
+                        event: "webhook.test",
+                        message: testMessage,
+                        title: "Webhook Test",
+                        url: `${frontendUrl}/admin/settings`,
+                        username: "admin",
+                        content: testMessage,
+                        description: "Manual webhook test triggered from settings.",
+                    },
+                    {
+                        method: resolvedWebhookMethod,
+                        contentType: resolvedWebhookContentType,
+                        headers: resolvedWebhookHeaders,
+                        bodyTemplate: resolvedWebhookBodyTemplate,
+                    },
+                ),
+                'Send webhook test',
             );
 
             if (!response) {
@@ -139,7 +157,12 @@ export function ConfigService(): Hono {
         const clientConfig = c.get('clientConfig');
         const env = c.get('env');
 
-        return c.json(await buildCombinedConfigResponse(db, clientConfig, serverConfig, env));
+        return c.json(await wrapTime(
+            c,
+            'config_response',
+            buildCombinedConfigResponse(db, clientConfig, serverConfig, env),
+            'Build config response',
+        ));
     });
 
     // GET /config/health
@@ -155,7 +178,12 @@ export function ConfigService(): Hono {
         const clientConfig = c.get('clientConfig');
         const env = c.get('env');
 
-        return c.json(await buildHealthCheckResponse(db, clientConfig, serverConfig, env));
+        return c.json(await wrapTime(
+            c,
+            'health_check',
+            buildHealthCheckResponse(db, clientConfig, serverConfig, env),
+            'Build health check',
+        ));
     });
 
     app.get('/queue-status', async (c: AppContext) => {
@@ -168,7 +196,7 @@ export function ConfigService(): Hono {
         const db = c.get('db');
         const env = c.get('env');
 
-        return c.json(await buildQueueStatusResponse(db, env));
+        return c.json(await wrapTime(c, 'queue_status', buildQueueStatusResponse(db, env), 'Build queue status'));
     });
 
     app.get('/compat-tasks', async (c: AppContext) => {
@@ -178,7 +206,7 @@ export function ConfigService(): Hono {
             return c.text('Unauthorized', 401);
         }
 
-        return c.json(await buildCompatTasksResponse(c.get('db'), c.get('env')));
+        return c.json(await wrapTime(c, 'compat_tasks', buildCompatTasksResponse(c.get('db'), c.get('env')), 'Build compatibility tasks'));
     });
 
     app.post('/compat-tasks/ai-summary', async (c: AppContext) => {
@@ -189,7 +217,12 @@ export function ConfigService(): Hono {
         }
 
         try {
-            return c.json(await runCompatAISummaryBackfill(c.get('db'), c.get('cache'), c.get('env')));
+            return c.json(await wrapTime(
+                c,
+                'compat_ai_summary',
+                runCompatAISummaryBackfill(c.get('db'), c.get('cache'), c.get('env')),
+                'Queue compatibility AI summaries',
+            ));
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             return c.text(message, 400);
@@ -203,7 +236,7 @@ export function ConfigService(): Hono {
             return c.text('Unauthorized', 401);
         }
 
-        return c.json(await listBlurhashCompatCandidates(c.get('db')));
+        return c.json(await wrapTime(c, 'compat_blurhash_list', listBlurhashCompatCandidates(c.get('db')), 'List blurhash candidates'));
     });
 
     app.post('/compat-tasks/blurhash/:id', async (c: AppContext) => {
@@ -218,13 +251,18 @@ export function ConfigService(): Hono {
             return c.text('Invalid feed id', 400);
         }
 
-        const body = await c.req.json() as { content?: string };
+        const body = await wrapTime(c, 'request_body', c.req.json(), 'Read request body') as { content?: string };
         if (!body.content) {
             return c.text('Content is required', 400);
         }
 
         try {
-            return c.json(await applyBlurhashCompatUpdate(c.get('db'), c.get('cache'), id, body.content));
+            return c.json(await wrapTime(
+                c,
+                'compat_blurhash_apply',
+                applyBlurhashCompatUpdate(c.get('db'), c.get('cache'), id, body.content),
+                'Apply blurhash compatibility update',
+            ));
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             const status = message === 'Feed not found' ? 404 : 400;
@@ -245,7 +283,12 @@ export function ConfigService(): Hono {
         }
 
         try {
-            await retryQueueStatusTask(c.get('db'), c.get('cache'), c.get('env'), id);
+            await wrapTime(
+                c,
+                'queue_retry',
+                retryQueueStatusTask(c.get('db'), c.get('cache'), c.get('env'), id),
+                'Retry queue task',
+            );
             return c.json({ success: true });
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -267,7 +310,7 @@ export function ConfigService(): Hono {
         }
 
         try {
-            await deleteQueueStatusTask(c.get('db'), c.get('cache'), id);
+            await wrapTime(c, 'queue_delete', deleteQueueStatusTask(c.get('db'), c.get('cache'), id), 'Delete queue task');
             return c.json({ success: true });
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
