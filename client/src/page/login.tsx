@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { ButtonWithLoading } from "../components/button";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
-import { client, oauth_url } from "../main";
+import { client, oauth_url } from "../app/runtime";
 import { setAuthToken } from "../utils/auth";
 
 export function LoginPage() {

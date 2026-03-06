@@ -3,6 +3,12 @@
     "notfound": "Set the article alias to `about` to create an about page",
     "title": "About"
   },
+  "admin": {
+    "back_to_site": "Back to site",
+    "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
+    "title": "Admin",
+    "writing_description": "Write, edit, and publish content from the private management workspace."
+  },
   "ai_summary": {
     "title": "AI Summary"
   },
@@ -155,6 +161,7 @@
     "title": "Publish"
   },
   "reload": "Retry",
+  "reset": "Reset",
   "save": "Save",
   "saving": "Saving",
   "settings": {

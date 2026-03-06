@@ -1,29 +1,12 @@
 import { eq } from "drizzle-orm";
+import type { AIConfig } from "@rin/api";
+import { AI_CONFIG_PREFIX, DEFAULT_AI_CONFIG } from "@rin/config";
 import { info } from "../db/schema";
 
 /**
  * Database-backed configuration storage for sensitive data like API keys
  * This stores configurations in the D1 database instead of S3
  */
-
-// Prefix for AI summary related configurations
-const AI_CONFIG_PREFIX = "ai_summary.";
-
-export interface AIConfig {
-    enabled: boolean;
-    provider: string;
-    model: string;
-    api_key: string;
-    api_url: string;
-}
-
-const defaultAIConfig: AIConfig = {
-    enabled: false,
-    provider: "openai",
-    model: "gpt-4o-mini",
-    api_key: "",
-    api_url: "https://api.openai.com/v1/chat/completions",
-};
 
 /**
  * Get a configuration value from the database
@@ -50,7 +33,7 @@ export async function setDBConfig(db: any, key: string, value: string): Promise<
  * Get AI configuration from database
  */
 export async function getAIConfig(db: any): Promise<AIConfig> {
-    const config: AIConfig = { ...defaultAIConfig };
+    const config: AIConfig = { ...DEFAULT_AI_CONFIG };
 
     const enabled = await getDBConfig(db, AI_CONFIG_PREFIX + "enabled");
     if (enabled !== null) config.enabled = enabled === "true";

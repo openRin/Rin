@@ -3,9 +3,10 @@ import { editor } from 'monaco-editor';
 import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Loading from 'react-loading';
+import { FlatInset, FlatTabButton } from "@rin/ui";
 import { useColorMode } from "../utils/darkModeUtils";
 import { Markdown } from "./markdown";
-import { client } from "../main";
+import { client } from "../app/runtime";
 
 
 interface MarkdownEditorProps {
@@ -87,7 +88,11 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     };
     
     return (
-      <button onClick={() => uploadRef.current?.click()}>
+      <button
+        type="button"
+        onClick={() => uploadRef.current?.click()}
+        className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-w px-3 py-2 text-sm t-primary transition-colors hover:border-black/20 dark:border-white/10 dark:hover:border-white/20"
+      >
         <input
           ref={uploadRef}
           onChange={upChange}
@@ -96,6 +101,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           accept="image/gif,image/jpeg,image/jpg,image/png"
         />
         <i className="ri-image-add-line" />
+        <span>Image</span>
       </button>
     );
   }
@@ -145,26 +151,24 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="flex flex-col mx-4 my-2 md:mx-0 md:my-0 gap-2">
-      <div className="flex flex-row space-x-2">
-        <button className={`${preview === 'edit' ? "text-theme" : ""}`} onClick={() => setPreview('edit')}> {t("edit")} </button>
-        <button className={`${preview === 'preview' ? "text-theme" : ""}`} onClick={() => setPreview('preview')}> {t("preview")} </button>
-        <button className={`${preview === 'comparison' ? "text-theme" : ""}`} onClick={() => setPreview('comparison')}> {t("comparison")} </button>
+    <div className="mx-4 my-2 flex flex-col gap-3 md:mx-0 md:my-0">
+      <FlatInset className="flex flex-wrap items-center gap-2 p-2">
+        <FlatTabButton active={preview === 'edit'} onClick={() => setPreview('edit')}> {t("edit")} </FlatTabButton>
+        <FlatTabButton active={preview === 'preview'} onClick={() => setPreview('preview')}> {t("preview")} </FlatTabButton>
+        <FlatTabButton active={preview === 'comparison'} onClick={() => setPreview('comparison')}> {t("comparison")} </FlatTabButton>
         <div className="flex-grow" />
+        <UploadImageButton />
         {uploading &&
-          <div className="flex flex-row space-x-2 items-center">
+          <div className="flex flex-row items-center space-x-2">
             <Loading type="spin" color="#FC466B" height={16} width={16} />
             <span className="text-sm text-neutral-500">{t('uploading')}</span>
           </div>
         }
-      </div>
-      <div className={`grid grid-cols-1 ${preview === 'comparison' ? "sm:grid-cols-2" : ""}`}>
-        <div className={"flex flex-col " + (preview === 'preview' ? "hidden" : "")}>
-          <div className="flex flex-row justify-start mb-2">
-            <UploadImageButton />
-          </div>
+      </FlatInset>
+      <div className={`grid grid-cols-1 gap-4 ${preview === 'comparison' ? "lg:grid-cols-2" : ""}`}>
+        <div className={"flex min-w-0 flex-col " + (preview === 'preview' ? "hidden" : "")}>
           <div
-            className={"relative"}
+            className={"relative min-h-0 overflow-hidden rounded-2xl border border-black/10 bg-w dark:border-white/10"}
             onDrop={(e) => {
               e.preventDefault();
               const editor = editorRef.current;
@@ -216,7 +220,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           </div>
         </div>
         <div
-          className={"px-4 overflow-y-scroll " + (preview !== 'edit' ? "" : "hidden")}
+          className={"min-h-0 overflow-y-auto rounded-2xl border border-black/10 bg-w px-5 py-4 dark:border-white/10 " + (preview === 'edit' ? "hidden" : "")}
           style={{ height: height }}
         >
           <Markdown content={content ? content : placeholder} />

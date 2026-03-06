@@ -4,10 +4,10 @@
 
 ## Commit-msg 钩子
 
-我们在 `scripts/commit-msg.sh` 中有一个示例 commit-msg hook。请运行以下命令设置：
+我们在 `cli/templates/git-commit-msg.sh` 中有一个示例 commit-msg hook。请运行以下命令设置：
 
 ```sh
-ln -s ../../scripts/commit-msg.sh ./.git/hooks/commit-msg
+ln -s ../../cli/templates/git-commit-msg.sh ./.git/hooks/commit-msg
 ```
 
 Windows 下请直接将 `commit-msg.sh` 文件复制到 `.git/hooks/commit-msg`。

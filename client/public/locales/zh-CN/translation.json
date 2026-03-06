@@ -3,6 +3,12 @@
     "notfound": "将文章别名设置为 about 可以创建关于页面",
     "title": "关于"
   },
+  "admin": {
+    "back_to_site": "返回站点",
+    "settings_description": "在统一的后台空间中管理站点行为、集成配置和发布规则。",
+    "title": "后台管理",
+    "writing_description": "在独立的管理工作区中编写、编辑和发布内容。"
+  },
   "ai_summary": {
     "title": "AI 总结"
   },
@@ -155,6 +161,7 @@
     "title": "发布"
   },
   "reload": "重试",
+  "reset": "重置",
   "save": "保存",
   "saving": "保存中",
   "settings": {

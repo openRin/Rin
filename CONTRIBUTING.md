@@ -6,16 +6,16 @@ We are happy to accept your patches and contributions to this project. You just 
 
 # Commit-msg hooks
 
-We have a sample commit-msg hook in `scripts/git-commit-msg.sh`. Please run the following command to set it up:
+We have a sample commit-msg hook in `cli/templates/git-commit-msg.sh`. Please run the following command to set it up:
 
 ```sh
-ln -s ../../scripts/git-commit-msg.sh commit-msg
+ln -s ../../cli/templates/git-commit-msg.sh commit-msg
 ```
 
-On Windows, copy the `git-commit-msg.sh` file directly to `.git/hooks/commit-msg`.
+On Windows, copy the `git-commit-msg.sh` file directly from `cli/templates/` to `.git/hooks/commit-msg`.
 
 ```powershell
-cp .\scripts\git-commit-msg.sh .\.git\hooks\commit-msg
+cp .\cli\templates\git-commit-msg.sh .\.git\hooks\commit-msg
 ```
 
 This will run the following checks before each commit:
@@ -49,7 +49,7 @@ If you want to skip the hook, run `git commit` with the `--no-verify` option.
 6. Perform the database migration
    > [!TIP]  
    > If your database name (`database_name` in `wrangler.toml`) is not `rin`\
-   > Please modify the `DB_NAME` field in `scripts/db-migrate-local.ts` before performing the migration
+   > Please modify `DB_NAME` in your local env or pass the CLI option before performing the migration
     ```sh
     bun run db:migrate
     ```

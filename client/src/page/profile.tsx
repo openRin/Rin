@@ -3,7 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { ButtonWithLoading } from "../components/button";
 import { Input } from "../components/input";
-import { client } from "../main";
+import { client } from "../app/runtime";
 import { ProfileContext } from "../state/profile";
 
 

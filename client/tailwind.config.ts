@@ -3,6 +3,7 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "../packages/ui/src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: ['selector','[data-color-mode="dark"]'],
   theme: {
@@ -28,4 +29,3 @@ export default {
     require('@tailwindcss/typography'),
   ],
 }
-

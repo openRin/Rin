@@ -37,13 +37,124 @@ bun run test:server       # Run server tests only
 
 ## Rin CLI
 
-The project uses a unified CLI tool located at `cli/bin/rin.ts`. All development, deployment, and database commands are available through this CLI.
+The project uses a unified CLI tool located at `cli/bin/rin.ts`. Command implementations live under `cli/src/{commands,tasks,lib}`.
 
 ### CLI Commands
 - `bun cli/bin/rin.ts dev [options]` - Start development server
 - `bun cli/bin/rin.ts deploy [options]` - Deploy to Cloudflare
 - `bun cli/bin/rin.ts db migrate` - Run database migrations
 - `bun cli/bin/rin.ts release <version>` - Create a new release
+
+## Architecture Status
+
+This repository is a product monorepo, not a framework monorepo.
+
+- `rin` should learn from `~/projects/rine` on module boundaries and type discipline.
+- `rin` should NOT blindly copy `rine`'s `contracts/core/renderer/adapters/apps` layout.
+- The current repository still centers around a concrete app: React frontend, Cloudflare Worker backend, shared API package, and local CLI tooling.
+- If a change improves directory symmetry but does not improve dependency boundaries, it is usually the wrong refactor.
+
+### Current Reality
+
+- `client/` is the web application, not a reusable package.
+- `server/` is the Worker application, not a generic framework core.
+- `packages/api/` is the only stable shared package today.
+- `packages/ui/` exists in the tree but is not yet a real workspace package; treat it as incomplete work until it has its own `package.json`, tsconfig, exports, and consumers.
+- `cli/` is an engineering tool for this repo, not a runtime dependency of the product.
+
+### Refactor Direction
+
+When restructuring, prefer this target shape over a direct clone of `rine`:
+
+```text
+rin/
+├── apps/
+│   ├── web/            # current client app
+│   └── worker/         # current server app
+├── packages/
+│   ├── api/            # shared request/response types and schemas
+│   ├── ui/             # real reusable UI primitives and markdown-related UI
+│   ├── web-core/       # app shell, providers, routing, layout composition
+│   ├── server-core/    # app assembly, middleware, route registration, env typing
+│   └── config/         # shared config keys, defaults, parsing, client-safe views
+├── tools/
+│   └── cli/            # current CLI moved only when boundaries are stable
+```
+
+This is a direction, not a mandate to rename everything immediately.
+
+## Refactor Guardrails
+
+All agents must follow these rules for architecture work:
+
+1. Do not start by renaming `client/` to `apps/web` or `server/` to `apps/worker`.
+2. Do not create empty framework-style packages just to mirror `rine`.
+3. Do not introduce a `renderer` package unless the app actually gains SSR or shared rendering orchestration.
+4. Do not split every server utility into `adapters/*` packages unless there are at least two credible implementations or an immediate runtime boundary that justifies it.
+5. Do not move code across the repo solely for aesthetics if imports, tests, and ownership get worse.
+
+### Required Refactor Order
+
+For any substantial restructure, agents should work in this order:
+
+1. Stabilize boundaries.
+   - Create real workspace packages before migrating code into them.
+   - Add missing package manifests, tsconfig files, and explicit exports.
+   - Introduce a root TypeScript base config before broad moves.
+2. Extract shared logic.
+   - Move truly shared UI into `packages/ui`.
+   - Move shared config models and parsing into a dedicated shared package.
+   - Keep app-specific composition in the app layer.
+3. Simplify application entrypoints.
+   - Split frontend bootstrap, providers, routes, and layout composition.
+   - Split backend app assembly, middleware registration, and runtime entry handling.
+4. Rename directories only after the dependency graph is cleaner.
+
+If a proposed refactor skips step 1 and jumps to step 4, it should be treated as suspect.
+
+## Layering Rules
+
+### Frontend
+
+- `client/src/App.tsx` should trend toward composition only: providers, routes, and top-level layout wiring.
+- Page initialization, session loading, config hydration, and permission gating should move into dedicated modules when touched.
+- Reusable presentational components belong in `packages/ui` only when they are app-agnostic.
+- Components that depend on `client` state containers, Wouter routing, or app-specific permissions should remain in the app layer.
+
+### Backend
+
+- `server/src/core` currently acts as app assembly, not framework core. Keep that distinction explicit.
+- Route registration, middleware wiring, error mapping, and runtime entrypoints should be separated when refactoring.
+- Business services stay close to the app until a stable abstraction clearly exists.
+- Shared contracts and config types should move out before shared behavior moves out.
+
+### Shared Packages
+
+- `packages/api` is for shared API contracts, schemas, validators, and transport-facing types.
+- Shared packages must not depend on `client/` or `server/` application modules.
+- Shared packages should expose explicit entrypoints and avoid deep relative imports from consumers.
+
+## Required Checks Before Structural Changes
+
+Before any non-trivial reorganization, agents must do all of the following:
+
+1. Read this `AGENTS.md`.
+2. Inspect the current package/workspace manifests.
+3. Search for all imports of the modules being moved.
+4. Verify whether the target package already has a real manifest and public entrypoint.
+5. Explain why the destination layer is better than the current one.
+
+If those checks are not done, the refactor is not ready.
+
+## Anti-Patterns
+
+Avoid these common mistakes:
+
+- Copying `rine` abstractions into `rin` without a product need.
+- Moving files into `packages/` while still importing app internals from them.
+- Creating `core` modules that actually contain product-specific assembly.
+- Mixing sensitive server-only configuration logic with client-safe config views.
+- Leaving half-migrated directories that look shared but are not buildable or imported anywhere.
 
 ## Testing
 
@@ -138,7 +249,7 @@ pref: performance improvements
 
 Setup the commit hook:
 ```bash
-ln -s ../../scripts/git-commit-msg.sh .git/hooks/commit-msg
+ln -s ../../cli/templates/git-commit-msg.sh .git/hooks/commit-msg
 ```
 
 ### Error Handling
@@ -169,7 +280,8 @@ ln -s ../../scripts/git-commit-msg.sh .git/hooks/commit-msg
 │   └── bin/
 │       └── rin.ts   # CLI entry point
 ├── docs/            # Rspress documentation
-└── scripts/         # Build and dev scripts
+├── cli/             # Rin CLI entrypoints, commands, tasks, templates
+└── scripts/         # Compatibility wrappers around CLI tasks
 ```
 
 ### Key Technologies

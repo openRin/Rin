@@ -51,16 +51,16 @@ See [Commit Convention](./commit-convention.md) for detailed guidelines.
 
 ```bash
 # Bump patch version (0.1.0 -> 0.1.1)
-bun scripts/release.ts patch
+bun cli/bin/rin.ts release patch
 
 # Bump minor version (0.1.0 -> 0.2.0)
-bun scripts/release.ts minor
+bun cli/bin/rin.ts release minor
 
 # Bump major version (0.1.0 -> 1.0.0)
-bun scripts/release.ts major
+bun cli/bin/rin.ts release major
 
 # Or set a specific version
-bun scripts/release.ts 1.2.3
+bun cli/bin/rin.ts release 1.2.3
 ```
 
 The script will:
@@ -90,7 +90,7 @@ git commit --amend --no-edit
 To preview changes without applying them:
 
 ```bash
-bun scripts/release.ts minor --dry-run
+bun cli/bin/rin.ts release minor --dry-run
 ```
 
 ### 5. Push the Release
@@ -201,7 +201,7 @@ git checkout -b fix/critical-bug v0.2.0
 git commit -m "fix(api): resolve critical security issue"
 
 # Run release script
-bun scripts/release.ts patch
+bun cli/bin/rin.ts release patch
 
 # Push (no need to merge to main for hotfixes)
 git push origin fix/critical-bug

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@rin/api": [
+        "packages/api/src/index.ts"
+      ],
+      "@rin/ui": [
+        "packages/ui/src/index.ts"
+      ],
+      "@rin/config": [
+        "packages/config/src/index.ts"
+      ]
+    }
+  }
+}

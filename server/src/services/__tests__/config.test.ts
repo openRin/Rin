@@ -259,5 +259,73 @@ describe("ConfigService", () => {
             // Should either succeed or fail gracefully (not 401)
             expect(res.status).not.toBe(401);
         });
+
+        it("should return a readable error when Workers AI binding is missing", async () => {
+            const res = await app.request("/test-ai", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    provider: "worker-ai",
+                    model: "llama-3-8b",
+                    testPrompt: "Hello",
+                }),
+            });
+
+            expect(res.status).toBe(200);
+
+            const data = await res.json() as {
+                success: boolean;
+                error?: string;
+                details?: string;
+            };
+            expect(data.success).toBe(false);
+            expect(data.error).toBe("Workers AI is not configured");
+        });
+
+        it("should extract plain text from OpenAI-compatible Workers AI responses", async () => {
+            env.AI = {
+                run: async () => ({
+                    id: "chatcmpl-test",
+                    object: "chat.completion",
+                    model: "@cf/zai-org/glm-4.7-flash",
+                    choices: [
+                        {
+                            index: 0,
+                            message: {
+                                role: "assistant",
+                                content: "Hello!",
+                                reasoning: "internal",
+                            },
+                            finish_reason: "stop",
+                        },
+                    ],
+                }),
+            } as any;
+
+            const res = await app.request("/test-ai", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    provider: "worker-ai",
+                    model: "glm-4.7-flash",
+                    testPrompt: "Hello",
+                }),
+            });
+
+            expect(res.status).toBe(200);
+
+            const data = await res.json() as {
+                success: boolean;
+                response?: string;
+            };
+            expect(data.success).toBe(true);
+            expect(data.response).toBe("Hello!");
+        });
     });
 });

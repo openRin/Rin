@@ -1,4 +1,5 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     // Enable latest features
     "lib": [
@@ -8,15 +9,9 @@
     "types": [
       "./worker-configuration.d.ts"
     ],
-    "target": "ESNext",
-    "module": "ESNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "allowJs": true,
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
     "noEmit": true,
     // Best practices
     "strict": true,

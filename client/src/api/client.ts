@@ -34,6 +34,11 @@ import type {
   LoginResponse,
 } from "@rin/api";
 
+export interface SettingsConfigResponse {
+  clientConfig: ConfigResponse;
+  serverConfig: ConfigResponse;
+}
+
 // Re-export for external use
 export type {
   ApiResponse,
@@ -362,9 +367,19 @@ class MomentsAPI {
 class ConfigAPI {
   constructor(private http: HttpClient) {}
 
+  // GET /api/config
+  async getAll(): Promise<ApiResponse<SettingsConfigResponse>> {
+    return this.http.get<SettingsConfigResponse>("/api/config");
+  }
+
   // GET /api/config/:type
   async get(type: ConfigType): Promise<ApiResponse<ConfigResponse>> {
     return this.http.get<ConfigResponse>(`/api/config/${type}`);
+  }
+
+  // POST /api/config
+  async updateAll(body: SettingsConfigResponse): Promise<ApiResponse<SettingsConfigResponse>> {
+    return this.http.post<SettingsConfigResponse>("/api/config", body);
   }
 
   // POST /api/config/:type
