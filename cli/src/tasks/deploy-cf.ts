@@ -180,6 +180,15 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
     max_batch_timeout = 5
   `)} >> wrangler.toml`.quiet();
 
+  if (r2BucketName) {
+    await $`echo ${stripIndent(`
+      [[r2_buckets]]
+      binding = "R2_BUCKET"
+      bucket_name = "${r2BucketName}"
+      preview_bucket_name = "${r2BucketName}"
+    `)} >> wrangler.toml`.quiet();
+  }
+
   const migrationVersion = await getMigrationVersion("remote", dbName);
   const infoExists = await isInfoExist("remote", dbName);
   const files = await readdir("./server/sql", { recursive: false });

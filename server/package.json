@@ -4,11 +4,11 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "build": "wrangler deploy --dry-run --outdir=dist",
-    "cf:deploy": "wrangler deploy",
-    "dev": "bun wrangler dev --port 11498",
-    "dev:cron": "bun wrangler dev --port 11498 --test-scheduled #see https://developers.cloudflare.com/workers/configuration/cron-triggers/#test-cron-triggers",
-    "cf-typegen": "wrangler types",
+    "build": "bun x wrangler deploy --dry-run --outdir=dist",
+    "cf:deploy": "bun x wrangler deploy",
+    "dev": "bun x wrangler dev --port 11498",
+    "dev:cron": "bun x wrangler dev --port 11498 --test-scheduled #see https://developers.cloudflare.com/workers/configuration/cron-triggers/#test-cron-triggers",
+    "cf-typegen": "bun x wrangler types",
     "db:gen": "bun drizzle-kit generate",
     "preview": "wrangler pages dev dist --compatibility-date=2023-12-20",
     "migrate:visits": "bun run scripts/migrate-visits.ts",
@@ -19,7 +19,6 @@
   "devDependencies": {
     "@types/bun": "^1.1.2",
     "drizzle-kit": "^0.21.2",
-    "wrangler": "^4.71.0",
     "@cloudflare/vitest-pool-workers": "^0.1.0",
     "typescript": "^5.0.4",
     "strip-indent": "^4.0.0"

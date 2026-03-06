@@ -32,6 +32,7 @@
     "release": "bun cli/bin/rin.ts release"
   },
   "devDependencies": {
-    "turbo": "^1.13.3"
+    "turbo": "^1.13.3",
+    "wrangler": "4.71.0"
   }
 }

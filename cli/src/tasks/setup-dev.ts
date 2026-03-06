@@ -16,17 +16,17 @@ export async function runSetupDev() {
   }
 
   const env = parseEnv(fs.readFileSync(envFile, "utf-8"));
-  const requiredVars = [
+  const baseRequiredVars = [
     "NAME",
     "AVATAR",
-    "S3_ENDPOINT",
-    "S3_BUCKET",
     "RIN_GITHUB_CLIENT_ID",
     "RIN_GITHUB_CLIENT_SECRET",
     "JWT_SECRET",
-    "S3_ACCESS_KEY_ID",
-    "S3_SECRET_ACCESS_KEY",
   ];
+  const storageRequiredVars = env.R2_BUCKET_NAME
+    ? ["S3_ACCESS_HOST"]
+    : ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"];
+  const requiredVars = [...baseRequiredVars, ...storageRequiredVars];
 
   const missingVars = requiredVars.filter((name) => !env[name]);
   if (missingVars.length > 0) {
@@ -78,6 +78,14 @@ queue = "${env.AI_SUMMARY_QUEUE_NAME || `${env.WORKER_NAME || "rin-server"}-ai-s
 queue = "${env.AI_SUMMARY_QUEUE_NAME || `${env.WORKER_NAME || "rin-server"}-ai-summary`}"
 max_batch_size = 1
 max_batch_timeout = 5
+${env.R2_BUCKET_NAME
+  ? `
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "${env.R2_BUCKET_NAME}"
+preview_bucket_name = "${env.R2_BUCKET_NAME}"`
+  : ""}
 `;
 
   fs.writeFileSync(path.join(rootDir, "wrangler.toml"), wranglerContent);
@@ -95,8 +103,9 @@ RSS_ENABLE=${env.RSS_ENABLE || "false"}
     `RIN_GITHUB_CLIENT_ID=${env.RIN_GITHUB_CLIENT_ID}
 RIN_GITHUB_CLIENT_SECRET=${env.RIN_GITHUB_CLIENT_SECRET}
 JWT_SECRET=${env.JWT_SECRET}
-S3_ACCESS_KEY_ID=${env.S3_ACCESS_KEY_ID}
+${env.R2_BUCKET_NAME ? "" : `S3_ACCESS_KEY_ID=${env.S3_ACCESS_KEY_ID}
 S3_SECRET_ACCESS_KEY=${env.S3_SECRET_ACCESS_KEY}
+`}
 `,
   );
 

@@ -145,12 +145,15 @@ export async function buildHealthCheckResponse(
     );
   }
 
-  const requiredStorageKeys = [
-    ["S3_ENDPOINT", env.S3_ENDPOINT],
-    ["S3_BUCKET", env.S3_BUCKET],
-    ["S3_ACCESS_KEY_ID", env.S3_ACCESS_KEY_ID],
-    ["S3_SECRET_ACCESS_KEY", env.S3_SECRET_ACCESS_KEY],
-  ] as const;
+  const usesR2Binding = Boolean(env.R2_BUCKET);
+  const requiredStorageKeys = usesR2Binding
+    ? ([["S3_ACCESS_HOST", env.S3_ACCESS_HOST]] as const)
+    : ([
+        ["S3_ENDPOINT", env.S3_ENDPOINT],
+        ["S3_BUCKET", env.S3_BUCKET],
+        ["S3_ACCESS_KEY_ID", env.S3_ACCESS_KEY_ID],
+        ["S3_SECRET_ACCESS_KEY", env.S3_SECRET_ACCESS_KEY],
+      ] as const);
   const missingStorageKeys = requiredStorageKeys.filter(([, value]) => !value).map(([key]) => key);
   const hasAccessHost = Boolean(env.S3_ACCESS_HOST);
 
