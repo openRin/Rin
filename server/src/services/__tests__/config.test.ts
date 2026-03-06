@@ -240,7 +240,7 @@ describe("ConfigService", () => {
             });
 
             expect(res.status).toBe(200);
-            const data = await res.json() as { queued: number; skipped: number };
+            const data = await res.json() as { queued: number; skipped: number; forced: boolean };
             expect(data.queued).toBe(1);
             expect(data.skipped).toBe(2);
             expect(data.forced).toBe(false);
