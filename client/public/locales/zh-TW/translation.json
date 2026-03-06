@@ -279,19 +279,41 @@
     "title": "網站底部內容"
   },
   "webhook": {
+    "title": "Webhook",
     "url": {
       "title": "Webhook 位址",
-      "desc": "設定評論與友鏈通知使用的 webhook 位址"
+      "desc": "設定評論與友鏈通知使用的 webhook 位址。這裡同樣支援模板變數，適合在 GET 場景拼接 query string。"
+    },
+    "method": {
+      "title": "Webhook Method",
+      "desc": "設定 webhook 請求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
     },
     "content_type": {
       "title": "Webhook Content-Type",
       "desc": "設定 webhook 請求送出時使用的 Content-Type，例如 application/json 或 text/plain"
     },
+    "headers": {
+      "title": "Webhook 請求標頭",
+      "desc": "以 JSON 模板自訂 webhook 請求標頭。可用變數與請求體模板一致。",
+      "label": "Webhook 請求標頭 JSON"
+    },
     "body_template": {
       "title": "Webhook 請求體模板",
       "desc": "自訂 webhook 送出的請求體。可用變數：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
       "label": "Webhook 請求體模板"
+    },
+    "test": {
+      "title": "發送測試 Webhook",
+      "desc": "使用目前頁面中的 webhook 設定發送一次測試請求。尚未儲存的修改也會直接生效。",
+      "button": "發送測試",
+      "sending": "發送中...",
+      "placeholder": "可選的測試訊息內容。留空時會使用預設測試負載。",
+      "success": "Webhook 測試發送成功",
+      "failed": "Webhook 測試發送失敗"
     }
+  },
+  "maintenance": {
+    "title": "維護"
   },
     "friend": {
       "apply": {

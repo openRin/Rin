@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
 import { getAIConfigForFrontend, setAIConfig, getAIConfig } from "../utils/db-config";
 import { testAIModel } from "../utils/ai";
+import { WEBHOOK_URL_KEY } from "../utils/config";
+import { notify } from "../utils/webhook";
 import {
     buildCombinedConfigResponse,
     buildClientConfigResponse,
@@ -52,6 +54,76 @@ export function ConfigService(): Hono {
         // Use unified test function
         const result = await testAIModel(env, testConfig, testPrompt);
         return c.json(result);
+    });
+
+    app.post('/test-webhook', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.json({ error: 'Unauthorized' }, 401);
+        }
+
+        const env = c.get('env');
+        const serverConfig = c.get('serverConfig');
+        const body = await c.req.json() as {
+            webhook_url?: string;
+            "webhook.method"?: string;
+            "webhook.content_type"?: string;
+            "webhook.headers"?: string;
+            "webhook.body_template"?: string;
+            test_message?: string;
+        };
+
+        const webhookUrl = body.webhook_url ?? await serverConfig.get(WEBHOOK_URL_KEY) ?? env.WEBHOOK_URL;
+        const webhookMethod = body["webhook.method"] ?? await serverConfig.get("webhook.method") as string | undefined;
+        const webhookContentType = body["webhook.content_type"] ?? await serverConfig.get("webhook.content_type") as string | undefined;
+        const webhookHeaders = body["webhook.headers"] ?? await serverConfig.get("webhook.headers") as string | undefined;
+        const webhookBodyTemplate = body["webhook.body_template"] ?? await serverConfig.get("webhook.body_template") as string | undefined;
+        const frontendUrl = new URL(c.req.url).origin;
+        const testMessage = body.test_message?.trim() || "This is a test webhook message from Rin settings.";
+
+        if (!webhookUrl?.trim()) {
+            return c.json({ success: false, error: "Webhook URL is required" }, 400);
+        }
+
+        try {
+            const response = await notify(
+                webhookUrl,
+                {
+                    event: "webhook.test",
+                    message: testMessage,
+                    title: "Webhook Test",
+                    url: `${frontendUrl}/admin/settings`,
+                    username: "admin",
+                    content: testMessage,
+                    description: "Manual webhook test triggered from settings.",
+                },
+                {
+                    method: webhookMethod,
+                    contentType: webhookContentType,
+                    headers: webhookHeaders,
+                    bodyTemplate: webhookBodyTemplate,
+                },
+            );
+
+            if (!response) {
+                return c.json({ success: false, error: "Webhook request was not sent" }, 400);
+            }
+
+            if (!response.ok) {
+                const details = await response.text();
+                return c.json({
+                    success: false,
+                    error: `Webhook test failed with status ${response.status}`,
+                    details,
+                }, 400);
+            }
+
+            return c.json({ success: true });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return c.json({ success: false, error: message }, 400);
+        }
     });
 
     // GET /config

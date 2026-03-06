@@ -279,19 +279,41 @@
     "title": "站点底部内容"
   },
   "webhook": {
+    "title": "Webhook",
     "url": {
       "title": "Webhook 地址",
-      "desc": "设置评论和友链通知使用的 webhook 地址"
+      "desc": "设置评论和友链通知使用的 webhook 地址。这里同样支持模板变量，适合 GET 场景拼接 query string。"
+    },
+    "method": {
+      "title": "Webhook Method",
+      "desc": "设置 webhook 请求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
     },
     "content_type": {
       "title": "Webhook Content-Type",
       "desc": "设置 webhook 请求发送时使用的 Content-Type，例如 application/json 或 text/plain"
     },
+    "headers": {
+      "title": "Webhook 请求头",
+      "desc": "以 JSON 模板自定义 webhook 请求头。可用变量与请求体模板一致。",
+      "label": "Webhook 请求头 JSON"
+    },
     "body_template": {
       "title": "Webhook 请求体模板",
       "desc": "自定义 webhook 发出的请求体。可用变量：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
       "label": "Webhook 请求体模板"
+    },
+    "test": {
+      "title": "发送测试 Webhook",
+      "desc": "使用当前页面里的 webhook 设置发送一次测试请求。未保存的修改也会直接生效。",
+      "button": "发送测试",
+      "sending": "发送中...",
+      "placeholder": "可选的测试消息内容。留空时会使用默认测试负载。",
+      "success": "Webhook 测试发送成功",
+      "failed": "Webhook 测试发送失败"
     }
+  },
+  "maintenance": {
+    "title": "维护"
   },
     "friend": {
       "apply": {

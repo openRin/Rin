@@ -63,8 +63,28 @@ export function CommentService(): Hono {
         });
 
         const webhookUrl = await serverConfig.get(WEBHOOK_URL_KEY) || env.WEBHOOK_URL;
+        const webhookMethod = await serverConfig.get("webhook.method") as string | undefined;
+        const webhookContentType = await serverConfig.get("webhook.content_type") as string | undefined;
+        const webhookHeaders = await serverConfig.get("webhook.headers") as string | undefined;
+        const webhookBodyTemplate = await serverConfig.get("webhook.body_template") as string | undefined;
         const frontendUrl = new URL(c.req.url).origin;
-        await notify(webhookUrl, `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
+        await notify(
+            webhookUrl,
+            {
+                event: "comment.created",
+                message: `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`,
+                title: exist.title || "",
+                url: `${frontendUrl}/feed/${feedId}`,
+                username: user.username,
+                content,
+            },
+            {
+                method: webhookMethod,
+                contentType: webhookContentType,
+                headers: webhookHeaders,
+                bodyTemplate: webhookBodyTemplate,
+            },
+        );
         return c.text('OK');
     });
 

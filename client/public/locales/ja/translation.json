@@ -270,19 +270,41 @@
     "title": "フッター"
   },
   "webhook": {
+    "title": "Webhook",
     "url": {
       "title": "Webhook URL",
-      "desc": "コメント通知と友達リンク通知に使う webhook URL を設定します"
+      "desc": "コメント通知と友達リンク通知に使う webhook URL を設定します。ここでもテンプレート変数が使えるので、GET の query string にも利用できます。"
+    },
+    "method": {
+      "title": "Webhook Method",
+      "desc": "webhook リクエストで使う HTTP Method を設定します。GET、POST、PUT、PATCH などに対応します。"
     },
     "content_type": {
       "title": "Webhook Content-Type",
       "desc": "Webhook リクエスト送信時の Content-Type を設定します。例: application/json, text/plain"
     },
+    "headers": {
+      "title": "Webhook Headers",
+      "desc": "JSON テンプレートで webhook ヘッダーをカスタマイズします。使える変数は本文テンプレートと同じです。",
+      "label": "Webhook headers JSON"
+    },
     "body_template": {
       "title": "Webhook ボディテンプレート",
       "desc": "送信する webhook リクエスト本文をカスタマイズします。使用可能変数: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}。",
       "label": "Webhook ボディテンプレート"
+    },
+    "test": {
+      "title": "テスト Webhook を送信",
+      "desc": "このページ上の現在の webhook 設定でテストリクエストを送信します。未保存の値もそのまま使われます。",
+      "button": "テスト送信",
+      "sending": "送信中...",
+      "placeholder": "任意のテストメッセージ。空の場合は既定のテスト payload を使います。",
+      "success": "Webhook テストの送信に成功しました",
+      "failed": "Webhook テストの送信に失敗しました"
     }
+  },
+  "maintenance": {
+    "title": "メンテナンス"
   },
     "friend": {
       "apply": {

@@ -279,19 +279,41 @@
     "title": "Footer"
   },
   "webhook": {
+    "title": "Webhook",
     "url": {
       "title": "Webhook URL",
-      "desc": "Set the webhook endpoint used for comment and friend-link notifications"
+      "desc": "Set the webhook endpoint used for comment and friend-link notifications. Template variables are supported here too, which is useful for GET query strings."
+    },
+    "method": {
+      "title": "Webhook Method",
+      "desc": "Set the HTTP method used for webhook requests, such as POST, PUT, or PATCH"
     },
     "content_type": {
       "title": "Webhook Content-Type",
       "desc": "Set the Content-Type header sent with webhook requests, for example application/json or text/plain"
     },
+    "headers": {
+      "title": "Webhook Headers",
+      "desc": "Customize webhook headers as a JSON object template. Available variables are the same as the body template.",
+      "label": "Webhook headers JSON"
+    },
     "body_template": {
       "title": "Webhook Body Template",
       "desc": "Customize the outgoing webhook payload. Available variables: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}.",
       "label": "Webhook body template"
+    },
+    "test": {
+      "title": "Send Test Webhook",
+      "desc": "Send a test request with the current webhook settings. Unsaved values in this page are used directly.",
+      "button": "Send Test",
+      "sending": "Sending...",
+      "placeholder": "Optional test message. Leave empty to use the default test payload.",
+      "success": "Webhook test sent successfully",
+      "failed": "Webhook test failed"
     }
+  },
+  "maintenance": {
+    "title": "Maintenance"
   },
     "friend": {
       "apply": {

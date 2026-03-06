@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from "bun:test";
+import { describe, expect, it, beforeEach, afterEach, mock } from "bun:test";
 import { Hono } from "hono";
 import { ConfigService } from "../config";
 import { setupTestApp, cleanupTestDB } from "../../../tests/fixtures";
@@ -10,6 +10,7 @@ describe("ConfigService", () => {
     let sqlite: Database;
     let env: Env;
     let app: Hono<{ Bindings: Env; Variables: Variables }>;
+    const originalFetch = globalThis.fetch;
 
     beforeEach(async () => {
         const ctx = await setupTestApp(ConfigService);
@@ -23,6 +24,7 @@ describe("ConfigService", () => {
     });
 
     afterEach(() => {
+        globalThis.fetch = originalFetch;
         cleanupTestDB(sqlite);
     });
 
@@ -553,6 +555,71 @@ describe("ConfigService", () => {
             };
             expect(data.success).toBe(true);
             expect(data.response).toBe("Hello!");
+        });
+    });
+
+    describe("POST /test-webhook - Test webhook configuration", () => {
+        it("should require authentication to test webhook", async () => {
+            const res = await app.request("/test-webhook", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    webhook_url: "https://example.com/webhook",
+                }),
+            });
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should send a webhook test with current overrides", async () => {
+            const requests: Array<{ url: string; init?: RequestInit }> = [];
+            globalThis.fetch = mock(async (url: string | URL | Request, init?: RequestInit) => {
+                requests.push({ url: String(url), init });
+                return new Response("ok", { status: 200 });
+            }) as typeof fetch;
+
+            const res = await app.request("/test-webhook", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    webhook_url: "https://example.com/webhook?event={{event}}&message={{message}}",
+                    "webhook.method": "GET",
+                    test_message: "hello webhook",
+                }),
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as { success: boolean };
+            expect(data.success).toBe(true);
+            expect(requests).toHaveLength(1);
+            expect(requests[0].url).toContain("event=webhook.test");
+            expect(requests[0].url).toContain("message=hello webhook");
+            expect(requests[0].init?.method).toBe("GET");
+            expect(requests[0].init?.body).toBeUndefined();
+        });
+
+        it("should return a readable error when webhook settings are invalid", async () => {
+            const res = await app.request("/test-webhook", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    webhook_url: "https://example.com/webhook",
+                    "webhook.headers": "{invalid",
+                }),
+            });
+
+            expect(res.status).toBe(400);
+            const data = await res.json() as { success: boolean; error?: string };
+            expect(data.success).toBe(false);
+            expect(data.error).toContain("JSON");
         });
     });
 });

@@ -78,9 +78,30 @@ export function FriendService(): Hono {
 
         if (!admin) {
             const webhookUrl = await serverConfig.get(WEBHOOK_URL_KEY) || env.WEBHOOK_URL;
+            const webhookMethod = await serverConfig.get("webhook.method") as string | undefined;
+            const webhookContentType = await serverConfig.get("webhook.content_type") as string | undefined;
+            const webhookHeaders = await serverConfig.get("webhook.headers") as string | undefined;
+            const webhookBodyTemplate = await serverConfig.get("webhook.body_template") as string | undefined;
             const frontendUrl = new URL(c.req.url).origin;
             const content = `${frontendUrl}/friends\n${username} 申请友链: ${name}\n${desc}\n${url}`;
-            await notify(webhookUrl, content);
+            await notify(
+                webhookUrl,
+                {
+                    event: "friend.created",
+                    message: content,
+                    title: name,
+                    url: `${frontendUrl}/friends`,
+                    username: username || "",
+                    content: url,
+                    description: desc,
+                },
+                {
+                    method: webhookMethod,
+                    contentType: webhookContentType,
+                    headers: webhookHeaders,
+                    bodyTemplate: webhookBodyTemplate,
+                },
+            );
         }
         return c.text('OK');
     });
@@ -139,9 +160,30 @@ export function FriendService(): Hono {
         
         if (!admin) {
             const webhookUrl = await serverConfig.get(WEBHOOK_URL_KEY) || env.WEBHOOK_URL;
+            const webhookMethod = await serverConfig.get("webhook.method") as string | undefined;
+            const webhookContentType = await serverConfig.get("webhook.content_type") as string | undefined;
+            const webhookHeaders = await serverConfig.get("webhook.headers") as string | undefined;
+            const webhookBodyTemplate = await serverConfig.get("webhook.body_template") as string | undefined;
             const frontendUrl = new URL(c.req.url).origin;
             const content = `${frontendUrl}/friends\n${username} 更新友链: ${name}\n${desc}\n${url}`;
-            await notify(webhookUrl, content);
+            await notify(
+                webhookUrl,
+                {
+                    event: "friend.updated",
+                    message: content,
+                    title: name,
+                    url: `${frontendUrl}/friends`,
+                    username: username || "",
+                    content: url,
+                    description: desc,
+                },
+                {
+                    method: webhookMethod,
+                    contentType: webhookContentType,
+                    headers: webhookHeaders,
+                    bodyTemplate: webhookBodyTemplate,
+                },
+            );
         }
         return c.text('OK');
     });
