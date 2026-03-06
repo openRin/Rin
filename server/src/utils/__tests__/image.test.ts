@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { extractImage, stripImageMetadataFromUrl } from '../image';
+import { contentHasImagesMissingMetadata, extractImage, extractImageWithMetadata, listContentImageUrls, stripImageMetadataFromUrl } from '../image';
 
 describe('extractImage', () => {
     it('should extract image URL from markdown', () => {
@@ -44,6 +44,13 @@ describe('extractImage', () => {
     });
 });
 
+describe('extractImageWithMetadata', () => {
+    it('should keep image metadata fragments for UI consumers', () => {
+        const content = '![alt](https://example.com/image.png#blurhash=test&width=100&height=50)';
+        expect(extractImageWithMetadata(content)).toBe('https://example.com/image.png#blurhash=test&width=100&height=50');
+    });
+});
+
 describe('stripImageMetadataFromUrl', () => {
     it('should remove fragment metadata from image URLs', () => {
         expect(stripImageMetadataFromUrl('https://example.com/image.png#blurhash=test')).toBe('https://example.com/image.png');
@@ -51,5 +58,27 @@ describe('stripImageMetadataFromUrl', () => {
 
     it('should keep plain image URLs unchanged', () => {
         expect(stripImageMetadataFromUrl('https://example.com/image.png')).toBe('https://example.com/image.png');
+    });
+});
+
+describe('contentHasImagesMissingMetadata', () => {
+    it('should detect html images without blurhash metadata', () => {
+        const content = '<p><img src="https://example.com/image.png" alt="img"></p>';
+        expect(contentHasImagesMissingMetadata(content)).toBe(true);
+    });
+
+    it('should treat html images with full metadata as complete', () => {
+        const content = '<img src="https://example.com/image.png#blurhash=test&width=100&height=50" alt="img">';
+        expect(contentHasImagesMissingMetadata(content)).toBe(false);
+    });
+});
+
+describe('listContentImageUrls', () => {
+    it('should include markdown and html images', () => {
+        const content = '![md](https://example.com/markdown.png)\n<img src="https://example.com/html.png" alt="html">';
+        expect(listContentImageUrls(content)).toEqual([
+            'https://example.com/markdown.png',
+            'https://example.com/html.png',
+        ]);
     });
 });

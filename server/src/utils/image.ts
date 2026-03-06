@@ -42,8 +42,25 @@ export function listMarkdownImageUrls(content: string) {
     return matches;
 }
 
+export function listHtmlImageUrls(content: string) {
+    const imagePattern = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
+    const matches: string[] = [];
+
+    for (const match of content.matchAll(imagePattern)) {
+        if (match[1]) {
+            matches.push(match[1]);
+        }
+    }
+
+    return matches;
+}
+
+export function listContentImageUrls(content: string) {
+    return [...listMarkdownImageUrls(content), ...listHtmlImageUrls(content)];
+}
+
 export function contentHasImagesMissingMetadata(content: string) {
-    return listMarkdownImageUrls(content).some((url) => {
+    return listContentImageUrls(content).some((url) => {
         const metadata = parseImageMetadataFromUrl(url);
         return !metadata.blurhash || !metadata.width || !metadata.height;
     });
@@ -57,4 +74,10 @@ export function extractImage(content: string) {
         avatar = stripImageMetadataFromUrl(img_match[1]);
     }
     return avatar;
+}
+
+export function extractImageWithMetadata(content: string) {
+    const img_reg = /!\[.*?\]\((\S+?)(?:\s+"[^"]*")?\)/;
+    const img_match = img_reg.exec(content);
+    return img_match?.[1];
 }

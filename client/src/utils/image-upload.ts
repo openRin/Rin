@@ -183,8 +183,22 @@ export async function generateImageMetadataFromUrl(url: string): Promise<ImageMe
 }
 
 export async function enrichMarkdownImageMetadata(content: string): Promise<MarkdownImageMetadataResult> {
-  const pattern = /!\[(.*?)\]\((\S+?)(?:\s+"[^"]*")?\)/g;
-  const matches = [...content.matchAll(pattern)];
+  const markdownPattern = /!\[(.*?)\]\((\S+?)(?:\s+"[^"]*")?\)/g;
+  const htmlPattern = /<img\b([^>]*?)\bsrc=["']([^"']+)["']([^>]*?)>/gi;
+  const markdownMatches = [...content.matchAll(markdownPattern)].map((match) => ({
+    type: "markdown" as const,
+    fullMatch: match[0],
+    alt: match[1] || "",
+    rawUrl: match[2],
+  }));
+  const htmlMatches = [...content.matchAll(htmlPattern)].map((match) => ({
+    type: "html" as const,
+    fullMatch: match[0],
+    beforeSrc: match[1] || "",
+    rawUrl: match[2],
+    afterSrc: match[3] || "",
+  }));
+  const matches = [...markdownMatches, ...htmlMatches];
 
   if (matches.length === 0) {
     return { content, updated: 0, failed: 0 };
@@ -195,9 +209,7 @@ export async function enrichMarkdownImageMetadata(content: string): Promise<Mark
   let failed = 0;
 
   for (const match of matches) {
-    const fullMatch = match[0];
-    const alt = match[1] || "";
-    const rawUrl = match[2];
+    const { fullMatch, rawUrl } = match;
     if (!fullMatch || !rawUrl) {
       continue;
     }
@@ -215,7 +227,9 @@ export async function enrichMarkdownImageMetadata(content: string): Promise<Mark
       }
 
       const nextUrl = attachImageMetadataToUrl(existing.src, metadata);
-      const replacement = `![${alt}](${nextUrl})`;
+      const replacement = match.type === "markdown"
+        ? `![${match.alt}](${nextUrl})`
+        : `<img${match.beforeSrc}src="${nextUrl}"${match.afterSrc}>`;
       if (replacement !== fullMatch) {
         nextContent = nextContent.replace(fullMatch, replacement);
         updated += 1;
