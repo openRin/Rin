@@ -285,7 +285,7 @@ function UserAvatar({ className, profile }: { className?: string, profile?: Prof
                             <button
                                 onClick={() => {
                                     setIsOpen(false);
-                                    setLocation('/admin');
+                                    setLocation('/admin/writing');
                                 }}
                                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-left text-sm t-primary transition-colors hover:bg-neutral-50 dark:hover:bg-white/5"
                             >

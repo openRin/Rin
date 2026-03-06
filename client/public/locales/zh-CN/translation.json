@@ -181,6 +181,11 @@
     "configured": "已配置",
     "empty_description": "当前没有排队中或最近处理过的 AI 摘要任务。",
     "empty_title": "暂无队列活动",
+    "delete": "删除",
+    "delete_confirm_description": "确定删除 Feed #{{id}} 的队列任务记录吗？",
+    "delete_confirm_title": "删除队列任务记录",
+    "delete_success": "队列任务记录已删除",
+    "deleting": "删除中",
     "feed_id": "Feed #{{id}}",
     "generated_at": "最近更新时间：{{date}}",
     "load_failed": "队列状态加载失败",
@@ -199,6 +204,9 @@
       "pending": "排队任务",
       "processing": "处理中任务"
     },
+    "retry": "重试",
+    "retry_success": "队列任务已重新入队",
+    "retrying": "重试中",
     "title": "队列状态",
     "untitled": "未命名 Feed",
     "updated_at": "更新时间：{{date}}"

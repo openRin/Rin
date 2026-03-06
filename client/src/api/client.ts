@@ -71,6 +71,26 @@ export interface ConfigHealthResponse {
   items: ConfigHealthItem[];
 }
 
+export interface QueueStatusItem {
+  id: number;
+  title: string | null;
+  aiSummaryStatus: "idle" | "pending" | "processing" | "completed" | "failed";
+  aiSummaryError: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface QueueStatusResponse {
+  queueConfigured: boolean;
+  generatedAt: string;
+  summary: Record<"idle" | "pending" | "processing" | "completed" | "failed", number>;
+  items: QueueStatusItem[];
+}
+
+export interface QueueTaskActionResponse {
+  success: boolean;
+}
+
 // Re-export for external use
 export type {
   ApiResponse,
@@ -428,6 +448,19 @@ class ConfigAPI {
   // GET /api/config/health
   async getHealth(): Promise<ApiResponse<ConfigHealthResponse>> {
     return this.http.get<ConfigHealthResponse>("/api/config/health");
+  }
+
+  // GET /api/config/queue-status
+  async getQueueStatus(): Promise<ApiResponse<QueueStatusResponse>> {
+    return this.http.get<QueueStatusResponse>("/api/config/queue-status");
+  }
+
+  async retryQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {
+    return this.http.post<QueueTaskActionResponse>(`/api/config/queue-status/${feedId}/retry`);
+  }
+
+  async deleteQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {
+    return this.http.delete<QueueTaskActionResponse>(`/api/config/queue-status/${feedId}`);
   }
 
   // POST /api/config/test-ai - Test AI model configuration

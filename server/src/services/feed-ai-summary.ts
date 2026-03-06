@@ -29,7 +29,7 @@ export async function enqueueFeedAISummary(
     await createTaskQueue(env).send(
       createFeedAISummaryTask({
         feedId,
-        expectedUpdatedAt: updatedAt.toISOString(),
+        expectedUpdatedAtUnix: normalizeQueueUpdatedAt(updatedAt),
       }),
     );
 
@@ -40,6 +40,33 @@ export async function enqueueFeedAISummary(
       error: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+export function normalizeQueueUpdatedAt(updatedAt: Date) {
+  return Math.floor(updatedAt.getTime() / 1000);
+}
+
+export function matchesExpectedUpdatedAt(
+  updatedAt: Date,
+  payload: {
+    expectedUpdatedAt?: string;
+    expectedUpdatedAtUnix?: number;
+  },
+) {
+  const actual = normalizeQueueUpdatedAt(updatedAt);
+
+  if (typeof payload.expectedUpdatedAtUnix === "number") {
+    return actual === payload.expectedUpdatedAtUnix;
+  }
+
+  if (typeof payload.expectedUpdatedAt === "string") {
+    const expected = Date.parse(payload.expectedUpdatedAt);
+    if (Number.isFinite(expected)) {
+      return actual === Math.floor(expected / 1000);
+    }
+  }
+
+  return false;
 }
 
 export async function syncFeedAISummaryQueueState(
@@ -93,7 +120,8 @@ export async function processFeedAISummaryTask(
   cache: CacheImpl,
   payload: {
     feedId: number;
-    expectedUpdatedAt: string;
+    expectedUpdatedAt?: string;
+    expectedUpdatedAtUnix?: number;
   },
   clearFeedCache: (cache: CacheImpl, id: number, alias: string | null, newAlias: string | null) => Promise<void>,
 ) {
@@ -105,7 +133,7 @@ export async function processFeedAISummaryTask(
     return;
   }
 
-  if (feed.updatedAt.toISOString() !== payload.expectedUpdatedAt) {
+  if (!matchesExpectedUpdatedAt(feed.updatedAt, payload)) {
     return;
   }
 

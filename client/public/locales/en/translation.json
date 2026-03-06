@@ -181,6 +181,11 @@
     "configured": "Configured",
     "empty_description": "No AI summary tasks are currently queued or recently processed.",
     "empty_title": "No queue activity",
+    "delete": "Delete",
+    "delete_confirm_description": "Delete the queue task record for Feed #{{id}}?",
+    "delete_confirm_title": "Delete queue task record",
+    "delete_success": "Queue task record deleted",
+    "deleting": "Deleting",
     "feed_id": "Feed #{{id}}",
     "generated_at": "Last updated: {{date}}",
     "load_failed": "Failed to load queue status",
@@ -199,6 +204,9 @@
       "pending": "Queued tasks",
       "processing": "Processing tasks"
     },
+    "retry": "Retry",
+    "retry_success": "Queue task requeued",
+    "retrying": "Retrying",
     "title": "Queue Status",
     "untitled": "Untitled feed",
     "updated_at": "Updated at {{date}}"

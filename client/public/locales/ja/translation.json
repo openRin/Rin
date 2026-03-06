@@ -172,6 +172,11 @@
     "configured": "設定済み",
     "empty_description": "現在キュー中、または最近処理された AI 要約タスクはありません。",
     "empty_title": "キューアクティビティなし",
+    "delete": "削除",
+    "delete_confirm_description": "Feed #{{id}} のキュータスク記録を削除しますか？",
+    "delete_confirm_title": "キュータスク記録を削除",
+    "delete_success": "キュータスク記録を削除しました",
+    "deleting": "削除中",
     "feed_id": "Feed #{{id}}",
     "generated_at": "最終更新: {{date}}",
     "load_failed": "キュー状態の読み込みに失敗しました",
@@ -190,6 +195,9 @@
       "pending": "キュー中タスク",
       "processing": "処理中タスク"
     },
+    "retry": "再試行",
+    "retry_success": "キュータスクを再投入しました",
+    "retrying": "再試行中",
     "title": "キュー状態",
     "untitled": "無題の Feed",
     "updated_at": "更新日時: {{date}}"

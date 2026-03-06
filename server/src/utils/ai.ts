@@ -21,11 +21,33 @@ export const WORKER_AI_MODELS: Record<string, string> = {
     "qwen-7b": "@cf/qwen/qwen1.5-7b-chat-awq",
 };
 
+export const AI_SUMMARY_SYSTEM_PROMPT =
+    "你是一个中文内容摘要助手。请用简洁、准确、自然的中文总结用户提供的内容，不超过200字，不要添加原文没有的信息，不要输出标题或项目符号。";
+
 /**
  * Get full Worker AI model ID from short name
  */
 export function getWorkerAIModelId(shortName: string): string {
     return WORKER_AI_MODELS[shortName] || shortName;
+}
+
+export function normalizeExternalAIBaseUrl(apiUrl: string): string {
+    return apiUrl
+        .trim()
+        .replace(/\/+$/g, "")
+        .replace(/\/chat\/completions$/i, "");
+}
+
+export function buildExternalAIChatCompletionsUrl(
+    provider: string,
+    apiUrl: string,
+): string {
+    const normalizedApiUrl = normalizeExternalAIBaseUrl(apiUrl || AI_PROVIDER_URLS[provider] || "");
+    if (!normalizedApiUrl) {
+        throw new Error("API URL not configured");
+    }
+
+    return `${normalizedApiUrl}/chat/completions`;
 }
 
 function extractAIText(response: unknown): string | null {
@@ -63,7 +85,7 @@ function extractAIText(response: unknown): string | null {
 async function executeWorkerAI(
     env: Env,
     modelId: string,
-    input: string
+    messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
 ): Promise<string | null> {
     if (!env.AI || typeof env.AI.run !== "function") {
         throw new Error("Workers AI binding is not configured");
@@ -71,9 +93,7 @@ async function executeWorkerAI(
 
     // Worker AI uses messages format for chat models
     const response = await env.AI.run(modelId as any, {
-        messages: [
-            { role: "user", content: input }
-        ]
+        messages
     } as any);
 
     return extractAIText(response);
@@ -89,7 +109,7 @@ async function executeExternalAI(
         api_key: string;
         api_url: string;
     },
-    input: string
+    messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
 ): Promise<string | null> {
     const { provider, model, api_key, api_url } = config;
 
@@ -97,12 +117,9 @@ async function executeExternalAI(
         throw new Error("API key not configured");
     }
 
-    const finalApiUrl = api_url || AI_PROVIDER_URLS[provider];
-    if (!finalApiUrl) {
-        throw new Error("API URL not configured");
-    }
+    const finalApiUrl = buildExternalAIChatCompletionsUrl(provider, api_url);
 
-    const response = await fetch(`${finalApiUrl}/chat/completions`, {
+    const response = await fetch(finalApiUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -110,7 +127,7 @@ async function executeExternalAI(
         },
         body: JSON.stringify({
             model: model,
-            messages: [{ role: "user", content: input }],
+            messages,
             max_tokens: 500,
             temperature: 0.3,
         }),
@@ -144,14 +161,18 @@ export async function testAIModel(
         if (config.provider === 'worker-ai') {
             const fullModelName = getWorkerAIModelId(config.model);
             console.log(`[Test AI] Using Worker AI model: ${fullModelName}`);
-            result = await executeWorkerAI(env, fullModelName, testPrompt);
+            result = await executeWorkerAI(env, fullModelName, [
+                { role: "user", content: testPrompt },
+            ]);
         } else {
             result = await executeExternalAI({
                 provider: config.provider,
                 model: config.model,
                 api_key: config.api_key || '',
                 api_url: config.api_url || '',
-            }, testPrompt);
+            }, [
+                { role: "user", content: testPrompt },
+            ]);
         }
 
         if (result) {
@@ -198,6 +219,10 @@ export async function generateAISummaryResult(
     const truncatedContent = content.length > maxContentLength
         ? content.slice(0, maxContentLength) + "..."
         : content;
+    const summaryMessages = [
+        { role: "system" as const, content: AI_SUMMARY_SYSTEM_PROMPT },
+        { role: "user" as const, content: truncatedContent },
+    ];
 
     try {
         let result: string | null;
@@ -207,10 +232,18 @@ export async function generateAISummaryResult(
             result = await executeWorkerAI(
                 env, 
                 fullModelName, 
-                `请用简洁的中文总结以下内容，不超过200字：\n\n${truncatedContent}`
+                summaryMessages,
             );
         } else {
-            result = await executeExternalAI(config, truncatedContent);
+            result = await executeExternalAI(config, summaryMessages);
+        }
+
+        if (!result || !result.trim()) {
+            return {
+                summary: null,
+                skipped: false,
+                error: `Empty response from AI provider "${provider}" using model "${model}"`,
+            };
         }
 
         return { summary: result, skipped: false };

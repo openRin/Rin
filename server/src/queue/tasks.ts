@@ -9,7 +9,8 @@ export type FeedAISummaryStatus =
 
 export interface FeedAISummaryTaskPayload {
   feedId: number;
-  expectedUpdatedAt: string;
+  expectedUpdatedAt?: string;
+  expectedUpdatedAtUnix?: number;
 }
 
 export interface FeedAISummaryTask {
@@ -42,6 +43,9 @@ export function isQueueTask(value: unknown): value is QueueTask {
   return (
     Boolean(payload) &&
     typeof payload?.feedId === "number" &&
-    typeof payload?.expectedUpdatedAt === "string"
+    (
+      typeof payload?.expectedUpdatedAtUnix === "number" ||
+      typeof payload?.expectedUpdatedAt === "string"
+    )
   );
 }

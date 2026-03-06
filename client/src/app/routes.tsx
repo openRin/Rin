@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import type { DefaultParams, PathPattern } from "wouter";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch } from "wouter";
 import { AdminLayout } from "../components/admin-layout";
 import Footer from "../components/footer";
 import { Header } from "../components/header";
@@ -19,6 +19,7 @@ import { HashtagsPage } from "../page/hashtags";
 import { LoginPage } from "../page/login";
 import { MomentsPage } from "../page/moments";
 import { ProfilePage } from "../page/profile";
+import { QueueStatusPage } from "../page/queue-status";
 import { SearchPage } from "../page/search";
 import { Settings } from "../page/settings";
 import { TimelinePage } from "../page/timeline";
@@ -60,16 +61,16 @@ export function AppRoutes() {
         {(params) => <SearchPage keyword={params.keyword || ""} />}
       </AppRoute>
 
-      <AppRoute path="/admin">
-        <AdminRedirect href="/admin/writing" />
-      </AppRoute>
-
       <AdminRoute path="/admin/settings" requirePermission title={t("settings.title")} description={t("admin.settings_description")}>
         <Settings />
       </AdminRoute>
 
       <AdminRoute path="/admin/health" requirePermission title={t("health.title")} description={t("admin.health_description")}>
         <HealthPage />
+      </AdminRoute>
+
+      <AdminRoute path="/admin/queue-status" requirePermission title={t("queue_status.title")} description={t("admin.queue_status_description")}>
+        <QueueStatusPage />
       </AdminRoute>
 
       <AdminRoute path="/admin/writing" requirePermission title={t("writing")} description={t("admin.writing_description")}>
@@ -79,18 +80,6 @@ export function AppRoutes() {
       <AdminRoute path="/admin/writing/:id" requirePermission title={t("writing")} description={t("admin.writing_description")}>
         {({ id }) => <WritingPage id={tryInt(0, id)} />}
       </AdminRoute>
-
-      <AppRoute path="/settings">
-        <AdminRedirect href="/admin/settings" />
-      </AppRoute>
-
-      <AppRoute path="/writing">
-        <AdminRedirect href="/admin/writing" />
-      </AppRoute>
-
-      <AppRoute path="/writing/:id">
-        {({ id }) => <AdminRedirect href={`/admin/writing/${id || ""}`} />}
-      </AppRoute>
 
       <AppRoute path="/callback">
         <CallbackPage />
@@ -135,16 +124,6 @@ export function AppRoutes() {
       </AppRoute>
     </Switch>
   );
-}
-
-function AdminRedirect({ href }: { href: string }) {
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    setLocation(href);
-  }, [href, setLocation]);
-
-  return null;
 }
 
 function AppRoute({

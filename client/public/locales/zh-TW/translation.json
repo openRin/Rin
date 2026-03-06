@@ -181,6 +181,11 @@
     "configured": "已配置",
     "empty_description": "目前沒有排隊中或最近處理過的 AI 摘要任務。",
     "empty_title": "暫無佇列活動",
+    "delete": "刪除",
+    "delete_confirm_description": "確定刪除 Feed #{{id}} 的佇列任務記錄嗎？",
+    "delete_confirm_title": "刪除佇列任務記錄",
+    "delete_success": "佇列任務記錄已刪除",
+    "deleting": "刪除中",
     "feed_id": "Feed #{{id}}",
     "generated_at": "最近更新時間：{{date}}",
     "load_failed": "佇列狀態載入失敗",
@@ -199,6 +204,9 @@
       "pending": "排隊任務",
       "processing": "處理中任務"
     },
+    "retry": "重試",
+    "retry_success": "佇列任務已重新入列",
+    "retrying": "重試中",
     "title": "佇列狀態",
     "untitled": "未命名 Feed",
     "updated_at": "更新時間：{{date}}"

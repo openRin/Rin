@@ -125,6 +125,96 @@ describe("ConfigService", () => {
         });
     });
 
+    describe("GET /queue-status - Queue status", () => {
+        it("should require authentication to read queue status", async () => {
+            const res = await app.request("/queue-status", {
+                method: "GET",
+            });
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should return queue status for admin", async () => {
+            sqlite.exec(`
+                INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
+                VALUES (1, 'Queued Feed', '', '', 'pending', '', 'content', 1, 0, 0, 1)
+            `);
+
+            const res = await app.request("/queue-status", {
+                method: "GET",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as {
+                queueConfigured: boolean;
+                summary: Record<string, number>;
+                items: Array<{ aiSummaryStatus: string }>;
+            };
+            expect(typeof data.queueConfigured).toBe("boolean");
+            expect(data.summary.pending).toBeGreaterThan(0);
+            expect(data.items.some((item) => item.aiSummaryStatus === "pending")).toBe(true);
+        });
+    });
+
+    describe("Queue status actions", () => {
+        it("should retry a failed queue task", async () => {
+            let sendCalls = 0;
+            env.AI_TASK_QUEUE = {
+                send: async () => {
+                    sendCalls += 1;
+                },
+                sendBatch: async () => {},
+            } as unknown as Queue<any>;
+
+            sqlite.exec(`
+                INSERT INTO info (key, value) VALUES
+                ('ai_summary.enabled', 'true'),
+                ('ai_summary.provider', 'worker-ai'),
+                ('ai_summary.model', 'llama-3-8b');
+
+                INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
+                VALUES (1, 'Failed Feed', '', '', 'failed', 'boom', 'content', 1, 0, 0, 1);
+            `);
+
+            const res = await app.request("/queue-status/1/retry", {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+            expect(sendCalls).toBe(1);
+
+            const row = sqlite.prepare("SELECT ai_summary_status, ai_summary_error FROM feeds WHERE id = 1").get() as any;
+            expect(row.ai_summary_status).toBe("pending");
+            expect(row.ai_summary_error).toBe("");
+        });
+
+        it("should delete a completed queue task record", async () => {
+            sqlite.exec(`
+                INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
+                VALUES (1, 'Completed Feed', '', 'summary', 'completed', '', 'content', 1, 0, 0, 1);
+            `);
+
+            const res = await app.request("/queue-status/1", {
+                method: "DELETE",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+
+            const row = sqlite.prepare("SELECT ai_summary_status, ai_summary_error FROM feeds WHERE id = 1").get() as any;
+            expect(row.ai_summary_status).toBe("idle");
+            expect(row.ai_summary_error).toBe("");
+        });
+    });
+
     describe("POST /:type - Update config", () => {
         it("should require authentication to update config", async () => {
             const res = await app.request("/client", {

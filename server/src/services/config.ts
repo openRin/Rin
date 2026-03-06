@@ -11,6 +11,7 @@ import {
     splitConfigPayload,
 } from "./config-helpers";
 import { buildHealthCheckResponse } from "./config-health";
+import { buildQueueStatusResponse, deleteQueueStatusTask, retryQueueStatusTask } from "./config-queue-status";
 
 export function ConfigService(): Hono {
     const app = new Hono();
@@ -77,6 +78,63 @@ export function ConfigService(): Hono {
         const env = c.get('env');
 
         return c.json(await buildHealthCheckResponse(db, clientConfig, serverConfig, env));
+    });
+
+    app.get('/queue-status', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        const db = c.get('db');
+        const env = c.get('env');
+
+        return c.json(await buildQueueStatusResponse(db, env));
+    });
+
+    app.post('/queue-status/:id/retry', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        const id = Number(c.req.param('id'));
+        if (!Number.isInteger(id) || id <= 0) {
+            return c.text('Invalid feed id', 400);
+        }
+
+        try {
+            await retryQueueStatusTask(c.get('db'), c.get('cache'), c.get('env'), id);
+            return c.json({ success: true });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            const status = message === 'Feed not found' ? 404 : 400;
+            return c.text(message, status);
+        }
+    });
+
+    app.delete('/queue-status/:id', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        const id = Number(c.req.param('id'));
+        if (!Number.isInteger(id) || id <= 0) {
+            return c.text('Invalid feed id', 400);
+        }
+
+        try {
+            await deleteQueueStatusTask(c.get('db'), c.get('cache'), id);
+            return c.json({ success: true });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            const status = message === 'Feed not found' ? 404 : 400;
+            return c.text(message, status);
+        }
     });
 
     // GET /config/:type
