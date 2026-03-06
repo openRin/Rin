@@ -34,6 +34,8 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
   const [top, setTop] = useState<number>(0);
   const config = useContext(ClientConfigContext);
   const counterEnabled = config.get<boolean>('counter.enabled');
+  const hasAISummary = Boolean(feed?.ai_summary?.trim());
+  const showAISummaryState = feed?.ai_summary_status === "pending" || feed?.ai_summary_status === "processing" || feed?.ai_summary_status === "failed";
   function deleteFeed() {
     // Confirm
     showConfirm(
@@ -229,7 +231,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                         </button>
                         <Link
                           aria-label={t("edit")}
-                          href={`/writing/${feed.id}`}
+                          href={`/admin/writing/${feed.id}`}
                           className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary bg-button rounded-full transition"
                         >
                           <i className="ri-edit-2-line dark:text-neutral-400" />
@@ -245,7 +247,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                     )}
                   </div>
                 </div>
-                {(feed.ai_summary || feed.ai_summary_status !== "idle") && (
+                {(hasAISummary || showAISummaryState) && (
                   <div className="my-4 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-100 dark:border-purple-800/30">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
@@ -254,12 +256,14 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                           {t('ai_summary.title')}
                         </span>
                       </div>
-                      <span className="rounded-full bg-white/70 px-2 py-1 text-xs font-medium text-purple-700 dark:bg-white/10 dark:text-purple-300">
-                        {t(`ai_summary.status.${feed.ai_summary_status}`)}
-                      </span>
+                      {showAISummaryState ? (
+                        <span className="rounded-full bg-white/70 px-2 py-1 text-xs font-medium text-purple-700 dark:bg-white/10 dark:text-purple-300">
+                          {t(`ai_summary.status.${feed.ai_summary_status}`)}
+                        </span>
+                      ) : null}
                     </div>
                     <p className="text-sm t-secondary leading-relaxed whitespace-pre-wrap">
-                      {feed.ai_summary || t(`ai_summary.message.${feed.ai_summary_status}`)}
+                      {hasAISummary ? feed.ai_summary : t(`ai_summary.message.${feed.ai_summary_status}`)}
                     </p>
                     {feed.ai_summary_status === "failed" && feed.ai_summary_error ? (
                       <p className="mt-2 text-xs text-rose-600 dark:text-rose-300 whitespace-pre-wrap">
