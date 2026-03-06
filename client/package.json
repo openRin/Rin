@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@rin/api": "workspace:*",
+    "@rin/config": "workspace:*",
+    "@rin/ui": "workspace:*",
     "@astroimg/timeago": "^1.1.6",
     "@monaco-editor/react": "^4.6.0",
     "@prosemirror-adapter/react": "^0.2.6",

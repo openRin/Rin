@@ -1,3 +1,1 @@
-export namespace Config {
-    export const webhookUrl = "WEBHOOK_URL";
-}
+export { WEBHOOK_URL_KEY } from "@rin/config";

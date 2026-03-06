@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet'
 import { useTranslation } from "react-i18next"
 import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
-import { client } from "../main"
+import { client } from "../app/runtime"
 
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"

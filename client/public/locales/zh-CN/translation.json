@@ -3,7 +3,29 @@
     "notfound": "将文章别名设置为 about 可以创建关于页面",
     "title": "关于"
   },
+  "admin": {
+    "back_to_site": "返回站点",
+    "health_description": "检查关键配置、缺失的集成项，以及可能影响服务正常运行的风险。",
+    "queue_status_description": "查看 AI 摘要队列进度、最近任务结果和失败信息。",
+    "settings_description": "在统一的后台空间中管理站点行为、集成配置和发布规则。",
+    "title": "后台管理",
+    "writing_description": "在独立的管理工作区中编写、编辑和发布内容。"
+  },
   "ai_summary": {
+    "message": {
+      "completed": "AI 摘要已生成。",
+      "failed": "AI 摘要生成失败。",
+      "idle": "AI 摘要任务当前未运行。",
+      "pending": "AI 摘要任务已进入队列。",
+      "processing": "AI 摘要正在生成中。"
+    },
+    "status": {
+      "completed": "已完成",
+      "failed": "失败",
+      "idle": "空闲",
+      "pending": "排队中",
+      "processing": "生成中"
+    },
     "title": "AI 总结"
   },
   "alert": "提示",
@@ -154,7 +176,43 @@
     "success": "发布成功",
     "title": "发布"
   },
+  "queue_status": {
+    "binding": "队列绑定",
+    "configured": "已配置",
+    "empty_description": "当前没有排队中或最近处理过的 AI 摘要任务。",
+    "empty_title": "暂无队列活动",
+    "delete": "删除",
+    "delete_confirm_description": "确定删除 Feed #{{id}} 的队列任务记录吗？",
+    "delete_confirm_title": "删除队列任务记录",
+    "delete_success": "队列任务记录已删除",
+    "deleting": "删除中",
+    "feed_id": "Feed #{{id}}",
+    "generated_at": "最近更新时间：{{date}}",
+    "load_failed": "队列状态加载失败",
+    "loading": "正在加载队列任务状态...",
+    "not_configured": "未配置",
+    "status": {
+      "completed": "已完成",
+      "failed": "失败",
+      "idle": "空闲",
+      "pending": "排队中",
+      "processing": "处理中"
+    },
+    "summary": {
+      "completed": "已完成任务",
+      "failed": "失败任务",
+      "pending": "排队任务",
+      "processing": "处理中任务"
+    },
+    "retry": "重试",
+    "retry_success": "队列任务已重新入队",
+    "retrying": "重试中",
+    "title": "队列状态",
+    "untitled": "未命名 Feed",
+    "updated_at": "更新时间：{{date}}"
+  },
   "reload": "重试",
+  "reset": "重置",
   "save": "保存",
   "saving": "保存中",
   "settings": {
@@ -279,7 +337,7 @@
       },
       "avatar": {
         "title": "站点头像",
-        "desc": "设置显示在导航栏的头像 URL",
+        "desc": "设置显示在导航栏的头像，支持填写 URL、上传图片或拖拽上传",
         "label": "头像 URL"
       },
       "page_size": {
@@ -323,6 +381,15 @@
   "upload": {
     "failed": "上传失败",
     "failed$size": "上传失败，文件大小不能超过 {{size}} MB",
+    "image": {
+      "clear": "清空图片",
+      "drag_drop": "拖拽图片到这里，或点击选择图片",
+      "drag_hint": "也可以直接填写图片 URL",
+      "drop_now": "松开以上传图片",
+      "invalid_type": "请上传图片文件",
+      "preview_alt": "图片预览",
+      "url_placeholder": "填写图片 URL，或上传一张图片"
+    },
     "title": "上传"
   },
   "uploading": "上传中",
@@ -335,7 +402,7 @@
   "profile": {
     "title": "个人资料",
     "avatar": "头像",
-    "avatar_hint": "点击上传头像（最大 2MB）",
+    "avatar_hint": "支持填写头像 URL、上传图片或拖拽上传（最大 2MB）",
     "username": "昵称",
     "username_placeholder": "请输入昵称",
     "save": "保存",
@@ -348,5 +415,165 @@
       "update_failed": "更新失败",
       "network": "网络错误，请重试"
     }
+  },
+  "health": {
+    "generated_at": "最近检查时间：{{date}}",
+    "items": {
+      "common": {
+        "no_action": "无需处理。"
+      },
+      "auth_runtime": {
+        "title": "认证运行环境",
+        "success": {
+          "impact": "认证 Cookie 与令牌校验可以正常工作。",
+          "summary": "JWT 密钥已配置。",
+          "suggestion": "如果需要让所有现有会话失效，请谨慎轮换该密钥。"
+        },
+        "danger": {
+          "impact": "登录与后台会话校验可能完全失效。",
+          "summary": "缺少 JWT_SECRET。",
+          "suggestion": "在使用任何需要认证的路由前，请先为 Worker Secret 配置 JWT_SECRET。"
+        }
+      },
+      "login_methods": {
+        "title": "登录入口",
+        "disabled": {
+          "impact": "公开登录被禁用，后台 UI 无法通过正常登录流程进入。",
+          "summary": "login.enabled 已关闭。",
+          "suggestion": "如果此实例需要交互式后台访问，请在设置中启用登录。"
+        },
+        "missing": {
+          "impact": "用户可以看到登录入口，但没有任何可用的登录方式。",
+          "summary": "GitHub OAuth 和密码登录都未配置。",
+          "suggestion": "请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
+        },
+        "ready": {
+          "impact": "后台登录可用。",
+          "summary_multiple": "已配置多种登录方式。",
+          "summary_single": "至少已配置一种登录方式。",
+          "suggestion_none": "无需处理。",
+          "suggestion_optional": "可选：再配置一种登录方式作为备用。"
+        },
+        "details": {
+          "github_configured": "GitHub OAuth：已配置",
+          "github_missing": "GitHub OAuth：未配置",
+          "password_configured": "密码登录：已配置",
+          "password_missing": "密码登录：未配置"
+        }
+      },
+      "storage": {
+        "title": "对象存储",
+        "ready": {
+          "impact": "上传、网站图标处理和 Feed 缓存产物都可以使用对象存储。",
+          "summary": "存储凭据已配置。",
+          "summary_missing_access_host": "存储本身可用，但缺少 S3_ACCESS_HOST，公开 URL 会退回到 endpoint。",
+          "suggestion_missing_access_host": "如果你需要稳定的公开资源 URL 或自定义资源域名，请设置 S3_ACCESS_HOST。"
+        },
+        "missing": {
+          "impact": "媒体上传、网站图标生成和预生成的 Feed 缓存可能失败或不可用。",
+          "summary_none": "对象存储尚未配置。",
+          "summary_partial": "对象存储仅部分配置完成。缺少：{{keys}}。",
+          "suggestion": "在依赖上传或远程缓存产物前，请先补齐完整的 S3/R2 凭据。"
+        },
+        "details": {
+          "key": "{{key}}"
+        }
+      },
+      "ai_summary": {
+        "title": "AI 总结",
+        "disabled": {
+          "impact": "文章发布时不会生成 AI 总结。",
+          "summary": "AI 总结已关闭。",
+          "suggestion": "如果你希望发布时自动生成总结，请在设置中启用。"
+        },
+        "no_model": {
+          "impact": "发布或更新内容时，总结生成可能失败。",
+          "summary": "AI 总结已启用，但未配置模型。",
+          "suggestion": "启用 AI 总结前，请先在设置中选择模型。"
+        },
+        "worker_ai": {
+          "ready": {
+            "impact": "可以通过 Workers AI 生成 AI 总结。",
+            "summary": "Workers AI 已为模型 {{model}} 配置完成。"
+          },
+          "missing": {
+            "impact": "发布内容时，AI 总结请求会失败。",
+            "summary": "AI 总结使用了 worker-ai，但缺少 Workers AI binding。",
+            "suggestion": "在使用 worker-ai 提供方前，请先在 wrangler 配置中添加 AI binding。"
+          }
+        },
+        "external": {
+          "ready": {
+            "impact": "可以通过已配置的外部提供方生成 AI 总结。",
+            "summary": "{{provider}} 已为 AI 总结配置完成。",
+            "suggestion": "如果你想验证远程模型响应，可以在设置里使用测试功能。"
+          },
+          "missing": {
+            "impact": "发布内容时，AI 总结请求会失败。",
+            "summary_key": "缺少 AI 提供方密钥。",
+            "summary_url": "缺少 AI 提供方 URL。",
+            "suggestion": "在启用 AI 总结前，请先在设置中配置提供方凭据。"
+          },
+          "details": {
+            "provider": "提供方：{{provider}}",
+            "model": "模型：{{model}}"
+          }
+        }
+      },
+      "webhook": {
+        "title": "Webhook 通知",
+        "ready": {
+          "impact": "评论和友链申请通知可以发送到已配置的 webhook。",
+          "summary": "Webhook URL 已配置。",
+          "suggestion_optional": "可选：如果你还希望启用定时友链健康检查，可以开启 friend_crontab。"
+        },
+        "missing": {
+          "impact": "评论和友链事件不会推送到外部聊天工具。",
+          "summary": "Webhook URL 未配置。",
+          "suggestion": "如果你依赖外部通知，请在服务端配置或环境变量中设置 WEBHOOK_URL。"
+        }
+      },
+      "rss": {
+        "title": "RSS 与 Feed 端点",
+        "enabled": {
+          "impact": "Feed 端点已启用；如果没有存储支持，会退回到按需生成。",
+          "summary_cached": "RSS 已启用，且对象存储可用于缓存生成的 Feed 产物。",
+          "summary_on_demand": "RSS 已启用，但由于对象存储不完整，Feed 产物将按需生成。",
+          "suggestion": "如果你希望远程缓存 Feed 产物，请配置对象存储。"
+        },
+        "disabled": {
+          "impact": "访客不会在站点页脚看到 RSS/Atom 链接。",
+          "summary": "客户端设置中已关闭 RSS。",
+          "suggestion": "如果你希望暴露 Feed 发现链接和 Feed 端点，请在设置中启用 RSS。"
+        }
+      },
+      "site_identity": {
+        "title": "站点标识",
+        "ready": {
+          "impact": "访客可以在界面中看到已配置的站点名称。",
+          "summary": "站点标识已为 {{name}} 配置完成。",
+          "summary_missing_avatar": "站点名称已配置为 {{name}}，但缺少头像。",
+          "suggestion_missing_avatar": "如果你希望获得更完整的页头、分享和 Feed 展示效果，请补充站点头像。"
+        },
+        "missing": {
+          "impact": "站点会退回到默认产品名，整体看起来像未完成实例。",
+          "summary": "站点名称未配置。",
+          "suggestion": "请在设置中配置 site.name，或在环境变量中设置 NAME。"
+        }
+      }
+    },
+    "load_failed": "健康检查加载失败",
+    "loading": "正在检查运行环境与配置...",
+    "status": {
+      "danger": "需要处理",
+      "success": "已就绪",
+      "warning": "需要关注"
+    },
+    "summary": {
+      "danger": "严重问题",
+      "success": "已就绪项目",
+      "warning": "待检查项目"
+    },
+    "title": "健康检查"
   }
 }

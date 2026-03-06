@@ -27,6 +27,8 @@ export interface Feed {
   createdAt: string;
   updatedAt: string;
   ai_summary: string;
+  ai_summary_status: "idle" | "pending" | "processing" | "completed" | "failed";
+  ai_summary_error: string;
   hashtags: Array<{ id: number; name: string }>;
   user: {
     avatar: string | null;

@@ -1,9 +1,10 @@
 import { t } from "i18next";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { ButtonWithLoading } from "../components/button";
+import { client } from "../app/runtime";
+import { ImageUploadInput } from "../components/image-upload-input";
 import { Input } from "../components/input";
-import { client } from "../main";
 import { ProfileContext } from "../state/profile";
 
 
@@ -15,7 +16,6 @@ export function ProfilePage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Load current profile data and redirect to login if not authenticated
     useEffect(() => {
@@ -32,35 +32,6 @@ export function ProfilePage() {
         setUsername(profile.name || '');
         setAvatar(profile.avatar || '');
     }, [profile, setLocation]);
-
-    const handleAvatarClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Check file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            setError(t('profile.error.file_too_large'));
-            return;
-        }
-
-        // Check file type
-        if (!file.type.startsWith('image/')) {
-            setError(t('profile.error.invalid_file_type'));
-            return;
-        }
-
-        // Convert to base64
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const base64 = event.target?.result as string;
-            setAvatar(base64);
-        };
-        reader.readAsDataURL(file);
-    };
 
     const handleSubmit = async () => {
         if (!username.trim()) {
@@ -127,32 +98,20 @@ export function ProfilePage() {
                     {/* Avatar section */}
                     <div className="flex flex-col items-center space-y-4">
                         <label className="text-sm font-medium t-secondary">{t('profile.avatar')}</label>
-                        <div 
-                            className="relative w-32 h-32 rounded-full overflow-hidden cursor-pointer border-4 border-theme hover:opacity-80 transition-opacity"
-                            onClick={handleAvatarClick}
-                        >
-                            {avatar ? (
-                                <img 
-                                    src={avatar} 
-                                    alt="Avatar" 
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-secondary flex items-center justify-center">
-                                    <i className="ri-user-line text-4xl text-neutral-400"></i>
-                                </div>
-                            )}
-                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                <i className="ri-camera-line text-white text-2xl"></i>
-                            </div>
+                        <div className="w-full max-w-xl">
+                            <ImageUploadInput
+                                value={avatar}
+                                onChange={(value) => {
+                                    setError('');
+                                    setAvatar(value);
+                                }}
+                                onError={setError}
+                                disabled={isLoading}
+                                shape="circle"
+                                maxFileSize={2 * 1024 * 1024}
+                                placeholder={t('upload.image.url_placeholder')}
+                            />
                         </div>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileChange}
-                        />
                         <p className="text-xs t-secondary">{t('profile.avatar_hint')}</p>
                     </div>
 

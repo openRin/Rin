@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {client} from "../main.tsx";
+import { client } from "../app/runtime";
 import {timeago} from "../utils/timeago.ts";
 import {Link} from "wouter";
 import {useTranslation} from "react-i18next";

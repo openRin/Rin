@@ -7,9 +7,12 @@
     "rin": "./bin/rin.ts"
   },
   "scripts": {
+    "check": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.930.0",
+    "puppeteer": "^24.7.1",
     "strip-indent": "^4.0.0"
   },
   "devDependencies": {

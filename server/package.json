@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@rin/api": "workspace:*",
+    "@rin/config": "workspace:*",
     "arctic": "^3.7.0",
     "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.30.10",

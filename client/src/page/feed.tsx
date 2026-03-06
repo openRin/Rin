@@ -1,3 +1,4 @@
+import type { Feed } from "@rin/api";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
@@ -8,7 +9,7 @@ import { useAlert, useConfirm } from "../components/dialog";
 import { HashTag } from "../components/hashtag";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
-import { client } from "../main";
+import { client } from "../app/runtime";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
 import { useSiteConfig } from "../hooks/useSiteConfig";
@@ -18,29 +19,16 @@ import { Button } from "../components/button";
 import { Tips } from "../components/tips";
 import mermaid from "mermaid";
 import { AdjacentSection } from "../components/adjacent_feed.tsx";
+import { stripImageUrlMetadata } from "../utils/image-upload";
 
-type Feed = {
-  id: number;
-  title: string | null;
-  content: string;
-  uid: number;
-  createdAt: Date;
-  updatedAt: Date;
-  ai_summary: string;
-  hashtags: {
-    id: number;
-    name: string;
-  }[];
-  user: {
-    avatar: string | null;
-    id: number;
-    username: string;
-  };
-  pv: number;
-  uv: number;
-};
+function extractFirstMarkdownImageUrl(content: string) {
+  const match = /!\[.*?\]\((\S+?)(?:\s+"[^"]*")?\)/.exec(content);
+  if (!match) {
+    return undefined;
+  }
 
-
+  return stripImageUrlMetadata(match[1]);
+}
 
 export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Element, clean: (id: string) => void }) {
   const { t } = useTranslation();
@@ -56,30 +44,8 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
   const [top, setTop] = useState<number>(0);
   const config = useContext(ClientConfigContext);
   const counterEnabled = config.get<boolean>('counter.enabled');
-  const [aiSummaryEnabled, setAiSummaryEnabled] = useState(config.get<boolean>('ai_summary.enabled') ?? false);
-
-  // Listen for config changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const configStr = sessionStorage.getItem('config');
-      if (configStr) {
-        try {
-          const configObj = JSON.parse(configStr);
-          setAiSummaryEnabled(configObj['ai_summary.enabled'] ?? false);
-        } catch (e) {
-          console.error('Failed to parse config:', e);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    // Also check immediately in case the event was already fired
-    handleStorageChange();
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+  const hasAISummary = Boolean(feed?.ai_summary?.trim());
+  const showAISummaryState = feed?.ai_summary_status === "pending" || feed?.ai_summary_status === "processing" || feed?.ai_summary_status === "failed";
   function deleteFeed() {
     // Confirm
     showConfirm(
@@ -134,11 +100,9 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
           setTimeout(() => {
             setFeed(data as any);
             setTop(data.top || 0);
-            // Extract head image
-            const img_reg = /!\[.*?\]\((.*?)\)/;
-            const img_match = img_reg.exec(data.content);
-            if (img_match) {
-              setHeadImage(img_match[1]);
+            const headImageUrl = extractFirstMarkdownImageUrl(data.content);
+            if (headImageUrl) {
+              setHeadImage(headImageUrl);
             }
             clean(id);
           }, 0);
@@ -275,7 +239,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                         </button>
                         <Link
                           aria-label={t("edit")}
-                          href={`/writing/${feed.id}`}
+                          href={`/admin/writing/${feed.id}`}
                           className="flex-1 flex flex-col items-end justify-center px-2 py bg-secondary bg-button rounded-full transition"
                         >
                           <i className="ri-edit-2-line dark:text-neutral-400" />
@@ -291,17 +255,29 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                     )}
                   </div>
                 </div>
-                {feed.ai_summary && aiSummaryEnabled && (
+                {(hasAISummary || showAISummaryState) && (
                   <div className="my-4 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-100 dark:border-purple-800/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <i className="ri-sparkling-2-fill text-purple-500" />
-                      <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                        {t('ai_summary.title')}
-                      </span>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <i className="ri-sparkling-2-fill text-purple-500" />
+                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                          {t('ai_summary.title')}
+                        </span>
+                      </div>
+                      {showAISummaryState ? (
+                        <span className="rounded-full bg-white/70 px-2 py-1 text-xs font-medium text-purple-700 dark:bg-white/10 dark:text-purple-300">
+                          {t(`ai_summary.status.${feed.ai_summary_status}`)}
+                        </span>
+                      ) : null}
                     </div>
-                    <p className="text-sm t-secondary leading-relaxed">
-                      {feed.ai_summary}
+                    <p className="text-sm t-secondary leading-relaxed whitespace-pre-wrap">
+                      {hasAISummary ? feed.ai_summary : t(`ai_summary.message.${feed.ai_summary_status}`)}
                     </p>
+                    {feed.ai_summary_status === "failed" && feed.ai_summary_error ? (
+                      <p className="mt-2 text-xs text-rose-600 dark:text-rose-300 whitespace-pre-wrap">
+                        {feed.ai_summary_error}
+                      </p>
+                    ) : null}
                   </div>
                 )}
                 <Markdown content={feed.content} />

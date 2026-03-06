@@ -269,12 +269,10 @@ bun run dev:setup
 ├── packages/               # 共享包
 │   └── api/                # @rin/api - 共享 API 类型
 ├── cli/                    # Rin CLI 工具
-│   └── bin/
-│       └── rin.ts          # CLI 入口文件
-├── scripts/                # 开发脚本
-│   ├── dev.ts             # 开发服务器
-│   ├── setup-dev.ts       # 配置生成
-│   └── db-migrate-local.ts    # 数据库迁移
+│   ├── bin/               # 薄入口
+│   ├── src/               # 命令、任务、共享工具
+│   └── templates/         # Git hook 与文件模板
+├── scripts/                # 对 CLI 的兼容包装层
 ├── docs/                   # 文档
 ├── .env.example            # 环境变量示例
 ├── .env.local              # 本地配置（不提交到 Git）

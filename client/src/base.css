@@ -41,4 +41,5 @@
     .writeauto {
       @apply w-full md:w-7/12 lg:w-8/12 duration-300;
     }
+
   }

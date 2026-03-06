@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { extractImage } from '../image';
+import { extractImage, stripImageMetadataFromUrl } from '../image';
 
 describe('extractImage', () => {
     it('should extract image URL from markdown', () => {
@@ -35,5 +35,21 @@ describe('extractImage', () => {
         const content = '![local](./images/photo.jpg)';
         const result = extractImage(content);
         expect(result).toBe('./images/photo.jpg');
+    });
+
+    it('should strip blurhash metadata from image URL fragments', () => {
+        const content = '![alt](https://example.com/image.png#blurhash=LEHV6nWB2yk8pyo0adR*.7kCMdnj)';
+        const result = extractImage(content);
+        expect(result).toBe('https://example.com/image.png');
+    });
+});
+
+describe('stripImageMetadataFromUrl', () => {
+    it('should remove fragment metadata from image URLs', () => {
+        expect(stripImageMetadataFromUrl('https://example.com/image.png#blurhash=test')).toBe('https://example.com/image.png');
+    });
+
+    it('should keep plain image URLs unchanged', () => {
+        expect(stripImageMetadataFromUrl('https://example.com/image.png')).toBe('https://example.com/image.png');
     });
 });

@@ -4,10 +4,10 @@ We are happy to accept your patches and contributions to this project. You just 
 
 ## Commit-msg hooks
 
-We have a sample commit-msg hook in `scripts/commit-msg.sh`. Please run the following command to set it up:
+We have a sample commit-msg hook in `cli/templates/git-commit-msg.sh`. Please run the following command to set it up:
 
 ```sh
-ln -s ../../scripts/commit-msg.sh commit-msg
+ln -s ../../cli/templates/git-commit-msg.sh commit-msg
 ```
 
 On Windows, copy the `commit-msg.sh` file directly to `.git/hooks/commit-msg`.

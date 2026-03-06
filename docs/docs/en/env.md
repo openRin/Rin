@@ -103,7 +103,7 @@ AVATAR                  # Site avatar URL
 PAGE_SIZE               # Pagination size
 RSS_ENABLE              # Enable RSS
 CACHE_STORAGE_MODE      # Cache mode (recommended: database)
-R2_BUCKET_NAME          # R2 bucket name (optional)
+R2_BUCKET_NAME          # Optional: if set, deploy derives S3_* from this bucket; if unset, no R2 bucket is auto-selected
 WORKER_NAME             # Worker name (optional)
 DB_NAME                 # D1 database name (optional)
 ```

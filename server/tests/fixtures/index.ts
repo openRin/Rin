@@ -41,6 +41,8 @@ export function createMockDB() {
             title TEXT,
             summary TEXT DEFAULT '' NOT NULL,
             ai_summary TEXT DEFAULT '' NOT NULL,
+            ai_summary_status TEXT DEFAULT 'idle' NOT NULL,
+            ai_summary_error TEXT DEFAULT '' NOT NULL,
             content TEXT NOT NULL,
             listed INTEGER DEFAULT 1 NOT NULL,
             draft INTEGER DEFAULT 1 NOT NULL,
@@ -157,6 +159,10 @@ export function createMockDB() {
 export function createMockEnv(overrides: Partial<Env> = {}): Env {
     return {
         DB: {} as D1Database,
+        AI_TASK_QUEUE: {
+            send: async () => {},
+            sendBatch: async () => {},
+        } as unknown as Queue<any>,
         S3_FOLDER: 'images/',
         S3_CACHE_FOLDER: 'cache/',
         S3_REGION: 'auto',

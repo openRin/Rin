@@ -269,12 +269,10 @@ GitHub OAuth needs to be configured for local development:
 ├── packages/               # Shared packages
 │   └── api/                # @rin/api - Shared API types
 ├── cli/                    # Rin CLI tool
-│   └── bin/
-│       └── rin.ts          # CLI entry point
-├── scripts/                # Development scripts
-│   ├── dev.ts             # Development server
-│   ├── setup-dev.ts       # Configuration generation
-│   └── db-migrate-local.ts    # Database migration
+│   ├── bin/               # Thin executable entrypoints
+│   ├── src/               # Commands, tasks, shared helpers
+│   └── templates/         # Git hook and file templates
+├── scripts/                # Compatibility wrappers around CLI tasks
 ├── docs/                   # Documentation
 ├── .env.example            # Environment variable example
 ├── .env.local              # Local configuration (not committed to Git)

@@ -44,5 +44,14 @@ runs:
         binding = "DB"
         database_name = "rin"
         database_id = "local"
+
+        [[queues.producers]]
+        binding = "AI_TASK_QUEUE"
+        queue = "rin-ai-summary"
+
+        [[queues.consumers]]
+        queue = "rin-ai-summary"
+        max_batch_size = 1
+        max_batch_timeout = 5
         EOF
         echo "✅ Generated wrangler.toml for ${{ inputs.mode }}"

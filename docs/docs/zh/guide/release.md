@@ -51,16 +51,16 @@ Rin 使用[语义化版本控制](https://semver.org/lang/zh-CN/)，并遵循结
 
 ```bash
 # 升级补丁版本（0.1.0 -> 0.1.1）
-bun scripts/release.ts patch
+bun cli/bin/rin.ts release patch
 
 # 升级次要版本（0.1.0 -> 0.2.0）
-bun scripts/release.ts minor
+bun cli/bin/rin.ts release minor
 
 # 升级主要版本（0.1.0 -> 1.0.0）
-bun scripts/release.ts major
+bun cli/bin/rin.ts release major
 
 # 或设置特定版本
-bun scripts/release.ts 1.2.3
+bun cli/bin/rin.ts release 1.2.3
 ```
 
 脚本将：
@@ -90,7 +90,7 @@ git commit --amend --no-edit
 要在不应用更改的情况下预览：
 
 ```bash
-bun scripts/release.ts minor --dry-run
+bun cli/bin/rin.ts release minor --dry-run
 ```
 
 ### 5. 推送发布
@@ -201,7 +201,7 @@ git checkout -b fix/critical-bug v0.2.0
 git commit -m "fix(api): 解决严重安全问题"
 
 # 运行发布脚本
-bun scripts/release.ts patch
+bun cli/bin/rin.ts release patch
 
 # 推送（热修复不需要合并到 main）
 git push origin fix/critical-bug

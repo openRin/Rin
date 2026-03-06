@@ -12,12 +12,19 @@ export const SITE_CONFIG_KEYS = {
 // Hook to get site configuration
 export function useSiteConfig() {
     const config = useContext(ClientConfigContext);
+    const pageSizeValue = config.get<string | number>(SITE_CONFIG_KEYS.pageSize);
+    const parsedPageSize =
+        typeof pageSizeValue === "number"
+            ? pageSizeValue
+            : typeof pageSizeValue === "string"
+                ? parseInt(pageSizeValue, 10)
+                : NaN;
 
     return {
         name: config.get<string>(SITE_CONFIG_KEYS.name) || "Rin",
         description: config.get<string>(SITE_CONFIG_KEYS.description) || "",
         avatar: config.get<string>(SITE_CONFIG_KEYS.avatar) || "",
-        pageSize: config.get<number>(SITE_CONFIG_KEYS.pageSize) || 5,
+        pageSize: Number.isFinite(parsedPageSize) ? parsedPageSize : 5,
     };
 }
 
@@ -29,7 +36,14 @@ export function useSiteConfigValue<K extends keyof typeof SITE_CONFIG_KEYS>(
     const configKey = SITE_CONFIG_KEYS[key];
 
     if (key === "pageSize") {
-        return (config.get<number>(configKey) || 5) as any;
+        const value = config.get<string | number>(configKey);
+        const parsed =
+            typeof value === "number"
+                ? value
+                : typeof value === "string"
+                    ? parseInt(value, 10)
+                    : NaN;
+        return (Number.isFinite(parsed) ? parsed : 5) as any;
     }
 
     return (config.get<string>(configKey) || "") as any;

@@ -34,6 +34,63 @@ import type {
   LoginResponse,
 } from "@rin/api";
 
+export interface SettingsConfigResponse {
+  clientConfig: ConfigResponse;
+  serverConfig: ConfigResponse;
+}
+
+export interface ConfigHealthItem {
+  id: string;
+  title: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
+  status: "success" | "warning" | "danger";
+  configured: boolean;
+  impact: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
+  summary: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
+  suggestion?: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
+  details?: Array<{
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  }>;
+}
+
+export interface ConfigHealthResponse {
+  generatedAt: string;
+  summary: Record<"success" | "warning" | "danger", number>;
+  items: ConfigHealthItem[];
+}
+
+export interface QueueStatusItem {
+  id: number;
+  title: string | null;
+  aiSummaryStatus: "idle" | "pending" | "processing" | "completed" | "failed";
+  aiSummaryError: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface QueueStatusResponse {
+  queueConfigured: boolean;
+  generatedAt: string;
+  summary: Record<"idle" | "pending" | "processing" | "completed" | "failed", number>;
+  items: QueueStatusItem[];
+}
+
+export interface QueueTaskActionResponse {
+  success: boolean;
+}
+
 // Re-export for external use
 export type {
   ApiResponse,
@@ -63,6 +120,7 @@ export type {
   LoginRequest,
   LoginResponse,
 } from "@rin/api";
+
 
 /**
  * HTTP client for making API requests
@@ -362,9 +420,19 @@ class MomentsAPI {
 class ConfigAPI {
   constructor(private http: HttpClient) {}
 
+  // GET /api/config
+  async getAll(): Promise<ApiResponse<SettingsConfigResponse>> {
+    return this.http.get<SettingsConfigResponse>("/api/config");
+  }
+
   // GET /api/config/:type
   async get(type: ConfigType): Promise<ApiResponse<ConfigResponse>> {
     return this.http.get<ConfigResponse>(`/api/config/${type}`);
+  }
+
+  // POST /api/config
+  async updateAll(body: SettingsConfigResponse): Promise<ApiResponse<SettingsConfigResponse>> {
+    return this.http.post<SettingsConfigResponse>("/api/config", body);
   }
 
   // POST /api/config/:type
@@ -375,6 +443,24 @@ class ConfigAPI {
   // DELETE /api/config/cache
   async clearCache(): Promise<ApiResponse<void>> {
     return this.http.delete<void>("/api/config/cache");
+  }
+
+  // GET /api/config/health
+  async getHealth(): Promise<ApiResponse<ConfigHealthResponse>> {
+    return this.http.get<ConfigHealthResponse>("/api/config/health");
+  }
+
+  // GET /api/config/queue-status
+  async getQueueStatus(): Promise<ApiResponse<QueueStatusResponse>> {
+    return this.http.get<QueueStatusResponse>("/api/config/queue-status");
+  }
+
+  async retryQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {
+    return this.http.post<QueueTaskActionResponse>(`/api/config/queue-status/${feedId}/retry`);
+  }
+
+  async deleteQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {
+    return this.http.delete<QueueTaskActionResponse>(`/api/config/queue-status/${feedId}`);
   }
 
   // POST /api/config/test-ai - Test AI model configuration
@@ -432,8 +518,13 @@ class SearchAPI {
   constructor(private http: HttpClient) {}
 
   // GET /api/search/:keyword
-  async search(keyword: string): Promise<ApiResponse<FeedListResponse>> {
-    return this.http.get<FeedListResponse>(`/api/search/${encodeURIComponent(keyword)}`);
+  async search(keyword: string, params?: { page?: number; limit?: number }): Promise<ApiResponse<FeedListResponse>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
+
+    const query = searchParams.toString();
+    return this.http.get<FeedListResponse>(`/api/search/${encodeURIComponent(keyword)}${query ? `?${query}` : ""}`);
   }
 }
 
