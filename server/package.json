@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/bun": "^1.1.2",
     "drizzle-kit": "^0.21.2",
-    "wrangler": "^4.61.1",
+    "wrangler": "^4.71.0",
     "@cloudflare/vitest-pool-workers": "^0.1.0",
     "typescript": "^5.0.4",
     "strip-indent": "^4.0.0"
