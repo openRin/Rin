@@ -61,22 +61,25 @@ bun cli/bin/rin.ts release major
 
 # Or set a specific version
 bun cli/bin/rin.ts release 1.2.3
+
+# Pre-release version
+bun cli/bin/rin.ts release 0.3.0-rc.1
 ```
 
 The script will:
-1. ✅ Run pre-release checks (typecheck, build, version consistency)
-2. 📝 Update version in all `package.json` files
-3. 📝 Generate CHANGELOG.md template with commit list
+1. ✅ Run pre-release checks (typecheck, build, branch/changelog validation)
+2. 📝 Update version in every workspace `package.json`
+3. 🔗 Append the release link for the target version in `CHANGELOG.md`
 4. 🏷️ Create git commit and tag
 
-**Important**: The script generates a CHANGELOG template. You should review and edit it before pushing!
+**Important**: The script does not write the changelog body for you; it expects a matching version section to already exist in `CHANGELOG.md`.
 
 ### 3. Review and Edit CHANGELOG
 
 After running the release script:
 
 ```bash
-# Open CHANGELOG.md and edit the new version section
+# Open CHANGELOG.md and complete the new version section
 # Add detailed descriptions, migration guides, etc.
 nano CHANGELOG.md  # or your preferred editor
 
@@ -100,7 +103,7 @@ bun cli/bin/rin.ts release minor --dry-run
 git push origin main
 
 # Push the tag (triggers release workflow)
-git push origin v0.2.0
+git push origin v0.3.0-rc.1
 ```
 
 ### 6. Automated Release Process
@@ -115,6 +118,7 @@ Once the tag is pushed, GitHub Actions automatically:
    - Categorizes commits by type (features, fixes, etc.)
    - Extracts detailed notes from CHANGELOG.md
    - Creates GitHub Release with formatted notes
+   - Attaches `build-v<version>-cloudflare.tar.gz` as a release asset
 
 3. **🚀 Deployment** (`deploy.yml`)
    - Validates deployment version
@@ -148,6 +152,17 @@ GitHub Releases will contain:
 
 ## For Fork Users
 
+### Deploying from the release artifact
+
+If you do not want to rebuild in your own repository, you can deploy directly from the GitHub Release asset:
+
+1. Open the GitHub Release page for the target version
+2. Find `build-v<version>-cloudflare.tar.gz` under Assets
+3. Copy its download URL
+4. Trigger `deploy.yml` manually and pass that URL as `artifact_url`
+
+That URL is exactly what the `artifact_url` input in `deploy.yml` is meant to consume.
+
 ### Option 1: Sync Fork (Recommended)
 
 1. Go to your forked repository on GitHub
@@ -179,7 +194,7 @@ Before creating a release:
 
 - [ ] All tests pass (`bun run check`, `bun run build`)
 - [ ] All commits follow conventional format
-- [ ] CHANGELOG.md template generated and edited
+- [ ] CHANGELOG.md section prepared for the target version
 - [ ] Migration guide included (for breaking changes)
 - [ ] Documentation updated (if needed)
 

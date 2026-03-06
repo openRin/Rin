@@ -13,7 +13,14 @@ type ReleaseOptions = {
 
 type PackageJson = {
   version: string;
+  workspaces?: string[];
   [key: string]: unknown;
+};
+
+type CheckResult = {
+  label: string;
+  ok: boolean;
+  detail?: string;
 };
 
 function isValidVersion(version: string) {
@@ -38,12 +45,37 @@ function getNewVersion(currentVersion: string, versionArg: string) {
 }
 
 async function getCurrentVersion() {
+  try {
+    const tag = (await $`git describe --tags --abbrev=0`.quiet().text()).trim();
+    const tagVersion = tag.replace(/^v/, "");
+    if (isValidVersion(tagVersion)) {
+      return tagVersion;
+    }
+  } catch {
+    // Fall back to package.json when tags are unavailable.
+  }
+
   const packageJson = JSON.parse(await readFile("package.json", "utf-8")) as PackageJson;
   return packageJson.version;
 }
 
+async function getPackageJsonFiles() {
+  const rootPackage = JSON.parse(await readFile("package.json", "utf-8")) as PackageJson;
+  const files = new Set<string>(["package.json"]);
+
+  for (const workspace of rootPackage.workspaces ?? []) {
+    const pattern = workspace.endsWith("/") ? `${workspace}package.json` : `${workspace}/package.json`;
+    const glob = new Bun.Glob(pattern);
+    for await (const file of glob.scan(".")) {
+      files.add(file);
+    }
+  }
+
+  return [...files].sort();
+}
+
 async function updatePackageJson(version: string, dryRun: boolean) {
-  const files = ["package.json", "client/package.json", "server/package.json", "cli/package.json"];
+  const files = await getPackageJsonFiles();
   for (const file of files) {
     if (!existsSync(file)) continue;
     const pkg = JSON.parse(await readFile(file, "utf-8")) as PackageJson;
@@ -75,27 +107,47 @@ async function checkChangelog(version: string) {
 }
 
 async function runPreReleaseChecks(version: string, options: ReleaseOptions) {
-  const checks: boolean[] = [];
+  const checks: CheckResult[] = [];
   const gitStatus = await checkGitStatus();
-  checks.push(gitStatus.clean || options.force);
-  checks.push(["main", "master"].includes(gitStatus.branch) || options.force);
-  checks.push((await checkChangelog(version)) || options.force);
+  checks.push({
+    label: "git working tree is clean",
+    ok: gitStatus.clean || options.force,
+    detail: gitStatus.clean ? undefined : "uncommitted changes detected",
+  });
+  checks.push({
+    label: "current branch is releasable",
+    ok: ["main", "master"].includes(gitStatus.branch) || options.force,
+    detail: `current branch: ${gitStatus.branch}`,
+  });
+  checks.push({
+    label: `CHANGELOG contains v${version}`,
+    ok: (await checkChangelog(version)) || options.force,
+    detail: "add a matching section to CHANGELOG.md before releasing",
+  });
 
   try {
     await $`bun run check`.quiet();
-    checks.push(true);
+    checks.push({ label: "typecheck passes", ok: true });
   } catch {
-    checks.push(options.force);
+    checks.push({
+      label: "typecheck passes",
+      ok: options.force,
+      detail: "bun run check failed",
+    });
   }
 
   try {
     await $`bun run build`.quiet();
-    checks.push(true);
+    checks.push({ label: "build passes", ok: true });
   } catch {
-    checks.push(options.force);
+    checks.push({
+      label: "build passes",
+      ok: options.force,
+      detail: "bun run build failed",
+    });
   }
 
-  return checks.every(Boolean);
+  return checks;
 }
 
 async function updateChangelogLinks(version: string, dryRun: boolean) {
@@ -111,7 +163,9 @@ async function updateChangelogLinks(version: string, dryRun: boolean) {
 export async function runReleaseCommand(args: string[]) {
   const versionArg = args.find((arg) => !arg.startsWith("-"));
   if (!versionArg) {
-    console.log(`Usage: rin release <version>\n  version: patch | minor | major | x.y.z`);
+    console.log(
+      "Usage: rin release <version>\n  version: patch | minor | major | x.y.z | x.y.z-beta.1",
+    );
     return;
   }
 
@@ -123,8 +177,13 @@ export async function runReleaseCommand(args: string[]) {
 
   const currentVersion = await getCurrentVersion();
   const version = getNewVersion(currentVersion, versionArg);
-  const checksOk = await runPreReleaseChecks(version, options);
-  if (!checksOk) {
+  const checkResults = await runPreReleaseChecks(version, options);
+  const failedChecks = checkResults.filter((check) => !check.ok);
+  if (failedChecks.length > 0) {
+    console.error("Pre-release checks failed:");
+    for (const check of failedChecks) {
+      console.error(`- ${check.label}${check.detail ? ` (${check.detail})` : ""}`);
+    }
     throw new Error("Pre-release checks failed");
   }
 
@@ -132,7 +191,8 @@ export async function runReleaseCommand(args: string[]) {
   await updateChangelogLinks(version, options.dryRun);
 
   if (!options.dryRun && !options.skipGit) {
-    await $`git add package.json client/package.json server/package.json cli/package.json CHANGELOG.md`.quiet();
+    const packageJsonFiles = await getPackageJsonFiles();
+    await $`git add ${packageJsonFiles} CHANGELOG.md`.quiet();
     await $`git commit -m ${`chore(release): v${version}`}`.quiet();
     await $`git tag ${`v${version}`}`.quiet();
   }

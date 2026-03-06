@@ -197,6 +197,13 @@ jobs:
           echo "" >> release_notes.md
           echo "---" >> release_notes.md
           echo "" >> release_notes.md
+          echo "## 📦 Build Artifact" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "This release includes the attached file \`build-v${VERSION}-cloudflare.tar.gz\`." >> release_notes.md
+          echo "Use the release asset URL as \`artifact_url\` when triggering \`deploy.yml\` manually." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "---" >> release_notes.md
+          echo "" >> release_notes.md
           echo "## 🆙 Upgrade Guide" >> release_notes.md
           echo "" >> release_notes.md
           echo "For users who have forked this repository:" >> release_notes.md
