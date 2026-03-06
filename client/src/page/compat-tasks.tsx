@@ -146,16 +146,18 @@ export function CompatTasksPage() {
                 <p>{t("compat_tasks.ai_summary.enabled", { value: status.aiSummary.enabled ? t("compat_tasks.yes") : t("compat_tasks.no") })}</p>
                 <p>{t("compat_tasks.ai_summary.queue_configured", { value: status.aiSummary.queueConfigured ? t("compat_tasks.yes") : t("compat_tasks.no") })}</p>
                 <p>{t("compat_tasks.ai_summary.force_eligible", { count: status.aiSummary.forceEligible })}</p>
-                <Button
-                  title={runningTask === "ai-summary" ? t("compat_tasks.running") : t("compat_tasks.ai_summary.run")}
-                  disabled={runningTask !== null || status.aiSummary.eligible === 0}
-                  onClick={() => runAISummaryBackfill(false)}
-                />
-                <Button
-                  title={runningTask === "ai-summary" ? t("compat_tasks.running") : t("compat_tasks.ai_summary.run_force")}
-                  disabled={runningTask !== null || status.aiSummary.forceEligible === 0}
-                  onClick={() => runAISummaryBackfill(true)}
-                />
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    title={runningTask === "ai-summary" ? t("compat_tasks.running") : t("compat_tasks.ai_summary.run")}
+                    disabled={runningTask !== null || status.aiSummary.eligible === 0}
+                    onClick={() => runAISummaryBackfill(false)}
+                  />
+                  <Button
+                    title={runningTask === "ai-summary" ? t("compat_tasks.running") : t("compat_tasks.ai_summary.run_force")}
+                    disabled={runningTask !== null || status.aiSummary.forceEligible === 0}
+                    onClick={() => runAISummaryBackfill(true)}
+                  />
+                </div>
               </div>
             </SettingsCardBody>
           </SettingsCard>
