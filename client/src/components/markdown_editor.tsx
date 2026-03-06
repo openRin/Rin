@@ -5,8 +5,8 @@ import { useTranslation } from "react-i18next";
 import Loading from 'react-loading';
 import { FlatInset, FlatTabButton } from "@rin/ui";
 import { useColorMode } from "../utils/darkModeUtils";
+import { buildMarkdownImage, uploadImageFile } from "../utils/image-upload";
 import { Markdown } from "./markdown";
-import { client } from "../app/runtime";
 
 
 interface MarkdownEditorProps {
@@ -24,21 +24,23 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   const [preview, setPreview] = useState<'edit' | 'preview' | 'comparison'>('edit');
   const [uploading, setUploading] = useState(false);
 
-  function uploadImage(file: File, onSuccess: (url: string) => void, showAlert: (msg: string) => void) {
-    client.storage
-      .upload(file, file.name)
-      .then(({ data, error }) => {
-        if (error) {
-          showAlert(t("upload.failed"));
-        }
-        if (data) {
-          onSuccess(data.url);
-        }
-      })
-      .catch((e: any) => {
-        console.error(e);
-        showAlert(t("upload.failed"));
-      });
+  async function insertImage(
+    file: File,
+    range: NonNullable<ReturnType<editor.IStandaloneCodeEditor["getSelection"]>>,
+    showAlert: (msg: string) => void,
+  ) {
+    try {
+      const result = await uploadImageFile(file);
+      const editorInstance = editorRef.current;
+      if (!editorInstance) return;
+      editorInstance.executeEdits(undefined, [{
+        range,
+        text: buildMarkdownImage(file.name, result.url, result.blurhash),
+      }]);
+    } catch (error) {
+      console.error(error);
+      showAlert(error instanceof Error ? error.message : t("upload.failed"));
+    }
   }
 
   const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
@@ -49,15 +51,11 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
       editor.trigger(undefined, "undo", undefined);
       setUploading(true);
       const myfile = clipboardData.files[0] as File;
-      uploadImage(myfile, (url) => {
-        const selection = editor.getSelection();
-        if (!selection) return;
-        editor.executeEdits(undefined, [{
-          range: selection,
-          text: `![${myfile.name}](${url})\n`,
-        }]);
+      const selection = editor.getSelection();
+      if (!selection) return;
+      void insertImage(myfile, selection, (msg) => console.error(msg)).finally(() => {
         setUploading(false);
-      }, (msg) => console.error(msg));
+      });
     }
   };
 
@@ -76,13 +74,9 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           const selection = editor.getSelection();
           if (!selection) return;
           setUploading(true);
-          uploadImage(file, (url) => {
+          void insertImage(file, selection, (msg) => console.error(msg)).finally(() => {
             setUploading(false);
-            editor.executeEdits(undefined, [{
-              range: selection,
-              text: `![${file.name}](${url})\n`,
-            }]);
-          }, (msg) => console.error(msg));
+          });
         }
       }
     };
@@ -178,13 +172,9 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
                 if (!selection) return;
                 const file = e.dataTransfer.files[i];
                 setUploading(true);
-                uploadImage(file, (url) => {
+                void insertImage(file, selection, (msg) => console.error(msg)).finally(() => {
                   setUploading(false);
-                  editor.executeEdits(undefined, [{
-                    range: selection,
-                    text: `![${file.name}](${url})\n`,
-                  }]);
-                }, (msg) => console.error(msg));
+                });
               }
             }}
             onPaste={handlePaste}

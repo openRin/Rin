@@ -6,6 +6,7 @@
   "admin": {
     "back_to_site": "返回站点",
     "health_description": "检查关键配置、缺失的集成项，以及可能影响服务正常运行的风险。",
+    "queue_status_description": "查看 AI 摘要队列进度、最近任务结果和失败信息。",
     "settings_description": "在统一的后台空间中管理站点行为、集成配置和发布规则。",
     "title": "后台管理",
     "writing_description": "在独立的管理工作区中编写、编辑和发布内容。"
@@ -175,6 +176,33 @@
     "success": "发布成功",
     "title": "发布"
   },
+  "queue_status": {
+    "binding": "队列绑定",
+    "configured": "已配置",
+    "empty_description": "当前没有排队中或最近处理过的 AI 摘要任务。",
+    "empty_title": "暂无队列活动",
+    "feed_id": "Feed #{{id}}",
+    "generated_at": "最近更新时间：{{date}}",
+    "load_failed": "队列状态加载失败",
+    "loading": "正在加载队列任务状态...",
+    "not_configured": "未配置",
+    "status": {
+      "completed": "已完成",
+      "failed": "失败",
+      "idle": "空闲",
+      "pending": "排队中",
+      "processing": "处理中"
+    },
+    "summary": {
+      "completed": "已完成任务",
+      "failed": "失败任务",
+      "pending": "排队任务",
+      "processing": "处理中任务"
+    },
+    "title": "队列状态",
+    "untitled": "未命名 Feed",
+    "updated_at": "更新时间：{{date}}"
+  },
   "reload": "重试",
   "reset": "重置",
   "save": "保存",
@@ -301,7 +329,7 @@
       },
       "avatar": {
         "title": "站点头像",
-        "desc": "设置显示在导航栏的头像 URL",
+        "desc": "设置显示在导航栏的头像，支持填写 URL、上传图片或拖拽上传",
         "label": "头像 URL"
       },
       "page_size": {
@@ -345,6 +373,15 @@
   "upload": {
     "failed": "上传失败",
     "failed$size": "上传失败，文件大小不能超过 {{size}} MB",
+    "image": {
+      "clear": "清空图片",
+      "drag_drop": "拖拽图片到这里，或点击选择图片",
+      "drag_hint": "也可以直接填写图片 URL",
+      "drop_now": "松开以上传图片",
+      "invalid_type": "请上传图片文件",
+      "preview_alt": "图片预览",
+      "url_placeholder": "填写图片 URL，或上传一张图片"
+    },
     "title": "上传"
   },
   "uploading": "上传中",
@@ -357,7 +394,7 @@
   "profile": {
     "title": "个人资料",
     "avatar": "头像",
-    "avatar_hint": "点击上传头像（最大 2MB）",
+    "avatar_hint": "支持填写头像 URL、上传图片或拖拽上传（最大 2MB）",
     "username": "昵称",
     "username_placeholder": "请输入昵称",
     "save": "保存",

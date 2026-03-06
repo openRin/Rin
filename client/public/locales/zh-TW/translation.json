@@ -6,6 +6,7 @@
   "admin": {
     "back_to_site": "返回站點",
     "health_description": "檢查關鍵配置、缺失的整合項，以及可能影響服務正常運行的風險。",
+    "queue_status_description": "查看 AI 摘要佇列進度、最近任務結果與失敗資訊。",
     "settings_description": "在統一的後台空間中管理站點行為、整合配置與發佈規則。",
     "title": "後台管理",
     "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。"
@@ -175,6 +176,33 @@
     "success": "發布成功",
     "title": "發布"
   },
+  "queue_status": {
+    "binding": "佇列綁定",
+    "configured": "已配置",
+    "empty_description": "目前沒有排隊中或最近處理過的 AI 摘要任務。",
+    "empty_title": "暫無佇列活動",
+    "feed_id": "Feed #{{id}}",
+    "generated_at": "最近更新時間：{{date}}",
+    "load_failed": "佇列狀態載入失敗",
+    "loading": "正在載入佇列任務狀態...",
+    "not_configured": "未配置",
+    "status": {
+      "completed": "已完成",
+      "failed": "失敗",
+      "idle": "閒置",
+      "pending": "排隊中",
+      "processing": "處理中"
+    },
+    "summary": {
+      "completed": "已完成任務",
+      "failed": "失敗任務",
+      "pending": "排隊任務",
+      "processing": "處理中任務"
+    },
+    "title": "佇列狀態",
+    "untitled": "未命名 Feed",
+    "updated_at": "更新時間：{{date}}"
+  },
   "reload": "重試",
   "reset": "重設",
   "save": "保存",
@@ -301,7 +329,7 @@
       },
       "avatar": {
         "title": "網站頭像",
-        "desc": "設定顯示在導覽列的頭像 URL",
+        "desc": "設定顯示在導覽列的頭像，支援填寫 URL、上傳圖片或拖拽上傳",
         "label": "頭像 URL"
       },
       "page_size": {
@@ -345,6 +373,15 @@
   "upload": {
     "failed": "上傳失敗",
     "failed$size": "上傳失敗，文件大小不能超過 {{size}} MB",
+    "image": {
+      "clear": "清空圖片",
+      "drag_drop": "拖拽圖片到這裡，或點擊選擇圖片",
+      "drag_hint": "也可以直接填寫圖片 URL",
+      "drop_now": "放開以上傳圖片",
+      "invalid_type": "請上傳圖片文件",
+      "preview_alt": "圖片預覽",
+      "url_placeholder": "填寫圖片 URL，或上傳一張圖片"
+    },
     "title": "上傳"
   },
   "uploading": "上傳中",
@@ -357,7 +394,7 @@
   "profile": {
     "title": "個人資料",
     "avatar": "頭像",
-    "avatar_hint": "點擊上傳頭像（最大 2MB）",
+    "avatar_hint": "支援填寫頭像 URL、上傳圖片或拖拽上傳（最大 2MB）",
     "username": "暱稱",
     "username_placeholder": "請輸入暱稱",
     "save": "儲存",

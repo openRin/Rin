@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import ReactLoading from "react-loading";
 import { Button } from "../components/button";
 import { useConfirm } from "../components/dialog";
+import { ImageUploadInput } from "../components/image-upload-input";
 import {
   SettingsCard,
   SettingsCardBody,
@@ -183,6 +184,75 @@ export function ItemWithUpload({
             </>
           }
         />
+      </SettingsCard>
+    </div>
+  );
+}
+
+export function ItemImageInput({
+  title,
+  description,
+  configKeyTitle,
+  value,
+  placeholder,
+  onChange,
+  onError,
+  shape = "rounded",
+}: {
+  title: string;
+  description: string;
+  configKeyTitle: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+  onError?: (message: string) => void;
+  shape?: "rounded" | "circle";
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="w-full">
+      <SettingsCard>
+        <button
+          type="button"
+          className="block w-full text-left"
+          onClick={() => {
+            setIsOpen((current) => !current);
+          }}
+        >
+          <SettingsCardRow
+            header={<SettingsCardHeader title={title} description={description} />}
+            action={
+              <div className="flex items-center gap-3">
+                {value ? (
+                  <img
+                    src={value}
+                    alt={configKeyTitle}
+                    className={`h-10 w-10 object-cover ${shape === "circle" ? "rounded-full" : "rounded-2xl"}`}
+                  />
+                ) : null}
+                <span className="max-w-56 truncate text-sm text-neutral-500 dark:text-neutral-400">
+                  {value || placeholder || configKeyTitle}
+                </span>
+                <i
+                  className={`ri-arrow-down-s-line text-lg text-neutral-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  aria-hidden="true"
+                />
+              </div>
+            }
+          />
+        </button>
+        {isOpen ? (
+          <SettingsCardBody>
+            <ImageUploadInput
+              value={value}
+              onChange={onChange}
+              onError={onError}
+              placeholder={placeholder || configKeyTitle}
+              shape={shape}
+            />
+          </SettingsCardBody>
+        ) : null}
       </SettingsCard>
     </div>
   );

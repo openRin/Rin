@@ -6,6 +6,7 @@
   "admin": {
     "back_to_site": "Back to site",
     "health_description": "Review required configuration, missing integrations, and risks that can affect runtime behavior.",
+    "queue_status_description": "Inspect AI summary queue progress, recent task results, and failures.",
     "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
     "title": "Admin",
     "writing_description": "Write, edit, and publish content from the private management workspace."
@@ -175,6 +176,33 @@
     "success": "Publish successful",
     "title": "Publish"
   },
+  "queue_status": {
+    "binding": "Queue binding",
+    "configured": "Configured",
+    "empty_description": "No AI summary tasks are currently queued or recently processed.",
+    "empty_title": "No queue activity",
+    "feed_id": "Feed #{{id}}",
+    "generated_at": "Last updated: {{date}}",
+    "load_failed": "Failed to load queue status",
+    "loading": "Loading queue task status...",
+    "not_configured": "Not configured",
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "idle": "Idle",
+      "pending": "Queued",
+      "processing": "Processing"
+    },
+    "summary": {
+      "completed": "Completed tasks",
+      "failed": "Failed tasks",
+      "pending": "Queued tasks",
+      "processing": "Processing tasks"
+    },
+    "title": "Queue Status",
+    "untitled": "Untitled feed",
+    "updated_at": "Updated at {{date}}"
+  },
   "reload": "Retry",
   "reset": "Reset",
   "save": "Save",
@@ -301,7 +329,7 @@
       },
       "avatar": {
         "title": "Site Avatar",
-        "desc": "Set the avatar URL displayed in the navigation bar",
+        "desc": "Set the avatar shown in the navigation bar by URL, upload, or drag and drop",
         "label": "Avatar URL"
       },
       "page_size": {
@@ -345,6 +373,15 @@
   "upload": {
     "failed": "Upload failed",
     "failed$size": "Upload failed, file size cannot exceed {{size}} MB",
+    "image": {
+      "clear": "Clear image",
+      "drag_drop": "Drag an image here, or click to choose one",
+      "drag_hint": "You can also paste an image URL directly",
+      "drop_now": "Drop to upload the image",
+      "invalid_type": "Please upload an image file",
+      "preview_alt": "Image preview",
+      "url_placeholder": "Enter an image URL, or upload an image"
+    },
     "title": "Upload"
   },
   "uploading": "Uploading...",
@@ -357,7 +394,7 @@
   "profile": {
     "title": "Profile",
     "avatar": "Avatar",
-    "avatar_hint": "Click to upload avatar (max 2MB)",
+    "avatar_hint": "Enter an avatar URL, upload an image, or drag one here (max 2MB)",
     "username": "Username",
     "username_placeholder": "Enter your username",
     "save": "Save",

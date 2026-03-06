@@ -6,6 +6,7 @@
   "admin": {
     "back_to_site": "サイトに戻る",
     "health_description": "必須設定、未構成の連携、動作に影響するリスクを確認します。",
+    "queue_status_description": "AI 要約キューの進行状況、最近のタスク結果、失敗内容を確認します。",
     "settings_description": "サイトの挙動、連携設定、公開ルールを一か所で管理します。",
     "title": "管理画面",
     "writing_description": "非公開の管理ワークスペースから記事を作成、編集、公開します。"
@@ -166,6 +167,33 @@
     "success": "公開に成功しました",
     "title": "公開"
   },
+  "queue_status": {
+    "binding": "キューバインディング",
+    "configured": "設定済み",
+    "empty_description": "現在キュー中、または最近処理された AI 要約タスクはありません。",
+    "empty_title": "キューアクティビティなし",
+    "feed_id": "Feed #{{id}}",
+    "generated_at": "最終更新: {{date}}",
+    "load_failed": "キュー状態の読み込みに失敗しました",
+    "loading": "キュータスク状態を読み込んでいます...",
+    "not_configured": "未設定",
+    "status": {
+      "completed": "完了",
+      "failed": "失敗",
+      "idle": "待機",
+      "pending": "キュー中",
+      "processing": "処理中"
+    },
+    "summary": {
+      "completed": "完了タスク",
+      "failed": "失敗タスク",
+      "pending": "キュー中タスク",
+      "processing": "処理中タスク"
+    },
+    "title": "キュー状態",
+    "untitled": "無題の Feed",
+    "updated_at": "更新日時: {{date}}"
+  },
   "reload": "再試行",
   "reset": "リセット",
   "save": "保存",
@@ -278,6 +306,29 @@
     "other": {
       "title": "その他の設定"
     },
+    "site": {
+      "title": "サイト情報",
+      "name": {
+        "title": "サイト名",
+        "desc": "サイトタイトルとナビゲーションバーに表示される名前を設定します",
+        "label": "サイト名"
+      },
+      "description": {
+        "title": "サイト説明",
+        "desc": "ナビゲーションバーに表示される短い説明を設定します",
+        "label": "サイト説明"
+      },
+      "avatar": {
+        "title": "サイトアバター",
+        "desc": "ナビゲーションバーに表示する画像を URL、アップロード、またはドラッグ&ドロップで設定します",
+        "label": "アバター URL"
+      },
+      "page_size": {
+        "title": "ページサイズ",
+        "desc": "記事一覧で 1 ページあたりに表示する件数を設定します",
+        "label": "1ページあたりの記事数"
+      }
+    },
     "rss": {
       "desc": "サイトフッターにRSS購読リンクを有効にする",
       "title": "RSS 購読リンク"
@@ -313,6 +364,15 @@
   "upload": {
     "failed": "アップロードに失敗しました",
     "failed$size": "アップロードに失敗しました。ファイルサイズは{{size}} MBを超えてはなりません",
+    "image": {
+      "clear": "画像をクリア",
+      "drag_drop": "ここに画像をドラッグするか、クリックして選択してください",
+      "drag_hint": "画像 URL を直接入力することもできます",
+      "drop_now": "ドロップして画像をアップロード",
+      "invalid_type": "画像ファイルをアップロードしてください",
+      "preview_alt": "画像プレビュー",
+      "url_placeholder": "画像 URL を入力するか、画像をアップロードしてください"
+    },
     "title": "アップロード"
   },
   "uploading": "アップロード中",
@@ -325,7 +385,7 @@
   "profile": {
     "title": "プロフィール",
     "avatar": "アバター",
-    "avatar_hint": "クリックしてアバターをアップロード（最大2MB）",
+    "avatar_hint": "アバター URL の入力、画像のアップロード、ドラッグ&ドロップに対応しています（最大2MB）",
     "username": "ユーザー名",
     "username_placeholder": "ユーザー名を入力してください",
     "save": "保存",

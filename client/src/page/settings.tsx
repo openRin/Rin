@@ -9,7 +9,7 @@ import { Button } from "../components/button";
 import { useAlert } from "../components/dialog.tsx";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { AISummarySettings } from "./settings-ai";
-import { ItemButton, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
+import { ItemButton, ItemImageInput, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
 import {
   areSettingsDraftsEqual,
   buildAIConfigDraftValue,
@@ -165,7 +165,7 @@ export function Settings() {
               setConfigValue("client", "site.description", value);
             }}
           />
-          <ItemInput
+          <ItemImageInput
             title={t("settings.site.avatar.title")}
             description={t("settings.site.avatar.desc")}
             configKeyTitle={t("settings.site.avatar.label")}
@@ -174,6 +174,7 @@ export function Settings() {
             onChange={(value) => {
               setConfigValue("client", "site.avatar", value);
             }}
+            onError={showAlert}
           />
           <ItemInput
             title={t("settings.site.page_size.title")}

@@ -61,7 +61,7 @@ export function StorageService(): Hono {
                 file,
                 file.type
             );
-            return c.text(`${accessHost}/${hashkey}`);
+            return c.json({ url: `${accessHost}/${hashkey}` });
         } catch (e: any) {
             console.error(e.message);
             return c.text(e.message, 400);
