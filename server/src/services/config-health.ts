@@ -68,6 +68,8 @@ export async function buildHealthCheckResponse(
   const items: HealthCheckItem[] = [];
   const githubReady = Boolean(env.RIN_GITHUB_CLIENT_ID && env.RIN_GITHUB_CLIENT_SECRET);
   const passwordReady = Boolean(env.ADMIN_USERNAME && env.ADMIN_PASSWORD);
+  const defaultPasswordInUse =
+    env.ADMIN_USERNAME === "admin" && env.ADMIN_PASSWORD === "admin123";
   const jwtReady = Boolean(env.JWT_SECRET);
 
   items.push(
@@ -118,11 +120,45 @@ export async function buildHealthCheckResponse(
         suggestion: text("health.items.login_methods.missing.suggestion"),
       }),
     );
+  } else if (passwordReady && defaultPasswordInUse) {
+    items.push(
+      createItem({
+        id: "login-methods",
+        title: text("health.items.login_methods.title"),
+        status: "danger",
+        configured: false,
+        impact: text("health.items.login_methods.default_password.impact"),
+        summary: text("health.items.login_methods.default_password.summary"),
+        suggestion: text("health.items.login_methods.default_password.suggestion"),
+        details: [
+          githubReady
+            ? text("health.items.login_methods.details.github_configured")
+            : text("health.items.login_methods.details.github_missing"),
+          text("health.items.login_methods.details.password_default"),
+        ],
+      }),
+    );
+  } else if (!githubReady) {
+    items.push(
+      createItem({
+        id: "login-methods",
+        title: text("health.items.login_methods.title"),
+        status: "warning",
+        configured: true,
+        impact: text("health.items.login_methods.oauth_missing.impact"),
+        summary: text("health.items.login_methods.oauth_missing.summary"),
+        suggestion: text("health.items.login_methods.oauth_missing.suggestion"),
+        details: [
+          text("health.items.login_methods.details.github_missing"),
+          passwordReady
+            ? text("health.items.login_methods.details.password_configured")
+            : text("health.items.login_methods.details.password_missing"),
+        ],
+      }),
+    );
   } else {
     const details = [
-      githubReady
-        ? text("health.items.login_methods.details.github_configured")
-        : text("health.items.login_methods.details.github_missing"),
+      text("health.items.login_methods.details.github_configured"),
       passwordReady
         ? text("health.items.login_methods.details.password_configured")
         : text("health.items.login_methods.details.password_missing"),
@@ -131,15 +167,11 @@ export async function buildHealthCheckResponse(
       createItem({
         id: "login-methods",
         title: text("health.items.login_methods.title"),
-        status: githubReady && passwordReady ? "success" : "warning",
+        status: "success",
         configured: true,
         impact: text("health.items.login_methods.ready.impact"),
-        summary: githubReady && passwordReady
-          ? text("health.items.login_methods.ready.summary_multiple")
-          : text("health.items.login_methods.ready.summary_single"),
-        suggestion: githubReady && passwordReady
-          ? text("health.items.login_methods.ready.suggestion_none")
-          : text("health.items.login_methods.ready.suggestion_optional"),
+        summary: text("health.items.login_methods.ready.summary"),
+        suggestion: text("health.items.login_methods.ready.suggestion"),
         details,
       }),
     );

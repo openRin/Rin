@@ -274,10 +274,25 @@
         "success": "網站圖標更新成功"
       }
     },
-    "footer": {
-      "desc": "設定顯示於網站底部的內容（HTML）",
-      "title": "網站底部內容"
+  "footer": {
+    "desc": "設定顯示於網站底部的內容（HTML）",
+    "title": "網站底部內容"
+  },
+  "webhook": {
+    "url": {
+      "title": "Webhook 位址",
+      "desc": "設定評論與友鏈通知使用的 webhook 位址"
     },
+    "content_type": {
+      "title": "Webhook Content-Type",
+      "desc": "設定 webhook 請求送出時使用的 Content-Type，例如 application/json 或 text/plain"
+    },
+    "body_template": {
+      "title": "Webhook 請求體模板",
+      "desc": "自訂 webhook 送出的請求體。可用變數：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
+      "label": "Webhook 請求體模板"
+    }
+  },
     "friend": {
       "apply": {
         "desc": "允許其他用戶申請友情連結（需審核）",
@@ -469,24 +484,33 @@
           "summary": "login.enabled 已關閉。",
           "suggestion": "如果此實例需要互動式後台存取，請在設定中啟用登入。"
         },
-        "missing": {
-          "impact": "使用者可以看到登入入口，但沒有任何可用的登入方式。",
-          "summary": "GitHub OAuth 和密碼登入都未配置。",
-          "suggestion": "請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
-        },
-        "ready": {
-          "impact": "後台登入可用。",
-          "summary_multiple": "已配置多種登入方式。",
-          "summary_single": "至少已配置一種登入方式。",
-          "suggestion_none": "無需處理。",
-          "suggestion_optional": "可選：再配置一種登入方式作為備援。"
-        },
-        "details": {
-          "github_configured": "GitHub OAuth：已配置",
-          "github_missing": "GitHub OAuth：未配置",
-          "password_configured": "密碼登入：已配置",
-          "password_missing": "密碼登入：未配置"
-        }
+      "missing": {
+        "impact": "使用者可以看到登入入口，但沒有任何可用的登入方式。",
+        "summary": "GitHub OAuth 和密碼登入都未配置。",
+        "suggestion": "請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
+      },
+      "default_password": {
+        "impact": "管理員帳號仍在使用預設使用者名稱與密碼，屬於嚴重安全風險。",
+        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
+        "suggestion": "在公開網站之前請立即修改預設使用者名稱或密碼。"
+      },
+      "oauth_missing": {
+        "impact": "目前只能使用本地密碼帳號登入，其他使用者無法透過 OAuth 登入並留言。",
+        "summary": "GitHub OAuth 未配置。",
+        "suggestion": "如果希望其他使用者登入，請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
+      },
+      "ready": {
+        "impact": "後台登入可用。",
+        "summary": "OAuth 登入已配置，且目前密碼登入未使用預設憑證。",
+        "suggestion": "無需處理。"
+      },
+      "details": {
+        "github_configured": "GitHub OAuth：已配置",
+        "github_missing": "GitHub OAuth：未配置",
+        "password_configured": "密碼登入：已配置",
+        "password_missing": "密碼登入：未配置",
+        "password_default": "密碼登入：使用預設憑證"
+      }
       },
       "storage": {
         "title": "物件儲存",

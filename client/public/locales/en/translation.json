@@ -274,10 +274,25 @@
         "success": "Favicon update was successful"
       }
     },
-    "footer": {
-      "desc": "Set the footer content of the site (HTML)",
-      "title": "Footer"
+  "footer": {
+    "desc": "Set the footer content of the site (HTML)",
+    "title": "Footer"
+  },
+  "webhook": {
+    "url": {
+      "title": "Webhook URL",
+      "desc": "Set the webhook endpoint used for comment and friend-link notifications"
     },
+    "content_type": {
+      "title": "Webhook Content-Type",
+      "desc": "Set the Content-Type header sent with webhook requests, for example application/json or text/plain"
+    },
+    "body_template": {
+      "title": "Webhook Body Template",
+      "desc": "Customize the outgoing webhook payload. Available variables: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}.",
+      "label": "Webhook body template"
+    }
+  },
     "friend": {
       "apply": {
         "desc": "Allow other users to apply for friend links (requires review)",
@@ -469,24 +484,33 @@
           "summary": "login.enabled is disabled.",
           "suggestion": "Enable login in settings if this instance needs interactive admin access."
         },
-        "missing": {
-          "impact": "Users can see the login entry but no working login method is configured.",
-          "summary": "Neither GitHub OAuth nor password login is configured.",
-          "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET or ADMIN_USERNAME/ADMIN_PASSWORD."
-        },
-        "ready": {
-          "impact": "Admin sign-in is available.",
-          "summary_multiple": "Multiple login methods are configured.",
-          "summary_single": "At least one login method is configured.",
-          "suggestion_none": "No action required.",
-          "suggestion_optional": "Optional: configure another login method as a fallback."
-        },
-        "details": {
-          "github_configured": "GitHub OAuth: configured",
-          "github_missing": "GitHub OAuth: missing",
-          "password_configured": "Password login: configured",
-          "password_missing": "Password login: missing"
-        }
+      "missing": {
+        "impact": "Users can see the login entry but no working login method is configured.",
+        "summary": "Neither GitHub OAuth nor password login is configured.",
+        "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET or ADMIN_USERNAME/ADMIN_PASSWORD."
+      },
+      "default_password": {
+        "impact": "The admin account is still using the default username and password, which is a critical security risk.",
+        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD are still set to admin / admin123.",
+        "suggestion": "Change the default username or password immediately before exposing the site."
+      },
+      "oauth_missing": {
+        "impact": "Only the local password account can sign in. Other users cannot log in and comment through OAuth.",
+        "summary": "GitHub OAuth is not configured.",
+        "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET if you expect other users to log in."
+      },
+      "ready": {
+        "impact": "Admin sign-in is available.",
+        "summary": "OAuth login is configured and the current password login configuration is not using the default credentials.",
+        "suggestion": "No action required."
+      },
+      "details": {
+        "github_configured": "GitHub OAuth: configured",
+        "github_missing": "GitHub OAuth: missing",
+        "password_configured": "Password login: configured",
+        "password_missing": "Password login: missing",
+        "password_default": "Password login: using default credentials"
+      }
       },
       "storage": {
         "title": "Object storage",

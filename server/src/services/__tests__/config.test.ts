@@ -123,6 +123,29 @@ describe("ConfigService", () => {
             expect(data.items.some((item) => item.id === "auth-runtime" && item.status === "success")).toBe(true);
             expect(typeof data.summary.success).toBe("number");
         });
+
+        it("should mark default password login as danger", async () => {
+            env.ADMIN_USERNAME = "admin" as any;
+            env.ADMIN_PASSWORD = "admin123" as any;
+            const res = await app.request("/health", {
+                method: "GET",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as {
+                items: Array<{ id: string; status: string; summary: { key: string } }>;
+            };
+            expect(
+                data.items.some((item) =>
+                    item.id === "login-methods" &&
+                    item.status === "danger" &&
+                    item.summary.key === "health.items.login_methods.default_password.summary",
+                ),
+            ).toBe(true);
+        });
     });
 
     describe("GET /queue-status - Queue status", () => {

@@ -265,10 +265,25 @@
         "success": "ファビコンの更新が成功しました"
       }
     },
-    "footer": {
-      "desc": "サイトのフッターコンテンツを設定する（HTML）",
-      "title": "フッター"
+  "footer": {
+    "desc": "サイトのフッターコンテンツを設定する（HTML）",
+    "title": "フッター"
+  },
+  "webhook": {
+    "url": {
+      "title": "Webhook URL",
+      "desc": "コメント通知と友達リンク通知に使う webhook URL を設定します"
     },
+    "content_type": {
+      "title": "Webhook Content-Type",
+      "desc": "Webhook リクエスト送信時の Content-Type を設定します。例: application/json, text/plain"
+    },
+    "body_template": {
+      "title": "Webhook ボディテンプレート",
+      "desc": "送信する webhook リクエスト本文をカスタマイズします。使用可能変数: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}。",
+      "label": "Webhook ボディテンプレート"
+    }
+  },
     "friend": {
       "apply": {
         "desc": "他のユーザーが友人リンクを申請できるようにする（審査が必要）",
@@ -460,24 +475,33 @@
           "summary": "login.enabled が無効です。",
           "suggestion": "このインスタンスで対話的な管理アクセスが必要なら、設定でログインを有効にしてください。"
         },
-        "missing": {
-          "impact": "ログイン入口は表示されますが、利用可能なログイン方法がありません。",
-          "summary": "GitHub OAuth とパスワードログインのどちらも設定されていません。",
-          "suggestion": "RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET または ADMIN_USERNAME/ADMIN_PASSWORD を設定してください。"
-        },
-        "ready": {
-          "impact": "管理ログインが利用可能です。",
-          "summary_multiple": "複数のログイン方法が設定されています。",
-          "summary_single": "少なくとも 1 つのログイン方法が設定されています。",
-          "suggestion_none": "対応は不要です。",
-          "suggestion_optional": "任意: フォールバックとして別のログイン方法を追加してください。"
-        },
-        "details": {
-          "github_configured": "GitHub OAuth: 設定済み",
-          "github_missing": "GitHub OAuth: 未設定",
-          "password_configured": "パスワードログイン: 設定済み",
-          "password_missing": "パスワードログイン: 未設定"
-        }
+      "missing": {
+        "impact": "ログイン入口は表示されますが、利用可能なログイン方法がありません。",
+        "summary": "GitHub OAuth とパスワードログインのどちらも設定されていません。",
+        "suggestion": "RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET または ADMIN_USERNAME/ADMIN_PASSWORD を設定してください。"
+      },
+      "default_password": {
+        "impact": "管理者アカウントがまだ既定のユーザー名とパスワードを使っており、重大なセキュリティリスクです。",
+        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD が admin / admin123 のままです。",
+        "suggestion": "サイトを公開する前に既定のユーザー名またはパスワードを直ちに変更してください。"
+      },
+      "oauth_missing": {
+        "impact": "現在はローカルのパスワードアカウントしか使えず、他のユーザーは OAuth でログインしてコメントできません。",
+        "summary": "GitHub OAuth が設定されていません。",
+        "suggestion": "他のユーザーにもログインを許可するなら、RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET を設定してください。"
+      },
+      "ready": {
+        "impact": "管理ログインが利用可能です。",
+        "summary": "OAuth ログインが設定済みで、現在のパスワードログインも既定の認証情報を使っていません。",
+        "suggestion": "対応は不要です。"
+      },
+      "details": {
+        "github_configured": "GitHub OAuth: 設定済み",
+        "github_missing": "GitHub OAuth: 未設定",
+        "password_configured": "パスワードログイン: 設定済み",
+        "password_missing": "パスワードログイン: 未設定",
+        "password_default": "パスワードログイン: 既定の認証情報を使用中"
+      }
       },
       "storage": {
         "title": "オブジェクトストレージ",
