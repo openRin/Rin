@@ -168,7 +168,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
       <div className={`grid grid-cols-1 gap-0 sm:gap-4 ${preview === 'comparison' ? "lg:grid-cols-2" : ""}`}>
         <div className={"flex min-w-0 flex-col " + (preview === 'preview' ? "hidden" : "")}>
           <div
-            className={"relative min-h-0 overflow-hidden rounded-none border-0 bg-w sm:rounded-2xl sm:border sm:border-black/10 dark:sm:border-white/10"}
+            className={"relative min-h-0 overflow-hidden rounded-none border-0 bg-w"}
             onDrop={(e) => {
               e.preventDefault();
               const editor = editorRef.current;
