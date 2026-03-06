@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Loading from 'react-loading';
 import { FlatInset, FlatTabButton } from "@rin/ui";
+import { useAlert } from "./dialog";
 import { useColorMode } from "../utils/darkModeUtils";
 import { buildMarkdownImage, uploadImageFile } from "../utils/image-upload";
 import { Markdown } from "./markdown";
@@ -23,6 +24,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   const isComposingRef = useRef(false);
   const [preview, setPreview] = useState<'edit' | 'preview' | 'comparison'>('edit');
   const [uploading, setUploading] = useState(false);
+  const { showAlert, AlertUI } = useAlert();
 
   async function insertImage(
     file: File,
@@ -52,8 +54,11 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
       setUploading(true);
       const myfile = clipboardData.files[0] as File;
       const selection = editor.getSelection();
-      if (!selection) return;
-      void insertImage(myfile, selection, (msg) => console.error(msg)).finally(() => {
+      if (!selection) {
+        setUploading(false);
+        return;
+      }
+      void insertImage(myfile, selection, showAlert).finally(() => {
         setUploading(false);
       });
     }
@@ -66,7 +71,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
       for (let i = 0; i < event.currentTarget.files.length; i++) {
         const file = event.currentTarget.files[i];
         if (file.size > 5 * 1024000) {
-          alert("File too large (max 5MB)");
+          showAlert(t("upload.failed$size", { size: 5 }));
           uploadRef.current!.value = "";
         } else {
           const editor = editorRef.current;
@@ -74,7 +79,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           const selection = editor.getSelection();
           if (!selection) return;
           setUploading(true);
-          void insertImage(file, selection, (msg) => console.error(msg)).finally(() => {
+          void insertImage(file, selection, showAlert).finally(() => {
             setUploading(false);
           });
         }
@@ -172,7 +177,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
                 if (!selection) return;
                 const file = e.dataTransfer.files[i];
                 setUploading(true);
-                void insertImage(file, selection, (msg) => console.error(msg)).finally(() => {
+                void insertImage(file, selection, showAlert).finally(() => {
                   setUploading(false);
                 });
               }
@@ -216,6 +221,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           <Markdown content={content ? content : placeholder} />
         </div>
       </div>
+      <AlertUI />
     </div>
   );
 }
