@@ -51,7 +51,7 @@ function FeedCardImage({ src }: { src: string }) {
                     setLoaded(false);
                     setFailed(true);
                 }}
-                className={`object-cover object-center w-full max-h-96 hover:scale-105 translation duration-300 ${blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"
+                className={`absolute inset-0 h-full w-full object-cover object-center hover:scale-105 translation duration-300 ${blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"
                     }`}
             />
         </div>
