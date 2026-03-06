@@ -15,12 +15,54 @@ export function getFaviconKey(env: Env) {
     return path_join(env.S3_FOLDER || "", "favicon.webp");
 }
 
+async function buildFaviconFromSource(c: AppContext, sourceUrl: string, faviconKey: string) {
+    const env = c.get('env');
+    const s3 = createS3Client(env);
+    const imageRequest = new Request(sourceUrl, {
+        headers: c.req.raw.headers,
+    });
+
+    const response = await fetch(imageRequest, {
+        cf: {
+            image: {
+                width: 144,
+                height: 144,
+                fit: "cover",
+                format: "webp",
+                quality: 100,
+            },
+        },
+    });
+
+    if (!response.ok) {
+        return response;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    await putObject(
+        s3,
+        env,
+        faviconKey,
+        new Uint8Array(arrayBuffer),
+        "image/webp",
+    );
+
+    return new Response(arrayBuffer, {
+        status: 200,
+        headers: {
+            "Content-Type": "image/webp",
+            "Cache-Control": "public, max-age=31536000",
+        },
+    });
+}
+
 export function FaviconService(): Hono {
     const app = new Hono();
 
     // GET /favicon
     app.get("/", async (c: AppContext) => {
         const env = c.get('env');
+        const clientConfig = c.get('clientConfig');
         const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
         const faviconKey = getFaviconKey(env);
         
@@ -28,8 +70,22 @@ export function FaviconService(): Hono {
             const response = await fetch(new Request(`${accessHost}/${faviconKey}`));
 
             if (!response.ok) {
-                c.status(response.status as 200 | 400 | 401 | 403 | 404 | 500);
-                return c.text(await response.text());
+                const avatar = await clientConfig.get("site.avatar") as string | undefined;
+                if (!avatar) {
+                    c.status(response.status as 200 | 400 | 401 | 403 | 404 | 500);
+                    return c.text(await response.text());
+                }
+
+                const avatarUrl = new URL(avatar, c.req.url).toString();
+                const generatedFavicon = await buildFaviconFromSource(c, avatarUrl, faviconKey);
+                if (!generatedFavicon.ok) {
+                    c.status(generatedFavicon.status as 200 | 400 | 401 | 403 | 404 | 500);
+                    return c.text(await generatedFavicon.text());
+                }
+
+                c.header("Content-Type", generatedFavicon.headers.get("Content-Type") || "image/webp");
+                c.header("Cache-Control", generatedFavicon.headers.get("Cache-Control") || "public, max-age=31536000");
+                return c.body(await generatedFavicon.arrayBuffer());
             }
 
             c.header("Content-Type", "image/webp");

@@ -139,6 +139,64 @@ describe('FaviconService', () => {
             // Will fail due to S3 not being available, but verifies route is registered
             expect(res.status).not.toBe(404);
         });
+
+        it('should generate favicon from site avatar when favicon is missing', async () => {
+            const clientConfig = new TestCacheImpl();
+            await clientConfig.set('site.avatar', 'https://example.com/avatar.png');
+
+            app = new Hono<{ Bindings: Env; Variables: Variables }>();
+            app.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+                c.set('db', db);
+                c.set('cache', new TestCacheImpl());
+                c.set('serverConfig', new TestCacheImpl());
+                c.set('clientConfig', clientConfig);
+                c.set('jwt', {
+                    sign: async (payload: any) => `mock_token_${payload.id}`,
+                    verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+                } as JWTUtils);
+                c.set('oauth2', undefined);
+                c.set('env', env);
+                c.set('uid', 1);
+                c.set('admin', true);
+                await next();
+            }));
+            app.route('/', FaviconService());
+
+            const originalFetch = globalThis.fetch;
+            globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = typeof input === 'string'
+                    ? input
+                    : input instanceof URL
+                      ? input.toString()
+                      : input.url;
+                const method = init?.method ?? (input instanceof Request ? input.method : undefined);
+
+                if (url === 'https://example.com/avatar.png') {
+                    return new Response(new Uint8Array([1, 2, 3]), {
+                        status: 200,
+                        headers: { 'Content-Type': 'image/webp' },
+                    });
+                }
+
+                if (url === 'https://test-bucket.test.r2.cloudflarestorage.com/images/favicon.webp' && method === 'PUT') {
+                    return new Response(null, { status: 200 });
+                }
+
+                if (url.endsWith('/images/favicon.webp')) {
+                    return new Response('missing', { status: 404 });
+                }
+
+                return originalFetch(input, init);
+            };
+
+            try {
+                const res = await app.request('/', { method: 'GET' }, env);
+                expect(res.status).toBe(200);
+                expect(res.headers.get('content-type')).toBe('image/webp');
+            } finally {
+                globalThis.fetch = originalFetch;
+            }
+        });
     });
 
     describe('GET /original - Get original favicon', () => {
