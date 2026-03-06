@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet";
 import { useSiteConfig } from "../hooks/useSiteConfig";
+import { stripImageUrlMetadata } from "../utils/image-upload";
 
 interface SiteMetaProps {
     title?: string;
@@ -17,7 +18,7 @@ export function SiteMeta({ title, description, image, children }: SiteMetaProps)
         : siteConfig.name;
 
     const pageDescription = description || siteConfig.description;
-    const pageImage = image || siteConfig.avatar;
+    const pageImage = stripImageUrlMetadata(image || siteConfig.avatar);
 
     return (
         <>

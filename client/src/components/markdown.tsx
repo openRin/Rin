@@ -19,6 +19,7 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 import { drawBlurhashToCanvas } from "../utils/blurhash";
 import { useColorMode } from "../utils/darkModeUtils";
+import { parseImageUrlMetadata } from "../utils/image-upload";
 
 
 const countNewlinesBeforeNode = (text: string, offset: number) => {
@@ -47,17 +48,9 @@ const isMarkdownImageLinkAtEnd = (text: string) => {
   return false;
 };
 
-const getBlurhashFromTitle = (title?: string | null) => {
-  if (!title?.startsWith("blurhash:")) {
-    return undefined;
-  }
-  return title.slice("blurhash:".length).trim() || undefined;
-};
-
 function MarkdownImage({
   src,
   alt,
-  title,
   show,
   rounded,
   scale,
@@ -65,7 +58,6 @@ function MarkdownImage({
 }: {
   src?: string;
   alt?: string;
-  title?: string | null;
   show: (src?: string) => void;
   rounded: boolean;
   scale: string;
@@ -73,7 +65,7 @@ function MarkdownImage({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loaded, setLoaded] = useState(false);
-  const blurhash = getBlurhashFromTitle(title);
+  const { src: cleanSrc, blurhash } = parseImageUrlMetadata(src);
   const roundedClass = rounded ? "rounded-xl" : "";
 
   useEffect(() => {
@@ -104,10 +96,10 @@ function MarkdownImage({
         />
       ) : null}
       <img
-        src={src}
+        src={cleanSrc}
         alt={alt}
         onClick={() => {
-          show(src);
+          show(cleanSrc);
         }}
         onLoad={() => setLoaded(true)}
         onError={() => setLoaded(true)}
@@ -154,7 +146,6 @@ export function Markdown({ content }: { content: string }) {
             <MarkdownImage
               src={src}
               alt={props.alt}
-              title={props.title}
               show={show}
               rounded={rounded}
               scale={scale}

@@ -19,6 +19,16 @@ import { Button } from "../components/button";
 import { Tips } from "../components/tips";
 import mermaid from "mermaid";
 import { AdjacentSection } from "../components/adjacent_feed.tsx";
+import { stripImageUrlMetadata } from "../utils/image-upload";
+
+function extractFirstMarkdownImageUrl(content: string) {
+  const match = /!\[.*?\]\((\S+?)(?:\s+"[^"]*")?\)/.exec(content);
+  if (!match) {
+    return undefined;
+  }
+
+  return stripImageUrlMetadata(match[1]);
+}
 
 export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Element, clean: (id: string) => void }) {
   const { t } = useTranslation();
@@ -90,11 +100,9 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
           setTimeout(() => {
             setFeed(data as any);
             setTop(data.top || 0);
-            // Extract head image
-            const img_reg = /!\[.*?\]\((.*?)\)/;
-            const img_match = img_reg.exec(data.content);
-            if (img_match) {
-              setHeadImage(img_match[1]);
+            const headImageUrl = extractFirstMarkdownImageUrl(data.content);
+            if (headImageUrl) {
+              setHeadImage(headImageUrl);
             }
             clean(id);
           }, 0);

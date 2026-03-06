@@ -12,11 +12,42 @@ export function isImageFile(file: File) {
   return file.type.startsWith("image/");
 }
 
+export function attachBlurhashToImageUrl(url: string, blurhash?: string) {
+  if (!blurhash) {
+    return url;
+  }
+
+  const [baseUrl, fragment = ""] = url.split("#", 2);
+  const params = new URLSearchParams(fragment);
+  params.set("blurhash", blurhash);
+  return `${baseUrl}#${params.toString()}`;
+}
+
+export function parseImageUrlMetadata(url?: string | null) {
+  if (!url) {
+    return {
+      src: "",
+      blurhash: undefined as string | undefined,
+    };
+  }
+
+  const [src, fragment = ""] = url.split("#", 2);
+  const params = new URLSearchParams(fragment);
+
+  return {
+    src,
+    blurhash: params.get("blurhash") || undefined,
+  };
+}
+
+export function stripImageUrlMetadata(url?: string | null) {
+  return parseImageUrlMetadata(url).src;
+}
+
 export function buildMarkdownImage(fileName: string, url: string, blurhash?: string) {
   const safeAlt = fileName.replace(/[[\]]/g, "");
   const safeUrl = url.replace(/\s/g, "%20");
-  const title = blurhash ? ` "blurhash:${blurhash}"` : "";
-  return `![${safeAlt}](${safeUrl}${title})\n`;
+  return `![${safeAlt}](${attachBlurhashToImageUrl(safeUrl, blurhash)})\n`;
 }
 
 async function loadImage(file: File) {
