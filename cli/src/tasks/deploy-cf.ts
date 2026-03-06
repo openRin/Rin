@@ -14,6 +14,10 @@ function env(name: string, defaultValue?: string, required = false) {
 
 const renv = (name: string, defaultValue?: string) => env(name, defaultValue, true)!;
 
+function isQueueAlreadyPresentError(stderr: string) {
+  return stderr.includes("already exists") || stderr.includes("already taken") || stderr.includes("[code: 11009]");
+}
+
 async function buildClient() {
   const distIndex = Bun.file("./dist/client/index.html");
   if (await distIndex.exists()) {
@@ -145,7 +149,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   }
 
   const queueCreate = await $`${bunExec} x wrangler queues create ${aiSummaryQueueName}`.quiet().nothrow();
-  if (queueCreate.exitCode !== 0 && !queueCreate.stderr.toString().includes("already exists")) {
+  if (queueCreate.exitCode !== 0 && !isQueueAlreadyPresentError(queueCreate.stderr.toString())) {
     console.error(`Failed to create Queue "${aiSummaryQueueName}"`);
     console.error(stripIndent(queueCreate.stdout.toString()));
     console.error(stripIndent(queueCreate.stderr.toString()));
