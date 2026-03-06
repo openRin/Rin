@@ -37,7 +37,11 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
       if (!editorInstance) return;
       editorInstance.executeEdits(undefined, [{
         range,
-        text: buildMarkdownImage(file.name, result.url, result.blurhash),
+        text: buildMarkdownImage(file.name, result.url, {
+          blurhash: result.blurhash,
+          width: result.width,
+          height: result.height,
+        }),
       }]);
     } catch (error) {
       console.error(error);
@@ -215,7 +219,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           </div>
         </div>
         <div
-          className={"min-h-0 overflow-y-auto rounded-none border-0 bg-w px-4 py-4 sm:rounded-2xl sm:border sm:border-black/10 sm:px-5 dark:sm:border-white/10 " + (preview === 'edit' ? "hidden" : "")}
+          className={"min-h-0 overflow-y-auto rounded-none border-0 bg-w px-4 py-4 border-t sm:border-none" + (preview === 'edit' ? "hidden" : "")}
           style={{ height: height }}
         >
           <Markdown content={content ? content : placeholder} />

@@ -6,20 +6,45 @@ export const DEFAULT_IMAGE_MAX_FILE_SIZE = 5 * 1024 * 1024;
 export type UploadedImageResult = {
   url: string;
   blurhash?: string;
+  width?: number;
+  height?: number;
+};
+
+type ImageMetadata = {
+  blurhash?: string;
+  width?: number;
+  height?: number;
 };
 
 export function isImageFile(file: File) {
   return file.type.startsWith("image/");
 }
 
-export function attachBlurhashToImageUrl(url: string, blurhash?: string) {
-  if (!blurhash) {
+function toPositiveInteger(value?: string | null) {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+export function attachImageMetadataToUrl(url: string, metadata: ImageMetadata = {}) {
+  const { blurhash, width, height } = metadata;
+  if (!blurhash && !width && !height) {
     return url;
   }
 
   const [baseUrl, fragment = ""] = url.split("#", 2);
   const params = new URLSearchParams(fragment);
-  params.set("blurhash", blurhash);
+  if (blurhash) {
+    params.set("blurhash", blurhash);
+  }
+  if (width) {
+    params.set("width", String(width));
+  }
+  if (height) {
+    params.set("height", String(height));
+  }
   return `${baseUrl}#${params.toString()}`;
 }
 
@@ -37,6 +62,8 @@ export function parseImageUrlMetadata(url?: string | null) {
   return {
     src,
     blurhash: params.get("blurhash") || undefined,
+    width: toPositiveInteger(params.get("width")),
+    height: toPositiveInteger(params.get("height")),
   };
 }
 
@@ -44,10 +71,10 @@ export function stripImageUrlMetadata(url?: string | null) {
   return parseImageUrlMetadata(url).src;
 }
 
-export function buildMarkdownImage(fileName: string, url: string, blurhash?: string) {
+export function buildMarkdownImage(fileName: string, url: string, metadata: ImageMetadata = {}) {
   const safeAlt = fileName.replace(/[[\]]/g, "");
   const safeUrl = url.replace(/\s/g, "%20");
-  return `![${safeAlt}](${attachBlurhashToImageUrl(safeUrl, blurhash)})\n`;
+  return `![${safeAlt}](${attachImageMetadataToUrl(safeUrl, metadata)})\n`;
 }
 
 async function loadImage(file: File) {
@@ -66,15 +93,15 @@ async function loadImage(file: File) {
   }
 }
 
-export async function generateImageBlurhash(file: File) {
+export async function generateImageMetadata(file: File) {
   if (!isImageFile(file)) {
-    return undefined;
+    return {};
   }
 
   const image = await loadImage(file);
   const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
   if (!longestSide) {
-    return undefined;
+    return {};
   }
 
   const scale = Math.min(1, 48 / longestSide);
@@ -85,18 +112,22 @@ export async function generateImageBlurhash(file: File) {
   canvas.height = height;
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) {
-    return undefined;
+    return {};
   }
 
   context.drawImage(image, 0, 0, width, height);
   const imageData = context.getImageData(0, 0, width, height);
-  return encodeBlurhash(imageData.data, width, height, 4, 3);
+  return {
+    blurhash: encodeBlurhash(imageData.data, width, height, 4, 3),
+    width: image.naturalWidth,
+    height: image.naturalHeight,
+  };
 }
 
 export async function uploadImageFile(file: File): Promise<UploadedImageResult> {
-  const [uploadResult, blurhashResult] = await Promise.allSettled([
+  const [uploadResult, metadataResult] = await Promise.allSettled([
     client.storage.upload(file, file.name),
-    generateImageBlurhash(file),
+    generateImageMetadata(file),
   ]);
 
   if (uploadResult.status === "rejected") {
@@ -121,6 +152,6 @@ export async function uploadImageFile(file: File): Promise<UploadedImageResult> 
 
   return {
     url,
-    blurhash: blurhashResult.status === "fulfilled" ? blurhashResult.value : undefined,
+    ...(metadataResult.status === "fulfilled" ? metadataResult.value : {}),
   };
 }

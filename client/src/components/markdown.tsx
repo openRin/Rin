@@ -65,11 +65,14 @@ function MarkdownImage({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loaded, setLoaded] = useState(false);
-  const { src: cleanSrc, blurhash } = parseImageUrlMetadata(src);
+  const [failed, setFailed] = useState(false);
+  const { src: cleanSrc, blurhash, width, height } = parseImageUrlMetadata(src);
   const roundedClass = rounded ? "rounded-xl" : "";
+  const aspectRatio = width && height ? `${width} / ${height}` : undefined;
 
   useEffect(() => {
     setLoaded(false);
+    setFailed(false);
   }, [src]);
 
   useEffect(() => {
@@ -86,7 +89,7 @@ function MarkdownImage({
   return (
     <span
       className={`relative inline-block max-w-full overflow-hidden ${roundedClass}`}
-      style={{ zoom: scale }}
+      style={{ zoom: scale, aspectRatio }}
     >
       {blurhash && !loaded ? (
         <canvas
@@ -98,13 +101,21 @@ function MarkdownImage({
       <img
         src={cleanSrc}
         alt={alt}
+        width={width}
+        height={height}
         onClick={() => {
           show(cleanSrc);
         }}
-        onLoad={() => setLoaded(true)}
-        onError={() => setLoaded(true)}
+        onLoad={() => {
+          setLoaded(true);
+          setFailed(false);
+        }}
+        onError={() => {
+          setLoaded(false);
+          setFailed(true);
+        }}
         className={`mx-auto max-w-full cursor-zoom-in transition-opacity ${roundedClass} ${className || ""} ${
-          blurhash && !loaded ? "opacity-0" : "opacity-100"
+          blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"
         }`}
       />
     </span>
@@ -179,7 +190,7 @@ export function Markdown({ content }: { content: string }) {
           const isCodeBlock = curContent.trimStart().startsWith("```");
 
           const codeBlockStyle = {
-            fontFamily: '"Fira Code", monospace',
+            fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
             fontSize: "14px",
             fontVariantLigatures: "normal",
             WebkitFontFeatureSettings: '"liga" 1',

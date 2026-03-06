@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import Modal from 'react-modal'
+import 'remixicon/fonts/remixicon.css'
 import App from './App'
 import './index.css'
 import './components.css'
