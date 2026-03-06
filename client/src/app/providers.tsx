@@ -18,7 +18,7 @@ export function AppProviders({
     <ClientConfigContext.Provider value={config}>
       <ProfileContext.Provider value={profile}>
         <Helmet>
-          <link rel="icon" href="/favicon" />
+          <link rel="icon" href="/favicon.ico" />
         </Helmet>
         {children}
       </ProfileContext.Provider>

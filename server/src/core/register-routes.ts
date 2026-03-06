@@ -27,4 +27,5 @@ export function registerRoutes(app: RinApp) {
   app.route("/config", ConfigService());
   app.route("/", RSSService());
   app.route("/favicon", FaviconService());
+  app.route("/favicon.ico", FaviconService());
 }
