@@ -39,6 +39,23 @@ export interface SettingsConfigResponse {
   serverConfig: ConfigResponse;
 }
 
+export interface ConfigHealthItem {
+  id: string;
+  title: string;
+  status: "success" | "warning" | "danger";
+  configured: boolean;
+  impact: string;
+  summary: string;
+  suggestion?: string;
+  details?: string[];
+}
+
+export interface ConfigHealthResponse {
+  generatedAt: string;
+  summary: Record<"success" | "warning" | "danger", number>;
+  items: ConfigHealthItem[];
+}
+
 // Re-export for external use
 export type {
   ApiResponse,
@@ -68,6 +85,7 @@ export type {
   LoginRequest,
   LoginResponse,
 } from "@rin/api";
+
 
 /**
  * HTTP client for making API requests
@@ -390,6 +408,11 @@ class ConfigAPI {
   // DELETE /api/config/cache
   async clearCache(): Promise<ApiResponse<void>> {
     return this.http.delete<void>("/api/config/cache");
+  }
+
+  // GET /api/config/health
+  async getHealth(): Promise<ApiResponse<ConfigHealthResponse>> {
+    return this.http.get<ConfigHealthResponse>("/api/config/health");
   }
 
   // POST /api/config/test-ai - Test AI model configuration

@@ -2,8 +2,6 @@ import { $ } from "bun";
 import { readdir } from "node:fs/promises";
 import stripIndent from "strip-indent";
 import { fixTopField, getMigrationVersion, isInfoExist, updateMigrationVersion } from "../lib/db-migration";
-import { getWranglerEnv } from "../lib/wrangler";
-
 const bunExec = process.execPath;
 
 function env(name: string, defaultValue?: string, required = false) {
@@ -41,6 +39,12 @@ async function getR2BucketInfo(r2BucketName: string) {
 }
 
 export async function runCloudflareDeploy(target: "all" | "server" | "client" = "all") {
+  if (target === "client") {
+    await buildClient();
+    await $`${bunExec} x wrangler pages deploy dist/client`;
+    return;
+  }
+
   const dbName = renv("DB_NAME", "rin");
   const workerName = renv("WORKER_NAME", "rin-server");
   const r2BucketName = env("R2_BUCKET_NAME", "");
@@ -120,7 +124,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
     `),
   );
 
-  const { exitCode, stderr, stdout } = await $`${{ raw: `XDG_CONFIG_HOME=${getWranglerEnv().XDG_CONFIG_HOME}` }} ${bunExec} x wrangler d1 create ${dbName}`.quiet().nothrow();
+  const { exitCode, stderr, stdout } = await $`${bunExec} x wrangler d1 create ${dbName}`.quiet().nothrow();
   if (exitCode !== 0 && !stderr.toString().includes("already exists")) {
     console.error(`Failed to create D1 "${dbName}"`);
     console.error(stripIndent(stdout.toString()));
@@ -128,7 +132,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
     process.exit(1);
   }
 
-  const listJson = (JSON.parse(await $`${{ raw: `XDG_CONFIG_HOME=${getWranglerEnv().XDG_CONFIG_HOME}` }} ${bunExec} x wrangler d1 list --json`.quiet().text()) as Array<{ name: string; uuid: string }>).find(
+  const listJson = (JSON.parse(await $`${bunExec} x wrangler d1 list --json`.quiet().text()) as Array<{ name: string; uuid: string }>).find(
     (item) => item.name === dbName,
   );
   if (listJson) {
@@ -154,7 +158,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
     .sort();
 
   for (const file of sqlFiles) {
-    await $`${{ raw: `XDG_CONFIG_HOME=${getWranglerEnv().XDG_CONFIG_HOME}` }} ${bunExec} x wrangler d1 execute ${dbName} --remote --file ./server/sql/${file} -y`;
+    await $`${bunExec} x wrangler d1 execute ${dbName} --remote --file ./server/sql/${file} -y`;
     console.log(`Migrated ${file}`);
   }
   if (sqlFiles.length > 0) {
@@ -162,15 +166,10 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   }
   await fixTopField("remote", dbName, infoExists);
 
-  if (target === "client") {
-    await $`${{ raw: `XDG_CONFIG_HOME=${getWranglerEnv().XDG_CONFIG_HOME}` }} ${bunExec} x wrangler pages deploy dist/client`;
-    return;
-  }
-
   if (target === "server") {
-    await $`${{ raw: `XDG_CONFIG_HOME=${getWranglerEnv().XDG_CONFIG_HOME}` }} ${bunExec} x wrangler deploy`;
+    await $`${bunExec} x wrangler deploy`;
     return;
   }
 
-  await $`${{ raw: `XDG_CONFIG_HOME=${getWranglerEnv().XDG_CONFIG_HOME}` }} ${bunExec} x wrangler deploy`;
+  await $`${bunExec} x wrangler deploy`;
 }

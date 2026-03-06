@@ -151,8 +151,8 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="mx-4 my-2 flex flex-col gap-3 md:mx-0 md:my-0">
-      <FlatInset className="flex flex-wrap items-center gap-2 p-2">
+    <div className="flex flex-col gap-0 sm:gap-3">
+      <FlatInset className="flex flex-wrap items-center gap-2 border-0 border-b border-black/10 rounded-none bg-transparent p-3 dark:border-white/10 sm:rounded-2xl sm:border sm:bg-secondary sm:p-2">
         <FlatTabButton active={preview === 'edit'} onClick={() => setPreview('edit')}> {t("edit")} </FlatTabButton>
         <FlatTabButton active={preview === 'preview'} onClick={() => setPreview('preview')}> {t("preview")} </FlatTabButton>
         <FlatTabButton active={preview === 'comparison'} onClick={() => setPreview('comparison')}> {t("comparison")} </FlatTabButton>
@@ -165,10 +165,10 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           </div>
         }
       </FlatInset>
-      <div className={`grid grid-cols-1 gap-4 ${preview === 'comparison' ? "lg:grid-cols-2" : ""}`}>
+      <div className={`grid grid-cols-1 gap-0 sm:gap-4 ${preview === 'comparison' ? "lg:grid-cols-2" : ""}`}>
         <div className={"flex min-w-0 flex-col " + (preview === 'preview' ? "hidden" : "")}>
           <div
-            className={"relative min-h-0 overflow-hidden rounded-2xl border border-black/10 bg-w dark:border-white/10"}
+            className={"relative min-h-0 overflow-hidden rounded-none border-0 bg-w sm:rounded-2xl sm:border sm:border-black/10 dark:sm:border-white/10"}
             onDrop={(e) => {
               e.preventDefault();
               const editor = editorRef.current;
@@ -220,7 +220,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           </div>
         </div>
         <div
-          className={"min-h-0 overflow-y-auto rounded-2xl border border-black/10 bg-w px-5 py-4 dark:border-white/10 " + (preview === 'edit' ? "hidden" : "")}
+          className={"min-h-0 overflow-y-auto rounded-none border-0 bg-w px-4 py-4 sm:rounded-2xl sm:border sm:border-black/10 sm:px-5 dark:sm:border-white/10 " + (preview === 'edit' ? "hidden" : "")}
           style={{ height: height }}
         >
           <Markdown content={content ? content : placeholder} />

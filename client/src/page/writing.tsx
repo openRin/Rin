@@ -6,7 +6,7 @@ import {useTranslation} from "react-i18next";
 import Loading from 'react-loading';
 import {ShowAlertType, useAlert} from '../components/dialog';
 import {Checkbox, Input} from "../components/input";
-import { DateTimeInput, FlatInset, FlatMetaRow, FlatPanel } from "@rin/ui";
+import { DateTimeInput, FlatMetaRow, FlatPanel } from "@rin/ui";
 import { client } from "../app/runtime";
 import {Cache} from '../utils/cache';
 import {useSiteConfig} from "../hooks/useSiteConfig";
@@ -287,9 +287,9 @@ export function WritingPage({ id }: { id?: number }) {
             />
           </div>
 
-          <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(18rem,2fr)]">
+          <div className="mt-5 grid gap-2 sm:gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(18rem,2fr)]">
             <FlatMetaRow
-              className="cursor-pointer"
+              className="cursor-pointer rounded-none border-0 bg-transparent px-0 py-2 sm:rounded-2xl sm:border sm:bg-secondary sm:px-4 sm:py-3"
               onClick={() => setDraft(!draft)}
             >
               <p>{t('visible.self_only')}</p>
@@ -301,7 +301,7 @@ export function WritingPage({ id }: { id?: number }) {
               />
             </FlatMetaRow>
             <FlatMetaRow
-              className="cursor-pointer"
+              className="cursor-pointer rounded-none border-0 bg-transparent px-0 py-2 sm:rounded-2xl sm:border sm:bg-secondary sm:px-4 sm:py-3"
               onClick={() => setListed(!listed)}
             >
               <p>{t('listed')}</p>
@@ -312,7 +312,7 @@ export function WritingPage({ id }: { id?: number }) {
                 placeholder={t('listed')}
               />
             </FlatMetaRow>
-            <FlatMetaRow className="gap-3 xl:col-span-1">
+            <FlatMetaRow className="gap-3 rounded-none border-0 bg-transparent px-0 py-2 sm:rounded-2xl sm:border sm:bg-secondary sm:px-4 sm:py-3 xl:col-span-1">
               <p className="mr-2 whitespace-nowrap">
                 {t('created_at')}
               </p>
@@ -333,13 +333,10 @@ export function WritingPage({ id }: { id?: number }) {
         <meta property="og:type" content="article" />
         <meta property="og:url" content={document.URL} />
       </Helmet>
-      <div className="mt-2 flex flex-col gap-6 t-primary">
-        {MetaInput({ className: "p-5 md:p-6" })}
+      <div className="mt-2 flex flex-col gap-4 t-primary sm:gap-6">
+        {MetaInput({ className: "p-4 sm:p-5 md:p-6" })}
 
-        <FlatPanel className="overflow-hidden p-3 md:p-4">
-          <FlatInset className="mb-3 px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">
-            <span>{t("edit")} / {t("preview")} / {t("comparison")}</span>
-          </FlatInset>
+        <FlatPanel className="overflow-hidden p-0">
           <MarkdownEditor content={content} setContent={setContent} height='680px' />
         </FlatPanel>
       </div>

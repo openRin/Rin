@@ -5,6 +5,7 @@
   },
   "admin": {
     "back_to_site": "Back to site",
+    "health_description": "Review required configuration, missing integrations, and risks that can affect runtime behavior.",
     "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
     "title": "Admin",
     "writing_description": "Write, edit, and publish content from the private management workspace."
@@ -355,5 +356,21 @@
       "update_failed": "Update failed",
       "network": "Network error, please try again"
     }
+  },
+  "health": {
+    "generated_at": "Last checked: {{date}}",
+    "load_failed": "Health check failed",
+    "loading": "Checking runtime and configuration...",
+    "status": {
+      "danger": "Action needed",
+      "success": "Ready",
+      "warning": "Needs review"
+    },
+    "summary": {
+      "danger": "Critical issues",
+      "success": "Ready items",
+      "warning": "Items to review"
+    },
+    "title": "Health Check"
   }
 }

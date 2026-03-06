@@ -3,6 +3,13 @@
     "notfound": "將文章別名設定為 about 可以創建關於頁面",
     "title": "關於"
   },
+  "admin": {
+    "back_to_site": "返回站點",
+    "health_description": "檢查關鍵配置、缺失的整合項，以及可能影響服務正常運行的風險。",
+    "settings_description": "在統一的後台空間中管理站點行為、整合配置與發佈規則。",
+    "title": "後台管理",
+    "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。"
+  },
   "ai_summary": {
     "title": "AI 總結"
   },
@@ -349,5 +356,21 @@
       "update_failed": "更新失敗",
       "network": "網路錯誤，請重試"
     }
+  },
+  "health": {
+    "generated_at": "最近檢查時間：{{date}}",
+    "load_failed": "健康檢查載入失敗",
+    "loading": "正在檢查運行環境與配置...",
+    "status": {
+      "danger": "需要處理",
+      "success": "已就緒",
+      "warning": "需要關注"
+    },
+    "summary": {
+      "danger": "嚴重問題",
+      "success": "已就緒項目",
+      "warning": "待檢查項目"
+    },
+    "title": "健康檢查"
   }
 }

@@ -3,6 +3,13 @@
     "notfound": "About ページを作成するには、記事のエイリアスを about に設定します",
     "title": "概要"
   },
+  "admin": {
+    "back_to_site": "サイトに戻る",
+    "health_description": "必須設定、未構成の連携、動作に影響するリスクを確認します。",
+    "settings_description": "サイトの挙動、連携設定、公開ルールを一か所で管理します。",
+    "title": "管理画面",
+    "writing_description": "非公開の管理ワークスペースから記事を作成、編集、公開します。"
+  },
   "ai_summary": {
     "title": "AI 要約"
   },
@@ -317,5 +324,21 @@
       "update_failed": "更新に失敗しました",
       "network": "ネットワークエラー、もう一度お試しください"
     }
+  },
+  "health": {
+    "generated_at": "最終確認: {{date}}",
+    "load_failed": "ヘルスチェックの読み込みに失敗しました",
+    "loading": "実行環境と設定を確認しています...",
+    "status": {
+      "danger": "対応が必要",
+      "success": "準備完了",
+      "warning": "確認が必要"
+    },
+    "summary": {
+      "danger": "重大な問題",
+      "success": "準備完了の項目",
+      "warning": "確認すべき項目"
+    },
+    "title": "ヘルスチェック"
   }
 }

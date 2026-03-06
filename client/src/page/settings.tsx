@@ -1,11 +1,13 @@
 import { SettingsBadge, SettingsCard, SettingsCardHeader, SettingsCardRow } from "@rin/ui";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import ReactLoading from "react-loading";
 import Modal from "react-modal";
 import { client, oauth_url } from "../app/runtime";
 import { Button } from "../components/button";
 import { useAlert } from "../components/dialog.tsx";
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { AISummarySettings } from "./settings-ai";
 import { ItemButton, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
 import {
@@ -25,6 +27,7 @@ import "../utils/thumb.css";
 
 export function Settings() {
   const { t } = useTranslation();
+  const siteConfig = useSiteConfig();
   const [isOpen, setIsOpen] = useState(false);
   const [msg, setMsg] = useState("");
   const [msgList, setMsgList] = useState<{ title: string; reason: string }[]>([]);
@@ -107,6 +110,9 @@ export function Settings() {
 
   return (
     <div className="flex w-full flex-col">
+      <Helmet>
+        <title>{`${t("settings.title")} - ${siteConfig.name}`}</title>
+      </Helmet>
       <main className="w-full rounded-2xl bg-w" aria-label={t("main_content")}>
         <div className="flex flex-col items-start space-y-2">
           {(loading || saving) && <ReactLoading width="1em" height="1em" type="spin" color="#FC466B" />}

@@ -5,6 +5,7 @@
   },
   "admin": {
     "back_to_site": "返回站点",
+    "health_description": "检查关键配置、缺失的集成项，以及可能影响服务正常运行的风险。",
     "settings_description": "在统一的后台空间中管理站点行为、集成配置和发布规则。",
     "title": "后台管理",
     "writing_description": "在独立的管理工作区中编写、编辑和发布内容。"
@@ -355,5 +356,21 @@
       "update_failed": "更新失败",
       "network": "网络错误，请重试"
     }
+  },
+  "health": {
+    "generated_at": "最近检查时间：{{date}}",
+    "load_failed": "健康检查加载失败",
+    "loading": "正在检查运行环境与配置...",
+    "status": {
+      "danger": "需要处理",
+      "success": "已就绪",
+      "warning": "需要关注"
+    },
+    "summary": {
+      "danger": "严重问题",
+      "success": "已就绪项目",
+      "warning": "待检查项目"
+    },
+    "title": "健康检查"
   }
 }

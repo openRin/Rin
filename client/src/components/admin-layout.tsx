@@ -62,6 +62,7 @@ export function AdminLayout({
               <div className="mt-3 flex flex-col gap-2">
                 <AdminNavItem href="/admin/writing" icon="ri-quill-pen-line" label={t("writing")} />
                 <AdminNavItem href="/admin/settings" icon="ri-settings-3-line" label={t("settings.title")} />
+                <AdminNavItem href="/admin/health" icon="ri-heart-pulse-line" label={t("health.title")} />
               </div>
             </div>
           </div>

@@ -97,6 +97,34 @@ describe("ConfigService", () => {
         });
     });
 
+    describe("GET /health - Health check", () => {
+        it("should require authentication to read health check", async () => {
+            const res = await app.request("/health", {
+                method: "GET",
+            });
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should return health summary for admin", async () => {
+            const res = await app.request("/health", {
+                method: "GET",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as {
+                items: Array<{ id: string; status: string }>;
+                summary: Record<string, number>;
+            };
+            expect(data.items.length).toBeGreaterThan(0);
+            expect(data.items.some((item) => item.id === "auth-runtime" && item.status === "success")).toBe(true);
+            expect(typeof data.summary.success).toBe("number");
+        });
+    });
+
     describe("POST /:type - Update config", () => {
         it("should require authentication to update config", async () => {
             const res = await app.request("/client", {

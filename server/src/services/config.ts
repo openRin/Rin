@@ -10,6 +10,7 @@ import {
     persistRegularConfig,
     splitConfigPayload,
 } from "./config-helpers";
+import { buildHealthCheckResponse } from "./config-health";
 
 export function ConfigService(): Hono {
     const app = new Hono();
@@ -60,6 +61,22 @@ export function ConfigService(): Hono {
         const env = c.get('env');
 
         return c.json(await buildCombinedConfigResponse(db, clientConfig, serverConfig, env));
+    });
+
+    // GET /config/health
+    app.get('/health', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        const db = c.get('db');
+        const serverConfig = c.get('serverConfig');
+        const clientConfig = c.get('clientConfig');
+        const env = c.get('env');
+
+        return c.json(await buildHealthCheckResponse(db, clientConfig, serverConfig, env));
     });
 
     // GET /config/:type

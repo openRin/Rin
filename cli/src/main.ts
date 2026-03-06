@@ -58,5 +58,6 @@ export async function runCli(rawArgs: string[]) {
     default:
       logger.error(`Unknown command: ${command}`);
       printHelp();
+      throw new Error(`Unknown command: ${command}`);
   }
 }

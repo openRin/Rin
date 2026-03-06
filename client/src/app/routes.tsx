@@ -13,6 +13,7 @@ import { ErrorPage } from "../page/error";
 import { FeedPage, TOCHeader } from "../page/feed";
 import { FeedsPage } from "../page/feeds";
 import { FriendsPage } from "../page/friends";
+import { HealthPage } from "../page/health";
 import { HashtagPage } from "../page/hashtag";
 import { HashtagsPage } from "../page/hashtags";
 import { LoginPage } from "../page/login";
@@ -65,6 +66,10 @@ export function AppRoutes() {
 
       <AdminRoute path="/admin/settings" requirePermission title={t("settings.title")} description={t("admin.settings_description")}>
         <Settings />
+      </AdminRoute>
+
+      <AdminRoute path="/admin/health" requirePermission title={t("health.title")} description={t("admin.health_description")}>
+        <HealthPage />
       </AdminRoute>
 
       <AdminRoute path="/admin/writing" requirePermission title={t("writing")} description={t("admin.writing_description")}>
