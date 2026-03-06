@@ -5,11 +5,38 @@
   },
   "admin": {
     "back_to_site": "Back to site",
+    "compat_tasks_description": "Run compatibility jobs in bulk to backfill missing AI summaries and image blurhash metadata for older posts.",
     "health_description": "Review required configuration, missing integrations, and risks that can affect runtime behavior.",
     "queue_status_description": "Inspect AI summary queue progress, recent task results, and failures.",
     "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
     "title": "Admin",
     "writing_description": "Write, edit, and publish content from the private management workspace."
+  },
+  "compat_tasks": {
+    "title": "Compatibility Tasks",
+    "loading": "Loading compatibility task status...",
+    "generated_at": "Last updated: {{date}}",
+    "running": "Running",
+    "yes": "Yes",
+    "no": "No",
+    "ai_summary": {
+      "title": "Backfill AI Summaries",
+      "description": "Scan existing published posts and enqueue AI summary generation for entries that do not have one yet.",
+      "eligible": "{{count}} posts pending",
+      "enabled": "AI summary enabled: {{value}}",
+      "queue_configured": "Queue configured: {{value}}",
+      "run": "Start backfill",
+      "result": "Queued {{queued}} AI summary tasks and skipped {{skipped}} posts."
+    },
+    "blurhash": {
+      "title": "Backfill Image Blurhash",
+      "description": "Scan existing posts and write missing blurhash and image size metadata back into markdown image fragments.",
+      "eligible": "{{count}} posts pending",
+      "note": "This task runs in the current browser and processes images one post at a time.",
+      "run": "Start backfill",
+      "progress": "Processed {{processed}} / {{total}}, updated {{updated}} posts, failed {{failed}} posts.",
+      "result": "Blurhash backfill finished: scanned {{total}} posts, updated {{updated}}, failed {{failed}}."
+    }
   },
   "ai_summary": {
     "message": {

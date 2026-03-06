@@ -12,6 +12,12 @@ import {
 } from "./config-helpers";
 import { buildHealthCheckResponse } from "./config-health";
 import { buildQueueStatusResponse, deleteQueueStatusTask, retryQueueStatusTask } from "./config-queue-status";
+import {
+    applyBlurhashCompatUpdate,
+    buildCompatTasksResponse,
+    listBlurhashCompatCandidates,
+    runCompatAISummaryBackfill,
+} from "./config-compat-tasks";
 
 export function ConfigService(): Hono {
     const app = new Hono();
@@ -91,6 +97,67 @@ export function ConfigService(): Hono {
         const env = c.get('env');
 
         return c.json(await buildQueueStatusResponse(db, env));
+    });
+
+    app.get('/compat-tasks', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        return c.json(await buildCompatTasksResponse(c.get('db'), c.get('env')));
+    });
+
+    app.post('/compat-tasks/ai-summary', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        try {
+            return c.json(await runCompatAISummaryBackfill(c.get('db'), c.get('cache'), c.get('env')));
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return c.text(message, 400);
+        }
+    });
+
+    app.get('/compat-tasks/blurhash', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        return c.json(await listBlurhashCompatCandidates(c.get('db')));
+    });
+
+    app.post('/compat-tasks/blurhash/:id', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        const id = Number(c.req.param('id'));
+        if (!Number.isInteger(id) || id <= 0) {
+            return c.text('Invalid feed id', 400);
+        }
+
+        const body = await c.req.json() as { content?: string };
+        if (!body.content) {
+            return c.text('Content is required', 400);
+        }
+
+        try {
+            return c.json(await applyBlurhashCompatUpdate(c.get('db'), c.get('cache'), id, body.content));
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            const status = message === 'Feed not found' ? 404 : 400;
+            return c.text(message, status);
+        }
     });
 
     app.post('/queue-status/:id/retry', async (c: AppContext) => {

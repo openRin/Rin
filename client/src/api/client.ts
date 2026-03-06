@@ -91,6 +91,38 @@ export interface QueueTaskActionResponse {
   success: boolean;
 }
 
+export interface CompatTasksResponse {
+  generatedAt: string;
+  aiSummary: {
+    enabled: boolean;
+    queueConfigured: boolean;
+    eligible: number;
+  };
+  blurhash: {
+    eligible: number;
+  };
+}
+
+export interface CompatAISummaryActionResponse {
+  queued: number;
+  skipped: number;
+}
+
+export interface CompatBlurhashCandidate {
+  id: number;
+  title: string | null;
+  content: string;
+}
+
+export interface CompatBlurhashCandidatesResponse {
+  generatedAt: string;
+  items: CompatBlurhashCandidate[];
+}
+
+export interface CompatBlurhashApplyResponse {
+  updated: boolean;
+}
+
 // Re-export for external use
 export type {
   ApiResponse,
@@ -453,6 +485,22 @@ class ConfigAPI {
   // GET /api/config/queue-status
   async getQueueStatus(): Promise<ApiResponse<QueueStatusResponse>> {
     return this.http.get<QueueStatusResponse>("/api/config/queue-status");
+  }
+
+  async getCompatTasks(): Promise<ApiResponse<CompatTasksResponse>> {
+    return this.http.get<CompatTasksResponse>("/api/config/compat-tasks");
+  }
+
+  async runCompatAISummary(): Promise<ApiResponse<CompatAISummaryActionResponse>> {
+    return this.http.post<CompatAISummaryActionResponse>("/api/config/compat-tasks/ai-summary");
+  }
+
+  async getCompatBlurhashCandidates(): Promise<ApiResponse<CompatBlurhashCandidatesResponse>> {
+    return this.http.get<CompatBlurhashCandidatesResponse>("/api/config/compat-tasks/blurhash");
+  }
+
+  async applyCompatBlurhash(feedId: number, content: string): Promise<ApiResponse<CompatBlurhashApplyResponse>> {
+    return this.http.post<CompatBlurhashApplyResponse>(`/api/config/compat-tasks/blurhash/${feedId}`, { content });
   }
 
   async retryQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {

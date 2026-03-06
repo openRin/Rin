@@ -5,11 +5,38 @@
   },
   "admin": {
     "back_to_site": "サイトに戻る",
+    "compat_tasks_description": "過去記事向けの AI 要約と画像 blurhash メタデータを一括補完する互換タスクを実行します。",
     "health_description": "必須設定、未構成の連携、動作に影響するリスクを確認します。",
     "queue_status_description": "AI 要約キューの進行状況、最近のタスク結果、失敗内容を確認します。",
     "settings_description": "サイトの挙動、連携設定、公開ルールを一か所で管理します。",
     "title": "管理画面",
     "writing_description": "非公開の管理ワークスペースから記事を作成、編集、公開します。"
+  },
+  "compat_tasks": {
+    "title": "互換タスク",
+    "loading": "互換タスクの状態を読み込んでいます...",
+    "generated_at": "最終更新: {{date}}",
+    "running": "実行中",
+    "yes": "はい",
+    "no": "いいえ",
+    "ai_summary": {
+      "title": "AI 要約を補完",
+      "description": "既存の公開記事を走査し、まだ要約がない記事を再度キューに入れます。",
+      "eligible": "対象 {{count}} 件",
+      "enabled": "AI 要約の有効化: {{value}}",
+      "queue_configured": "キュー設定済み: {{value}}",
+      "run": "補完を開始",
+      "result": "{{queued}} 件をキューに追加し、{{skipped}} 件をスキップしました。"
+    },
+    "blurhash": {
+      "title": "画像 Blurhash を補完",
+      "description": "既存記事内の画像を走査し、欠けている blurhash と画像サイズ情報を markdown fragment に追記します。",
+      "eligible": "対象 {{count}} 件",
+      "note": "このタスクは現在のブラウザ内で実行され、記事ごとに画像を処理します。",
+      "run": "補完を開始",
+      "progress": "{{processed}} / {{total}} 件処理済み、更新 {{updated}} 件、失敗 {{failed}} 件。",
+      "result": "Blurhash 補完が完了しました。全 {{total}} 件を走査し、{{updated}} 件を更新、{{failed}} 件が失敗しました。"
+    }
   },
   "ai_summary": {
     "message": {

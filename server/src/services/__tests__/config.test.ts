@@ -159,6 +159,92 @@ describe("ConfigService", () => {
         });
     });
 
+    describe("Compatibility tasks", () => {
+        it("should return compatibility task counts for admin", async () => {
+            sqlite.exec(`
+                INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
+                VALUES
+                  (1, 'Needs AI', '', '', 'idle', '', 'content', 1, 0, 0, 1),
+                  (2, 'Needs Blurhash', '', 'summary', 'completed', '', '![img](https://example.com/a.png)', 1, 0, 0, 1)
+            `);
+
+            const res = await app.request("/compat-tasks", {
+                method: "GET",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as {
+                aiSummary: { eligible: number };
+                blurhash: { eligible: number };
+            };
+            expect(data.aiSummary.eligible).toBe(1);
+            expect(data.blurhash.eligible).toBe(1);
+        });
+
+        it("should queue AI summary backfill for eligible feeds", async () => {
+            let sendCalls = 0;
+            env.AI_TASK_QUEUE = {
+                send: async () => {
+                    sendCalls += 1;
+                },
+                sendBatch: async () => {},
+            } as unknown as Queue<any>;
+
+            sqlite.exec(`
+                INSERT INTO info (key, value) VALUES
+                ('ai_summary.enabled', 'true'),
+                ('ai_summary.provider', 'worker-ai'),
+                ('ai_summary.model', 'llama-3-8b');
+
+                INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
+                VALUES
+                  (1, 'Needs AI', '', '', 'idle', '', 'content', 1, 0, 0, 1),
+                  (2, 'Skip Draft', '', '', 'idle', '', 'content', 1, 1, 0, 1),
+                  (3, 'Skip Completed', '', 'done', 'completed', '', 'content', 1, 0, 0, 1)
+            `);
+
+            const res = await app.request("/compat-tasks/ai-summary", {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as { queued: number; skipped: number };
+            expect(data.queued).toBe(1);
+            expect(data.skipped).toBe(2);
+            expect(sendCalls).toBe(1);
+        });
+
+        it("should update blurhash metadata without resetting AI summary state", async () => {
+            sqlite.exec(`
+                INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
+                VALUES (1, 'Blurhash Feed', '', 'summary', 'completed', '', '![img](https://example.com/a.png)', 1, 0, 0, 1)
+            `);
+
+            const res = await app.request("/compat-tasks/blurhash/1", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    content: '![img](https://example.com/a.png#blurhash=test&width=100&height=50)',
+                }),
+            });
+
+            expect(res.status).toBe(200);
+            const row = sqlite.prepare("SELECT content, ai_summary, ai_summary_status FROM feeds WHERE id = 1").get() as any;
+            expect(row.content).toContain("#blurhash=test&width=100&height=50");
+            expect(row.ai_summary).toBe("summary");
+            expect(row.ai_summary_status).toBe("completed");
+        });
+    });
+
     describe("Queue status actions", () => {
         it("should retry a failed queue task", async () => {
             let sendCalls = 0;

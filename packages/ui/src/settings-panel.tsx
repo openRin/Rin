@@ -10,7 +10,7 @@ export function SettingsSectionTitle({
   return (
     <div className="pt-6 first:pt-0">
       {eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-theme/70">{eyebrow}</p> : null}
-      <h2 className="mt-1 text-sm font-semibold uppercase tracking-[0.18em] t-primary/80">{title}</h2>
+      <h2 className="mt-1 text-sm font-semibold uppercase tracking-[0.18em] text-neutral-700 dark:text-neutral-200">{title}</h2>
     </div>
   );
 }
