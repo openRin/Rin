@@ -2,16 +2,22 @@ import { WEBHOOK_URL_KEY } from "@rin/config";
 import { getAIConfig } from "../utils/db-config";
 
 type HealthStatus = "success" | "warning" | "danger";
+type HealthTextValues = Record<string, string | number | boolean>;
+
+export interface HealthText {
+  key: string;
+  values?: HealthTextValues;
+}
 
 export interface HealthCheckItem {
   id: string;
-  title: string;
+  title: HealthText;
   status: HealthStatus;
   configured: boolean;
-  impact: string;
-  summary: string;
-  suggestion?: string;
-  details?: string[];
+  impact: HealthText;
+  summary: HealthText;
+  suggestion?: HealthText;
+  details?: HealthText[];
 }
 
 export interface HealthCheckResponse {
@@ -29,6 +35,10 @@ const AI_PROVIDER_DEFAULT_URLS: Record<string, string> = {
 
 function createItem(item: HealthCheckItem): HealthCheckItem {
   return item;
+}
+
+function text(key: string, values?: HealthTextValues): HealthText {
+  return values ? { key, values } : { key };
 }
 
 export async function buildHealthCheckResponse(
@@ -65,21 +75,21 @@ export async function buildHealthCheckResponse(
       jwtReady
         ? {
             id: "auth-runtime",
-            title: "Authentication runtime",
+            title: text("health.items.auth_runtime.title"),
             status: "success",
             configured: true,
-            impact: "Authentication cookies and token verification work normally.",
-            summary: "JWT secret is configured.",
-            suggestion: "Rotate the secret carefully if you need to invalidate all existing sessions.",
+            impact: text("health.items.auth_runtime.success.impact"),
+            summary: text("health.items.auth_runtime.success.summary"),
+            suggestion: text("health.items.auth_runtime.success.suggestion"),
           }
         : {
             id: "auth-runtime",
-            title: "Authentication runtime",
+            title: text("health.items.auth_runtime.title"),
             status: "danger",
             configured: false,
-            impact: "Login and admin session verification can fail completely.",
-            summary: "JWT_SECRET is missing.",
-            suggestion: "Add JWT_SECRET to your Worker secrets before using any authenticated route.",
+            impact: text("health.items.auth_runtime.danger.impact"),
+            summary: text("health.items.auth_runtime.danger.summary"),
+            suggestion: text("health.items.auth_runtime.danger.suggestion"),
           },
     ),
   );
@@ -88,40 +98,48 @@ export async function buildHealthCheckResponse(
     items.push(
       createItem({
         id: "login-methods",
-        title: "Login entry",
+        title: text("health.items.login_methods.title"),
         status: "warning",
         configured: false,
-        impact: "Public login is disabled, so the admin UI cannot be entered through normal login flows.",
-        summary: "login.enabled is disabled.",
-        suggestion: "Enable login in settings if this instance needs interactive admin access.",
+        impact: text("health.items.login_methods.disabled.impact"),
+        summary: text("health.items.login_methods.disabled.summary"),
+        suggestion: text("health.items.login_methods.disabled.suggestion"),
       }),
     );
   } else if (!githubReady && !passwordReady) {
     items.push(
       createItem({
         id: "login-methods",
-        title: "Login entry",
+        title: text("health.items.login_methods.title"),
         status: "danger",
         configured: false,
-        impact: "Users can see the login entry but no working login method is configured.",
-        summary: "Neither GitHub OAuth nor password login is configured.",
-        suggestion: "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET or ADMIN_USERNAME/ADMIN_PASSWORD.",
+        impact: text("health.items.login_methods.missing.impact"),
+        summary: text("health.items.login_methods.missing.summary"),
+        suggestion: text("health.items.login_methods.missing.suggestion"),
       }),
     );
   } else {
     const details = [
-      `GitHub OAuth: ${githubReady ? "configured" : "missing"}`,
-      `Password login: ${passwordReady ? "configured" : "missing"}`,
+      githubReady
+        ? text("health.items.login_methods.details.github_configured")
+        : text("health.items.login_methods.details.github_missing"),
+      passwordReady
+        ? text("health.items.login_methods.details.password_configured")
+        : text("health.items.login_methods.details.password_missing"),
     ];
     items.push(
       createItem({
         id: "login-methods",
-        title: "Login entry",
+        title: text("health.items.login_methods.title"),
         status: githubReady && passwordReady ? "success" : "warning",
         configured: true,
-        impact: "Admin sign-in is available.",
-        summary: githubReady && passwordReady ? "Multiple login methods are configured." : "At least one login method is configured.",
-        suggestion: githubReady && passwordReady ? "No action required." : "Optional: configure another login method as a fallback.",
+        impact: text("health.items.login_methods.ready.impact"),
+        summary: githubReady && passwordReady
+          ? text("health.items.login_methods.ready.summary_multiple")
+          : text("health.items.login_methods.ready.summary_single"),
+        suggestion: githubReady && passwordReady
+          ? text("health.items.login_methods.ready.suggestion_none")
+          : text("health.items.login_methods.ready.suggestion_optional"),
         details,
       }),
     );
@@ -140,28 +158,32 @@ export async function buildHealthCheckResponse(
     items.push(
       createItem({
         id: "storage",
-        title: "Object storage",
+        title: text("health.items.storage.title"),
         status: hasAccessHost ? "success" : "warning",
         configured: true,
-        impact: "Uploads, favicon processing, and cached feed artifacts can use object storage.",
-        summary: hasAccessHost ? "Storage credentials are configured." : "Storage works, but S3_ACCESS_HOST is missing so public URLs fall back to the endpoint.",
-        suggestion: hasAccessHost ? "No action required." : "Set S3_ACCESS_HOST if you want stable public asset URLs or a custom asset domain.",
+        impact: text("health.items.storage.ready.impact"),
+        summary: hasAccessHost
+          ? text("health.items.storage.ready.summary")
+          : text("health.items.storage.ready.summary_missing_access_host"),
+        suggestion: hasAccessHost
+          ? text("health.items.common.no_action")
+          : text("health.items.storage.ready.suggestion_missing_access_host"),
       }),
     );
   } else {
     items.push(
       createItem({
         id: "storage",
-        title: "Object storage",
+        title: text("health.items.storage.title"),
         status: missingStorageKeys.length === requiredStorageKeys.length ? "warning" : "danger",
         configured: false,
-        impact: "Media upload, favicon generation, and pre-generated feed cache can fail or be unavailable.",
+        impact: text("health.items.storage.missing.impact"),
         summary:
           missingStorageKeys.length === requiredStorageKeys.length
-            ? "Object storage is not configured."
-            : `Object storage is partially configured. Missing: ${missingStorageKeys.join(", ")}.`,
-        suggestion: "Set the full S3/R2 credential set before relying on uploads or remote cache artifacts.",
-        details: missingStorageKeys,
+            ? text("health.items.storage.missing.summary_none")
+            : text("health.items.storage.missing.summary_partial", { keys: missingStorageKeys.join(", ") }),
+        suggestion: text("health.items.storage.missing.suggestion"),
+        details: missingStorageKeys.map((key) => text("health.items.storage.details.key", { key })),
       }),
     );
   }
@@ -170,24 +192,24 @@ export async function buildHealthCheckResponse(
     items.push(
       createItem({
         id: "ai-summary",
-        title: "AI summary",
+        title: text("health.items.ai_summary.title"),
         status: "warning",
         configured: false,
-        impact: "Articles will be published without AI-generated summaries.",
-        summary: "AI summary is disabled.",
-        suggestion: "Enable it in settings if you want summary generation during publishing.",
+        impact: text("health.items.ai_summary.disabled.impact"),
+        summary: text("health.items.ai_summary.disabled.summary"),
+        suggestion: text("health.items.ai_summary.disabled.suggestion"),
       }),
     );
   } else if (!aiConfig.model) {
     items.push(
       createItem({
         id: "ai-summary",
-        title: "AI summary",
+        title: text("health.items.ai_summary.title"),
         status: "danger",
         configured: false,
-        impact: "Summary generation can fail during publish and update operations.",
-        summary: "AI summary is enabled but no model is configured.",
-        suggestion: "Choose a model in settings before enabling AI summary.",
+        impact: text("health.items.ai_summary.no_model.impact"),
+        summary: text("health.items.ai_summary.no_model.summary"),
+        suggestion: text("health.items.ai_summary.no_model.suggestion"),
       }),
     );
   } else if (aiConfig.provider === "worker-ai") {
@@ -197,49 +219,54 @@ export async function buildHealthCheckResponse(
         workerAiReady
           ? {
               id: "ai-summary",
-              title: "AI summary",
+              title: text("health.items.ai_summary.title"),
               status: "success",
               configured: true,
-              impact: "AI summaries can be generated through Workers AI.",
-              summary: `Workers AI is configured for model ${aiConfig.model}.`,
-              suggestion: "No action required.",
+              impact: text("health.items.ai_summary.worker_ai.ready.impact"),
+              summary: text("health.items.ai_summary.worker_ai.ready.summary", { model: aiConfig.model }),
+              suggestion: text("health.items.common.no_action"),
             }
           : {
               id: "ai-summary",
-              title: "AI summary",
+              title: text("health.items.ai_summary.title"),
               status: "danger",
               configured: false,
-              impact: "AI summary requests will fail when publishing content.",
-              summary: "AI summary uses worker-ai but the Workers AI binding is missing.",
-              suggestion: "Add the AI binding in wrangler configuration before using the worker-ai provider.",
+              impact: text("health.items.ai_summary.worker_ai.missing.impact"),
+              summary: text("health.items.ai_summary.worker_ai.missing.summary"),
+              suggestion: text("health.items.ai_summary.worker_ai.missing.suggestion"),
             },
       ),
     );
   } else {
     const hasApiKey = Boolean(aiConfig.api_key);
     const hasApiUrl = Boolean(aiConfig.api_url || AI_PROVIDER_DEFAULT_URLS[aiConfig.provider]);
-    const aiDetails = [`Provider: ${aiConfig.provider}`, `Model: ${aiConfig.model}`];
+    const aiDetails = [
+      text("health.items.ai_summary.external.details.provider", { provider: aiConfig.provider }),
+      text("health.items.ai_summary.external.details.model", { model: aiConfig.model }),
+    ];
     items.push(
       createItem(
         hasApiKey && hasApiUrl
           ? {
               id: "ai-summary",
-              title: "AI summary",
+              title: text("health.items.ai_summary.title"),
               status: "success",
               configured: true,
-              impact: "AI summaries can be generated with the configured external provider.",
-              summary: `${aiConfig.provider} is configured for AI summaries.`,
-              suggestion: "Use the test action in settings if you want to validate the remote model response.",
+              impact: text("health.items.ai_summary.external.ready.impact"),
+              summary: text("health.items.ai_summary.external.ready.summary", { provider: aiConfig.provider }),
+              suggestion: text("health.items.ai_summary.external.ready.suggestion"),
               details: aiDetails,
             }
           : {
               id: "ai-summary",
-              title: "AI summary",
+              title: text("health.items.ai_summary.title"),
               status: "danger",
               configured: false,
-              impact: "AI summary requests will fail when publishing content.",
-              summary: hasApiKey ? "AI provider URL is missing." : "AI provider key is missing.",
-              suggestion: "Configure the provider credentials in settings before enabling AI summary.",
+              impact: text("health.items.ai_summary.external.missing.impact"),
+              summary: hasApiKey
+                ? text("health.items.ai_summary.external.missing.summary_url")
+                : text("health.items.ai_summary.external.missing.summary_key"),
+              suggestion: text("health.items.ai_summary.external.missing.suggestion"),
               details: aiDetails,
             },
       ),
@@ -252,21 +279,23 @@ export async function buildHealthCheckResponse(
       webhookValue
         ? {
             id: "webhook",
-            title: "Webhook notifications",
+            title: text("health.items.webhook.title"),
             status: "success",
             configured: true,
-            impact: "Comment and friend-application notifications can be sent to the configured webhook.",
-            summary: "Webhook URL is configured.",
-            suggestion: friendCrontab ? "No action required." : "Optional: enable friend_crontab if you also want scheduled friend health checks.",
+            impact: text("health.items.webhook.ready.impact"),
+            summary: text("health.items.webhook.ready.summary"),
+            suggestion: friendCrontab
+              ? text("health.items.common.no_action")
+              : text("health.items.webhook.ready.suggestion_optional"),
           }
         : {
             id: "webhook",
-            title: "Webhook notifications",
+            title: text("health.items.webhook.title"),
             status: "warning",
             configured: false,
-            impact: "Comment and friend events will not push notifications to external chat tools.",
-            summary: "Webhook URL is not configured.",
-            suggestion: "Set WEBHOOK_URL in server config or environment if you rely on external notifications.",
+            impact: text("health.items.webhook.missing.impact"),
+            summary: text("health.items.webhook.missing.summary"),
+            suggestion: text("health.items.webhook.missing.suggestion"),
           },
     ),
   );
@@ -276,21 +305,25 @@ export async function buildHealthCheckResponse(
       rssEnabled
         ? {
             id: "rss",
-            title: "RSS and feed endpoints",
+            title: text("health.items.rss.title"),
             status: missingStorageKeys.length === 0 ? "success" : "warning",
             configured: true,
-            impact: "Feed endpoints are enabled; without storage they fall back to on-demand generation.",
-            summary: missingStorageKeys.length === 0 ? "RSS is enabled and storage can cache generated feed artifacts." : "RSS is enabled, but feed artifacts will be generated on demand because storage is incomplete.",
-            suggestion: missingStorageKeys.length === 0 ? "No action required." : "Configure object storage if you want feed artifacts to be cached remotely.",
+            impact: text("health.items.rss.enabled.impact"),
+            summary: missingStorageKeys.length === 0
+              ? text("health.items.rss.enabled.summary_cached")
+              : text("health.items.rss.enabled.summary_on_demand"),
+            suggestion: missingStorageKeys.length === 0
+              ? text("health.items.common.no_action")
+              : text("health.items.rss.enabled.suggestion"),
           }
         : {
             id: "rss",
-            title: "RSS and feed endpoints",
+            title: text("health.items.rss.title"),
             status: "warning",
             configured: false,
-            impact: "Visitors will not see RSS/Atom links in the public site footer.",
-            summary: "RSS is disabled in client settings.",
-            suggestion: "Enable RSS in settings if you want feed discovery links and feed endpoints exposed.",
+            impact: text("health.items.rss.disabled.impact"),
+            summary: text("health.items.rss.disabled.summary"),
+            suggestion: text("health.items.rss.disabled.suggestion"),
           },
     ),
   );
@@ -302,21 +335,25 @@ export async function buildHealthCheckResponse(
       finalSiteName
         ? {
             id: "site-identity",
-            title: "Site identity",
+            title: text("health.items.site_identity.title"),
             status: finalSiteAvatar ? "success" : "warning",
             configured: true,
-            impact: "Visitors can see the configured site name across the UI.",
-            summary: finalSiteAvatar ? `Site identity is configured for ${finalSiteName}.` : `Site name is configured for ${finalSiteName}, but avatar is missing.`,
-            suggestion: finalSiteAvatar ? "No action required." : "Add a site avatar if you want richer header, sharing, and feed presentation.",
+            impact: text("health.items.site_identity.ready.impact"),
+            summary: finalSiteAvatar
+              ? text("health.items.site_identity.ready.summary", { name: finalSiteName })
+              : text("health.items.site_identity.ready.summary_missing_avatar", { name: finalSiteName }),
+            suggestion: finalSiteAvatar
+              ? text("health.items.common.no_action")
+              : text("health.items.site_identity.ready.suggestion_missing_avatar"),
           }
         : {
             id: "site-identity",
-            title: "Site identity",
+            title: text("health.items.site_identity.title"),
             status: "warning",
             configured: false,
-            impact: "The site falls back to the default product name, which makes the instance look unfinished.",
-            summary: "Site name is not configured.",
-            suggestion: "Set site.name in settings or NAME in the environment.",
+            impact: text("health.items.site_identity.missing.impact"),
+            summary: text("health.items.site_identity.missing.summary"),
+            suggestion: text("health.items.site_identity.missing.suggestion"),
           },
     ),
   );

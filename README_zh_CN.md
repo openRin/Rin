@@ -97,12 +97,12 @@ bun run deploy:client
 - `WORKER_NAME` - 后端工作进程名称（默认值：`rin-server`）
 - `PAGES_NAME` - 前端页面名称（默认值：`rin-client`）
 - `DB_NAME` - D1 数据库名称（默认值：`rin`）
-- `R2_BUCKET_NAME` - R2 存储桶名称（如果未设置则自动发现）
+- `R2_BUCKET_NAME` - R2 存储桶名称。设置后，部署会自动推导对应的 `S3_*` 配置；未设置时，不会自动选择任何 bucket。
 
 部署脚本将自动执行以下操作：
 
 - 自动检测并创建 D1 数据库如果不存在
-- 自动发现用于图像存储的 R2 存储桶
+- 仅在显式设置 `R2_BUCKET_NAME` 时，自动推导对应的 `S3_*` 存储配置
 - 部署后端到 Workers
 - 构建前端并将其部署到 Pages
 - 运行数据库迁移

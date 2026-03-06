@@ -41,13 +41,28 @@ export interface SettingsConfigResponse {
 
 export interface ConfigHealthItem {
   id: string;
-  title: string;
+  title: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
   status: "success" | "warning" | "danger";
   configured: boolean;
-  impact: string;
-  summary: string;
-  suggestion?: string;
-  details?: string[];
+  impact: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
+  summary: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
+  suggestion?: {
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  };
+  details?: Array<{
+    key: string;
+    values?: Record<string, string | number | boolean>;
+  }>;
 }
 
 export interface ConfigHealthResponse {

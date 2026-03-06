@@ -97,12 +97,12 @@ bun run deploy:client
 - `WORKER_NAME` - Backend worker name (default: `rin-server`)
 - `PAGES_NAME` - Frontend pages name (default: `rin-client`)
 - `DB_NAME` - D1 database name (default: `rin`)
-- `R2_BUCKET_NAME` - R2 bucket name (auto-discovered if not set)
+- `R2_BUCKET_NAME` - R2 bucket name. If set, deploy derives the matching `S3_*` values automatically. If unset, no bucket is auto-selected.
 
 The deployment script will automatically:
 
 - Create D1 database if it doesn't exist
-- Auto-discover R2 bucket for image storage
+- Derive `S3_*` storage settings from `R2_BUCKET_NAME` only when it is explicitly set
 - Deploy backend to Workers
 - Build and deploy frontend to Pages
 - Run database migrations

@@ -7,6 +7,13 @@ import { useTranslation } from "react-i18next";
 import ReactLoading from "react-loading";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 
+function renderHealthText(
+  t: ReturnType<typeof useTranslation>["t"],
+  text: ConfigHealthItem["title"],
+) {
+  return t(text.key, text.values);
+}
+
 function HealthCard({ item }: { item: ConfigHealthItem }) {
   const { t } = useTranslation();
   const tone = item.status;
@@ -21,18 +28,18 @@ function HealthCard({ item }: { item: ConfigHealthItem }) {
   return (
     <SettingsCard tone={tone}>
       <SettingsCardHeader
-        title={item.title}
-        description={item.summary}
+        title={renderHealthText(t, item.title)}
+        description={renderHealthText(t, item.summary)}
         badge={<SettingsBadge tone={badgeTone}>{badgeLabel}</SettingsBadge>}
       />
       <SettingsCardBody>
         <div className="space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
-          <p>{item.impact}</p>
-          {item.suggestion ? <p className="text-neutral-500 dark:text-neutral-400">{item.suggestion}</p> : null}
+          <p>{renderHealthText(t, item.impact)}</p>
+          {item.suggestion ? <p className="text-neutral-500 dark:text-neutral-400">{renderHealthText(t, item.suggestion)}</p> : null}
           {item.details?.length ? (
             <ul className="space-y-1 text-xs text-neutral-500 dark:text-neutral-400">
               {item.details.map((detail) => (
-                <li key={detail}>{detail}</li>
+                <li key={`${detail.key}-${JSON.stringify(detail.values ?? {})}`}>{renderHealthText(t, detail)}</li>
               ))}
             </ul>
           ) : null}

@@ -103,7 +103,7 @@ AVATAR            # 网站头像
 PAGE_SIZE         # 分页大小
 RSS_ENABLE        # 是否启用 RSS
 CACHE_STORAGE_MODE # 缓存模式（推荐 database）
-R2_BUCKET_NAME    # R2 存储桶名称（可选）
+R2_BUCKET_NAME    # 可选：设置后部署会从该 bucket 推导 S3_*；未设置时不会自动选择任何 R2 bucket
 WORKER_NAME       # Worker 名称（可选）
 DB_NAME           # D1 数据库名称（可选）
 ```

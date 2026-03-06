@@ -327,6 +327,150 @@
   },
   "health": {
     "generated_at": "最終確認: {{date}}",
+    "items": {
+      "common": {
+        "no_action": "対応は不要です。"
+      },
+      "auth_runtime": {
+        "title": "認証ランタイム",
+        "success": {
+          "impact": "認証 Cookie とトークン検証は正常に動作します。",
+          "summary": "JWT シークレットが設定されています。",
+          "suggestion": "既存セッションをすべて無効化したい場合は、慎重にシークレットをローテーションしてください。"
+        },
+        "danger": {
+          "impact": "ログインと管理セッションの検証が完全に失敗する可能性があります。",
+          "summary": "JWT_SECRET がありません。",
+          "suggestion": "認証が必要なルートを使う前に、Worker Secret に JWT_SECRET を設定してください。"
+        }
+      },
+      "login_methods": {
+        "title": "ログイン入口",
+        "disabled": {
+          "impact": "公開ログインが無効なため、通常のログイン導線から管理 UI に入れません。",
+          "summary": "login.enabled が無効です。",
+          "suggestion": "このインスタンスで対話的な管理アクセスが必要なら、設定でログインを有効にしてください。"
+        },
+        "missing": {
+          "impact": "ログイン入口は表示されますが、利用可能なログイン方法がありません。",
+          "summary": "GitHub OAuth とパスワードログインのどちらも設定されていません。",
+          "suggestion": "RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET または ADMIN_USERNAME/ADMIN_PASSWORD を設定してください。"
+        },
+        "ready": {
+          "impact": "管理ログインが利用可能です。",
+          "summary_multiple": "複数のログイン方法が設定されています。",
+          "summary_single": "少なくとも 1 つのログイン方法が設定されています。",
+          "suggestion_none": "対応は不要です。",
+          "suggestion_optional": "任意: フォールバックとして別のログイン方法を追加してください。"
+        },
+        "details": {
+          "github_configured": "GitHub OAuth: 設定済み",
+          "github_missing": "GitHub OAuth: 未設定",
+          "password_configured": "パスワードログイン: 設定済み",
+          "password_missing": "パスワードログイン: 未設定"
+        }
+      },
+      "storage": {
+        "title": "オブジェクトストレージ",
+        "ready": {
+          "impact": "アップロード、ファビコン処理、Feed キャッシュ成果物にオブジェクトストレージを利用できます。",
+          "summary": "ストレージ認証情報は設定済みです。",
+          "summary_missing_access_host": "ストレージ自体は動作しますが、S3_ACCESS_HOST がないため公開 URL は endpoint にフォールバックします。",
+          "suggestion_missing_access_host": "安定した公開アセット URL や独自アセットドメインが必要なら S3_ACCESS_HOST を設定してください。"
+        },
+        "missing": {
+          "impact": "メディアアップロード、ファビコン生成、事前生成された Feed キャッシュが失敗または利用不能になる可能性があります。",
+          "summary_none": "オブジェクトストレージが設定されていません。",
+          "summary_partial": "オブジェクトストレージの設定が不完全です。不足: {{keys}}。",
+          "suggestion": "アップロードやリモートキャッシュ成果物を前提にする前に、完全な S3/R2 認証情報を設定してください。"
+        },
+        "details": {
+          "key": "{{key}}"
+        }
+      },
+      "ai_summary": {
+        "title": "AI 要約",
+        "disabled": {
+          "impact": "記事は AI 要約なしで公開されます。",
+          "summary": "AI 要約は無効です。",
+          "suggestion": "公開時に要約生成を使いたいなら、設定で有効にしてください。"
+        },
+        "no_model": {
+          "impact": "公開や更新時に要約生成が失敗する可能性があります。",
+          "summary": "AI 要約は有効ですが、モデルが設定されていません。",
+          "suggestion": "AI 要約を有効にする前に、設定でモデルを選択してください。"
+        },
+        "worker_ai": {
+          "ready": {
+            "impact": "Workers AI 経由で AI 要約を生成できます。",
+            "summary": "モデル {{model}} 用に Workers AI が設定されています。"
+          },
+          "missing": {
+            "impact": "コンテンツ公開時に AI 要約リクエストが失敗します。",
+            "summary": "AI 要約は worker-ai を使っていますが、Workers AI binding がありません。",
+            "suggestion": "worker-ai プロバイダを使う前に、wrangler 設定へ AI binding を追加してください。"
+          }
+        },
+        "external": {
+          "ready": {
+            "impact": "設定済みの外部プロバイダで AI 要約を生成できます。",
+            "summary": "{{provider}} が AI 要約用に設定されています。",
+            "suggestion": "リモートモデルの応答を確認したい場合は、設定画面のテスト機能を使ってください。"
+          },
+          "missing": {
+            "impact": "コンテンツ公開時に AI 要約リクエストが失敗します。",
+            "summary_key": "AI プロバイダキーがありません。",
+            "summary_url": "AI プロバイダ URL がありません。",
+            "suggestion": "AI 要約を有効にする前に、設定でプロバイダ認証情報を入力してください。"
+          },
+          "details": {
+            "provider": "プロバイダ: {{provider}}",
+            "model": "モデル: {{model}}"
+          }
+        }
+      },
+      "webhook": {
+        "title": "Webhook 通知",
+        "ready": {
+          "impact": "コメントと友達リンク申請の通知を設定済み webhook に送信できます。",
+          "summary": "Webhook URL は設定済みです。",
+          "suggestion_optional": "任意: スケジュールされた友達リンク健全性チェックも必要なら friend_crontab を有効にしてください。"
+        },
+        "missing": {
+          "impact": "コメントや友達リンクイベントは外部チャットツールへ通知されません。",
+          "summary": "Webhook URL は未設定です。",
+          "suggestion": "外部通知を使うなら、サーバー設定または環境変数に WEBHOOK_URL を設定してください。"
+        }
+      },
+      "rss": {
+        "title": "RSS と Feed エンドポイント",
+        "enabled": {
+          "impact": "Feed エンドポイントは有効です。ストレージがなければオンデマンド生成にフォールバックします。",
+          "summary_cached": "RSS は有効で、生成済み Feed 成果物をストレージにキャッシュできます。",
+          "summary_on_demand": "RSS は有効ですが、ストレージ設定が不完全なため Feed 成果物はオンデマンド生成になります。",
+          "suggestion": "Feed 成果物をリモートキャッシュしたい場合はオブジェクトストレージを設定してください。"
+        },
+        "disabled": {
+          "impact": "訪問者は公開サイトのフッターで RSS/Atom リンクを見られません。",
+          "summary": "クライアント設定で RSS が無効です。",
+          "suggestion": "Feed 発見リンクと Feed エンドポイントを公開したいなら、設定で RSS を有効にしてください。"
+        }
+      },
+      "site_identity": {
+        "title": "サイト識別",
+        "ready": {
+          "impact": "訪問者は UI 全体で設定済みサイト名を確認できます。",
+          "summary": "{{name}} のサイト識別が設定されています。",
+          "summary_missing_avatar": "{{name}} のサイト名は設定されていますが、アバターがありません。",
+          "suggestion_missing_avatar": "ヘッダー、共有、Feed 表示をより充実させたいならサイトアバターを追加してください。"
+        },
+        "missing": {
+          "impact": "サイトは既定の製品名にフォールバックし、未完成のインスタンスに見えてしまいます。",
+          "summary": "サイト名が設定されていません。",
+          "suggestion": "設定で site.name、または環境変数 NAME を設定してください。"
+        }
+      }
+    },
     "load_failed": "ヘルスチェックの読み込みに失敗しました",
     "loading": "実行環境と設定を確認しています...",
     "status": {

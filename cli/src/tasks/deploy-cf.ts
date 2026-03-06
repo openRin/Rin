@@ -26,16 +26,27 @@ async function buildClient() {
   console.log("✅ Client built successfully");
 }
 
-async function getR2BucketInfo(r2BucketName: string) {
-  if (!r2BucketName) return null;
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-  if (!accountId) return null;
+type R2BucketInfo = {
+  name: string;
+  endpoint: string;
+  accessHost: string;
+};
 
+export function buildR2BucketInfo(r2BucketName: string, accountId: string): R2BucketInfo {
   return {
     name: r2BucketName,
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     accessHost: `https://${r2BucketName}.${accountId}.r2.dev`,
   };
+}
+
+async function resolveR2BucketInfo(r2BucketName: string) {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (!accountId) return null;
+  if (!r2BucketName) {
+    return null;
+  }
+  return buildR2BucketInfo(r2BucketName, accountId);
 }
 
 export async function runCloudflareDeploy(target: "all" | "server" | "client" = "all") {
@@ -69,12 +80,12 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   let finalS3Bucket = s3Bucket;
   let finalS3AccessHost = s3AccessHost;
 
-  if (!s3Endpoint && !s3Bucket && !s3AccessHost) {
-    const r2Info = await getR2BucketInfo(r2BucketName || "");
+  if (!finalS3Endpoint || !finalS3Bucket || !finalS3AccessHost) {
+    const r2Info = await resolveR2BucketInfo(r2BucketName || "");
     if (r2Info) {
-      finalS3Endpoint = r2Info.endpoint;
-      finalS3Bucket = r2Info.name;
-      finalS3AccessHost = r2Info.accessHost;
+      finalS3Endpoint ||= r2Info.endpoint;
+      finalS3Bucket ||= r2Info.name;
+      finalS3AccessHost ||= r2Info.accessHost;
     }
   }
 
