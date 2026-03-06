@@ -23,10 +23,13 @@
       "title": "AI 要約を補完",
       "description": "既存の公開記事を走査し、まだ要約がない記事を再度キューに入れます。",
       "eligible": "対象 {{count}} 件",
+      "force_eligible": "強制再実行可能 {{count}} 件",
       "enabled": "AI 要約の有効化: {{value}}",
       "queue_configured": "キュー設定済み: {{value}}",
       "run": "補完を開始",
-      "result": "{{queued}} 件をキューに追加し、{{skipped}} 件をスキップしました。"
+      "run_force": "全件を強制再実行",
+      "result": "{{queued}} 件をキューに追加し、{{skipped}} 件をスキップしました。",
+      "result_force": "強制再実行として {{queued}} 件をキューに追加し、{{skipped}} 件をスキップしました。"
     },
     "blurhash": {
       "title": "画像 Blurhash を補完",

@@ -15,10 +15,10 @@ export function CompatTasksPage() {
   const [loading, setLoading] = useState(true);
   const [generatedAt, setGeneratedAt] = useState("");
   const [status, setStatus] = useState<{
-    aiSummary: { enabled: boolean; queueConfigured: boolean; eligible: number };
+    aiSummary: { enabled: boolean; queueConfigured: boolean; eligible: number; forceEligible: number };
     blurhash: { eligible: number };
   }>({
-    aiSummary: { enabled: false, queueConfigured: false, eligible: 0 },
+    aiSummary: { enabled: false, queueConfigured: false, eligible: 0, forceEligible: 0 },
     blurhash: { eligible: 0 },
   });
   const [runningTask, setRunningTask] = useState<"ai-summary" | "blurhash" | null>(null);
@@ -43,16 +43,19 @@ export function CompatTasksPage() {
     loadStatus();
   }, []);
 
-  const runAISummaryBackfill = async () => {
+  const runAISummaryBackfill = async (force = false) => {
     setRunningTask("ai-summary");
     try {
-      const { data, error } = await client.config.runCompatAISummary();
+      const { data, error } = await client.config.runCompatAISummary(force);
       if (error) {
         showAlert(error.value);
         return;
       }
       if (data) {
-        showAlert(t("compat_tasks.ai_summary.result", { queued: data.queued, skipped: data.skipped }));
+        showAlert(t(
+          data.forced ? "compat_tasks.ai_summary.result_force" : "compat_tasks.ai_summary.result",
+          { queued: data.queued, skipped: data.skipped },
+        ));
         loadStatus();
       }
     } finally {
@@ -142,10 +145,16 @@ export function CompatTasksPage() {
               <div className="space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
                 <p>{t("compat_tasks.ai_summary.enabled", { value: status.aiSummary.enabled ? t("compat_tasks.yes") : t("compat_tasks.no") })}</p>
                 <p>{t("compat_tasks.ai_summary.queue_configured", { value: status.aiSummary.queueConfigured ? t("compat_tasks.yes") : t("compat_tasks.no") })}</p>
+                <p>{t("compat_tasks.ai_summary.force_eligible", { count: status.aiSummary.forceEligible })}</p>
                 <Button
                   title={runningTask === "ai-summary" ? t("compat_tasks.running") : t("compat_tasks.ai_summary.run")}
                   disabled={runningTask !== null || status.aiSummary.eligible === 0}
-                  onClick={runAISummaryBackfill}
+                  onClick={() => runAISummaryBackfill(false)}
+                />
+                <Button
+                  title={runningTask === "ai-summary" ? t("compat_tasks.running") : t("compat_tasks.ai_summary.run_force")}
+                  disabled={runningTask !== null || status.aiSummary.forceEligible === 0}
+                  onClick={() => runAISummaryBackfill(true)}
                 />
               </div>
             </SettingsCardBody>

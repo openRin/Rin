@@ -23,10 +23,13 @@
       "title": "补齐 AI 摘要",
       "description": "扫描历史已发布帖子，为尚未生成摘要的内容重新入队。",
       "eligible": "待处理 {{count}} 篇",
+      "force_eligible": "可强制重跑 {{count}} 篇",
       "enabled": "AI 摘要已启用：{{value}}",
       "queue_configured": "队列已配置：{{value}}",
       "run": "开始补齐",
-      "result": "AI 摘要任务已入队 {{queued}} 篇，跳过 {{skipped}} 篇。"
+      "run_force": "强制全部重跑",
+      "result": "AI 摘要任务已入队 {{queued}} 篇，跳过 {{skipped}} 篇。",
+      "result_force": "已强制重跑入队 {{queued}} 篇 AI 摘要任务，跳过 {{skipped}} 篇。"
     },
     "blurhash": {
       "title": "补齐图片 Blurhash",

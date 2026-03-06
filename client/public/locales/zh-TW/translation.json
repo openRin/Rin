@@ -23,10 +23,13 @@
       "title": "補齊 AI 摘要",
       "description": "掃描歷史已發佈文章，為尚未生成摘要的內容重新入列。",
       "eligible": "待處理 {{count}} 篇",
+      "force_eligible": "可強制重跑 {{count}} 篇",
       "enabled": "AI 摘要已啟用：{{value}}",
       "queue_configured": "佇列已設定：{{value}}",
       "run": "開始補齊",
-      "result": "AI 摘要任務已入列 {{queued}} 篇，略過 {{skipped}} 篇。"
+      "run_force": "強制全部重跑",
+      "result": "AI 摘要任務已入列 {{queued}} 篇，略過 {{skipped}} 篇。",
+      "result_force": "已強制重跑入列 {{queued}} 篇 AI 摘要任務，略過 {{skipped}} 篇。"
     },
     "blurhash": {
       "title": "補齊圖片 Blurhash",

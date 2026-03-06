@@ -217,10 +217,13 @@ export function ConfigService(): Hono {
         }
 
         try {
+            const body = c.req.header('content-type')?.includes('application/json')
+                ? await wrapTime(c, 'request_body', c.req.json(), 'Read request body') as { force?: boolean }
+                : {};
             return c.json(await wrapTime(
                 c,
                 'compat_ai_summary',
-                runCompatAISummaryBackfill(c.get('db'), c.get('cache'), c.get('env')),
+                runCompatAISummaryBackfill(c.get('db'), c.get('cache'), c.get('env'), Boolean(body.force)),
                 'Queue compatibility AI summaries',
             ));
         } catch (error) {

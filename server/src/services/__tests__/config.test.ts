@@ -202,10 +202,11 @@ describe("ConfigService", () => {
 
             expect(res.status).toBe(200);
             const data = await res.json() as {
-                aiSummary: { eligible: number };
+                aiSummary: { eligible: number; forceEligible: number };
                 blurhash: { eligible: number };
             };
             expect(data.aiSummary.eligible).toBe(1);
+            expect(data.aiSummary.forceEligible).toBe(2);
             expect(data.blurhash.eligible).toBe(1);
         });
 
@@ -242,7 +243,48 @@ describe("ConfigService", () => {
             const data = await res.json() as { queued: number; skipped: number };
             expect(data.queued).toBe(1);
             expect(data.skipped).toBe(2);
+            expect(data.forced).toBe(false);
             expect(sendCalls).toBe(1);
+        });
+
+        it("should force requeue AI summary backfill for posts with existing summaries", async () => {
+            let sendCalls = 0;
+            env.TASK_QUEUE = {
+                send: async () => {
+                    sendCalls += 1;
+                },
+                sendBatch: async () => {},
+            } as unknown as Queue<any>;
+
+            sqlite.exec(`
+                INSERT INTO info (key, value) VALUES
+                ('ai_summary.enabled', 'true'),
+                ('ai_summary.provider', 'worker-ai'),
+                ('ai_summary.model', 'llama-3-8b');
+
+                INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
+                VALUES
+                  (1, 'Needs AI', '', '', 'idle', '', 'content', 1, 0, 0, 1),
+                  (2, 'Has Summary', '', 'done', 'completed', '', 'content', 1, 0, 0, 1),
+                  (3, 'Skip Draft', '', 'done', 'completed', '', 'content', 1, 1, 0, 1),
+                  (4, 'Skip Pending', '', '', 'pending', '', 'content', 1, 0, 0, 1)
+            `);
+
+            const res = await app.request("/compat-tasks/ai-summary", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({ force: true }),
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as { queued: number; skipped: number; forced: boolean };
+            expect(data.queued).toBe(2);
+            expect(data.skipped).toBe(2);
+            expect(data.forced).toBe(true);
+            expect(sendCalls).toBe(2);
         });
 
         it("should update blurhash metadata without resetting AI summary state", async () => {

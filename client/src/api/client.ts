@@ -97,6 +97,7 @@ export interface CompatTasksResponse {
     enabled: boolean;
     queueConfigured: boolean;
     eligible: number;
+    forceEligible: number;
   };
   blurhash: {
     eligible: number;
@@ -106,6 +107,7 @@ export interface CompatTasksResponse {
 export interface CompatAISummaryActionResponse {
   queued: number;
   skipped: number;
+  forced: boolean;
 }
 
 export interface CompatBlurhashCandidate {
@@ -491,8 +493,8 @@ class ConfigAPI {
     return this.http.get<CompatTasksResponse>("/api/config/compat-tasks");
   }
 
-  async runCompatAISummary(): Promise<ApiResponse<CompatAISummaryActionResponse>> {
-    return this.http.post<CompatAISummaryActionResponse>("/api/config/compat-tasks/ai-summary");
+  async runCompatAISummary(force = false): Promise<ApiResponse<CompatAISummaryActionResponse>> {
+    return this.http.post<CompatAISummaryActionResponse>("/api/config/compat-tasks/ai-summary", { force });
   }
 
   async getCompatBlurhashCandidates(): Promise<ApiResponse<CompatBlurhashCandidatesResponse>> {

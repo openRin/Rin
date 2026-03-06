@@ -23,10 +23,13 @@
       "title": "Backfill AI Summaries",
       "description": "Scan existing published posts and enqueue AI summary generation for entries that do not have one yet.",
       "eligible": "{{count}} posts pending",
+      "force_eligible": "{{count}} posts can be force re-run",
       "enabled": "AI summary enabled: {{value}}",
       "queue_configured": "Queue configured: {{value}}",
       "run": "Start backfill",
-      "result": "Queued {{queued}} AI summary tasks and skipped {{skipped}} posts."
+      "run_force": "Force re-run all",
+      "result": "Queued {{queued}} AI summary tasks and skipped {{skipped}} posts.",
+      "result_force": "Force re-run queued {{queued}} AI summary tasks and skipped {{skipped}} posts."
     },
     "blurhash": {
       "title": "Backfill Image Blurhash",

@@ -22,6 +22,17 @@ function isAISummaryBackfillEligible(feed: {
   return feed.ai_summary_status !== "pending" && feed.ai_summary_status !== "processing";
 }
 
+function isAISummaryForceBackfillEligible(feed: {
+  draft: number;
+  ai_summary_status: string;
+}) {
+  if (feed.draft === 1) {
+    return false;
+  }
+
+  return feed.ai_summary_status !== "pending" && feed.ai_summary_status !== "processing";
+}
+
 export async function buildCompatTasksResponse(db: DB, env: Env) {
   const aiConfig = await getAIConfig(db);
   const items = await db.query.feeds.findMany({
@@ -40,6 +51,7 @@ export async function buildCompatTasksResponse(db: DB, env: Env) {
       enabled: aiConfig.enabled,
       queueConfigured: Boolean(env.TASK_QUEUE),
       eligible: items.filter(isAISummaryBackfillEligible).length,
+      forceEligible: items.filter(isAISummaryForceBackfillEligible).length,
     },
     blurhash: {
       eligible: items.filter((item) => contentHasImagesMissingMetadata(item.content)).length,
@@ -47,7 +59,7 @@ export async function buildCompatTasksResponse(db: DB, env: Env) {
   };
 }
 
-export async function runCompatAISummaryBackfill(db: DB, cache: CacheImpl, env: Env) {
+export async function runCompatAISummaryBackfill(db: DB, cache: CacheImpl, env: Env, force = false) {
   const aiConfig = await getAIConfig(db);
   if (!aiConfig.enabled) {
     throw new Error("AI summary is not enabled");
@@ -72,7 +84,11 @@ export async function runCompatAISummaryBackfill(db: DB, cache: CacheImpl, env: 
   let skipped = 0;
 
   for (const item of items) {
-    if (!isAISummaryBackfillEligible(item)) {
+    const eligible = force
+      ? isAISummaryForceBackfillEligible(item)
+      : isAISummaryBackfillEligible(item);
+
+    if (!eligible) {
       skipped += 1;
       continue;
     }
@@ -89,6 +105,7 @@ export async function runCompatAISummaryBackfill(db: DB, cache: CacheImpl, env: 
   return {
     queued,
     skipped,
+    forced: force,
   };
 }
 
