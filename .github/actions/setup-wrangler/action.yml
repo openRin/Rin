@@ -46,11 +46,11 @@ runs:
         database_id = "local"
 
         [[queues.producers]]
-        binding = "AI_TASK_QUEUE"
-        queue = "rin-ai-summary"
+        binding = "TASK_QUEUE"
+        queue = "rin-tasks"
 
         [[queues.consumers]]
-        queue = "rin-ai-summary"
+        queue = "rin-tasks"
         max_batch_size = 1
         max_batch_timeout = 5
         EOF

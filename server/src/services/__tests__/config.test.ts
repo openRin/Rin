@@ -186,7 +186,7 @@ describe("ConfigService", () => {
 
         it("should queue AI summary backfill for eligible feeds", async () => {
             let sendCalls = 0;
-            env.AI_TASK_QUEUE = {
+            env.TASK_QUEUE = {
                 send: async () => {
                     sendCalls += 1;
                 },
@@ -248,7 +248,7 @@ describe("ConfigService", () => {
     describe("Queue status actions", () => {
         it("should retry a failed queue task", async () => {
             let sendCalls = 0;
-            env.AI_TASK_QUEUE = {
+            env.TASK_QUEUE = {
                 send: async () => {
                     sendCalls += 1;
                 },

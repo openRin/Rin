@@ -38,7 +38,7 @@ export async function buildCompatTasksResponse(db: DB, env: Env) {
     generatedAt: new Date().toISOString(),
     aiSummary: {
       enabled: aiConfig.enabled,
-      queueConfigured: Boolean(env.AI_TASK_QUEUE),
+      queueConfigured: Boolean(env.TASK_QUEUE),
       eligible: items.filter(isAISummaryBackfillEligible).length,
     },
     blurhash: {
@@ -52,8 +52,8 @@ export async function runCompatAISummaryBackfill(db: DB, cache: CacheImpl, env: 
   if (!aiConfig.enabled) {
     throw new Error("AI summary is not enabled");
   }
-  if (!env.AI_TASK_QUEUE) {
-    throw new Error("AI_TASK_QUEUE binding is not configured");
+  if (!env.TASK_QUEUE) {
+    throw new Error("TASK_QUEUE binding is not configured");
   }
 
   const items = await db.query.feeds.findMany({

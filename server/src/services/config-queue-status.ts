@@ -124,7 +124,7 @@ export async function buildQueueStatusResponse(
   });
 
   return {
-    queueConfigured: Boolean(env.AI_TASK_QUEUE),
+    queueConfigured: Boolean(env.TASK_QUEUE),
     generatedAt: new Date().toISOString(),
     summary,
     items: items.map((item: {

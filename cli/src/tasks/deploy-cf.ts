@@ -62,7 +62,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
 
   const dbName = renv("DB_NAME", "rin");
   const workerName = renv("WORKER_NAME", "rin-server");
-  const aiSummaryQueueName = env("AI_SUMMARY_QUEUE_NAME", `${workerName}-ai-summary`);
+  const taskQueueName = env("TASK_QUEUE_NAME", env("AI_SUMMARY_QUEUE_NAME", `${workerName}-tasks`));
   const r2BucketName = env("R2_BUCKET_NAME", "");
   const s3Endpoint = env("S3_ENDPOINT", "");
   const s3AccessHost = env("S3_ACCESS_HOST", s3Endpoint);
@@ -148,9 +148,9 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
     process.exit(1);
   }
 
-  const queueCreate = await $`${bunExec} x wrangler queues create ${aiSummaryQueueName}`.quiet().nothrow();
+  const queueCreate = await $`${bunExec} x wrangler queues create ${taskQueueName}`.quiet().nothrow();
   if (queueCreate.exitCode !== 0 && !isQueueAlreadyPresentError(queueCreate.stderr.toString())) {
-    console.error(`Failed to create Queue "${aiSummaryQueueName}"`);
+    console.error(`Failed to create Queue "${taskQueueName}"`);
     console.error(stripIndent(queueCreate.stdout.toString()));
     console.error(stripIndent(queueCreate.stderr.toString()));
     process.exit(1);
@@ -175,11 +175,11 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
 
   await $`echo ${stripIndent(`
     [[queues.producers]]
-    binding = "AI_TASK_QUEUE"
-    queue = "${aiSummaryQueueName}"
+    binding = "TASK_QUEUE"
+    queue = "${taskQueueName}"
 
     [[queues.consumers]]
-    queue = "${aiSummaryQueueName}"
+    queue = "${taskQueueName}"
     max_batch_size = 1
     max_batch_timeout = 5
   `)} >> wrangler.toml`.quiet();

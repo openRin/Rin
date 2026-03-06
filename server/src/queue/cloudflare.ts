@@ -9,7 +9,7 @@ export class CloudflareTaskQueue implements TaskQueue {
 
   async send(task: QueueTask): Promise<void> {
     if (!this.queue) {
-      throw new Error("AI_TASK_QUEUE binding is not configured");
+      throw new Error("TASK_QUEUE binding is not configured");
     }
 
     await this.queue.send(task);

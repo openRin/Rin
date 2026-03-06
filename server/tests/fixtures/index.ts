@@ -159,7 +159,7 @@ export function createMockDB() {
 export function createMockEnv(overrides: Partial<Env> = {}): Env {
     return {
         DB: {} as D1Database,
-        AI_TASK_QUEUE: {
+        TASK_QUEUE: {
             send: async () => {},
             sendBatch: async () => {},
         } as unknown as Queue<any>,
