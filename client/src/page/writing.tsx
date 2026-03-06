@@ -287,7 +287,7 @@ export function WritingPage({ id }: { id?: number }) {
             />
           </div>
 
-          <div className="mt-5 grid gap-3 xl:grid-cols-3">
+          <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(18rem,2fr)]">
             <FlatMetaRow
               className="cursor-pointer"
               onClick={() => setDraft(!draft)}
@@ -313,7 +313,7 @@ export function WritingPage({ id }: { id?: number }) {
               />
             </FlatMetaRow>
             <FlatMetaRow className="gap-3 xl:col-span-1">
-              <p className="mr-2 break-keep">
+              <p className="mr-2 whitespace-nowrap">
                 {t('created_at')}
               </p>
               <DateTimeInput value={createdAt} onChange={setCreatedAt} className="w-full max-w-[16rem]" />
