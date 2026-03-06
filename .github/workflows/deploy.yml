@@ -122,9 +122,36 @@ jobs:
       - name: Restore build artifacts
         run: |
           cp -r ./artifacts/dist ./dist
+          if [ -d ./artifacts/server/sql ]; then
+            mkdir -p ./server
+            rm -rf ./server/sql
+            cp -r ./artifacts/server/sql ./server/sql
+          fi
           echo "Checking build artifacts..."
           ls -la ./dist/client/ || echo "No client dist found"
           ls -la ./dist/server/ || echo "No server dist found"
+          ls -la ./server/sql/ || echo "No server sql found"
+
+      - name: Validate deploy script version
+        run: |
+          CURRENT_HASH=$(cat ./cli/src/tasks/deploy-cf.ts ./cli/src/lib/db-migration.ts | sha256sum | awk '{print $1}')
+          ARTIFACT_HASH=$(cat ./artifacts/build-meta/deploy_script_hash 2>/dev/null || echo "")
+
+          if [ -z "$ARTIFACT_HASH" ]; then
+            echo "❌ Build artifact is missing deploy_script_hash metadata."
+            echo "Please rebuild the artifact from a newer Rin release and sync your repository before deploying."
+            exit 1
+          fi
+
+          echo "Current deploy script hash: $CURRENT_HASH"
+          echo "Artifact deploy script hash: $ARTIFACT_HASH"
+
+          if [ "$CURRENT_HASH" != "$ARTIFACT_HASH" ]; then
+            echo "❌ Deploy script hash mismatch."
+            echo "This repository's deploy logic does not match the selected artifact."
+            echo "Please sync your repository to the release that produced the artifact, then retry deployment."
+            exit 1
+          fi
 
       - name: Determine deployment config
         id: config

@@ -78,6 +78,18 @@ jobs:
         with:
           mode: 'dry-run'
 
+      - name: Save build metadata
+        run: |
+          DEPLOY_SCRIPT_HASH=$(cat ./cli/src/tasks/deploy-cf.ts ./cli/src/lib/db-migration.ts | sha256sum | awk '{print $1}')
+          mkdir -p ./build-meta
+          echo "${{ github.event_name }}" > ./build-meta/event_name
+          echo "${{ github.ref }}" > ./build-meta/ref
+          echo "${{ github.repository }}" > ./build-meta/repository
+          echo "0" > ./build-meta/pr_number
+          echo "${{ github.sha }}" > ./build-meta/sha
+          echo "${{ github.sha }}" > ./build-meta/head_sha
+          echo "$DEPLOY_SCRIPT_HASH" > ./build-meta/deploy_script_hash
+
       # Note: vite.config.ts builds directly to ../dist/client
       - name: Build client
         run: |
@@ -93,7 +105,7 @@ jobs:
       - name: Package build artifacts
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          tar -czf "build-v${VERSION}-cloudflare.tar.gz" dist/
+          tar -czf "build-v${VERSION}-cloudflare.tar.gz" dist/ build-meta/ server/sql/
           echo "Artifact packaged: build-v${VERSION}-cloudflare.tar.gz"
           ls -lh build-v*.tar.gz
 
