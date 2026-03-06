@@ -97,7 +97,6 @@ function NavItem({ menu, title, selected, href, when = true, onClick }: {
 function Menu() {
     const profile = useContext(ProfileContext);
     const [isOpen, setOpen] = useState(false)
-    const { t } = useTranslation()
 
     function onClose() {
         document.body.style.overflow = "auto"
@@ -131,16 +130,6 @@ function Menu() {
                         <UserAvatar profile={profile} />
                     </div>
                     <NavBar menu={true} onClick={onClose} />
-                    {profile?.permission && (
-                        <Link
-                            href="/admin"
-                            onClick={onClose}
-                            className="mt-2 flex items-center gap-2 rounded-xl border border-black/10 px-3 py-3 text-sm font-medium t-primary dark:border-white/10"
-                        >
-                            <i className="ri-dashboard-line" />
-                            <span>{t("admin.title")}</span>
-                        </Link>
-                    )}
                 </div>
             </Popup>
         </div>

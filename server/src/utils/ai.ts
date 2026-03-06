@@ -178,10 +178,19 @@ export async function generateAISummary(
     db: any, 
     content: string
 ): Promise<string | null> {
+    const result = await generateAISummaryResult(env, db, content);
+    return result.summary;
+}
+
+export async function generateAISummaryResult(
+    env: Env,
+    db: any,
+    content: string
+): Promise<{ summary: string | null; skipped: boolean; error?: string }> {
     const config = await getAIConfig(db);
 
     if (!config.enabled) {
-        return null;
+        return { summary: null, skipped: true };
     }
 
     const { provider, model } = config;
@@ -204,10 +213,14 @@ export async function generateAISummary(
             result = await executeExternalAI(config, truncatedContent);
         }
 
-        return result;
+        return { summary: result, skipped: false };
     } catch (error) {
         console.error("[AI Summary] Failed to generate summary:", error);
-        return null;
+        return {
+            summary: null,
+            skipped: false,
+            error: error instanceof Error ? error.message : String(error),
+        };
     }
 }
 

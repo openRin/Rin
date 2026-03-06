@@ -36,7 +36,7 @@ export function FeedsPage() {
         normal: { size: 0, data: [], hasNext: false }
     })
     const page = tryInt(1, query.get("page"))
-    const limit = tryInt(10, query.get("limit"), siteConfig.pageSize)
+    const limit = tryInt(siteConfig.pageSize, query.get("limit"))
     const ref = useRef("")
     function fetchFeeds(type: FeedType) {
         client.feed.list({
@@ -54,7 +54,7 @@ export function FeedsPage() {
         })
     }
     useEffect(() => {
-        const key = `${query.get("page")} ${query.get("type")}`
+        const key = `${query.get("page")} ${query.get("type")} ${limit}`
         if (ref.current == key) return
         const type = query.get("type") as FeedType || 'normal'
         if (type !== listState) {
@@ -63,7 +63,7 @@ export function FeedsPage() {
         setStatus('loading')
         fetchFeeds(type)
         ref.current = key
-    }, [query.get("page"), query.get("type")])
+    }, [limit, query.get("page"), query.get("type")])
     return (
         <>
             <Helmet>

@@ -69,6 +69,15 @@ ADMIN_PASSWORD = "${env.ADMIN_PASSWORD}"
 binding = "DB"
 database_name = "${env.DB_NAME || "rin"}"
 database_id = "local"
+
+[[queues.producers]]
+binding = "AI_TASK_QUEUE"
+queue = "${env.AI_SUMMARY_QUEUE_NAME || `${env.WORKER_NAME || "rin-server"}-ai-summary`}"
+
+[[queues.consumers]]
+queue = "${env.AI_SUMMARY_QUEUE_NAME || `${env.WORKER_NAME || "rin-server"}-ai-summary`}"
+max_batch_size = 1
+max_batch_timeout = 5
 `;
 
   fs.writeFileSync(path.join(rootDir, "wrangler.toml"), wranglerContent);

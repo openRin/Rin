@@ -23,11 +23,14 @@ export function SearchPage({ keyword }: { keyword: string }) {
     const [status, setStatus] = useState<'loading' | 'idle'>('idle')
     const [feeds, setFeeds] = useState<FeedsData>()
     const page = tryInt(1, query.get("page"))
-    const limit = tryInt(10, query.get("limit"), siteConfig.pageSize)
+    const limit = tryInt(siteConfig.pageSize, query.get("limit"))
     const ref = useRef("")
     function fetchFeeds() {
         if (!keyword) return
-        client.search.search(keyword).then(({ data }) => {
+        client.search.search(keyword, {
+            page,
+            limit,
+        }).then(({ data }) => {
             if (data) {
                 setFeeds(data)
                 setStatus('idle')
@@ -72,14 +75,14 @@ export function SearchPage({ keyword }: { keyword: string }) {
                         </div>
                         <div className="wauto flex flex-row items-center mt-4 ani-show">
                             {page > 1 &&
-                                <Link href={`?page=${(page - 1)}`}
+                                <Link href={`?page=${(page - 1)}&limit=${limit}`}
                                     className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
                                     {t('previous')}
                                 </Link>
                             }
                             <div className="flex-1" />
                             {feeds?.hasNext &&
-                                <Link href={`?page=${(page + 1)}`}
+                                <Link href={`?page=${(page + 1)}&limit=${limit}`}
                                     className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
                                     {t('next')}
                                 </Link>

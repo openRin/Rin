@@ -11,6 +11,20 @@
     "writing_description": "Write, edit, and publish content from the private management workspace."
   },
   "ai_summary": {
+    "message": {
+      "completed": "AI summary is ready.",
+      "failed": "AI summary generation failed.",
+      "idle": "AI summary generation is idle.",
+      "pending": "AI summary task is queued.",
+      "processing": "AI summary is being generated."
+    },
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "idle": "Idle",
+      "pending": "Queued",
+      "processing": "Generating"
+    },
     "title": "AI Summary"
   },
   "alert": "Alert",

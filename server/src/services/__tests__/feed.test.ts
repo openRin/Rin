@@ -159,6 +159,38 @@ describe('FeedService', () => {
             expect(data.title).toBe('Test Feed');
         });
 
+        it('should return AI summary generation status for a queued feed', async () => {
+            sqlite.exec(`
+                INSERT INTO info (key, value) VALUES
+                ('ai_summary.enabled', 'true'),
+                ('ai_summary.provider', 'worker-ai'),
+                ('ai_summary.model', 'llama-3-8b')
+            `);
+
+            const createRes = await app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Queued AI Feed',
+                    content: 'Queued AI content',
+                    listed: true,
+                    draft: false,
+                    tags: [],
+                }),
+            }, env);
+
+            const createData = await createRes.json() as any;
+            const getRes = await app.request(`/${createData.insertedId}`, { method: 'GET' }, env);
+
+            expect(getRes.status).toBe(200);
+            const data = await getRes.json() as any;
+            expect(data.ai_summary_status).toBe('pending');
+            expect(data.ai_summary_error).toBe('');
+        });
+
         it('should return 404 for non-existent feed', async () => {
             const res = await app.request('/9999', { method: 'GET' }, env);
             

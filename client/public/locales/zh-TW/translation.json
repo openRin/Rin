@@ -11,6 +11,20 @@
     "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。"
   },
   "ai_summary": {
+    "message": {
+      "completed": "AI 摘要已生成。",
+      "failed": "AI 摘要生成失敗。",
+      "idle": "AI 摘要任務目前未執行。",
+      "pending": "AI 摘要任務已進入佇列。",
+      "processing": "AI 摘要正在生成中。"
+    },
+    "status": {
+      "completed": "已完成",
+      "failed": "失敗",
+      "idle": "閒置",
+      "pending": "排隊中",
+      "processing": "生成中"
+    },
     "title": "AI 總結"
   },
   "alert": "提示",

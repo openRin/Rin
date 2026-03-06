@@ -3,8 +3,8 @@ import { Hono } from "hono";
 import type { Variables, CacheImpl } from "../core/hono-types";
 import { feeds, visits, visitStats } from "../db/schema";
 import { HyperLogLog } from "../utils/hyperloglog";
-import { generateAISummary } from "../utils/ai";
 import { extractImage } from "../utils/image";
+import { syncFeedAISummaryQueueState } from "./feed-ai-summary";
 import { bindTagToPost } from "./tag";
 
 // Lazy-loaded modules for WordPress import
@@ -152,20 +152,13 @@ export function FeedService(): Hono<{
             return c.text('User ID is required', 400);
         }
 
-        // Generate AI summary if enabled and not a draft
-        let ai_summary = "";
-        if (!draft) {
-            const generatedSummary = await generateAISummary(env, db, content);
-            if (generatedSummary) {
-                ai_summary = generatedSummary;
-            }
-        }
-
         const result = await db.insert(feeds).values({
             title,
             content,
             summary,
-            ai_summary,
+            ai_summary: "",
+            ai_summary_status: "idle",
+            ai_summary_error: "",
             uid,
             alias,
             listed: listed ? 1 : 0,
@@ -175,6 +168,11 @@ export function FeedService(): Hono<{
         }).returning({ insertedId: feeds.id });
 
         await bindTagToPost(db, result[0].insertedId, tags);
+        await syncFeedAISummaryQueueState(db, env, result[0].insertedId, {
+            draft: Boolean(draft),
+            updatedAt: date,
+            resetSummary: true,
+        });
         await cache.deletePrefix('feeds_');
 
         if (result.length === 0) {
@@ -385,41 +383,36 @@ export function FeedService(): Hono<{
             return c.text('Permission denied', 403);
         }
 
-        // Generate AI summary if content changed and not a draft
-        let ai_summary: string | undefined = undefined;
         const contentChanged = content && content !== feed.content;
         const isDraft = draft !== undefined ? draft : (feed.draft === 1);
-
-        if (contentChanged && !isDraft) {
-            const generatedSummary = await generateAISummary(env, db, content);
-            if (generatedSummary) {
-                ai_summary = generatedSummary;
-            }
-        }
-
-        if (!isDraft && feed.draft === 1 && !feed.ai_summary) {
-            const contentToSummarize = content || feed.content;
-            const generatedSummary = await generateAISummary(env, db, contentToSummarize);
-            if (generatedSummary) {
-                ai_summary = generatedSummary;
-            }
-        }
+        const shouldQueueAISummary = (contentChanged && !isDraft) || (!isDraft && feed.draft === 1 && !feed.ai_summary);
+        const updateTime = new Date();
 
         await db.update(feeds).set({
             title,
             content,
             summary,
-            ai_summary,
+            ai_summary: shouldQueueAISummary ? "" : undefined,
+            ai_summary_status: isDraft ? "idle" : undefined,
+            ai_summary_error: shouldQueueAISummary || isDraft ? "" : undefined,
             alias,
             top,
             listed: listed ? 1 : 0,
-            draft: draft ? 1 : 0,
+            draft: draft === undefined ? undefined : draft ? 1 : 0,
             createdAt: createdAt ? new Date(createdAt) : undefined,
-            updatedAt: new Date()
+            updatedAt: updateTime
         }).where(eq(feeds.id, id_num));
 
         if (tags) {
             await bindTagToPost(db, id_num, tags);
+        }
+
+        if (shouldQueueAISummary || isDraft) {
+            await syncFeedAISummaryQueueState(db, env, id_num, {
+                draft: Boolean(isDraft),
+                updatedAt: updateTime,
+                resetSummary: shouldQueueAISummary,
+            });
         }
 
         await clearFeedCache(cache, id_num, feed.alias, alias || null);
@@ -662,7 +655,7 @@ type FeedItem = {
     tags?: string[];
 }
 
-async function clearFeedCache(cache: CacheImpl, id: number, alias: string | null, newAlias: string | null) {
+export async function clearFeedCache(cache: CacheImpl, id: number, alias: string | null, newAlias: string | null) {
     await cache.deletePrefix('feeds_');
     await cache.deletePrefix('search_');
     await cache.delete(`feed_${id}`, false);

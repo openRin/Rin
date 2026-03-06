@@ -11,6 +11,20 @@
     "writing_description": "非公開の管理ワークスペースから記事を作成、編集、公開します。"
   },
   "ai_summary": {
+    "message": {
+      "completed": "AI 要約の生成は完了しました。",
+      "failed": "AI 要約の生成に失敗しました。",
+      "idle": "AI 要約タスクは現在実行されていません。",
+      "pending": "AI 要約タスクはキューに入りました。",
+      "processing": "AI 要約を生成しています。"
+    },
+    "status": {
+      "completed": "完了",
+      "failed": "失敗",
+      "idle": "待機",
+      "pending": "キュー中",
+      "processing": "生成中"
+    },
     "title": "AI 要約"
   },
   "alert": "警告",

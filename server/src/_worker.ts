@@ -1,4 +1,5 @@
 import { handleFetch } from "./runtime/fetch-handler";
+import { handleQueue } from "./runtime/queue-handler";
 import { handleScheduled } from "./runtime/scheduled-handler";
 
 export default {
@@ -15,5 +16,13 @@ export default {
         ctx: ExecutionContext
     ) {
         return handleScheduled(_controller, env, ctx);
+    },
+
+    async queue(
+        batch: MessageBatch<unknown>,
+        env: Env,
+        ctx: ExecutionContext,
+    ) {
+        return handleQueue(batch, env, ctx);
     },
 }

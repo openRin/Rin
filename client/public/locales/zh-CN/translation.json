@@ -11,6 +11,20 @@
     "writing_description": "在独立的管理工作区中编写、编辑和发布内容。"
   },
   "ai_summary": {
+    "message": {
+      "completed": "AI 摘要已生成。",
+      "failed": "AI 摘要生成失败。",
+      "idle": "AI 摘要任务当前未运行。",
+      "pending": "AI 摘要任务已进入队列。",
+      "processing": "AI 摘要正在生成中。"
+    },
+    "status": {
+      "completed": "已完成",
+      "failed": "失败",
+      "idle": "空闲",
+      "pending": "排队中",
+      "processing": "生成中"
+    },
     "title": "AI 总结"
   },
   "alert": "提示",
