@@ -71,6 +71,22 @@ describe("buildWebhookRequest", () => {
     expect(request.headers["Content-Type"]).toBeUndefined();
   });
 
+  it("URL-encodes webhook template variables used in GET query parameters", () => {
+    const request = buildWebhookRequest(
+      {
+        event: "webhook.test",
+        message: "hello & world?",
+        title: "A/B title",
+      },
+      {
+        urlTemplate: "https://example.com/hook?message={{message}}&title={{title}}",
+        method: "GET",
+      },
+    );
+
+    expect(request.url).toBe("https://example.com/hook?message=hello%20%26%20world%3F&title=A%2FB%20title");
+  });
+
   it("serializes object-based webhook templates loaded from config storage", () => {
     const request = buildWebhookRequest(
       {

@@ -16,9 +16,13 @@ export interface WebhookFormatConfig {
   bodyTemplate?: string | Record<string, unknown>;
 }
 
-function renderTemplate(template: string, payload: Record<string, string>) {
+function renderTemplate(
+  template: string,
+  payload: Record<string, string>,
+  transform: (value: string) => string = (value) => value,
+) {
   return template.replaceAll(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_match, key: string) => {
-    return payload[key] ?? "";
+    return transform(payload[key] ?? "");
   });
 }
 
@@ -59,7 +63,7 @@ export function buildWebhookRequest(
   const renderedBody = renderTemplate(bodyTemplate, values);
   const headersTemplate = normalizeTemplateValue(format.headers, "{}");
   const renderedHeadersTemplate = renderTemplate(headersTemplate, values);
-  const requestUrl = renderTemplate(urlTemplate, values).trim();
+  const requestUrl = renderTemplate(urlTemplate, values, encodeURIComponent).trim();
   const parsedHeaders = JSON.parse(renderedHeadersTemplate) as Record<string, string>;
   const headers: Record<string, string> = {
     ...parsedHeaders,
