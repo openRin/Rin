@@ -219,7 +219,11 @@ jobs:
           CACHE_STORAGE_MODE: ${{ vars.CACHE_STORAGE_MODE || 's3' }}
         run: |
           set -euo pipefail
-          bun run deploy | tee deploy_output.log
+          if [[ "${{ needs.prepare.outputs.is_production }}" == "true" ]]; then
+            bun run deploy | tee deploy_output.log
+          else
+            bun run deploy --preview | tee deploy_output.log
+          fi
           URL=$(grep -oP 'App URL: \Khttps://[^\s]+' deploy_output.log || echo "https://${WORKER_NAME}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev")
           echo "url=${URL}" >> $GITHUB_OUTPUT
 

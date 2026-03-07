@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { collectWorkerSecrets } from "./deploy-cf";
+import { buildWranglerTriggersConfig, collectWorkerSecrets } from "./deploy-cf";
 
 describe("collectWorkerSecrets", () => {
   it("includes supported non-empty worker secrets", () => {
@@ -35,5 +35,16 @@ describe("collectWorkerSecrets", () => {
     expect(secrets).toEqual({
       ADMIN_PASSWORD: "password",
     });
+  });
+});
+
+describe("buildWranglerTriggersConfig", () => {
+  it("omits cron triggers for preview deploys", () => {
+    expect(buildWranglerTriggersConfig(true)).toBe("");
+  });
+
+  it("includes cron triggers for production deploys", () => {
+    expect(buildWranglerTriggersConfig(false)).toContain("[triggers]");
+    expect(buildWranglerTriggersConfig(false)).toContain('crons = ["*/20 * * * *"]');
   });
 });
