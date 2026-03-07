@@ -341,7 +341,7 @@ export function ConfigService(): Hono {
         const env = c.get('env');
         
         if (type === 'server') {
-            return c.json(await buildServerConfigResponse(db, serverConfig));
+            return c.json(await buildServerConfigResponse(db, serverConfig, env));
         }
         
         return c.json(await buildClientConfigResponse(db, clientConfig, env));

@@ -615,7 +615,7 @@ describe("ConfigService", () => {
             expect(res.status).toBe(401);
         });
 
-        it("should send a webhook test with current overrides", async () => {
+        it("should send a webhook test with encoded GET query overrides", async () => {
             const requests: Array<{ url: string; init?: RequestInit }> = [];
             globalThis.fetch = mock(async (url: string | URL | Request, init?: RequestInit) => {
                 requests.push({ url: String(url), init });
@@ -640,7 +640,7 @@ describe("ConfigService", () => {
             expect(data.success).toBe(true);
             expect(requests).toHaveLength(1);
             expect(requests[0].url).toContain("event=webhook.test");
-            expect(requests[0].url).toContain("message=hello webhook");
+            expect(requests[0].url).toContain("message=hello%20webhook");
             expect(requests[0].init?.method).toBe("GET");
             expect(requests[0].init?.body).toBeUndefined();
             expect(res.headers.get("Server-Timing")).toContain("webhook_send");
