@@ -42,6 +42,19 @@ function normalizeTemplateValue(
   return fallback;
 }
 
+function isJsonTemplate(template: string) {
+  try {
+    JSON.parse(template);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function escapeJsonStringValue(value: string) {
+  return JSON.stringify(value).slice(1, -1);
+}
+
 export function buildWebhookRequest(
   payload: WebhookEventPayload,
   format: WebhookFormatConfig = {},
@@ -60,9 +73,17 @@ export function buildWebhookRequest(
     description: payload.description || "",
   };
 
-  const renderedBody = renderTemplate(bodyTemplate, values);
   const headersTemplate = normalizeTemplateValue(format.headers, "{}");
-  const renderedHeadersTemplate = renderTemplate(headersTemplate, values);
+  const renderedBody = renderTemplate(
+    bodyTemplate,
+    values,
+    isJsonTemplate(bodyTemplate) ? escapeJsonStringValue : undefined,
+  );
+  const renderedHeadersTemplate = renderTemplate(
+    headersTemplate,
+    values,
+    isJsonTemplate(headersTemplate) ? escapeJsonStringValue : undefined,
+  );
   const requestUrl = renderTemplate(urlTemplate, values, encodeURIComponent).trim();
   const parsedHeaders = JSON.parse(renderedHeadersTemplate) as Record<string, string>;
   const headers: Record<string, string> = {

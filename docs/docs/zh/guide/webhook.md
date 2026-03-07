@@ -99,8 +99,10 @@ https://example.com/webhook
 ## 说明
 
 - `GET` 和 `HEAD` 请求不会发送请求体。
+- webhook URL 中的模板变量在替换前会先进行 URL 编码。
 - `Webhook Headers` 在模板渲染后必须仍然是合法 JSON。
-- `Webhook Body Template` 会在模板渲染后按纯文本发送；如果你希望发送 JSON，请确保模板本身就是合法 JSON。
+- 如果 `Webhook Headers` 或 `Webhook Body Template` 本身是合法 JSON，Rin 会按 JSON 字符串规则转义插入值，避免破坏 JSON 结构。
+- 如果请求体模板不是合法 JSON，Rin 会保持原有的纯文本替换行为。
 - 在正式保存前，建议先用“发送测试 Webhook”验证一次。
 
 ## 常见问题

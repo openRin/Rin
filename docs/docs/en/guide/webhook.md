@@ -99,8 +99,10 @@ https://example.com/webhook
 ## Notes
 
 - `GET` and `HEAD` requests do not send a request body.
+- Template variables in webhook URLs are URL-encoded before substitution.
 - `Webhook Headers` must be valid JSON after template rendering.
-- `Webhook Body Template` is sent as plain text after template rendering. If you want JSON, write valid JSON in the template.
+- If `Webhook Headers` or `Webhook Body Template` is valid JSON, Rin escapes inserted values as JSON strings to avoid breaking the JSON structure.
+- If the body template is not valid JSON, Rin keeps plain-text substitution behavior unchanged.
 - The test button is the fastest way to verify your endpoint before saving.
 
 ## Troubleshooting

@@ -104,4 +104,39 @@ describe("buildWebhookRequest", () => {
     expect(request.headers["X-Event"]).toBe("comment.created");
     expect(request.body).toBe("{\"content\":\"hello\"}");
   });
+
+  it("escapes special characters when rendering JSON webhook templates", () => {
+    const request = buildWebhookRequest(
+      {
+        event: "comment.created",
+        message: "hello \"quoted\"\nnext line",
+      },
+      {
+        urlTemplate: "https://example.com/webhook",
+        headers: "{\"X-Message\":\"{{message}}\"}",
+        bodyTemplate: "{\"content\":\"{{message}}\"}",
+      },
+    );
+
+    expect(request.headers["X-Message"]).toBe("hello \"quoted\"\nnext line");
+    expect(JSON.parse(request.body || "{}")).toEqual({
+      content: "hello \"quoted\"\nnext line",
+    });
+  });
+
+  it("keeps non-JSON body templates unchanged", () => {
+    const request = buildWebhookRequest(
+      {
+        event: "comment.created",
+        message: "hello \"quoted\"\nnext line",
+      },
+      {
+        urlTemplate: "https://example.com/webhook",
+        contentType: "text/plain",
+        bodyTemplate: "message={{message}}",
+      },
+    );
+
+    expect(request.body).toBe("message=hello \"quoted\"\nnext line");
+  });
 });
