@@ -12,6 +12,10 @@ type ConfigMapLike = {
   save(): Promise<void>;
 };
 
+type ServerConfigResponseEnv = {
+  WEBHOOK_URL?: string;
+};
+
 export type ConfigTypeParam = "client" | "server";
 
 export function isConfigType(type: string): type is ConfigTypeParam {
@@ -107,7 +111,7 @@ export async function getClientConfigWithDefaults(
 export async function buildServerConfigResponse(
   db: unknown,
   serverConfig: ConfigMapLike,
-  env?: Env,
+  env?: ServerConfigResponseEnv,
 ) {
   const all = await serverConfig.all();
   const configObj = normalizeWebhookConfigResponse(Object.fromEntries(all));

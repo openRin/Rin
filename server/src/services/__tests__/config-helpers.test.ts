@@ -42,7 +42,7 @@ describe("buildServerConfigResponse", () => {
             async save() {},
         }, {
             WEBHOOK_URL: "https://env.example.com/webhook",
-        } as Env);
+        });
 
         expect(response["webhook_url"]).toBe("https://env.example.com/webhook");
         expect(response["WEBHOOK_URL"]).toBe("https://env.example.com/webhook");
@@ -59,7 +59,7 @@ describe("buildServerConfigResponse", () => {
             async save() {},
         }, {
             WEBHOOK_URL: "https://env.example.com/webhook",
-        } as Env);
+        });
 
         expect(response["webhook_url"]).toBe("https://stored.example.com/webhook");
     });
