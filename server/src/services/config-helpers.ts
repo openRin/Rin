@@ -30,6 +30,27 @@ export function maskSensitiveFields(config: Record<string, unknown>): Record<str
   return result;
 }
 
+function normalizeWebhookConfigValue(value: unknown) {
+  if (typeof value === "string" || value === undefined) {
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+}
+
+function normalizeWebhookConfigResponse(config: Record<string, unknown>) {
+  const result = { ...config };
+
+  result["webhook.headers"] = normalizeWebhookConfigValue(result["webhook.headers"]);
+  result["webhook.body_template"] = normalizeWebhookConfigValue(result["webhook.body_template"]);
+
+  return result;
+}
+
 export function isAIConfigKey(key: string): boolean {
   return AI_CONFIG_KEYS.some((candidate) => candidate === key) || key.startsWith("ai_summary.");
 }
@@ -84,7 +105,7 @@ export async function getClientConfigWithDefaults(
 
 export async function buildServerConfigResponse(db: unknown, serverConfig: ConfigMapLike) {
   const all = await serverConfig.all();
-  const configObj: Record<string, unknown> = Object.fromEntries(all);
+  const configObj = normalizeWebhookConfigResponse(Object.fromEntries(all));
   const aiConfig = await getAIConfigForFrontend(db);
 
   configObj["ai_summary.enabled"] = String(aiConfig.enabled);

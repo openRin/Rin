@@ -665,5 +665,35 @@ describe("ConfigService", () => {
             expect(data.success).toBe(false);
             expect(data.error).toContain("JSON");
         });
+
+        it("should send webhook tests for object-based template values", async () => {
+            const requests: Array<{ url: string; init?: RequestInit }> = [];
+            globalThis.fetch = mock(async (url: string | URL | Request, init?: RequestInit) => {
+                requests.push({ url: String(url), init });
+                return new Response("ok", { status: 200 });
+            }) as typeof fetch;
+
+            const res = await app.request("/test-webhook", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    webhook_url: "https://example.com/webhook",
+                    "webhook.headers": { "X-Event": "{{event}}" },
+                    "webhook.body_template": { content: "{{message}}" },
+                    test_message: "hello webhook",
+                }),
+            });
+
+            expect(res.status).toBe(200);
+            expect(requests).toHaveLength(1);
+            expect(requests[0].init?.headers).toMatchObject({
+                "Content-Type": "application/json",
+                "X-Event": "webhook.test",
+            });
+            expect(requests[0].init?.body).toBe('{"content":"hello webhook"}');
+        });
     });
 });
