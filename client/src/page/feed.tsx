@@ -43,7 +43,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
   const { showConfirm, ConfirmUI } = useConfirm();
   const [top, setTop] = useState<number>(0);
   const config = useContext(ClientConfigContext);
-  const counterEnabled = config.get<boolean>('counter.enabled');
+  const counterEnabled = config.getBoolean('counter.enabled');
   const hasAISummary = Boolean(feed?.ai_summary?.trim());
   const showAISummaryState = feed?.ai_summary_status === "pending" || feed?.ai_summary_status === "processing" || feed?.ai_summary_status === "failed";
   function deleteFeed() {
@@ -477,7 +477,7 @@ function Comments({ id }: { id: string }) {
   }, [id]);
   return (
     <>
-      {config.get<boolean>('comment.enabled') &&
+      {config.getBoolean('comment.enabled') &&
         <div className="m-2 flex flex-col justify-center items-center">
           <CommentInput id={id} onRefresh={loadComments} />
           {error && (

@@ -255,7 +255,7 @@ function UserAvatar({ className, profile }: { className?: string, profile?: Prof
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <> {config.get<boolean>('login.enabled') && <div className={className + " flex flex-row items-center"}>
+        <> {config.getBoolean('login.enabled') && <div className={className + " flex flex-row items-center"}>
             {profile ? <>
                 <Popup
                     arrow={false}

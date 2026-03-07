@@ -195,7 +195,7 @@ export function Settings() {
           <ItemSwitch
             title={t("settings.login.enable.title")}
             description={t("settings.login.enable.desc", { url: oauth_url })}
-            checked={Boolean(clientConfig.get("login.enabled"))}
+            checked={clientConfig.getBoolean("login.enabled")}
             onChange={(checked) => {
               setConfigValue("client", "login.enabled", checked);
             }}
@@ -203,7 +203,7 @@ export function Settings() {
           <ItemSwitch
             title={t("settings.comment.enable.title")}
             description={t("settings.comment.enable.desc")}
-            checked={Boolean(clientConfig.get("comment.enabled"))}
+            checked={clientConfig.getBoolean("comment.enabled")}
             onChange={(checked) => {
               setConfigValue("client", "comment.enabled", checked);
             }}
@@ -211,7 +211,7 @@ export function Settings() {
           <ItemSwitch
             title={t("settings.counter.enable.title")}
             description={t("settings.counter.enable.desc")}
-            checked={Boolean(clientConfig.get("counter.enabled"))}
+            checked={clientConfig.getBoolean("counter.enabled")}
             onChange={(checked) => {
               setConfigValue("client", "counter.enabled", checked);
             }}
@@ -219,7 +219,7 @@ export function Settings() {
           <ItemSwitch
             title={t("settings.rss.title")}
             description={t("settings.rss.desc")}
-            checked={Boolean(clientConfig.get("rss"))}
+            checked={clientConfig.getBoolean("rss")}
             onChange={(checked) => {
               setConfigValue("client", "rss", checked);
             }}
