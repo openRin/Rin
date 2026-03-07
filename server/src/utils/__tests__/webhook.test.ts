@@ -70,4 +70,22 @@ describe("buildWebhookRequest", () => {
     expect(request.body).toBeUndefined();
     expect(request.headers["Content-Type"]).toBeUndefined();
   });
+
+  it("serializes object-based webhook templates loaded from config storage", () => {
+    const request = buildWebhookRequest(
+      {
+        event: "comment.created",
+        message: "hello",
+      },
+      {
+        urlTemplate: "https://example.com/webhook",
+        headers: { "X-Event": "{{event}}" },
+        bodyTemplate: { content: "{{message}}" },
+      },
+    );
+
+    expect(request.headers["Content-Type"]).toBe("application/json");
+    expect(request.headers["X-Event"]).toBe("comment.created");
+    expect(request.body).toBe("{\"content\":\"hello\"}");
+  });
 });

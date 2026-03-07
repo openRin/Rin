@@ -12,14 +12,30 @@ export interface WebhookFormatConfig {
   urlTemplate?: string;
   method?: string;
   contentType?: string;
-  headers?: string;
-  bodyTemplate?: string;
+  headers?: string | Record<string, unknown>;
+  bodyTemplate?: string | Record<string, unknown>;
 }
 
 function renderTemplate(template: string, payload: Record<string, string>) {
   return template.replaceAll(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_match, key: string) => {
     return payload[key] ?? "";
   });
+}
+
+function normalizeTemplateValue(
+  value: string | Record<string, unknown> | undefined,
+  fallback: string,
+) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed || fallback;
+  }
+
+  if (value && typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return fallback;
 }
 
 export function buildWebhookRequest(
@@ -29,7 +45,7 @@ export function buildWebhookRequest(
   const method = (format.method || "POST").trim().toUpperCase() || "POST";
   const contentType = (format.contentType || "application/json").trim() || "application/json";
   const urlTemplate = format.urlTemplate?.trim() || "";
-  const bodyTemplate = format.bodyTemplate?.trim() || "{\"content\":\"{{message}}\"}";
+  const bodyTemplate = normalizeTemplateValue(format.bodyTemplate, "{\"content\":\"{{message}}\"}");
   const values: Record<string, string> = {
     event: payload.event,
     message: payload.message,
@@ -41,7 +57,8 @@ export function buildWebhookRequest(
   };
 
   const renderedBody = renderTemplate(bodyTemplate, values);
-  const renderedHeadersTemplate = renderTemplate(format.headers?.trim() || "{}", values);
+  const headersTemplate = normalizeTemplateValue(format.headers, "{}");
+  const renderedHeadersTemplate = renderTemplate(headersTemplate, values);
   const requestUrl = renderTemplate(urlTemplate, values).trim();
   const parsedHeaders = JSON.parse(renderedHeadersTemplate) as Record<string, string>;
   const headers: Record<string, string> = {
