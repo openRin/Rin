@@ -13,7 +13,7 @@ function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
     const config = useContext(ClientConfigContext);
     const footerHtml = config.get<string>('footer');
-    const loginEnabled = config.get<boolean>('login.enabled');
+    const loginEnabled = config.getBoolean('login.enabled');
     const [doubleClickTimes, setDoubleClickTimes] = useState(0);
     useEffect(() => {
         const mode = localStorage.getItem('theme') as ThemeMode || 'system';
@@ -61,7 +61,7 @@ function Footer() {
                     }}>
                         © {new Date().getFullYear()} Powered by <a className='hover:underline' href="https://github.com/openRin/Rin" target="_blank">Rin</a>
                     </span>
-                    {config.get<boolean>('rss') && <>
+                    {config.getBoolean('rss') && <>
                         <Spliter />
                         <Popup trigger={
                             <button className="hover:underline" type="button">
