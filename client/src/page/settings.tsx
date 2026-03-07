@@ -60,7 +60,12 @@ export function Settings() {
   const [initialDraft, setInitialDraft] = useState<SettingsDraft>({ clientConfig: {}, serverConfig: {} });
   const [hasStoredAiApiKey, setHasStoredAiApiKey] = useState(false);
   const ref = useRef(false);
+  const initialDraftRef = useRef<SettingsDraft>({ clientConfig: {}, serverConfig: {} });
   const { showAlert, AlertUI } = useAlert();
+
+  function getDraftThemeColor(nextDraft: SettingsDraft) {
+    return typeof nextDraft.clientConfig["theme.color"] === "string" ? nextDraft.clientConfig["theme.color"] : undefined;
+  }
 
   useEffect(() => {
     if (ref.current) return;
@@ -68,9 +73,10 @@ export function Settings() {
       .then((state) => {
         setDraft(state.draft);
         setInitialDraft(state.draft);
+        initialDraftRef.current = state.draft;
         setHasStoredAiApiKey(state.hasStoredAiApiKey);
         mergeSessionConfig(state.draft.clientConfig);
-        applyThemeColor(typeof state.draft.clientConfig["theme.color"] === "string" ? state.draft.clientConfig["theme.color"] : undefined);
+        applyThemeColor(getDraftThemeColor(state.draft));
       })
       .catch((err: any) => {
         showAlert(t("settings.get_config_failed$message", { message: err.message }));
@@ -79,6 +85,10 @@ export function Settings() {
         setLoading(false);
       });
     ref.current = true;
+
+    return () => {
+      applyThemeColor(getDraftThemeColor(initialDraftRef.current));
+    };
   }, [showAlert, t]);
 
   const { clientConfig, serverConfig } = useMemo(() => createSettingsConfigWrappers(draft), [draft]);
@@ -94,6 +104,7 @@ export function Settings() {
 
   function handleReset() {
     setDraft(initialDraft);
+    applyThemeColor(getDraftThemeColor(initialDraft));
   }
 
   async function handleSave() {
@@ -102,6 +113,7 @@ export function Settings() {
       const state = await saveSettingsConfigState(draft);
       setDraft(state.draft);
       setInitialDraft(state.draft);
+      initialDraftRef.current = state.draft;
       setHasStoredAiApiKey(state.hasStoredAiApiKey || aiValue.apiKey.trim().length > 0);
       mergeSessionConfig(state.draft.clientConfig);
       window.dispatchEvent(new Event("storage"));
