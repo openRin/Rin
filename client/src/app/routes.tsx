@@ -6,8 +6,10 @@ import { AdminLayout } from "../components/admin-layout";
 import Footer from "../components/footer";
 import { Header } from "../components/header";
 import { Padding } from "../components/padding";
+import { getHeaderLayoutDefinition } from "../components/site-header/layout-registry";
 import { Tips, TipsPage } from "../components/tips";
 import useTableOfContents from "../hooks/useTableOfContents";
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { CallbackPage } from "../page/callback";
 import { CompatTasksPage } from "../page/compat-tasks";
 import { ErrorPage } from "../page/error";
@@ -145,6 +147,7 @@ function AppRoute({
   requirePermission?: boolean;
 }) {
   const profile = useContext(ProfileContext);
+  const siteConfig = useSiteConfig();
   const { t } = useTranslation();
 
   const content =
@@ -152,13 +155,17 @@ function AppRoute({
 
   return (
     <Route path={path}>
-      {(params) => (
-        <>
-          <Header>{headerComponent}</Header>
-          <Padding className={paddingClassName}>{typeof content === "function" ? content(params) : content}</Padding>
-          <Footer />
-        </>
-      )}
+      {(params) => {
+        const resolvedContent = typeof content === "function" ? content(params) : content;
+        const layoutDefinition = getHeaderLayoutDefinition(siteConfig.headerLayout);
+
+        return layoutDefinition.renderRouteShell({
+          header: <Header>{headerComponent}</Header>,
+          content: <Padding className={paddingClassName}>{resolvedContent}</Padding>,
+          footer: <Footer />,
+          paddingClassName,
+        });
+      }}
     </Route>
   );
 }

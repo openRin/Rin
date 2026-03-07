@@ -1,5 +1,11 @@
 @import "./base.css";
 
+:root {
+  --theme-rgb: 252 70 107;
+  --theme-hover-rgb: 177 48 73;
+  --theme-active-rgb: 151 32 56;
+}
+
 /* cantarell-latin-400-normal */
 @font-face {
   font-family: "Cantarell";

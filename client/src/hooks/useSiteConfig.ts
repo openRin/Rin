@@ -3,10 +3,13 @@ import { ClientConfigContext } from "../state/config";
 
 // Site configuration keys
 export const SITE_CONFIG_KEYS = {
+    headerBehavior: "header.behavior",
     name: "site.name",
     description: "site.description",
     avatar: "site.avatar",
     pageSize: "site.page_size",
+    headerLayout: "header.layout",
+    themeColor: "theme.color",
 } as const;
 
 // Hook to get site configuration
@@ -25,6 +28,9 @@ export function useSiteConfig() {
         description: config.get<string>(SITE_CONFIG_KEYS.description) || "",
         avatar: config.get<string>(SITE_CONFIG_KEYS.avatar) || "",
         pageSize: Number.isFinite(parsedPageSize) ? parsedPageSize : 5,
+        headerBehavior: config.get<string>(SITE_CONFIG_KEYS.headerBehavior) || "fixed",
+        headerLayout: config.get<string>(SITE_CONFIG_KEYS.headerLayout) || "classic",
+        themeColor: config.get<string>(SITE_CONFIG_KEYS.themeColor) || "#fc466b",
     };
 }
 

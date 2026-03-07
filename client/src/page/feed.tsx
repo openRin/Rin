@@ -326,12 +326,12 @@ export function TOCHeader({ TOC }: { TOC: () => JSX.Element }) {
   const [isOpened, setIsOpened] = useState(false);
 
   return (
-    <div className="lg:hidden">
+    <div className="shrink-0 lg:hidden">
       <button
         onClick={() => setIsOpened(true)}
         className="w-10 h-10 rounded-full flex flex-row items-center justify-center"
       >
-        <i className="ri-menu-2-fill t-primary ri-lg"></i>
+        <i className="ri-menu-2-line text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 ri-lg md:ri-sm md:t-secondary"></i>
       </button>
       <ReactModal
         isOpen={isOpened}

@@ -390,6 +390,9 @@
     "other": {
       "title": "Other Settings"
     },
+    "personalization": {
+      "title": "Personalization"
+    },
     "site": {
       "title": "Site Information",
       "name": {
@@ -411,6 +414,39 @@
         "title": "Page Size",
         "desc": "Set the number of articles displayed per page in the list",
         "label": "Articles per page"
+      }
+    },
+    "header_layout": {
+      "title": "Header layout",
+      "desc": "Choose how the site header is arranged on desktop screens and preview each style below",
+      "options": {
+        "classic": "Classic centered",
+        "compact": "Minimal"
+      },
+      "preview": {
+        "classic": "Brand, centered navigation, and actions stay balanced like the current header.",
+        "compact": "A text-first header with almost no decoration, keeping only the essential information."
+      }
+    },
+    "header_behavior": {
+      "title": "Header behavior",
+      "desc": "Control whether the header stays visible at the top while scrolling",
+      "options": {
+        "fixed": "Fixed",
+        "static": "Not fixed",
+        "reveal": "Show on scroll up"
+      }
+    },
+    "theme_color": {
+      "title": "Theme color",
+      "desc": "Choose the accent color used by buttons, highlights, and interactive elements",
+      "custom": "Custom",
+      "options": {
+        "rose": "Rose",
+        "violet": "Violet",
+        "blue": "Blue",
+        "teal": "Teal",
+        "orange": "Orange"
       }
     },
     "rss": {

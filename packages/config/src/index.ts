@@ -6,6 +6,9 @@ export const CLIENT_CONFIG_DEFAULTS = new Map(
   Object.entries({
     "counter.enabled": true,
     "friend_apply_enable": true,
+    "header.behavior": "fixed",
+    "header.layout": "classic",
+    "theme.color": "#fc466b",
     "comment.enabled": true,
     "login.enabled": true,
     "site.name": "Rin",

@@ -9,9 +9,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        'theme': '#fc466b',
-        'theme-hover': '#b13049',
-        'theme-active': '#972038',
+        'theme': 'rgb(var(--theme-rgb) / <alpha-value>)',
+        'theme-hover': 'rgb(var(--theme-hover-rgb) / <alpha-value>)',
+        'theme-active': 'rgb(var(--theme-active-rgb) / <alpha-value>)',
         'background': {
           'light': '#f5f5f5',
           'dark': '#1c1c1e',

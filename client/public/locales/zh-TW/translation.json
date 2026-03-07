@@ -390,6 +390,9 @@
     "other": {
       "title": "其他設定"
     },
+    "personalization": {
+      "title": "個人化"
+    },
     "site": {
       "title": "網站訊息",
       "name": {
@@ -411,6 +414,39 @@
         "title": "分頁大小",
         "desc": "設定文章列表每頁顯示的數量",
         "label": "每頁文章數量"
+      }
+    },
+    "header_layout": {
+      "title": "Header 版面樣式",
+      "desc": "選擇桌面端網站頂部的排列方式，並在下方預覽效果",
+      "options": {
+        "classic": "經典置中",
+        "compact": "極簡純文字"
+      },
+      "preview": {
+        "classic": "品牌、置中導覽與操作區維持目前這套平衡配置。",
+        "compact": "幾乎移除所有裝飾，只保留最必要的資訊與操作。"
+      }
+    },
+    "header_behavior": {
+      "title": "Header 顯示方式",
+      "desc": "控制頁面捲動時 Header 是否固定顯示在頂部",
+      "options": {
+        "fixed": "固定",
+        "static": "不固定",
+        "reveal": "上滑時顯示"
+      }
+    },
+    "theme_color": {
+      "title": "主題色",
+      "desc": "選擇按鈕、強調與互動元素使用的主色",
+      "custom": "自訂",
+      "options": {
+        "rose": "玫紅",
+        "violet": "紫色",
+        "blue": "藍色",
+        "teal": "青綠",
+        "orange": "橙色"
       }
     },
     "rss": {
