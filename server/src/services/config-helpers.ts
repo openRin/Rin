@@ -2,6 +2,7 @@ import {
   AI_CONFIG_KEYS,
   CLIENT_CONFIG_ENV_DEFAULTS,
   SENSITIVE_SERVER_CONFIG_FIELDS,
+  WEBHOOK_URL_KEY,
 } from "@rin/config";
 import { getAIConfigForFrontend } from "../utils/db-config";
 
@@ -103,10 +104,23 @@ export async function getClientConfigWithDefaults(
   return result;
 }
 
-export async function buildServerConfigResponse(db: unknown, serverConfig: ConfigMapLike) {
+export async function buildServerConfigResponse(
+  db: unknown,
+  serverConfig: ConfigMapLike,
+  env?: Env,
+) {
   const all = await serverConfig.all();
   const configObj = normalizeWebhookConfigResponse(Object.fromEntries(all));
   const aiConfig = await getAIConfigForFrontend(db);
+  const webhookUrlValue = configObj["webhook_url"] ?? configObj[WEBHOOK_URL_KEY] ?? env?.WEBHOOK_URL;
+
+  if (webhookUrlValue !== undefined && webhookUrlValue !== "") {
+    configObj["webhook_url"] = webhookUrlValue;
+  }
+
+  if ((configObj[WEBHOOK_URL_KEY] === undefined || configObj[WEBHOOK_URL_KEY] === "") && env?.WEBHOOK_URL) {
+    configObj[WEBHOOK_URL_KEY] = env.WEBHOOK_URL;
+  }
 
   configObj["ai_summary.enabled"] = String(aiConfig.enabled);
   configObj["ai_summary.provider"] = aiConfig.provider;
@@ -139,7 +153,7 @@ export async function buildCombinedConfigResponse(
 ) {
   const [clientConfigData, serverConfigData] = await Promise.all([
     buildClientConfigResponse(db, clientConfig, env),
-    buildServerConfigResponse(db, serverConfig),
+    buildServerConfigResponse(db, serverConfig, env),
   ]);
 
   return {
