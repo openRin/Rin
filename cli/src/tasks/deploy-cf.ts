@@ -1,5 +1,5 @@
 import { $ } from "bun";
-import { readdir } from "node:fs/promises";
+import { readdir, unlink } from "node:fs/promises";
 import stripIndent from "strip-indent";
 import { fixTopField, getMigrationFileVersion, getMigrationVersion, isInfoExist, updateMigrationVersion } from "../lib/db-migration";
 const bunExec = process.execPath;
@@ -14,8 +14,51 @@ function env(name: string, defaultValue?: string, required = false) {
 
 const renv = (name: string, defaultValue?: string) => env(name, defaultValue, true)!;
 
+const WORKER_SECRET_KEYS = [
+  "JWT_SECRET",
+  "ADMIN_USERNAME",
+  "ADMIN_PASSWORD",
+  "RIN_GITHUB_CLIENT_ID",
+  "RIN_GITHUB_CLIENT_SECRET",
+  "S3_ACCESS_KEY_ID",
+  "S3_SECRET_ACCESS_KEY",
+] as const;
+
 function isQueueAlreadyPresentError(stderr: string) {
   return stderr.includes("already exists") || stderr.includes("already taken") || stderr.includes("[code: 11009]");
+}
+
+export function collectWorkerSecrets(source: Record<string, string | undefined> = process.env) {
+  const secrets: Record<string, string> = {};
+
+  for (const key of WORKER_SECRET_KEYS) {
+    const value = source[key];
+    if (value && value.length > 0) {
+      secrets[key] = value;
+    }
+  }
+
+  return secrets;
+}
+
+async function syncWorkerSecrets(workerName: string) {
+  const secrets = collectWorkerSecrets();
+  const secretKeys = Object.keys(secrets);
+
+  if (secretKeys.length === 0) {
+    console.log("ℹ️ No worker secrets provided; skipping secret sync");
+    return;
+  }
+
+  const tempFile = ".wrangler-secrets.json";
+  await Bun.write(tempFile, JSON.stringify(secrets, null, 2));
+
+  try {
+    await $`${bunExec} x wrangler secret bulk ${tempFile} --name ${workerName}`;
+    console.log(`✅ Synced ${secretKeys.length} worker secret(s)`);
+  } finally {
+    await unlink(tempFile).catch(() => {});
+  }
 }
 
 async function buildClient() {
@@ -220,8 +263,10 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
 
   if (target === "server") {
     await $`${bunExec} x wrangler deploy`;
+    await syncWorkerSecrets(workerName);
     return;
   }
 
   await $`${bunExec} x wrangler deploy`;
+  await syncWorkerSecrets(workerName);
 }
