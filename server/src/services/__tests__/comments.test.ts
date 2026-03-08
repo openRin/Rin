@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { CommentService } from '../comments';
 import { Hono } from "hono";
 import type { Variables } from "../../core/hono-types";
@@ -10,6 +10,7 @@ describe('CommentService', () => {
     let sqlite: Database;
     let env: Env;
     let app: Hono<{ Bindings: Env; Variables: Variables }>;
+    const originalFetch = globalThis.fetch;
 
     beforeEach(async () => {
         const ctx = await setupTestApp(CommentService);
@@ -23,6 +24,7 @@ describe('CommentService', () => {
     });
 
     afterEach(() => {
+        globalThis.fetch = originalFetch;
         cleanupTestDB(sqlite);
     });
 
@@ -167,6 +169,27 @@ describe('CommentService', () => {
             }, env);
 
             expect(res.status).toBe(400);
+        });
+
+        it('should still create the comment when webhook delivery fails', async () => {
+            env.WEBHOOK_URL = 'not-a-valid-url' as any;
+            globalThis.fetch = mock(async () => {
+                throw new TypeError('Invalid URL');
+            }) as typeof fetch;
+
+            const res = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'Comment survives webhook errors' }),
+            }, env);
+
+            expect(res.status).toBe(200);
+
+            const comments = sqlite.prepare(`SELECT * FROM comments WHERE feed_id = 1`).all();
+            expect(comments.length).toBe(3);
         });
     });
 
