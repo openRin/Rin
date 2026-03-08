@@ -298,8 +298,9 @@ export function Markdown({ content }: { content: string }) {
           return (
             <h1
               id={children?.toString()}
-              className="text-3xl font-bold mt-4"
               {...props}
+              className={`${props.className || ""} text-3xl font-bold mt-4`.trim()}
+              style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
             </h1>
@@ -309,8 +310,9 @@ export function Markdown({ content }: { content: string }) {
           return (
             <h2
               id={children?.toString()}
-              className="text-2xl font-bold mt-4"
               {...props}
+              className={`${props.className || ""} text-2xl font-bold mt-4`.trim()}
+              style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
             </h2>
@@ -320,8 +322,9 @@ export function Markdown({ content }: { content: string }) {
           return (
             <h3
               id={children?.toString()}
-              className="text-xl font-bold mt-4"
               {...props}
+              className={`${props.className || ""} text-xl font-bold mt-4`.trim()}
+              style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
             </h3>
@@ -331,8 +334,9 @@ export function Markdown({ content }: { content: string }) {
           return (
             <h4
               id={children?.toString()}
-              className="text-lg font-bold mt-4"
               {...props}
+              className={`${props.className || ""} text-lg font-bold mt-4`.trim()}
+              style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
             </h4>
@@ -342,8 +346,9 @@ export function Markdown({ content }: { content: string }) {
           return (
             <h5
               id={children?.toString()}
-              className="text-base font-bold mt-4"
               {...props}
+              className={`${props.className || ""} text-base font-bold mt-4`.trim()}
+              style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
             </h5>
@@ -353,8 +358,9 @@ export function Markdown({ content }: { content: string }) {
           return (
             <h6
               id={children?.toString()}
-              className="text-sm font-bold mt-4"
               {...props}
+              className={`${props.className || ""} text-sm font-bold mt-4`.trim()}
+              style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
             </h6>
