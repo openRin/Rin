@@ -32,10 +32,16 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          set -euo pipefail
           PR_NUMBER="${{ github.event.number }}"
           WORKER_NAME="${{ vars.WORKER_NAME || 'rin-server' }}-pr-${PR_NUMBER}"
+          TASK_QUEUE_NAME="${WORKER_NAME}-tasks"
 
           echo "Deleting preview worker: ${WORKER_NAME}"
+          echo "Detaching queue consumer from: ${TASK_QUEUE_NAME}"
+
+          bunx wrangler queues consumer worker remove "${TASK_QUEUE_NAME}" "${WORKER_NAME}" \
+            || echo "Queue consumer not found or already removed"
 
           # Delete Worker (this also removes the assets)
           bunx wrangler delete --name="$WORKER_NAME" --force || echo "Worker not found or already deleted"
