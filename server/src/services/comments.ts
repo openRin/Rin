@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
 import { desc, eq } from "drizzle-orm";
 import { comments, feeds, users } from "../db/schema";
-import { WEBHOOK_URL_KEY } from "../utils/config";
 import { notify } from "../utils/webhook";
+import { resolveWebhookConfig } from "./config-helpers";
 
 export function CommentService(): Hono {
     const app = new Hono();
@@ -62,14 +62,16 @@ export function CommentService(): Hono {
             content
         });
 
-        const webhookUrl = await serverConfig.get(WEBHOOK_URL_KEY) || env.WEBHOOK_URL;
-        const webhookMethod = await serverConfig.get("webhook.method") as string | undefined;
-        const webhookContentType = await serverConfig.get("webhook.content_type") as string | undefined;
-        const webhookHeaders = await serverConfig.get("webhook.headers") as string | undefined;
-        const webhookBodyTemplate = await serverConfig.get("webhook.body_template") as string | undefined;
+        const {
+            webhookUrl,
+            webhookMethod,
+            webhookContentType,
+            webhookHeaders,
+            webhookBodyTemplate,
+        } = await resolveWebhookConfig(serverConfig, env);
         const frontendUrl = new URL(c.req.url).origin;
         await notify(
-            webhookUrl,
+            webhookUrl || "",
             {
                 event: "comment.created",
                 message: `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`,
