@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import Popup from 'reactjs-popup';
 import { useLocation } from 'wouter';
 import { ClientConfigContext } from '../state/config';
@@ -13,6 +13,8 @@ function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
     const config = useContext(ClientConfigContext);
     const footerHtml = config.get<string>('footer');
+    const footerHtmlRef = useRef<HTMLDivElement | null>(null);
+    const mountedScriptNodesRef = useRef<HTMLScriptElement[]>([]);
     const loginEnabled = config.getBoolean('login.enabled');
     const [doubleClickTimes, setDoubleClickTimes] = useState(0);
     useEffect(() => {
@@ -20,6 +22,46 @@ function Footer() {
         setModeState(mode);
         setMode(mode);
     }, [])
+
+    useEffect(() => {
+        const container = footerHtmlRef.current;
+        if (!container) {
+            return;
+        }
+
+        mountedScriptNodesRef.current.forEach((script) => script.remove());
+        mountedScriptNodesRef.current = [];
+        container.replaceChildren();
+
+        if (!footerHtml) {
+            return;
+        }
+
+        const template = document.createElement('template');
+        template.innerHTML = footerHtml;
+
+        const scripts = Array.from(template.content.querySelectorAll('script'));
+        scripts.forEach((script) => script.remove());
+
+        container.appendChild(template.content.cloneNode(true));
+
+        scripts.forEach((script) => {
+            const nextScript = document.createElement('script');
+
+            Array.from(script.attributes).forEach((attribute) => {
+                nextScript.setAttribute(attribute.name, attribute.value);
+            });
+
+            nextScript.textContent = script.textContent;
+            container.appendChild(nextScript);
+            mountedScriptNodesRef.current.push(nextScript);
+        });
+
+        return () => {
+            mountedScriptNodesRef.current.forEach((script) => script.remove());
+            mountedScriptNodesRef.current = [];
+        };
+    }, [footerHtml])
 
     const setMode = (mode: ThemeMode) => {
         setModeState(mode);
@@ -47,7 +89,7 @@ function Footer() {
                 <link rel="alternate" type="application/json" title={siteName} href="/rss.json" />
             </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
-                {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
+                <div ref={footerHtmlRef} />
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span onDoubleClick={() => {
                         if(doubleClickTimes >= 2){ // actually need 3 times doubleClick
