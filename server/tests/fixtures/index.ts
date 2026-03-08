@@ -8,7 +8,6 @@ import * as schema from '../../src/db/schema';
 import type { Variables, JWTUtils, OAuth2Utils, CacheImpl } from '../../src/core/hono-types';
 import { profileAsync } from '../../src/core/server-timing';
 import { users } from '../../src/db/schema';
-import { ConditionalCacheImpl } from '../../src/utils/cache';
 
 /**
  * Create an in-memory test database with Drizzle ORM
@@ -202,12 +201,43 @@ export function cleanupTestDB(sqlite: Database) {
  */
 export class TestCacheImpl implements CacheImpl {
     private data = new Map<string, any>();
+    private clientConfig?: TestCacheImpl;
+
+    constructor(clientConfig?: TestCacheImpl) {
+        this.clientConfig = clientConfig;
+    }
+
+    private async isEnabled() {
+        if (!this.clientConfig) {
+            return true;
+        }
+
+        const value = await this.clientConfig.getOrDefault<unknown>("cache.enabled", false);
+        if (typeof value === "boolean") {
+            return value;
+        }
+        if (typeof value === "string") {
+            const normalized = value.trim().toLowerCase();
+            if (normalized === "true") return true;
+            if (normalized === "false") return false;
+        }
+        if (typeof value === "number") {
+            return value !== 0;
+        }
+        return Boolean(value);
+    }
 
     async get(key: string): Promise<any | null> {
+        if (!(await this.isEnabled())) {
+            return null;
+        }
         return this.data.get(key) ?? null;
     }
 
     async set(key: string, value: any, _save?: boolean): Promise<void> {
+        if (!(await this.isEnabled())) {
+            return;
+        }
         this.data.set(key, value);
     }
 
@@ -224,6 +254,9 @@ export class TestCacheImpl implements CacheImpl {
     }
 
     async getOrSet<T>(key: string, factory: () => Promise<T>): Promise<T> {
+        if (!(await this.isEnabled())) {
+            return factory();
+        }
         const cached = await this.get(key);
         if (cached !== null) return cached;
         const value = await factory();
@@ -232,15 +265,24 @@ export class TestCacheImpl implements CacheImpl {
     }
 
     async getOrDefault<T>(key: string, defaultValue: T): Promise<T> {
+        if (!(await this.isEnabled())) {
+            return defaultValue;
+        }
         const cached = await this.get(key);
         return cached !== null ? cached : defaultValue;
     }
 
     async getBySuffix(_suffix: string): Promise<any[]> {
+        if (!(await this.isEnabled())) {
+            return [];
+        }
         return [];
     }
 
     async all(): Promise<Map<string, any>> {
+        if (!(await this.isEnabled())) {
+            return new Map<string, any>();
+        }
         return new Map(this.data);
     }
 
@@ -279,9 +321,9 @@ export async function setupTestApp(
     const db = mockDB.db;
     const sqlite = mockDB.sqlite;
     const env = createMockEnv(envOverrides);
-    const cache = new TestCacheImpl();
     const serverConfig = new TestCacheImpl();
     const clientConfig = new TestCacheImpl();
+    const cache = new TestCacheImpl(clientConfig);
 
     const app = new Hono<{ Bindings: Env; Variables: Variables }>();
     app.use('*', timing({ totalDescription: '' }));
@@ -304,7 +346,7 @@ export async function setupTestApp(
             };
 
             c.set('db', db as any);
-            c.set('cache', new ConditionalCacheImpl(cache, clientConfig) as unknown as CacheImpl);
+            c.set('cache', cache);
             c.set('serverConfig', serverConfig);
             c.set('clientConfig', clientConfig);
             c.set('jwt', jwt);
