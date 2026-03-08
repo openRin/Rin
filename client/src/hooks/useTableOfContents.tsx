@@ -8,6 +8,14 @@ export interface TableOfContent {
     element: HTMLElement
 }
 
+const getHeaderScrollOffset = () => {
+    const rawValue = getComputedStyle(document.documentElement)
+        .getPropertyValue('--header-scroll-offset')
+        .trim()
+    const offset = Number.parseFloat(rawValue)
+    return Number.isFinite(offset) ? offset : 0
+}
+
 const useTableOfContents = (selector: string) => {
     const intersectingListRef = useRef<boolean[]>([]) // isIntersecting array
     const [tableOfContents, setTableOfContents] = useState<TableOfContent[]>([])
@@ -86,9 +94,11 @@ const useTableOfContents = (selector: string) => {
                         className={`cursor-pointer hover:opacity-50 ${activeIndex === item.index ? "text-theme" : ""}`}
                         style={{ marginLeft: item.marginLeft }}
                         onClick={() => {
-                            item.element.scrollIntoView({
+                            const top = item.element.getBoundingClientRect().top + window.scrollY - getHeaderScrollOffset()
+                            window.scrollTo({
+                                top: Math.max(top, 0),
                                 behavior: 'smooth'
-                            });
+                            })
                         }}
                     >
                         {item.text}
