@@ -40,6 +40,23 @@ This prerelease focuses on feed presentation controls and a cleaner settings exp
 ### Fixed
 - **Card rendering polish**: Fixed feed card image clipping, preview overflow, header compact preview sizing, and summary length behavior in denser layouts.
 
+### 中文版
+
+#### 概览
+这个预发布版本聚焦在文章列表展示控制和更整洁的设置体验上。它新增了可配置的文章卡片样式、可选的瀑布流列表布局，以及用于个性化设置的统一预览外壳，同时也延续了 `rc1` 中已经合入的 blurhash 加载修复。
+
+#### 新增
+- **文章列表展示设置**：在设置页中新增文章卡片样式和列表布局选项。
+- **Editorial 卡片样式**：新增一个更强调视觉层级的文章卡片主题。
+- **共享预览外壳**：新增一套共享的设置预览卡组件，用于统一 Header 布局和文章卡片样式预览。
+
+#### 变更
+- **文章浏览体验**：文章列表、搜索结果页和标签页现在可以在单列列表与双列瀑布流之间切换。
+- **设置页个性化 UI**：统一了 Header 预览和文章卡片预览的视觉样式，并移除了冗余的列表布局预览，使设置流程更直接。
+
+#### 修复
+- **卡片渲染细节**：修复了文章卡片图片裁切、预览区域 overflow、极简 Header 预览宽度/圆角，以及高密度布局下摘要长度控制等问题。
+
 ## [v0.3.0-rc.1] - 2026-03-06
 
 ### Overview
