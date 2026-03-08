@@ -3,7 +3,6 @@ import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { Database } from 'bun:sqlite';
 import {
     CacheImpl,
-    ConditionalCacheImpl,
     createPublicCache,
     createServerConfig,
     createClientConfig,
@@ -689,7 +688,7 @@ describe('CacheImpl - getOrSet 和 getOrDefault', () => {
     });
 });
 
-describe('ConditionalCacheImpl', () => {
+describe('CacheImpl - 公共缓存开关', () => {
     let { db, sqlite } = createTestDB();
     let mockEnv: Env;
     let cacheImpl: CacheImpl;
@@ -709,27 +708,36 @@ describe('ConditionalCacheImpl', () => {
     });
 
     it('默认关闭时不读取或写入公共缓存', async () => {
-        await cacheImpl.set('feed_1', { title: 'cached' });
-        const conditionalCache = new ConditionalCacheImpl(cacheImpl, clientConfig);
+        const seededCache = new CacheImpl(db as any, mockEnv, 'cache', 'database');
+        await seededCache.set('feed_1', { title: 'cached' });
+        cacheImpl = new CacheImpl(db as any, mockEnv, 'cache', 'database', clientConfig);
 
-        expect(await conditionalCache.get('feed_1')).toBeNull();
+        expect(await cacheImpl.get('feed_1')).toBeNull();
 
         let computed = false;
-        const value = await conditionalCache.getOrSet('feed_1', async () => {
+        const value = await cacheImpl.getOrSet('feed_1', async () => {
             computed = true;
             return { title: 'fresh' };
         });
 
         expect(computed).toBe(true);
         expect(value).toEqual({ title: 'fresh' });
-        expect(await cacheImpl.get('feed_1')).toEqual({ title: 'cached' });
+        expect(await seededCache.get('feed_1')).toEqual({ title: 'cached' });
     });
 
     it('启用后应正常命中公共缓存', async () => {
         await clientConfig.set('cache.enabled', true);
         await cacheImpl.set('feed_1', { title: 'cached' });
 
-        const conditionalCache = new ConditionalCacheImpl(cacheImpl, clientConfig);
-        expect(await conditionalCache.get('feed_1')).toEqual({ title: 'cached' });
+        const enabledCache = new CacheImpl(db as any, mockEnv, 'cache', 'database', clientConfig);
+        expect(await enabledCache.get('feed_1')).toEqual({ title: 'cached' });
+    });
+
+    it('client.config 不应受公共缓存开关影响', async () => {
+        await clientConfig.set('cache.enabled', false);
+        await clientConfig.set('site.name', 'Rin Test');
+
+        const freshClientConfig = new CacheImpl(db as any, mockEnv, 'client.config', 'database');
+        expect(await freshClientConfig.get('site.name')).toBe('Rin Test');
     });
 });
