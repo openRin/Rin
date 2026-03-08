@@ -38,6 +38,7 @@ export function HashtagPage({ name }: { name: string }) {
     const siteConfig = useSiteConfig();
     const [status, setStatus] = useState<'loading' | 'idle'>('idle')
     const [hashtag, setHashtag] = useState<FeedsData>()
+    const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 md:columns-2" : "wauto flex flex-col";
     const ref = useRef("")
     function fetchFeeds() {
         const nameDecoded = decodeURI(name)
@@ -77,7 +78,7 @@ export function HashtagPage({ name }: { name: string }) {
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto flex flex-col">
+                        <div className={feedListClass}>
                             {hashtag?.feeds?.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}

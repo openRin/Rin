@@ -1,5 +1,5 @@
 import { BrandLink, HeaderActions, MobileTopHeader, NavBar } from "..";
-import { PreviewActions, PreviewCanvas, PreviewContent, PreviewNav } from "../preview-primitives";
+import { PreviewActions, PreviewBrand, PreviewCanvas, PreviewContent, PreviewNav } from "../preview-primitives";
 import type { HeaderLayoutDefinition } from "../layout-types";
 
 const PREVIEW_ITEMS = ["Home", "Timeline", "Moments"];
@@ -47,19 +47,13 @@ export const compactLayoutDefinition: HeaderLayoutDefinition = {
   renderPreview(data) {
     return (
       <PreviewCanvas
-        className="bg-[linear-gradient(180deg,color-mix(in_srgb,var(--preview-theme-color)_16%,white),rgba(255,255,255,0.78)_48%,rgba(255,255,255,0)_100%)] p-3 dark:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--preview-theme-color)_20%,rgba(39,39,42,0.98)),rgba(24,24,27,0.78)_52%,rgba(24,24,27,0)_100%)]"
+        className="w-full overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--preview-theme-color)_16%,white),rgba(255,255,255,0.78)_48%,rgba(255,255,255,0)_100%)] p-3 dark:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--preview-theme-color)_20%,rgba(39,39,42,0.98)),rgba(24,24,27,0.78)_52%,rgba(24,24,27,0)_100%)]"
         style={{ ["--preview-theme-color" as string]: data.themeColor }}
       >
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
-          <div className="flex items-center gap-2">
-            <img
-              src={data.avatar || ""}
-              alt=""
-              className={`h-8 w-8 shrink-0 rounded-full object-cover ${data.avatar ? "" : "hidden"}`}
-            />
-            <p className="max-w-16 truncate text-[10px] font-semibold text-neutral-900 dark:text-neutral-100">{data.name.trim() || "Rin"}</p>
+        <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="min-w-0">
+            <PreviewBrand data={data} compact />
           </div>
-          <div />
           <div className="flex items-center justify-end gap-3">
             <PreviewNav compact items={PREVIEW_ITEMS.slice(0, 2)} themeColor={data.themeColor} />
             <PreviewActions minimal themeColor={data.themeColor} />

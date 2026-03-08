@@ -437,6 +437,31 @@
         "reveal": "Show on scroll up"
       }
     },
+    "feed_card": {
+      "title": "Feed card style",
+      "desc": "Choose the visual treatment used by article cards across feed, search, and tag lists",
+      "options": {
+        "default": "Default",
+        "editorial": "Editorial"
+      },
+      "preview": {
+        "default": "The current compact card with a simple surface and minimal framing.",
+        "editorial": "A more expressive card with a tinted surface, stronger hierarchy, and gallery-like framing."
+      }
+    },
+    "feed_layout": {
+      "title": "Feed layout",
+      "desc": "Choose how article cards are arranged in feed, search, and tag pages",
+      "preview_note": "Preview only. The selected layout is applied after saving settings.",
+      "options": {
+        "list": "Single column",
+        "masonry": "Masonry"
+      },
+      "preview": {
+        "list": "A steady reading flow with one card per row.",
+        "masonry": "A staggered multi-column layout that packs cards by height."
+      }
+    },
     "theme_color": {
       "title": "Theme color",
       "desc": "Choose the accent color used by buttons, highlights, and interactive elements",
