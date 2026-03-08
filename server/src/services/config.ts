@@ -25,6 +25,17 @@ import {
 export function ConfigService(): Hono {
     const app = new Hono();
 
+    function serializeBootstrapScript(config: Record<string, unknown>) {
+        const serialized = JSON.stringify(config)
+            .replace(/</g, "\\u003C")
+            .replace(/>/g, "\\u003E")
+            .replace(/&/g, "\\u0026")
+            .replace(/\u2028/g, "\\u2028")
+            .replace(/\u2029/g, "\\u2029");
+
+        return `globalThis.__RIN_CLIENT_CONFIG__=${serialized};`;
+    }
+
     // POST /config/test-ai - Test AI model configuration
     // NOTE: Must be defined BEFORE /:type route to avoid being captured as a type parameter
     app.post('/test-ai', async (c: AppContext) => {
@@ -315,6 +326,21 @@ export function ConfigService(): Hono {
             const status = message === 'Feed not found' ? 404 : 400;
             return c.text(message, status);
         }
+    });
+
+    app.get('/client/bootstrap.js', async (c: AppContext) => {
+        const db = c.get('db');
+        const clientConfig = c.get('clientConfig');
+        const env = c.get('env');
+        const config = await buildClientConfigResponse(db, clientConfig, env);
+
+        return new Response(serializeBootstrapScript(config), {
+            status: 200,
+            headers: {
+                'content-type': 'application/javascript; charset=utf-8',
+                'cache-control': 'public, max-age=0, must-revalidate',
+            },
+        });
     });
 
     // GET /config/:type

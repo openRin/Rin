@@ -36,6 +36,18 @@ describe("ConfigService", () => {
     }
 
     describe("GET /:type - Get config", () => {
+        it("should get bootstrap script for client config without authentication", async () => {
+            const res = await app.request("/client/bootstrap.js", {
+                method: "GET",
+            });
+
+            expect(res.status).toBe(200);
+            expect(res.headers.get("content-type")).toContain("application/javascript");
+            const body = await res.text();
+            expect(body).toContain("globalThis.__RIN_CLIENT_CONFIG__=");
+            expect(body).toContain('"site.page_size":5');
+        });
+
         it("should get client config without authentication", async () => {
             const res = await app.request("/client", {
                 method: "GET",
