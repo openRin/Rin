@@ -2,21 +2,16 @@ import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { timeago } from "../utils/timeago";
 import { HashTag } from "./hashtag";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { drawBlurhashToCanvas } from "../utils/blurhash";
 import { parseImageUrlMetadata } from "../utils/image-upload";
+import { useImageLoadState } from "../utils/use-image-load-state";
 
 function FeedCardImage({ src }: { src: string }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [loaded, setLoaded] = useState(false);
-    const [failed, setFailed] = useState(false);
     const { src: cleanSrc, blurhash, width, height } = parseImageUrlMetadata(src);
+    const { failed, imageRef, loaded, onError, onLoad } = useImageLoadState(cleanSrc);
     const aspectRatio = width && height ? `${width} / ${height}` : undefined;
-
-    useEffect(() => {
-        setLoaded(false);
-        setFailed(false);
-    }, [src]);
 
     useEffect(() => {
         if (!blurhash || !canvasRef.current) {
@@ -30,7 +25,10 @@ function FeedCardImage({ src }: { src: string }) {
     }, [blurhash]);
 
     return (
-        <div className="relative flex flex-row items-center mb-2 overflow-hidden rounded-xl" style={{ aspectRatio }}>
+        <div
+            className="relative mb-2 flex max-h-80 w-full flex-row items-center overflow-hidden rounded-xl"
+            style={{ aspectRatio }}
+        >
             {blurhash && !loaded ? (
                 <canvas
                     ref={canvasRef}
@@ -39,18 +37,13 @@ function FeedCardImage({ src }: { src: string }) {
                 />
             ) : null}
             <img
+                ref={imageRef}
                 src={cleanSrc}
                 alt=""
                 width={width}
                 height={height}
-                onLoad={() => {
-                    setLoaded(true);
-                    setFailed(false);
-                }}
-                onError={() => {
-                    setLoaded(false);
-                    setFailed(true);
-                }}
+                onLoad={onLoad}
+                onError={onError}
                 className={`absolute inset-0 h-full w-full object-cover object-center hover:scale-105 translation duration-300 ${blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"
                     }`}
             />

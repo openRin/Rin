@@ -1,5 +1,5 @@
 import "katex/dist/katex.min.css";
-import React, { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from "react";
+import React, { cloneElement, isValidElement, useEffect, useMemo, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -20,6 +20,7 @@ import "yet-another-react-lightbox/styles.css";
 import { drawBlurhashToCanvas } from "../utils/blurhash";
 import { useColorMode } from "../utils/darkModeUtils";
 import { parseImageUrlMetadata } from "../utils/image-upload";
+import { useImageLoadState } from "../utils/use-image-load-state";
 
 
 const countNewlinesBeforeNode = (text: string, offset: number) => {
@@ -64,16 +65,10 @@ function MarkdownImage({
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
   const { src: cleanSrc, blurhash, width, height } = parseImageUrlMetadata(src);
+  const { failed, imageRef, loaded, onError, onLoad } = useImageLoadState(cleanSrc);
   const roundedClass = rounded ? "rounded-xl" : "";
   const aspectRatio = width && height ? `${width} / ${height}` : undefined;
-
-  useEffect(() => {
-    setLoaded(false);
-    setFailed(false);
-  }, [src]);
 
   useEffect(() => {
     if (!blurhash || !canvasRef.current) {
@@ -99,6 +94,7 @@ function MarkdownImage({
         />
       ) : null}
       <img
+        ref={imageRef}
         src={cleanSrc}
         alt={alt}
         width={width}
@@ -106,14 +102,8 @@ function MarkdownImage({
         onClick={() => {
           show(cleanSrc);
         }}
-        onLoad={() => {
-          setLoaded(true);
-          setFailed(false);
-        }}
-        onError={() => {
-          setLoaded(false);
-          setFailed(true);
-        }}
+        onLoad={onLoad}
+        onError={onError}
         className={`mx-auto max-w-full cursor-zoom-in transition-opacity ${roundedClass} ${className || ""} ${
           blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"
         }`}
