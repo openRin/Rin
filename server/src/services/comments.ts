@@ -70,23 +70,27 @@ export function CommentService(): Hono {
             webhookBodyTemplate,
         } = await resolveWebhookConfig(serverConfig, env);
         const frontendUrl = new URL(c.req.url).origin;
-        await notify(
-            webhookUrl || "",
-            {
-                event: "comment.created",
-                message: `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`,
-                title: exist.title || "",
-                url: `${frontendUrl}/feed/${feedId}`,
-                username: user.username,
-                content,
-            },
-            {
-                method: webhookMethod,
-                contentType: webhookContentType,
-                headers: webhookHeaders,
-                bodyTemplate: webhookBodyTemplate,
-            },
-        );
+        try {
+            await notify(
+                webhookUrl || "",
+                {
+                    event: "comment.created",
+                    message: `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`,
+                    title: exist.title || "",
+                    url: `${frontendUrl}/feed/${feedId}`,
+                    username: user.username,
+                    content,
+                },
+                {
+                    method: webhookMethod,
+                    contentType: webhookContentType,
+                    headers: webhookHeaders,
+                    bodyTemplate: webhookBodyTemplate,
+                },
+            );
+        } catch (error) {
+            console.error("Failed to send comment webhook", error);
+        }
         return c.text('OK');
     });
 
