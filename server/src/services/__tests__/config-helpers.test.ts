@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
 import type { Database } from "bun:sqlite";
-import { buildServerConfigResponse } from "../config-helpers";
+import { buildServerConfigResponse, resolveWebhookConfig } from "../config-helpers";
 import { cleanupTestDB, createMockDB } from "../../../tests/fixtures";
 
 describe("buildServerConfigResponse", () => {
@@ -62,5 +62,47 @@ describe("buildServerConfigResponse", () => {
         });
 
         expect(response["webhook_url"]).toBe("https://stored.example.com/webhook");
+    });
+});
+
+describe("resolveWebhookConfig", () => {
+    it("prefers stored webhook_url over the legacy key and env fallback", async () => {
+        const config = await resolveWebhookConfig({
+            async get(key: string) {
+                if (key === "webhook_url") {
+                    return "https://stored.example.com/webhook";
+                }
+                if (key === "WEBHOOK_URL") {
+                    return "https://legacy.example.com/webhook";
+                }
+                return undefined;
+            },
+        }, {
+            WEBHOOK_URL: "https://env.example.com/webhook",
+        });
+
+        expect(config.webhookUrl).toBe("https://stored.example.com/webhook");
+    });
+
+    it("uses body overrides before stored config values", async () => {
+        const config = await resolveWebhookConfig({
+            async get(key: string) {
+                if (key === "webhook_url") {
+                    return "https://stored.example.com/webhook";
+                }
+                if (key === "webhook.method") {
+                    return "POST";
+                }
+                return undefined;
+            },
+        }, {
+            WEBHOOK_URL: "https://env.example.com/webhook",
+        }, {
+            webhook_url: "https://override.example.com/webhook",
+            "webhook.method": "GET",
+        });
+
+        expect(config.webhookUrl).toBe("https://override.example.com/webhook");
+        expect(config.webhookMethod).toBe("GET");
     });
 });

@@ -12,8 +12,32 @@ type ConfigMapLike = {
   save(): Promise<void>;
 };
 
+type ConfigReaderLike = {
+  get(key: string): Promise<unknown>;
+};
+
 type ServerConfigResponseEnv = {
   WEBHOOK_URL?: string;
+};
+
+type WebhookConfigOverrides = {
+  webhook_url?: string;
+  "webhook.method"?: string;
+  "webhook.content_type"?: string;
+  "webhook.headers"?: string | Record<string, unknown>;
+  "webhook.body_template"?: string | Record<string, unknown>;
+};
+
+type WebhookConfigEnv = {
+  WEBHOOK_URL?: string;
+};
+
+export type ResolvedWebhookConfig = {
+  webhookUrl?: string;
+  webhookMethod?: string;
+  webhookContentType?: string;
+  webhookHeaders?: string | Record<string, unknown>;
+  webhookBodyTemplate?: string | Record<string, unknown>;
 };
 
 export type ConfigTypeParam = "client" | "server";
@@ -58,6 +82,66 @@ function normalizeWebhookConfigResponse(config: Record<string, unknown>) {
 
 export function isAIConfigKey(key: string): boolean {
   return AI_CONFIG_KEYS.some((candidate) => candidate === key) || key.startsWith("ai_summary.");
+}
+
+function normalizeOptionalString(value: unknown) {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function normalizeWebhookTemplateConfigValue(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    return value as Record<string, unknown>;
+  }
+
+  return undefined;
+}
+
+export async function resolveWebhookConfig(
+  serverConfig: ConfigReaderLike,
+  env?: WebhookConfigEnv,
+  overrides: WebhookConfigOverrides = {},
+): Promise<ResolvedWebhookConfig> {
+  const [
+    storedWebhookUrl,
+    legacyWebhookUrl,
+    webhookMethod,
+    webhookContentType,
+    webhookHeaders,
+    webhookBodyTemplate,
+  ] = await Promise.all([
+    serverConfig.get("webhook_url"),
+    serverConfig.get(WEBHOOK_URL_KEY),
+    serverConfig.get("webhook.method"),
+    serverConfig.get("webhook.content_type"),
+    serverConfig.get("webhook.headers"),
+    serverConfig.get("webhook.body_template"),
+  ]);
+
+  return {
+    webhookUrl:
+      normalizeOptionalString(overrides.webhook_url) ??
+      normalizeOptionalString(storedWebhookUrl) ??
+      normalizeOptionalString(legacyWebhookUrl) ??
+      normalizeOptionalString(env?.WEBHOOK_URL),
+    webhookMethod: normalizeOptionalString(overrides["webhook.method"]) ?? normalizeOptionalString(webhookMethod),
+    webhookContentType:
+      normalizeOptionalString(overrides["webhook.content_type"]) ?? normalizeOptionalString(webhookContentType),
+    webhookHeaders:
+      normalizeWebhookTemplateConfigValue(overrides["webhook.headers"]) ??
+      normalizeWebhookTemplateConfigValue(webhookHeaders),
+    webhookBodyTemplate:
+      normalizeWebhookTemplateConfigValue(overrides["webhook.body_template"]) ??
+      normalizeWebhookTemplateConfigValue(webhookBodyTemplate),
+  };
 }
 
 export function splitConfigPayload(body: Record<string, unknown>) {
