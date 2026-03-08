@@ -4,8 +4,8 @@ import type { AppContext, DB } from "../core/hono-types";
 import * as schema from "../db/schema";
 import { friends } from "../db/schema";
 import type { CacheImpl } from "../utils/cache";
-import { WEBHOOK_URL_KEY } from "../utils/config";
 import { notify } from "../utils/webhook";
+import { resolveWebhookConfig } from "./config-helpers";
 
 export function FriendService(): Hono {
     const app = new Hono();
@@ -77,15 +77,17 @@ export function FriendService(): Hono {
         });
 
         if (!admin) {
-            const webhookUrl = await serverConfig.get(WEBHOOK_URL_KEY) || env.WEBHOOK_URL;
-            const webhookMethod = await serverConfig.get("webhook.method") as string | undefined;
-            const webhookContentType = await serverConfig.get("webhook.content_type") as string | undefined;
-            const webhookHeaders = await serverConfig.get("webhook.headers") as string | undefined;
-            const webhookBodyTemplate = await serverConfig.get("webhook.body_template") as string | undefined;
+            const {
+                webhookUrl,
+                webhookMethod,
+                webhookContentType,
+                webhookHeaders,
+                webhookBodyTemplate,
+            } = await resolveWebhookConfig(serverConfig, env);
             const frontendUrl = new URL(c.req.url).origin;
             const content = `${frontendUrl}/friends\n${username} 申请友链: ${name}\n${desc}\n${url}`;
             await notify(
-                webhookUrl,
+                webhookUrl || "",
                 {
                     event: "friend.created",
                     message: content,
@@ -159,15 +161,17 @@ export function FriendService(): Hono {
         }).where(eq(friends.id, parseInt(id)));
         
         if (!admin) {
-            const webhookUrl = await serverConfig.get(WEBHOOK_URL_KEY) || env.WEBHOOK_URL;
-            const webhookMethod = await serverConfig.get("webhook.method") as string | undefined;
-            const webhookContentType = await serverConfig.get("webhook.content_type") as string | undefined;
-            const webhookHeaders = await serverConfig.get("webhook.headers") as string | undefined;
-            const webhookBodyTemplate = await serverConfig.get("webhook.body_template") as string | undefined;
+            const {
+                webhookUrl,
+                webhookMethod,
+                webhookContentType,
+                webhookHeaders,
+                webhookBodyTemplate,
+            } = await resolveWebhookConfig(serverConfig, env);
             const frontendUrl = new URL(c.req.url).origin;
             const content = `${frontendUrl}/friends\n${username} 更新友链: ${name}\n${desc}\n${url}`;
             await notify(
-                webhookUrl,
+                webhookUrl || "",
                 {
                     event: "friend.updated",
                     message: content,

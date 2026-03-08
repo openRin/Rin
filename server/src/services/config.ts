@@ -3,7 +3,6 @@ import { wrapTime } from "hono/timing";
 import type { AppContext } from "../core/hono-types";
 import { getAIConfigForFrontend, setAIConfig, getAIConfig } from "../utils/db-config";
 import { testAIModel } from "../utils/ai";
-import { WEBHOOK_URL_KEY } from "../utils/config";
 import { notify } from "../utils/webhook";
 import {
     buildCombinedConfigResponse,
@@ -11,6 +10,7 @@ import {
     buildServerConfigResponse,
     isConfigType,
     persistRegularConfig,
+    resolveWebhookConfig,
     splitConfigPayload,
 } from "./config-helpers";
 import { buildHealthCheckResponse } from "./config-health";
@@ -75,23 +75,18 @@ export function ConfigService(): Hono {
             test_message?: string;
         };
 
-        const [storedWebhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate] = await wrapTime(
+        const {
+            webhookUrl,
+            webhookMethod: resolvedWebhookMethod,
+            webhookContentType: resolvedWebhookContentType,
+            webhookHeaders: resolvedWebhookHeaders,
+            webhookBodyTemplate: resolvedWebhookBodyTemplate,
+        } = await wrapTime(
             c,
             'webhook_config',
-            Promise.all([
-                serverConfig.get(WEBHOOK_URL_KEY),
-                serverConfig.get("webhook.method"),
-                serverConfig.get("webhook.content_type"),
-                serverConfig.get("webhook.headers"),
-                serverConfig.get("webhook.body_template"),
-            ]),
+            resolveWebhookConfig(serverConfig, env, body),
             'Load webhook config',
-        ) as Array<string | undefined>;
-        const webhookUrl = body.webhook_url ?? storedWebhookUrl ?? env.WEBHOOK_URL;
-        const resolvedWebhookMethod = body["webhook.method"] ?? webhookMethod;
-        const resolvedWebhookContentType = body["webhook.content_type"] ?? webhookContentType;
-        const resolvedWebhookHeaders = body["webhook.headers"] ?? webhookHeaders;
-        const resolvedWebhookBodyTemplate = body["webhook.body_template"] ?? webhookBodyTemplate;
+        );
         const frontendUrl = new URL(c.req.url).origin;
         const testMessage = body.test_message?.trim() || "This is a test webhook message from Rin settings.";
 
