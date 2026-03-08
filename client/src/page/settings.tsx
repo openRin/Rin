@@ -14,6 +14,9 @@ import {
   normalizeHeaderBehavior,
   normalizeHeaderLayout,
 } from "../components/site-header/layout-options";
+import { FEED_CARD_VARIANTS, normalizeFeedCardVariant } from "../components/feed-card-options";
+import { FeedCardPreview } from "../components/feed-card-preview";
+import { FEED_LAYOUT_OPTIONS, normalizeFeedLayout } from "../components/feed-layout-options";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { applyThemeColor, normalizeThemeColor } from "../utils/theme-color";
 import { AISummarySettings } from "./settings-ai";
@@ -95,6 +98,8 @@ export function Settings() {
   const aiValue = useMemo(() => buildAIConfigDraftValue(draft, hasStoredAiApiKey), [draft, hasStoredAiApiKey]);
   const hasUnsavedChanges = !areSettingsDraftsEqual(draft, initialDraft);
   const themeColorValue = normalizeThemeColor(String(clientConfig.get("theme.color") ?? "#fc466b"));
+  const feedLayoutValue = normalizeFeedLayout(String(clientConfig.get("feed.layout") ?? "list"));
+  const feedCardVariantValue = normalizeFeedCardVariant(String(clientConfig.get("feed.card_variant") ?? "default"));
   const previewSiteName = String(clientConfig.get("site.name") ?? clientConfig.default("site.name") ?? "Rin");
   const previewSiteAvatar = String(clientConfig.get("site.avatar") ?? clientConfig.default("site.avatar") ?? "");
 
@@ -270,6 +275,72 @@ export function Settings() {
                   ))}
                 </div>
               </SettingsCardBody>
+              <div className="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
+                <SettingsCardRow
+                  header={
+                    <SettingsCardHeader
+                      title={t("settings.feed_layout.title")}
+                      description={t("settings.feed_layout.desc")}
+                    />
+                  }
+                  action={
+                    <SearchableSelect
+                      value={feedLayoutValue}
+                      onChange={(value) => {
+                        setConfigValue("client", "feed.layout", value);
+                      }}
+                      options={FEED_LAYOUT_OPTIONS.map((value) => ({
+                        value,
+                        label: t(`settings.feed_layout.options.${value}`),
+                      }))}
+                      placeholder={t("settings.feed_layout.title")}
+                      emptyLabel={t("no_more")}
+                      searchable={false}
+                    />
+                  }
+                />
+              </div>
+              <div className="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
+                <SettingsCardRow
+                  header={
+                    <SettingsCardHeader
+                      title={t("settings.feed_card.title")}
+                      description={t("settings.feed_card.desc")}
+                    />
+                  }
+                  action={
+                    <SearchableSelect
+                      value={feedCardVariantValue}
+                      onChange={(value) => {
+                        setConfigValue("client", "feed.card_variant", value);
+                      }}
+                      options={FEED_CARD_VARIANTS.map((value) => ({
+                        value,
+                        label: t(`settings.feed_card.options.${value}`),
+                      }))}
+                      placeholder={t("settings.feed_card.title")}
+                      emptyLabel={t("no_more")}
+                      searchable={false}
+                    />
+                  }
+                />
+                <SettingsCardBody>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {FEED_CARD_VARIANTS.map((value) => (
+                      <FeedCardPreview
+                        key={value}
+                        variant={value}
+                        selected={feedCardVariantValue === value}
+                        title={t(`settings.feed_card.options.${value}`)}
+                        description={t(`settings.feed_card.preview.${value}`)}
+                        onClick={() => {
+                          setConfigValue("client", "feed.card_variant", value);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </SettingsCardBody>
+              </div>
               <div className="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
                 <SettingsCardRow
                   header={

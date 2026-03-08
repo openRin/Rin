@@ -46,7 +46,7 @@ export const classicLayoutDefinition: HeaderLayoutDefinition = {
   },
   renderPreview(data) {
     return (
-      <PreviewCanvas className="p-3">
+      <PreviewCanvas className="w-full overflow-hidden rounded-[22px] p-3">
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
           <PreviewBrand data={data} />
           <div className="mx-2 flex min-w-0 items-center justify-center">

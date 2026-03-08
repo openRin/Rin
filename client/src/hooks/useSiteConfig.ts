@@ -1,5 +1,7 @@
 import { useContext } from "react";
 import { ClientConfigContext } from "../state/config";
+import { normalizeFeedCardVariant } from "../components/feed-card-options";
+import { normalizeFeedLayout } from "../components/feed-layout-options";
 
 // Site configuration keys
 export const SITE_CONFIG_KEYS = {
@@ -8,6 +10,8 @@ export const SITE_CONFIG_KEYS = {
     description: "site.description",
     avatar: "site.avatar",
     pageSize: "site.page_size",
+    feedLayout: "feed.layout",
+    feedCardVariant: "feed.card_variant",
     headerLayout: "header.layout",
     themeColor: "theme.color",
 } as const;
@@ -29,6 +33,8 @@ export function useSiteConfig() {
         avatar: config.get<string>(SITE_CONFIG_KEYS.avatar) || "",
         pageSize: Number.isFinite(parsedPageSize) ? parsedPageSize : 5,
         headerBehavior: config.get<string>(SITE_CONFIG_KEYS.headerBehavior) || "fixed",
+        feedLayout: normalizeFeedLayout(config.get<string>(SITE_CONFIG_KEYS.feedLayout) || "list"),
+        feedCardVariant: normalizeFeedCardVariant(config.get<string>(SITE_CONFIG_KEYS.feedCardVariant) || "default"),
         headerLayout: config.get<string>(SITE_CONFIG_KEYS.headerLayout) || "classic",
         themeColor: config.get<string>(SITE_CONFIG_KEYS.themeColor) || "#fc466b",
     };

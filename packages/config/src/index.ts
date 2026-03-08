@@ -8,6 +8,8 @@ export const CLIENT_CONFIG_DEFAULTS = new Map(
     "friend_apply_enable": true,
     "header.behavior": "fixed",
     "header.layout": "classic",
+    "feed.layout": "list",
+    "feed.card_variant": "default",
     "theme.color": "#fc466b",
     "comment.enabled": true,
     "login.enabled": true,
