@@ -96,7 +96,7 @@ export function ProfilePage() {
 
                 <div className="space-y-6">
                     {/* Avatar section */}
-                    <div className="flex flex-col items-center space-y-4">
+                    <div className="flex flex-col items-start space-y-4">
                         <label className="text-sm font-medium t-secondary">{t('profile.avatar')}</label>
                         <div className="w-full max-w-xl">
                             <ImageUploadInput
@@ -112,7 +112,7 @@ export function ProfilePage() {
                                 placeholder={t('upload.image.url_placeholder')}
                             />
                         </div>
-                        <p className="text-xs t-secondary">{t('profile.avatar_hint')}</p>
+                        <p className="text-left text-xs t-secondary">{t('profile.avatar_hint')}</p>
                     </div>
 
                     {/* Username section */}

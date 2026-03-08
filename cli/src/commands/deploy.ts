@@ -12,5 +12,5 @@ export async function runDeployCommand(args: string[]) {
   });
 
   const target = values.server ? "server" : values.client ? "client" : "all";
-  await runCloudflareDeploy(target);
+  await runCloudflareDeploy(target, Boolean(values.preview));
 }

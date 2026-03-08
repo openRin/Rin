@@ -48,7 +48,9 @@ export function AdminLayout({
         <aside className="w-full shrink-0 lg:sticky lg:top-6 lg:w-72 lg:self-start">
           <div className="rounded-2xl border border-black/10 bg-w p-5 dark:border-white/10">
             <Link href="/" className="flex items-center gap-4 rounded-xl px-2 py-2 transition-colors hover:bg-neutral-50 dark:hover:bg-white/5">
-              <img src={siteConfig.avatar} alt="Avatar" className="h-12 w-12 rounded-2xl border border-black/10 dark:border-white/10" />
+              {siteConfig.avatar ? (
+                <img src={siteConfig.avatar} alt="Avatar" className="h-12 w-12 rounded-2xl border border-black/10 dark:border-white/10" />
+              ) : null}
               <div className="min-w-0">
                 <p className="truncate text-base font-semibold t-primary">{siteConfig.name}</p>
                 <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{t("admin.back_to_site")}</p>

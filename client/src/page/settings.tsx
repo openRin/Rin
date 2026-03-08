@@ -7,7 +7,15 @@ import Modal from "react-modal";
 import { client, oauth_url } from "../app/runtime";
 import { Button } from "../components/button";
 import { useAlert } from "../components/dialog.tsx";
+import { HeaderLayoutPreview } from "../components/site-header/layout-preview";
+import {
+  HEADER_BEHAVIOR_OPTIONS,
+  HEADER_LAYOUT_OPTIONS,
+  normalizeHeaderBehavior,
+  normalizeHeaderLayout,
+} from "../components/site-header/layout-options";
 import { useSiteConfig } from "../hooks/useSiteConfig";
+import { applyThemeColor, normalizeThemeColor } from "../utils/theme-color";
 import { AISummarySettings } from "./settings-ai";
 import { ItemButton, ItemImageInput, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
 import {
@@ -30,6 +38,14 @@ const WEBHOOK_METHOD_OPTIONS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD",
   value,
 }));
 
+const THEME_COLOR_OPTIONS = [
+  { label: "Rose", value: "#fc466b" },
+  { label: "Violet", value: "#7c3aed" },
+  { label: "Blue", value: "#2563eb" },
+  { label: "Teal", value: "#0f766e" },
+  { label: "Orange", value: "#ea580c" },
+];
+
 export function Settings() {
   const { t } = useTranslation();
   const siteConfig = useSiteConfig();
@@ -44,7 +60,12 @@ export function Settings() {
   const [initialDraft, setInitialDraft] = useState<SettingsDraft>({ clientConfig: {}, serverConfig: {} });
   const [hasStoredAiApiKey, setHasStoredAiApiKey] = useState(false);
   const ref = useRef(false);
+  const initialDraftRef = useRef<SettingsDraft>({ clientConfig: {}, serverConfig: {} });
   const { showAlert, AlertUI } = useAlert();
+
+  function getDraftThemeColor(nextDraft: SettingsDraft) {
+    return typeof nextDraft.clientConfig["theme.color"] === "string" ? nextDraft.clientConfig["theme.color"] : undefined;
+  }
 
   useEffect(() => {
     if (ref.current) return;
@@ -52,8 +73,10 @@ export function Settings() {
       .then((state) => {
         setDraft(state.draft);
         setInitialDraft(state.draft);
+        initialDraftRef.current = state.draft;
         setHasStoredAiApiKey(state.hasStoredAiApiKey);
         mergeSessionConfig(state.draft.clientConfig);
+        applyThemeColor(getDraftThemeColor(state.draft));
       })
       .catch((err: any) => {
         showAlert(t("settings.get_config_failed$message", { message: err.message }));
@@ -62,11 +85,18 @@ export function Settings() {
         setLoading(false);
       });
     ref.current = true;
+
+    return () => {
+      applyThemeColor(getDraftThemeColor(initialDraftRef.current));
+    };
   }, [showAlert, t]);
 
   const { clientConfig, serverConfig } = useMemo(() => createSettingsConfigWrappers(draft), [draft]);
   const aiValue = useMemo(() => buildAIConfigDraftValue(draft, hasStoredAiApiKey), [draft, hasStoredAiApiKey]);
   const hasUnsavedChanges = !areSettingsDraftsEqual(draft, initialDraft);
+  const themeColorValue = normalizeThemeColor(String(clientConfig.get("theme.color") ?? "#fc466b"));
+  const previewSiteName = String(clientConfig.get("site.name") ?? clientConfig.default("site.name") ?? "Rin");
+  const previewSiteAvatar = String(clientConfig.get("site.avatar") ?? clientConfig.default("site.avatar") ?? "");
 
   function setConfigValue(type: "client" | "server", key: string, value: unknown) {
     setDraft((current) => updateDraftConfig(current, type, key, value));
@@ -74,6 +104,7 @@ export function Settings() {
 
   function handleReset() {
     setDraft(initialDraft);
+    applyThemeColor(getDraftThemeColor(initialDraft));
   }
 
   async function handleSave() {
@@ -82,6 +113,7 @@ export function Settings() {
       const state = await saveSettingsConfigState(draft);
       setDraft(state.draft);
       setInitialDraft(state.draft);
+      initialDraftRef.current = state.draft;
       setHasStoredAiApiKey(state.hasStoredAiApiKey || aiValue.apiKey.trim().length > 0);
       mergeSessionConfig(state.draft.clientConfig);
       window.dispatchEvent(new Event("storage"));
@@ -190,6 +222,136 @@ export function Settings() {
               setConfigValue("client", "site.page_size", value);
             }}
           />
+
+          <ItemTitle title={t("settings.personalization.title")} />
+          <div className="w-full">
+            <SettingsCard>
+              <SettingsCardRow
+                header={
+                  <SettingsCardHeader
+                    title={t("settings.header_layout.title")}
+                    description={t("settings.header_layout.desc")}
+                  />
+                }
+                action={
+                  <SearchableSelect
+                    value={normalizeHeaderLayout(String(clientConfig.get("header.layout") ?? "classic"))}
+                    onChange={(value) => {
+                      setConfigValue("client", "header.layout", value);
+                    }}
+                    options={HEADER_LAYOUT_OPTIONS.map((value) => ({
+                      value,
+                      label: t(`settings.header_layout.options.${value}`),
+                    }))}
+                    placeholder={t("settings.header_layout.title")}
+                    emptyLabel={t("no_more")}
+                    searchable={false}
+                  />
+                }
+              />
+              <SettingsCardBody>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {HEADER_LAYOUT_OPTIONS.map((value) => (
+                    <HeaderLayoutPreview
+                      key={value}
+                      data={{
+                        avatar: previewSiteAvatar,
+                        name: previewSiteName,
+                        themeColor: themeColorValue,
+                      }}
+                      layout={value}
+                      selected={normalizeHeaderLayout(String(clientConfig.get("header.layout") ?? "classic")) === value}
+                      title={t(`settings.header_layout.options.${value}`)}
+                      description={t(`settings.header_layout.preview.${value}`)}
+                      onClick={() => {
+                        setConfigValue("client", "header.layout", value);
+                      }}
+                    />
+                  ))}
+                </div>
+              </SettingsCardBody>
+              <div className="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
+                <SettingsCardRow
+                  header={
+                    <SettingsCardHeader
+                      title={t("settings.theme_color.title")}
+                      description={t("settings.theme_color.desc")}
+                    />
+                  }
+                  action={
+                    <div className="text-sm font-medium t-primary">{themeColorValue}</div>
+                  }
+                />
+                <SettingsCardBody>
+                  <div className="flex flex-wrap gap-3">
+                    {THEME_COLOR_OPTIONS.map((option) => {
+                      const selected = themeColorValue === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setConfigValue("client", "theme.color", option.value);
+                            applyThemeColor(option.value);
+                          }}
+                          className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-all ${
+                            selected
+                              ? "border-theme bg-theme/5 shadow-sm shadow-theme/10"
+                              : "border-black/10 hover:border-black/20 dark:border-white/10 dark:hover:border-white/20"
+                          }`}
+                        >
+                          <span
+                            className="h-6 w-6 rounded-full border border-black/10 dark:border-white/10"
+                            style={{ backgroundColor: option.value }}
+                          />
+                          <span className="text-sm t-primary">{t(`settings.theme_color.options.${option.label.toLowerCase()}`)}</span>
+                          {selected ? <i className="ri-check-line text-theme" /> : null}
+                        </button>
+                      );
+                    })}
+                    <label className="flex items-center gap-3 rounded-xl border border-black/10 px-3 py-2 hover:border-black/20 dark:border-white/10 dark:hover:border-white/20">
+                      <input
+                        type="color"
+                        value={themeColorValue}
+                        onChange={(event) => {
+                          const normalized = normalizeThemeColor(event.target.value);
+                          setConfigValue("client", "theme.color", normalized);
+                          applyThemeColor(normalized);
+                        }}
+                        className="color-input-reset h-6 w-6 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                      />
+                      <span className="text-sm t-primary">{t("settings.theme_color.custom")}</span>
+                    </label>
+                  </div>
+                </SettingsCardBody>
+              </div>
+              <div className="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
+                <SettingsCardRow
+                  header={
+                    <SettingsCardHeader
+                      title={t("settings.header_behavior.title")}
+                      description={t("settings.header_behavior.desc")}
+                    />
+                  }
+                  action={
+                    <SearchableSelect
+                      value={normalizeHeaderBehavior(String(clientConfig.get("header.behavior") ?? "fixed"))}
+                      onChange={(value) => {
+                        setConfigValue("client", "header.behavior", value);
+                      }}
+                      options={HEADER_BEHAVIOR_OPTIONS.map((value) => ({
+                        value,
+                        label: t(`settings.header_behavior.options.${value}`),
+                      }))}
+                      placeholder={t("settings.header_behavior.title")}
+                      emptyLabel={t("no_more")}
+                      searchable={false}
+                    />
+                  }
+                />
+              </div>
+            </SettingsCard>
+          </div>
 
           <ItemTitle title={t("settings.other.title")} />
           <ItemSwitch

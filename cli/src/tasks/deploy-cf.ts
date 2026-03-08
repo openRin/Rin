@@ -87,6 +87,15 @@ export function buildR2BucketInfo(r2BucketName: string, accountId: string): R2Bu
   };
 }
 
+export function buildWranglerTriggersConfig(preview = false) {
+  return preview
+    ? ""
+    : stripIndent(`
+        [triggers]
+        crons = ["*/20 * * * *"]
+      `);
+}
+
 async function resolveR2BucketInfo(r2BucketName: string) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   if (!accountId) return null;
@@ -96,7 +105,7 @@ async function resolveR2BucketInfo(r2BucketName: string) {
   return buildR2BucketInfo(r2BucketName, accountId);
 }
 
-export async function runCloudflareDeploy(target: "all" | "server" | "client" = "all") {
+export async function runCloudflareDeploy(target: "all" | "server" | "client" = "all", preview = false) {
   if (target === "client") {
     await buildClient();
     await $`${bunExec} x wrangler pages deploy dist/client`;
@@ -156,9 +165,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
       [assets]
       directory = "./dist/client"
       binding = "ASSETS"
-
-      [triggers]
-      crons = ["*/20 * * * *"]
+      ${buildWranglerTriggersConfig(preview)}
 
       [vars]
       S3_FOLDER = "${s3Folder}"
