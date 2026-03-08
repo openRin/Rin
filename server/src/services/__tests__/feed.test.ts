@@ -4,12 +4,14 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/hono-types";
 import { setupTestApp, createTestUser, cleanupTestDB } from '../../../tests/fixtures';
 import type { Database } from 'bun:sqlite';
+import type { TestCacheImpl } from '../../../tests/fixtures';
 
 describe('FeedService', () => {
     let db: any;
     let sqlite: Database;
     let env: Env;
     let app: Hono<{ Bindings: Env; Variables: Variables }>;
+    let serverConfig: TestCacheImpl;
 
     beforeEach(async () => {
         const ctx = await setupTestApp(FeedService);
@@ -17,6 +19,7 @@ describe('FeedService', () => {
         sqlite = ctx.sqlite;
         env = ctx.env;
         app = ctx.app;
+        serverConfig = ctx.serverConfig;
         
         // Create test user
         await createTestUser(sqlite);
@@ -160,12 +163,9 @@ describe('FeedService', () => {
         });
 
         it('should return AI summary generation status for a queued feed', async () => {
-            sqlite.exec(`
-                INSERT INTO info (key, value) VALUES
-                ('ai_summary.enabled', 'true'),
-                ('ai_summary.provider', 'worker-ai'),
-                ('ai_summary.model', 'llama-3-8b')
-            `);
+            await serverConfig.set('ai_summary.enabled', 'true', false);
+            await serverConfig.set('ai_summary.provider', 'worker-ai', false);
+            await serverConfig.set('ai_summary.model', 'llama-3-8b', false);
 
             const createRes = await app.request('/', {
                 method: 'POST',

@@ -32,6 +32,7 @@ export interface QueueStatusResponse {
 export async function retryQueueStatusTask(
   db: any,
   cache: any,
+  serverConfig: { get(key: string): Promise<unknown> },
   env: Env,
   feedId: number,
 ) {
@@ -47,7 +48,7 @@ export async function retryQueueStatusTask(
     throw new Error("Only failed AI summary tasks can be retried");
   }
 
-  await syncFeedAISummaryQueueState(db, env, feedId, {
+  await syncFeedAISummaryQueueState(db, serverConfig, env, feedId, {
     draft: feed.draft === 1,
     updatedAt: feed.updatedAt,
     resetSummary: false,

@@ -46,6 +46,10 @@ describe("ConfigService", () => {
             const body = await res.text();
             expect(body).toContain("globalThis.__RIN_CLIENT_CONFIG__=");
             expect(body).toContain('"site.page_size":5');
+            expect(res.headers.get("Server-Timing")).toContain("bootstrap_client_config");
+            expect(res.headers.get("Server-Timing")).toContain("client_config_all");
+            expect(res.headers.get("Server-Timing")).toContain("client_ai_enabled");
+            expect(res.headers.get("Server-Timing")).toContain("bootstrap_script");
         });
 
         it("should get client config without authentication", async () => {
@@ -91,11 +95,16 @@ describe("ConfigService", () => {
         });
 
         it("should mask sensitive fields in server config", async () => {
-            // Set some AI config with API key
-            sqlite.exec(`
-                INSERT INTO info (key, value) VALUES 
-                ('ai_summary.api_key', 'secret_key_123')
-            `);
+            await app.request("/server", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    "ai_summary.api_key": "secret_key_123",
+                }),
+            });
 
             const res = await app.request("/server", {
                 method: "GET",
@@ -231,12 +240,20 @@ describe("ConfigService", () => {
                 sendBatch: async () => {},
             } as unknown as Queue<any>;
 
-            sqlite.exec(`
-                INSERT INTO info (key, value) VALUES
-                ('ai_summary.enabled', 'true'),
-                ('ai_summary.provider', 'worker-ai'),
-                ('ai_summary.model', 'llama-3-8b');
+            await app.request("/server", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    "ai_summary.enabled": "true",
+                    "ai_summary.provider": "worker-ai",
+                    "ai_summary.model": "llama-3-8b",
+                }),
+            });
 
+            sqlite.exec(`
                 INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
                 VALUES
                   (1, 'Needs AI', '', '', 'idle', '', 'content', 1, 0, 0, 1),
@@ -268,12 +285,20 @@ describe("ConfigService", () => {
                 sendBatch: async () => {},
             } as unknown as Queue<any>;
 
-            sqlite.exec(`
-                INSERT INTO info (key, value) VALUES
-                ('ai_summary.enabled', 'true'),
-                ('ai_summary.provider', 'worker-ai'),
-                ('ai_summary.model', 'llama-3-8b');
+            await app.request("/server", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    "ai_summary.enabled": "true",
+                    "ai_summary.provider": "worker-ai",
+                    "ai_summary.model": "llama-3-8b",
+                }),
+            });
 
+            sqlite.exec(`
                 INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
                 VALUES
                   (1, 'Needs AI', '', '', 'idle', '', 'content', 1, 0, 0, 1),
@@ -334,12 +359,20 @@ describe("ConfigService", () => {
                 sendBatch: async () => {},
             } as unknown as Queue<any>;
 
-            sqlite.exec(`
-                INSERT INTO info (key, value) VALUES
-                ('ai_summary.enabled', 'true'),
-                ('ai_summary.provider', 'worker-ai'),
-                ('ai_summary.model', 'llama-3-8b');
+            await app.request("/server", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer mock_token_1",
+                },
+                body: JSON.stringify({
+                    "ai_summary.enabled": "true",
+                    "ai_summary.provider": "worker-ai",
+                    "ai_summary.model": "llama-3-8b",
+                }),
+            });
 
+            sqlite.exec(`
                 INSERT INTO feeds (id, title, summary, ai_summary, ai_summary_status, ai_summary_error, content, listed, draft, top, uid)
                 VALUES (1, 'Failed Feed', '', '', 'failed', 'boom', 'content', 1, 0, 0, 1);
             `);
@@ -426,7 +459,7 @@ describe("ConfigService", () => {
             expect(res.status).toBe(200);
         });
 
-        it("should save AI config to database", async () => {
+        it("should save AI config to server config storage", async () => {
             const res = await app.request("/server", {
                 method: "POST",
                 headers: {
@@ -442,11 +475,17 @@ describe("ConfigService", () => {
 
             expect(res.status).toBe(200);
 
-            // Verify AI config was saved
-            const dbResult = sqlite
-                .prepare("SELECT * FROM info WHERE key LIKE 'ai_summary.%'")
-                .all();
-            expect(dbResult.length).toBeGreaterThan(0);
+            const getRes = await app.request("/server", {
+                method: "GET",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+            expect(getRes.status).toBe(200);
+            const data = await getRes.json() as Record<string, any>;
+            expect(data["ai_summary.enabled"]).toBe("true");
+            expect(data["ai_summary.provider"]).toBe("openai");
+            expect(data["ai_summary.model"]).toBe("gpt-4o-mini");
         });
 
         it("should return 400 for invalid config type", async () => {
@@ -655,6 +694,10 @@ describe("ConfigService", () => {
             expect(requests[0].url).toContain("message=hello%20webhook");
             expect(requests[0].init?.method).toBe("GET");
             expect(requests[0].init?.body).toBeUndefined();
+            expect(res.headers.get("Server-Timing")).toContain("init_container");
+            expect(res.headers.get("Server-Timing")).toContain("auth_middleware");
+            expect(res.headers.get("Server-Timing")).toContain("auth_verify");
+            expect(res.headers.get("Server-Timing")).toContain("auth_user_lookup");
             expect(res.headers.get("Server-Timing")).toContain("webhook_send");
             expect(res.headers.get("Server-Timing")).toContain("total");
         });

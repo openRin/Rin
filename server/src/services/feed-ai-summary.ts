@@ -5,6 +5,10 @@ import { createTaskQueue, createFeedAISummaryTask, type FeedAISummaryStatus } fr
 import { generateAISummaryResult } from "../utils/ai";
 import { getAIConfig } from "../utils/db-config";
 
+type ConfigReader = {
+  get(key: string): Promise<unknown>;
+};
+
 function buildStatusUpdate(
   status: FeedAISummaryStatus,
   overrides?: Partial<{
@@ -71,6 +75,7 @@ export function matchesExpectedUpdatedAt(
 
 export async function syncFeedAISummaryQueueState(
   db: DB,
+  serverConfig: ConfigReader,
   env: Env,
   feedId: number,
   options: {
@@ -79,7 +84,7 @@ export async function syncFeedAISummaryQueueState(
     resetSummary?: boolean;
   },
 ) {
-  const aiConfig = await getAIConfig(db);
+  const aiConfig = await getAIConfig(serverConfig);
   const shouldQueue = aiConfig.enabled && !options.draft;
 
   if (!shouldQueue) {
@@ -118,6 +123,7 @@ export async function processFeedAISummaryTask(
   env: Env,
   db: DB,
   cache: CacheImpl,
+  serverConfig: ConfigReader,
   payload: {
     feedId: number;
     expectedUpdatedAt?: string;
@@ -137,7 +143,7 @@ export async function processFeedAISummaryTask(
     return;
   }
 
-  const aiConfig = await getAIConfig(db);
+  const aiConfig = await getAIConfig(serverConfig);
   if (!aiConfig.enabled || feed.draft === 1) {
     await db
       .update(feeds)
@@ -152,7 +158,7 @@ export async function processFeedAISummaryTask(
     .set(buildStatusUpdate("processing"))
     .where(eq(feeds.id, feed.id));
 
-  const result = await generateAISummaryResult(env, db, feed.content);
+  const result = await generateAISummaryResult(env, serverConfig, feed.content);
   if (result.summary) {
     await db
       .update(feeds)

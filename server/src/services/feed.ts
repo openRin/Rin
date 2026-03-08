@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Variables, CacheImpl } from "../core/hono-types";
+import { profileAsync } from "../core/server-timing";
 import { feeds, visits, visitStats } from "../db/schema";
 import { HyperLogLog } from "../utils/hyperloglog";
 import { extractImageWithMetadata } from "../utils/image";
@@ -47,7 +48,7 @@ export function FeedService(): Hono<{
         const page_num = (page ? parseInt(page) > 0 ? parseInt(page) : 1 : 1) - 1;
         const limit_num = limit ? parseInt(limit) > 50 ? 50 : parseInt(limit) : 20;
         const cacheKey = `feeds_${type}_${page_num}_${limit_num}`;
-        const cached = await cache.get(cacheKey);
+        const cached = await profileAsync(c, 'feed_list_cache_get', () => cache.get(cacheKey));
 
         if (cached) {
             return c.json(cached);
@@ -59,13 +60,13 @@ export function FeedService(): Hono<{
                 ? and(eq(feeds.draft, 0), eq(feeds.listed, 0))
                 : and(eq(feeds.draft, 0), eq(feeds.listed, 1));
 
-        const size = await db.select({ count: count() }).from(feeds).where(where);
+        const size = await profileAsync(c, 'feed_list_count', () => db.select({ count: count() }).from(feeds).where(where));
 
         if (size[0].count === 0) {
             return c.json({ size: 0, data: [], hasNext: false });
         }
 
-        const feed_list = (await db.query.feeds.findMany({
+        const feed_list = (await profileAsync(c, 'feed_list_db', () => db.query.feeds.findMany({
             where: where,
             columns: admin ? undefined : { draft: false, listed: false },
             with: {
@@ -80,7 +81,7 @@ export function FeedService(): Hono<{
             orderBy: [desc(feeds.top), desc(feeds.createdAt), desc(feeds.updatedAt)],
             offset: page_num * limit_num,
             limit: limit_num + 1,
-        })).map(({ content, hashtags, summary, ...other }: any) => {
+        }))).map(({ content, hashtags, summary, ...other }: any) => {
             const avatar = extractImageWithMetadata(content);
             return {
                 summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
@@ -99,7 +100,7 @@ export function FeedService(): Hono<{
         const data = { size: size[0].count, data: feed_list, hasNext };
 
         if (type === undefined || type === 'normal' || type === '') {
-            await cache.set(cacheKey, data);
+            await profileAsync(c, 'feed_list_cache_set', () => cache.set(cacheKey, data));
         }
 
         return c.json(data);
@@ -110,21 +111,22 @@ export function FeedService(): Hono<{
         const db = c.get('db');
         const where = and(eq(feeds.draft, 0), eq(feeds.listed, 1));
 
-        return c.json(await db.query.feeds.findMany({
+        return c.json(await profileAsync(c, 'feed_timeline_db', () => db.query.feeds.findMany({
             where: where,
             columns: { id: true, title: true, createdAt: true },
             orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
-        }));
+        })));
     });
 
     // POST /feed - Create feed
     app.post('/', async (c) => {
         const db = c.get('db');
         const cache = c.get('cache');
+        const serverConfig = c.get('serverConfig');
         const env = c.get('env');
         const admin = c.get('admin');
         const uid = c.get('uid');
-        const body = await c.req.json();
+        const body = await profileAsync(c, 'feed_create_parse', () => c.req.json());
         const { title, alias, listed, content, summary, draft, tags, createdAt } = body;
 
         if (!admin) {
@@ -138,9 +140,9 @@ export function FeedService(): Hono<{
             return c.text('Content is required', 400);
         }
 
-        const exist = await db.query.feeds.findFirst({
+        const exist = await profileAsync(c, 'feed_create_existing', () => db.query.feeds.findFirst({
             where: or(eq(feeds.title, title), eq(feeds.content, content))
-        });
+        }));
 
         if (exist) {
             return c.text('Content already exists', 400);
@@ -152,7 +154,7 @@ export function FeedService(): Hono<{
             return c.text('User ID is required', 400);
         }
 
-        const result = await db.insert(feeds).values({
+        const result = await profileAsync(c, 'feed_create_insert', () => db.insert(feeds).values({
             title,
             content,
             summary,
@@ -165,15 +167,15 @@ export function FeedService(): Hono<{
             draft: draft ? 1 : 0,
             createdAt: date,
             updatedAt: date
-        }).returning({ insertedId: feeds.id });
+        }).returning({ insertedId: feeds.id }));
 
-        await bindTagToPost(db, result[0].insertedId, tags);
-        await syncFeedAISummaryQueueState(db, env, result[0].insertedId, {
+        await profileAsync(c, 'feed_create_tags', () => bindTagToPost(db, result[0].insertedId, tags));
+        await profileAsync(c, 'feed_create_ai_queue', () => syncFeedAISummaryQueueState(db, serverConfig, env, result[0].insertedId, {
             draft: Boolean(draft),
             updatedAt: date,
             resetSummary: true,
-        });
-        await cache.deletePrefix('feeds_');
+        }));
+        await profileAsync(c, 'feed_create_cache_invalidate', () => cache.deletePrefix('feeds_'));
 
         if (result.length === 0) {
             return c.text('Failed to insert', 500);
@@ -193,7 +195,7 @@ export function FeedService(): Hono<{
         const id_num = parseInt(id);
         const cacheKey = `feed_${id}`;
 
-        const feed = await cache.getOrSet(cacheKey, () => db.query.feeds.findFirst({
+        const feed = await profileAsync(c, 'feed_detail_cache_db', () => cache.getOrSet(cacheKey, () => db.query.feeds.findFirst({
             where: or(eq(feeds.id, id_num), eq(feeds.alias, id)),
             with: {
                 hashtags: {
@@ -204,7 +206,7 @@ export function FeedService(): Hono<{
                 },
                 user: { columns: { id: true, username: true, avatar: true } }
             }
-        }));
+        })));
 
         if (!feed) {
             return c.text('Not found', 404);
@@ -218,7 +220,7 @@ export function FeedService(): Hono<{
         const hashtags_flatten = hashtags.map((f: any) => f.hashtag);
 
         // update visits using HyperLogLog for efficient UV estimation
-        const enableVisit = await clientConfig.getOrDefault('counter.enabled', true);
+        const enableVisit = await profileAsync(c, 'feed_detail_counter_flag', () => clientConfig.getOrDefault('counter.enabled', true));
         let pv = 0;
         let uv = 0;
 
@@ -227,17 +229,17 @@ export function FeedService(): Hono<{
             const visitorKey = `${ip}`;
 
             // Get or create visit stats for this feed
-            let stats = await db.query.visitStats.findFirst({
+            let stats = await profileAsync(c, 'feed_detail_stats_lookup', () => db.query.visitStats.findFirst({
                 where: eq(visitStats.feedId, feed.id)
-            });
+            }));
 
             if (!stats) {
                 // Create new stats record
-                await db.insert(visitStats).values({
+                await profileAsync(c, 'feed_detail_stats_insert', () => db.insert(visitStats).values({
                     feedId: feed.id,
                     pv: 1,
                     hllData: new HyperLogLog().serialize()
-                });
+                }));
                 pv = 1;
                 uv = 1;
             } else {
@@ -247,20 +249,20 @@ export function FeedService(): Hono<{
                 const newHllData = hll.serialize();
                 const newPv = stats.pv + 1;
 
-                await db.update(visitStats)
+                await profileAsync(c, 'feed_detail_stats_update', () => db.update(visitStats)
                     .set({
                         pv: newPv,
                         hllData: newHllData,
                         updatedAt: new Date()
                     })
-                    .where(eq(visitStats.feedId, feed.id));
+                    .where(eq(visitStats.feedId, feed.id)));
 
                 pv = newPv;
                 uv = Math.round(hll.count());
             }
 
             // Keep recording to visits table for backup/history
-            await db.insert(visits).values({ feedId: feed.id, ip: ip });
+            await profileAsync(c, 'feed_detail_visit_insert', () => db.insert(visits).values({ feedId: feed.id, ip: ip }));
         }
 
         return c.json({ ...other, hashtags: hashtags_flatten, pv, uv });
@@ -274,7 +276,7 @@ export function FeedService(): Hono<{
         let id_num: number;
 
         if (isNaN(parseInt(id))) {
-            const aliasRecord = await db.select({ id: feeds.id }).from(feeds).where(eq(feeds.alias, id));
+            const aliasRecord = await profileAsync(c, 'feed_adjacent_alias_lookup', () => db.select({ id: feeds.id }).from(feeds).where(eq(feeds.alias, id)));
             if (aliasRecord.length === 0) {
                 return c.text("Not found", 404);
             }
@@ -283,10 +285,10 @@ export function FeedService(): Hono<{
             id_num = parseInt(id);
         }
 
-        const feed = await db.query.feeds.findFirst({
+        const feed = await profileAsync(c, 'feed_adjacent_current', () => db.query.feeds.findFirst({
             where: eq(feeds.id, id_num),
             columns: { createdAt: true },
-        });
+        }));
 
         if (!feed) {
             return c.text("Not found", 404);
@@ -318,11 +320,11 @@ export function FeedService(): Hono<{
         }
 
         const getPreviousFeed = async () => {
-            const previousFeedCached = await cache.getBySuffix(`previous_feed_${id_num}`);
+            const previousFeedCached = await profileAsync(c, 'feed_adjacent_prev_cache', () => cache.getBySuffix(`previous_feed_${id_num}`));
             if (previousFeedCached && previousFeedCached.length > 0) {
                 return previousFeedCached[0];
             } else {
-                const tempPreviousFeed = await db.query.feeds.findFirst({
+                const tempPreviousFeed = await profileAsync(c, 'feed_adjacent_prev_db', () => db.query.feeds.findFirst({
                     where: and(and(eq(feeds.draft, 0), eq(feeds.listed, 1)), lt(feeds.createdAt, created_at)),
                     orderBy: [desc(feeds.createdAt)],
                     with: {
@@ -332,17 +334,17 @@ export function FeedService(): Hono<{
                         },
                         user: { columns: { id: true, username: true, avatar: true } }
                     },
-                });
+                }));
                 return formatAndCacheData(tempPreviousFeed, "previous_feed");
             }
         };
 
         const getNextFeed = async () => {
-            const nextFeedCached = await cache.getBySuffix(`next_feed_${id_num}`);
+            const nextFeedCached = await profileAsync(c, 'feed_adjacent_next_cache', () => cache.getBySuffix(`next_feed_${id_num}`));
             if (nextFeedCached && nextFeedCached.length > 0) {
                 return nextFeedCached[0];
             } else {
-                const tempNextFeed = await db.query.feeds.findFirst({
+                const tempNextFeed = await profileAsync(c, 'feed_adjacent_next_db', () => db.query.feeds.findFirst({
                     where: and(and(eq(feeds.draft, 0), eq(feeds.listed, 1)), gt(feeds.createdAt, created_at)),
                     orderBy: [asc(feeds.createdAt)],
                     with: {
@@ -352,7 +354,7 @@ export function FeedService(): Hono<{
                         },
                         user: { columns: { id: true, username: true, avatar: true } }
                     },
-                });
+                }));
                 return formatAndCacheData(tempNextFeed, "next_feed");
             }
         };
@@ -365,15 +367,16 @@ export function FeedService(): Hono<{
     app.post('/:id', async (c) => {
         const db = c.get('db');
         const cache = c.get('cache');
+        const serverConfig = c.get('serverConfig');
         const env = c.get('env');
         const admin = c.get('admin');
         const uid = c.get('uid');
         const id = c.req.param('id');
-        const body = await c.req.json();
+        const body = await profileAsync(c, 'feed_update_parse', () => c.req.json());
         const { title, listed, content, summary, alias, draft, top, tags, createdAt } = body;
 
         const id_num = parseInt(id);
-        const feed = await db.query.feeds.findFirst({ where: eq(feeds.id, id_num) });
+        const feed = await profileAsync(c, 'feed_update_lookup', () => db.query.feeds.findFirst({ where: eq(feeds.id, id_num) }));
 
         if (!feed) {
             return c.text('Not found', 404);
@@ -388,7 +391,7 @@ export function FeedService(): Hono<{
         const shouldQueueAISummary = (contentChanged && !isDraft) || (!isDraft && feed.draft === 1 && !feed.ai_summary);
         const updateTime = new Date();
 
-        await db.update(feeds).set({
+        await profileAsync(c, 'feed_update_db', () => db.update(feeds).set({
             title,
             content,
             summary,
@@ -401,21 +404,21 @@ export function FeedService(): Hono<{
             draft: draft === undefined ? undefined : draft ? 1 : 0,
             createdAt: createdAt ? new Date(createdAt) : undefined,
             updatedAt: updateTime
-        }).where(eq(feeds.id, id_num));
+        }).where(eq(feeds.id, id_num)));
 
         if (tags) {
-            await bindTagToPost(db, id_num, tags);
+            await profileAsync(c, 'feed_update_tags', () => bindTagToPost(db, id_num, tags));
         }
 
         if (shouldQueueAISummary || isDraft) {
-            await syncFeedAISummaryQueueState(db, env, id_num, {
+            await profileAsync(c, 'feed_update_ai_queue', () => syncFeedAISummaryQueueState(db, serverConfig, env, id_num, {
                 draft: Boolean(isDraft),
                 updatedAt: updateTime,
                 resetSummary: shouldQueueAISummary,
-            });
+            }));
         }
 
-        await clearFeedCache(cache, id_num, feed.alias, alias || null);
+        await profileAsync(c, 'feed_update_cache_invalidate', () => clearFeedCache(cache, id_num, feed.alias, alias || null));
         return c.text('Updated');
     });
 
@@ -426,11 +429,11 @@ export function FeedService(): Hono<{
         const admin = c.get('admin');
         const uid = c.get('uid');
         const id = c.req.param('id');
-        const body = await c.req.json();
+        const body = await profileAsync(c, 'feed_top_parse', () => c.req.json());
         const { top } = body;
 
         const id_num = parseInt(id);
-        const feed = await db.query.feeds.findFirst({ where: eq(feeds.id, id_num) });
+        const feed = await profileAsync(c, 'feed_top_lookup', () => db.query.feeds.findFirst({ where: eq(feeds.id, id_num) }));
 
         if (!feed) {
             return c.text('Not found', 404);
@@ -440,8 +443,8 @@ export function FeedService(): Hono<{
             return c.text('Permission denied', 403);
         }
 
-        await db.update(feeds).set({ top }).where(eq(feeds.id, feed.id));
-        await clearFeedCache(cache, feed.id, null, null);
+        await profileAsync(c, 'feed_top_db', () => db.update(feeds).set({ top }).where(eq(feeds.id, feed.id)));
+        await profileAsync(c, 'feed_top_cache_invalidate', () => clearFeedCache(cache, feed.id, null, null));
         return c.text('Updated');
     });
 
@@ -454,7 +457,7 @@ export function FeedService(): Hono<{
         const id = c.req.param('id');
 
         const id_num = parseInt(id);
-        const feed = await db.query.feeds.findFirst({ where: eq(feeds.id, id_num) });
+        const feed = await profileAsync(c, 'feed_delete_lookup', () => db.query.feeds.findFirst({ where: eq(feeds.id, id_num) }));
 
         if (!feed) {
             return c.text('Not found', 404);
@@ -464,8 +467,8 @@ export function FeedService(): Hono<{
             return c.text('Permission denied', 403);
         }
 
-        await db.delete(feeds).where(eq(feeds.id, id_num));
-        await clearFeedCache(cache, id_num, feed.alias, null);
+        await profileAsync(c, 'feed_delete_db', () => db.delete(feeds).where(eq(feeds.id, id_num)));
+        await profileAsync(c, 'feed_delete_cache_invalidate', () => clearFeedCache(cache, id_num, feed.alias, null));
         return c.text('Deleted');
     });
     return app;
@@ -506,7 +509,7 @@ export function SearchService(): Hono<{
             like(feeds.alias, searchKeyword)
         );
 
-        const feed_list = (await cache.getOrSet(cacheKey, () => db.query.feeds.findMany({
+        const feed_list = (await profileAsync(c, 'feed_search_cache_db', () => cache.getOrSet(cacheKey, () => db.query.feeds.findMany({
             where: admin ? whereClause : and(whereClause, eq(feeds.draft, 0)),
             columns: admin ? undefined : { draft: false, listed: false },
             with: {
@@ -517,7 +520,7 @@ export function SearchService(): Hono<{
                 user: { columns: { id: true, username: true, avatar: true } }
             },
             orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
-        }))).map(({ content, hashtags, summary, ...other }: any) => {
+        })))).map(({ content, hashtags, summary, ...other }: any) => {
             return {
                 summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
                 hashtags: hashtags.map(({ hashtag }: any) => hashtag),
@@ -555,7 +558,7 @@ export function WordPressService(): Hono<{
         const db = c.get('db');
         const cache = c.get('cache');
         const admin = c.get('admin');
-        const body = await c.req.parseBody();
+        const body = await profileAsync(c, 'wp_import_parse', () => c.req.parseBody());
         const data = body.data as File;
 
         if (!admin) {
@@ -567,11 +570,11 @@ export function WordPressService(): Hono<{
         }
 
         // Initialize WordPress import modules lazily
-        await initWPModules();
+        await profileAsync(c, 'wp_import_modules', () => initWPModules());
 
-        const xml = await data.text();
+        const xml = await profileAsync(c, 'wp_import_read', () => data.text());
         const parser = new XMLParser();
-        const result = await parser.parse(xml);
+        const result = await profileAsync(c, 'wp_import_xml_parse', () => parser.parse(xml));
         const items = result.rss.channel.item;
 
         if (!items) {
@@ -615,14 +618,14 @@ export function WordPressService(): Hono<{
                 continue;
             }
 
-            const exist = await db.query.feeds.findFirst({ where: eq(feeds.content, item.content) });
+            const exist = await profileAsync(c, 'wp_import_existing', () => db.query.feeds.findFirst({ where: eq(feeds.content, item.content) }));
             if (exist) {
                 skippedList.push({ title: item.title, reason: "content exists" });
                 skipped++;
                 continue;
             }
 
-            const result = await db.insert(feeds).values({
+            const result = await profileAsync(c, 'wp_import_insert', () => db.insert(feeds).values({
                 title: item.title,
                 content: item.content,
                 summary: item.summary,
@@ -631,15 +634,16 @@ export function WordPressService(): Hono<{
                 draft: item.draft ? 1 : 0,
                 createdAt: item.createdAt,
                 updatedAt: item.updatedAt
-            }).returning({ insertedId: feeds.id });
+            }).returning({ insertedId: feeds.id }));
 
             if (item.tags) {
-                await bindTagToPost(db, result[0].insertedId, item.tags);
+                const tags = item.tags;
+                await profileAsync(c, 'wp_import_tags', () => bindTagToPost(db, result[0].insertedId, tags));
             }
             success++;
         }
 
-        cache.deletePrefix('feeds_');
+        await profileAsync(c, 'wp_import_cache_invalidate', () => cache.deletePrefix('feeds_'));
         return c.json({ success, skipped, skippedList });
     });
     return app;

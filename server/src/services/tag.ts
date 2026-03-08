@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { DB } from "../core/hono-types";
+import { profileAsync } from "../core/server-timing";
 import { feedHashtags, hashtags } from "../db/schema";
 import type { AppContext } from "../core/hono-types";
 
@@ -11,11 +12,11 @@ export function TagService(): Hono {
     app.get('/', async (c: AppContext) => {
         const db = c.get('db');
         
-        const tag_list = await db.query.hashtags.findMany({
+        const tag_list = await profileAsync(c, 'tag_list_db', () => db.query.hashtags.findMany({
             with: {
                 feeds: { columns: { feedId: true } }
             }
-        });
+        }));
         
         const result = tag_list.map((tag: any) => ({
             ...tag,
@@ -31,7 +32,7 @@ export function TagService(): Hono {
         const admin = c.get('admin');
         const nameDecoded = decodeURI(c.req.param('name'));
         
-        const tag = await db.query.hashtags.findFirst({
+        const tag = await profileAsync(c, 'tag_detail_db', () => db.query.hashtags.findFirst({
             where: eq(hashtags.name, nameDecoded),
             with: {
                 feeds: {
@@ -53,7 +54,7 @@ export function TagService(): Hono {
                     }
                 }
             }
-        });
+        }));
         
         const tagFeeds = tag?.feeds.map((tagFeed: any) => {
             if (!tagFeed.feed) return null;

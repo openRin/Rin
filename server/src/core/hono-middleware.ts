@@ -4,6 +4,7 @@ import { getCookie, setCookie } from "hono/cookie";
 import { drizzle } from "drizzle-orm/d1";
 import type { AppContext, Variables, JWTUtils, OAuth2Utils } from "./hono-types";
 import { eq } from "drizzle-orm";
+import { profileAsync } from "./server-timing";
 
 // Lazy initialization container
 class LazyInitContainer {
@@ -40,65 +41,60 @@ export const initContainerMiddleware = createMiddleware<{
     Bindings: Env;
     Variables: Variables;
 }>(async (c, next) => {
-    const container = new LazyInitContainer(c.env);
+    await profileAsync(c, "init_container", async () => {
+        const container = new LazyInitContainer(c.env);
 
-    // Initialize database
-    const db = await container.get('db', async () => {
-        const schema = await import('../db/schema');
-        return drizzle(c.env.DB, { schema });
-    });
+        const db = await container.get('db', async () => profileAsync(c, "init_db", async () => {
+            const schema = await import('../db/schema');
+            return drizzle(c.env.DB, { schema });
+        }));
 
-    // Initialize cache
-    const cache = await container.get('cache', async () => {
-        const { CacheImpl } = await import('../utils/cache');
-        return new CacheImpl(db, c.env, "cache");
-    });
+        const cache = await container.get('cache', async () => profileAsync(c, "init_cache", async () => {
+            const { CacheImpl } = await import('../utils/cache');
+            return new CacheImpl(db, c.env, "cache");
+        }));
 
-    // Initialize server config
-    const serverConfig = await container.get('serverConfig', async () => {
-        const { CacheImpl } = await import('../utils/cache');
-        return new CacheImpl(db, c.env, "server.config", "database");
-    });
+        const serverConfig = await container.get('serverConfig', async () => profileAsync(c, "init_server_config", async () => {
+                const { CacheImpl } = await import('../utils/cache');
+                return new CacheImpl(db, c.env, "server.config", "database");
+            }));
 
-    // Initialize client config
-    const clientConfig = await container.get('clientConfig', async () => {
-        const { CacheImpl } = await import('../utils/cache');
-        return new CacheImpl(db, c.env, "client.config");
-    });
+        const clientConfig = await container.get('clientConfig', async () => profileAsync(c, "init_client_config", async () => {
+                const { CacheImpl } = await import('../utils/cache');
+                return new CacheImpl(db, c.env, "client.config");
+            }));
 
-    // Initialize JWT
-    const jwt = await container.get('jwt', async () => {
-        const { default: createJWT } = await import('../utils/jwt');
-        const secret = c.env.JWT_SECRET;
-        if (!secret) {
-            throw new Error('JWT_SECRET is not set');
+        const jwt = await container.get('jwt', async () => profileAsync(c, "init_jwt", async () => {
+            const { default: createJWT } = await import('../utils/jwt');
+            const secret = c.env.JWT_SECRET;
+            if (!secret) {
+                throw new Error('JWT_SECRET is not set');
+            }
+            return createJWT(secret);
+        }));
+
+        let oauth2: OAuth2Utils | undefined = undefined;
+        if (c.env.RIN_GITHUB_CLIENT_ID && c.env.RIN_GITHUB_CLIENT_SECRET) {
+            oauth2 = await container.get('oauth2', async () => profileAsync(c, "init_oauth2", async () => {
+                    const { createOAuthPlugin, GitHubProvider } = await import('../utils/oauth');
+                    return createOAuthPlugin({
+                        GitHub: new GitHubProvider({
+                            clientId: c.env.RIN_GITHUB_CLIENT_ID,
+                            clientSecret: c.env.RIN_GITHUB_CLIENT_SECRET
+                        })
+                    });
+                }));
         }
-        return createJWT(secret);
+
+        c.set('db', db);
+        c.set('cache', cache);
+        c.set('serverConfig', serverConfig);
+        c.set('clientConfig', clientConfig);
+        c.set('jwt', jwt);
+        c.set('oauth2', oauth2);
+        c.set('admin', false);
+        c.set('env', c.env);
     });
-
-    // Initialize OAuth2 (lazy)
-    let oauth2: OAuth2Utils | undefined = undefined;
-    if (c.env.RIN_GITHUB_CLIENT_ID && c.env.RIN_GITHUB_CLIENT_SECRET) {
-        oauth2 = await container.get('oauth2', async () => {
-            const { createOAuthPlugin, GitHubProvider } = await import('../utils/oauth');
-            return createOAuthPlugin({
-                GitHub: new GitHubProvider({
-                    clientId: c.env.RIN_GITHUB_CLIENT_ID,
-                    clientSecret: c.env.RIN_GITHUB_CLIENT_SECRET
-                })
-            });
-        });
-    }
-
-    // Set variables in context
-    c.set('db', db);
-    c.set('cache', cache);
-    c.set('serverConfig', serverConfig);
-    c.set('clientConfig', clientConfig);
-    c.set('jwt', jwt);
-    c.set('oauth2', oauth2);
-    c.set('admin', false);
-    c.set('env', c.env);
 
     await next();
 });
@@ -108,33 +104,34 @@ export const authMiddleware = createMiddleware<{
     Bindings: Env;
     Variables: Variables;
 }>(async (c, next) => {
-    const jwt = c.get('jwt');
-    const db = c.get('db');
+    await profileAsync(c, "auth_middleware", async () => {
+        const jwt = c.get('jwt');
+        const db = c.get('db');
 
-    // Try to get token from Authorization header first, then fallback to cookie
-    let token: string | undefined;
-    const authHeader = c.req.header('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-    } else {
-        token = getCookie(c, 'token');
-    }
+        const token = await profileAsync(c, "auth_token", () => {
+            const authHeader = c.req.header('authorization');
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                return authHeader.substring(7);
+            }
+            return getCookie(c, 'token');
+        });
 
-    if (token && jwt) {
-        const profile = await jwt.verify(token);
-        if (profile) {
-            const { users } = await import("../db/schema");
-            const user = await db.query.users.findFirst({
-                where: eq(users.id, profile.id)
-            });
+        if (token && jwt) {
+            const profile = await profileAsync(c, "auth_verify", () => jwt.verify(token));
+            if (profile) {
+                const { users } = await import("../db/schema");
+                const user = await profileAsync(c, "auth_user_lookup", () => db.query.users.findFirst({
+                    where: eq(users.id, profile.id)
+                }));
 
-            if (user) {
-                c.set('uid', user.id);
-                c.set('username', user.username);
-                c.set('admin', user.permission === 1);
+                if (user) {
+                    c.set('uid', user.id);
+                    c.set('username', user.username);
+                    c.set('admin', user.permission === 1);
+                }
             }
         }
-    }
+    });
 
     await next();
 });

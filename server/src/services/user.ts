@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { AppContext } from "../core/hono-types";
+import { profileAsync } from "../core/server-timing";
 import { setJWTCookie } from "../core/hono-middleware";
 import { users } from "../db/schema";
 import {
@@ -36,7 +37,7 @@ export function UserService(): Hono {
             path: '/',
         });
 
-        const genState = oauth2.generateState();
+        const genState = await profileAsync(c, 'user_oauth_state', () => Promise.resolve(oauth2.generateState()));
         setCookie(c, 'state', genState, {
             path: '/',
         });
@@ -69,21 +70,21 @@ export function UserService(): Hono {
         deleteCookie(c, 'state');
 
         // Exchange code for access token
-        const gh_token = await oauth2.authorize("GitHub", query.code);
+        const gh_token = await profileAsync(c, 'user_oauth_authorize', () => oauth2.authorize("GitHub", query.code));
         if (!gh_token) {
             throw new BadRequestError('Failed to authorize with GitHub');
         }
 
         // Request https://api.github.com/user for user info
-        const response = await fetch("https://api.github.com/user", {
+        const response = await profileAsync(c, 'user_github_fetch', () => fetch("https://api.github.com/user", {
             headers: {
                 Authorization: `Bearer ${gh_token.accessToken}`,
                 Accept: "application/json",
                 "User-Agent": "rin"
             },
-        });
+        }));
 
-        const user: any = await response.json();
+        const user: any = await profileAsync(c, 'user_github_parse', () => response.json());
         const profile: {
             openid: string;
             username: string;
@@ -99,14 +100,14 @@ export function UserService(): Hono {
         let authToken: string | undefined;
 
         // Check if user exists
-        const existingUser = await db.query.users.findFirst({
+        const existingUser = await profileAsync(c, 'user_existing_lookup', () => db.query.users.findFirst({
             where: eq(users.openid, profile.openid)
-        });
+        }));
 
         if (existingUser) {
             profile.permission = existingUser.permission;
-            await db.update(users).set(profile).where(eq(users.id, existingUser.id));
-            authToken = await jwt.sign({ id: existingUser.id });
+            await profileAsync(c, 'user_existing_update', () => db.update(users).set(profile).where(eq(users.id, existingUser.id)));
+            authToken = await profileAsync(c, 'user_existing_token', () => jwt.sign({ id: existingUser.id }));
             setJWTCookie(c, authToken);
             // Store token in cookie for frontend to read (not HttpOnly)
             setCookie(c, 'auth_token', authToken, {
@@ -116,17 +117,17 @@ export function UserService(): Hono {
             });
         } else {
             // If no user exists, check if this is the first user
-            const anyUserCheck = await db.query.users.findMany({ limit: 1 });
+            const anyUserCheck = await profileAsync(c, 'user_first_lookup', () => db.query.users.findMany({ limit: 1 }));
             if (anyUserCheck.length === 0) {
                 profile.permission = 1;
             }
 
-            const result = await db.insert(users).values(profile).returning({ insertedId: users.id });
+            const result = await profileAsync(c, 'user_insert', () => db.insert(users).values(profile).returning({ insertedId: users.id }));
             if (!result || result.length === 0) {
                 throw new InternalServerError('Failed to register user');
             }
 
-            authToken = await jwt.sign({ id: result[0].insertedId });
+            authToken = await profileAsync(c, 'user_insert_token', () => jwt.sign({ id: result[0].insertedId }));
             setJWTCookie(c, authToken);
             // Store token in cookie for frontend to read (not HttpOnly)
             setCookie(c, 'auth_token', authToken, {
@@ -154,7 +155,7 @@ export function UserService(): Hono {
             throw new ForbiddenError('Authentication required');
         }
 
-        const user = await db.query.users.findFirst({ where: eq(users.id, uid) });
+        const user = await profileAsync(c, 'user_profile_lookup', () => db.query.users.findFirst({ where: eq(users.id, uid) }));
         if (!user) {
             throw new NotFoundError('User');
         }
@@ -188,7 +189,7 @@ export function UserService(): Hono {
     app.put('/profile', async (c: AppContext) => {
         const uid = c.get('uid');
         const db = c.get('db');
-        const body = await c.req.json();
+        const body = await profileAsync(c, 'user_profile_parse', () => c.req.json());
 
         if (!uid) {
             throw new ForbiddenError('Authentication required');
@@ -204,7 +205,7 @@ export function UserService(): Hono {
         if (username) updateData.username = username;
         if (avatar) updateData.avatar = avatar;
 
-        await db.update(users).set(updateData).where(eq(users.id, uid));
+        await profileAsync(c, 'user_profile_update', () => db.update(users).set(updateData).where(eq(users.id, uid)));
 
         return c.json({ success: true });
     });

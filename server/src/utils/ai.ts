@@ -1,5 +1,9 @@
 import { getAIConfig } from "./db-config";
 
+type ConfigReader = {
+    get(key: string): Promise<unknown>;
+};
+
 // AI Provider presets with their default API URLs
 const AI_PROVIDER_URLS: Record<string, string> = {
     openai: "https://api.openai.com/v1",
@@ -196,19 +200,19 @@ export async function testAIModel(
  */
 export async function generateAISummary(
     env: Env, 
-    db: any, 
+    serverConfig: ConfigReader,
     content: string
 ): Promise<string | null> {
-    const result = await generateAISummaryResult(env, db, content);
+    const result = await generateAISummaryResult(env, serverConfig, content);
     return result.summary;
 }
 
 export async function generateAISummaryResult(
     env: Env,
-    db: any,
+    serverConfig: ConfigReader,
     content: string
 ): Promise<{ summary: string | null; skipped: boolean; error?: string }> {
-    const config = await getAIConfig(db);
+    const config = await getAIConfig(serverConfig);
 
     if (!config.enabled) {
         return { summary: null, skipped: true };
