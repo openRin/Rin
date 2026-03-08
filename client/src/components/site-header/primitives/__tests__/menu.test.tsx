@@ -1,13 +1,11 @@
 import "../../../../test/setup";
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Menu } from "../menu";
 
-let location = "/";
-
 vi.mock("wouter", () => ({
-  useLocation: () => [location, vi.fn()],
+  useLocation: () => ["/", vi.fn()],
 }));
 
 vi.mock("reactjs-popup", () => ({
@@ -39,7 +37,11 @@ vi.mock("../nav-bar", () => ({
 
 describe("Menu", () => {
   beforeEach(() => {
-    location = "/";
+    document.body.style.overflow = "";
+  });
+
+  afterEach(() => {
+    cleanup();
     document.body.style.overflow = "";
   });
 
@@ -68,7 +70,6 @@ describe("Menu", () => {
       expect(document.body.style.overflow).toBe("hidden");
     });
 
-    location = "/timeline";
     unmount();
 
     expect(document.body.style.overflow).toBe("");
