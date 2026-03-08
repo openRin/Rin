@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/d1";
-import { CacheImpl } from "../utils/cache";
+import { CacheImpl, ConditionalCacheImpl } from "../utils/cache";
 import { isQueueTask, FEED_AI_SUMMARY_TASK } from "../queue";
 import { processFeedAISummaryTask } from "../services/feed-ai-summary";
 import { clearFeedCache } from "../services/feed";
@@ -11,8 +11,10 @@ export async function handleQueue(
 ) {
   const schema = await import("../db/schema");
   const db = drizzle(env.DB, { schema });
-  const cache = new CacheImpl(db, env, "cache");
+  const rawCache = new CacheImpl(db, env, "cache");
   const serverConfig = new CacheImpl(db, env, "server.config", "database");
+  const clientConfig = new CacheImpl(db, env, "client.config", "database");
+  const cache = new ConditionalCacheImpl(rawCache, clientConfig);
 
   for (const message of batch.messages) {
     const body = message.body;

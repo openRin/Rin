@@ -7,6 +7,50 @@ import { path_join } from "./path";
 
 export type CacheStorageMode = 'database' | 's3';
 
+type CacheConfigReader = {
+    getOrDefault<T>(key: string, defaultValue: T): Promise<T>;
+};
+
+type CacheDelegate = {
+    get(key: string): Promise<any | null>;
+    set(key: string, value: any, save?: boolean): Promise<void>;
+    delete(key: string, save?: boolean): Promise<void>;
+    deletePrefix(prefix: string): Promise<void>;
+    getOrSet<T>(key: string, factory: () => Promise<T>): Promise<T>;
+    getOrDefault<T>(key: string, defaultValue: T): Promise<T>;
+    getBySuffix(suffix: string): Promise<any[]>;
+    all(): Promise<Map<string, any>>;
+    save(): Promise<void>;
+    clear(): Promise<void>;
+};
+
+function normalizeCacheEnabled(value: unknown) {
+    if (typeof value === "boolean") {
+        return value;
+    }
+
+    if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+        if (normalized === "true") {
+            return true;
+        }
+        if (normalized === "false") {
+            return false;
+        }
+    }
+
+    if (typeof value === "number") {
+        return value !== 0;
+    }
+
+    return Boolean(value);
+}
+
+export async function isPublicCacheEnabled(clientConfig: CacheConfigReader) {
+    const value = await clientConfig.getOrDefault("cache.enabled", false);
+    return normalizeCacheEnabled(value);
+}
+
 // 存储提供者接口
 interface StorageProvider {
     load(): Promise<void>;
@@ -316,6 +360,83 @@ export class CacheImpl {
         const dbProvider = new DatabaseStorageProvider(this.db, this.cache, this.type);
         await dbProvider.save();
         console.log('Migration completed');
+    }
+}
+
+export class ConditionalCacheImpl {
+    private enabled: Promise<boolean> | null = null;
+
+    constructor(
+        private cache: CacheDelegate,
+        private clientConfig: CacheConfigReader,
+    ) {}
+
+    private async isEnabled() {
+        if (!this.enabled) {
+            this.enabled = isPublicCacheEnabled(this.clientConfig);
+        }
+        return this.enabled;
+    }
+
+    async get(key: string) {
+        if (!(await this.isEnabled())) {
+            return null;
+        }
+        return this.cache.get(key);
+    }
+
+    async set(key: string, value: any, save?: boolean) {
+        if (!(await this.isEnabled())) {
+            return;
+        }
+        await this.cache.set(key, value, save);
+    }
+
+    async delete(key: string, save?: boolean) {
+        await this.cache.delete(key, save);
+    }
+
+    async deletePrefix(prefix: string) {
+        await this.cache.deletePrefix(prefix);
+    }
+
+    async getOrSet<T>(key: string, factory: () => Promise<T>) {
+        if (!(await this.isEnabled())) {
+            return factory();
+        }
+        return this.cache.getOrSet(key, factory);
+    }
+
+    async getOrDefault<T>(key: string, defaultValue: T) {
+        if (!(await this.isEnabled())) {
+            return defaultValue;
+        }
+        return this.cache.getOrDefault(key, defaultValue);
+    }
+
+    async getBySuffix(suffix: string) {
+        if (!(await this.isEnabled())) {
+            return [];
+        }
+        return this.cache.getBySuffix(suffix);
+    }
+
+    async all() {
+        if (!(await this.isEnabled())) {
+            return new Map<string, any>();
+        }
+        return this.cache.all();
+    }
+
+    async save() {
+        if (!(await this.isEnabled())) {
+            return;
+        }
+        await this.cache.save();
+    }
+
+    async clear() {
+        await this.cache.clear();
     }
 }
 

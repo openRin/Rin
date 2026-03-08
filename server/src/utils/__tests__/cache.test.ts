@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { Database } from 'bun:sqlite';
-import { CacheImpl, createPublicCache, createServerConfig, createClientConfig, type CacheStorageMode } from '../cache';
+import {
+    CacheImpl,
+    ConditionalCacheImpl,
+    createPublicCache,
+    createServerConfig,
+    createClientConfig,
+    type CacheStorageMode,
+} from '../cache';
 import { cache } from '../../db/schema';
 import { eq, and } from 'drizzle-orm';
 import * as schema from '../../db/schema';
@@ -679,5 +686,50 @@ describe('CacheImpl - getOrSet 和 getOrDefault', () => {
             expect(await cacheImpl.getOrDefault('array', [1, 2, 3])).toEqual([1, 2, 3]);
             expect(await cacheImpl.getOrDefault('object', { key: 'value' })).toEqual({ key: 'value' });
         });
+    });
+});
+
+describe('ConditionalCacheImpl', () => {
+    let { db, sqlite } = createTestDB();
+    let mockEnv: Env;
+    let cacheImpl: CacheImpl;
+    let clientConfig: CacheImpl;
+
+    beforeEach(() => {
+        const testDB = createTestDB();
+        db = testDB.db;
+        sqlite = testDB.sqlite;
+        mockEnv = createMockEnv('database');
+        cacheImpl = new CacheImpl(db as any, mockEnv, 'cache', 'database');
+        clientConfig = new CacheImpl(db as any, mockEnv, 'client.config', 'database');
+    });
+
+    afterEach(() => {
+        sqlite.close();
+    });
+
+    it('默认关闭时不读取或写入公共缓存', async () => {
+        await cacheImpl.set('feed_1', { title: 'cached' });
+        const conditionalCache = new ConditionalCacheImpl(cacheImpl, clientConfig);
+
+        expect(await conditionalCache.get('feed_1')).toBeNull();
+
+        let computed = false;
+        const value = await conditionalCache.getOrSet('feed_1', async () => {
+            computed = true;
+            return { title: 'fresh' };
+        });
+
+        expect(computed).toBe(true);
+        expect(value).toEqual({ title: 'fresh' });
+        expect(await cacheImpl.get('feed_1')).toEqual({ title: 'cached' });
+    });
+
+    it('启用后应正常命中公共缓存', async () => {
+        await clientConfig.set('cache.enabled', true);
+        await cacheImpl.set('feed_1', { title: 'cached' });
+
+        const conditionalCache = new ConditionalCacheImpl(cacheImpl, clientConfig);
+        expect(await conditionalCache.get('feed_1')).toEqual({ title: 'cached' });
     });
 });

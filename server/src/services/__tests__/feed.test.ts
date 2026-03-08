@@ -11,7 +11,9 @@ describe('FeedService', () => {
     let sqlite: Database;
     let env: Env;
     let app: Hono<{ Bindings: Env; Variables: Variables }>;
+    let cache: TestCacheImpl;
     let serverConfig: TestCacheImpl;
+    let clientConfig: TestCacheImpl;
 
     beforeEach(async () => {
         const ctx = await setupTestApp(FeedService);
@@ -19,7 +21,9 @@ describe('FeedService', () => {
         sqlite = ctx.sqlite;
         env = ctx.env;
         app = ctx.app;
+        cache = ctx.cache;
         serverConfig = ctx.serverConfig;
+        clientConfig = ctx.clientConfig;
         
         // Create test user
         await createTestUser(sqlite);
@@ -195,6 +199,48 @@ describe('FeedService', () => {
             const res = await app.request('/9999', { method: 'GET' }, env);
             
             expect(res.status).toBe(404);
+        });
+
+        it('should bypass stale public cache when cache is disabled', async () => {
+            await clientConfig.set('cache.enabled', false);
+            await clientConfig.set('counter.enabled', false);
+
+            const createRes = await app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Fresh Feed',
+                    content: 'Fresh Content',
+                    listed: true,
+                    draft: false,
+                    tags: [],
+                }),
+            }, env);
+
+            const createData = await createRes.json() as any;
+            await cache.set(`feed_${createData.insertedId}`, {
+                id: createData.insertedId,
+                title: 'Stale Feed',
+                content: 'stale',
+                summary: '',
+                ai_summary: '',
+                ai_summary_status: 'idle',
+                ai_summary_error: '',
+                draft: 0,
+                listed: 1,
+                uid: 1,
+                alias: null,
+                hashtags: [],
+                user: { id: 1, username: 'testuser', avatar: 'avatar.png' },
+            });
+
+            const getRes = await app.request(`/${createData.insertedId}`, { method: 'GET' }, env);
+            const data = await getRes.json() as any;
+
+            expect(data.title).toBe('Fresh Feed');
         });
     });
 

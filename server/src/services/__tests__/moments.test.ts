@@ -4,12 +4,15 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/hono-types";
 import { setupTestApp, cleanupTestDB } from '../../../tests/fixtures';
 import type { Database } from 'bun:sqlite';
+import type { TestCacheImpl } from '../../../tests/fixtures';
 
 describe('MomentsService', () => {
     let db: any;
     let sqlite: Database;
     let env: Env;
     let app: Hono<{ Bindings: Env; Variables: Variables }>;
+    let cache: TestCacheImpl;
+    let clientConfig: TestCacheImpl;
 
     beforeEach(async () => {
         const ctx = await setupTestApp(MomentsService);
@@ -17,6 +20,8 @@ describe('MomentsService', () => {
         sqlite = ctx.sqlite;
         env = ctx.env;
         app = ctx.app;
+        cache = ctx.cache;
+        clientConfig = ctx.clientConfig;
 
         // Create test users
         await createTestUsers();
@@ -92,6 +97,26 @@ describe('MomentsService', () => {
             const data = await res.json() as any;
             expect(data.data[0].content).toBe('Newest');
             expect(data.data[2].content).toBe('Oldest');
+        });
+
+        it('should bypass stale public cache when cache is disabled', async () => {
+            await clientConfig.set('cache.enabled', false);
+            await cache.set('moments_0_20', {
+                size: 1,
+                data: [{ id: 999, content: 'Stale moment' }],
+                hasNext: false,
+            });
+
+            sqlite.exec(`
+                INSERT INTO moments (id, content, uid, created_at, updated_at) VALUES 
+                (1, 'Fresh moment', 1, unixepoch(), unixepoch())
+            `);
+
+            const res = await app.request('/', { method: 'GET' }, env);
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as any;
+            expect(data.data[0].content).toBe('Fresh moment');
         });
     });
 

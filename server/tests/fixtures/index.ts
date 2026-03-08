@@ -8,6 +8,7 @@ import * as schema from '../../src/db/schema';
 import type { Variables, JWTUtils, OAuth2Utils, CacheImpl } from '../../src/core/hono-types';
 import { profileAsync } from '../../src/core/server-timing';
 import { users } from '../../src/db/schema';
+import { ConditionalCacheImpl } from '../../src/utils/cache';
 
 /**
  * Create an in-memory test database with Drizzle ORM
@@ -303,7 +304,7 @@ export async function setupTestApp(
             };
 
             c.set('db', db as any);
-            c.set('cache', cache);
+            c.set('cache', new ConditionalCacheImpl(cache, clientConfig) as unknown as CacheImpl);
             c.set('serverConfig', serverConfig);
             c.set('clientConfig', clientConfig);
             c.set('jwt', jwt);

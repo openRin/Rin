@@ -87,7 +87,8 @@ export const initContainerMiddleware = createMiddleware<{
         }
 
         c.set('db', db);
-        c.set('cache', cache);
+        const { ConditionalCacheImpl } = await import('../utils/cache');
+        c.set('cache', new ConditionalCacheImpl(cache, clientConfig));
         c.set('serverConfig', serverConfig);
         c.set('clientConfig', clientConfig);
         c.set('jwt', jwt);

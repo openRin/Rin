@@ -1,10 +1,9 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
-import type { AppContext, DB } from "../core/hono-types";
+import type { AppContext, CacheImpl, DB } from "../core/hono-types";
 import { profileAsync } from "../core/server-timing";
 import * as schema from "../db/schema";
 import { friends } from "../db/schema";
-import type { CacheImpl } from "../utils/cache";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
 
