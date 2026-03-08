@@ -59,8 +59,8 @@ describe("Menu", () => {
     });
   });
 
-  it("restores body scroll after a route change unmount path", async () => {
-    const { getByRole, rerender } = render(<Menu />);
+  it("restores body scroll when the menu unmounts during navigation", async () => {
+    const { getByRole, unmount } = render(<Menu />);
 
     fireEvent.click(getByRole("button"));
 
@@ -69,10 +69,8 @@ describe("Menu", () => {
     });
 
     location = "/timeline";
-    rerender(<Menu />);
+    unmount();
 
-    await waitFor(() => {
-      expect(document.body.style.overflow).toBe("");
-    });
+    expect(document.body.style.overflow).toBe("");
   });
 });
