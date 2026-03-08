@@ -1,14 +1,38 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Popup from "reactjs-popup";
+import { useLocation } from "wouter";
 import type { Profile } from "../../../state/profile";
 import { LanguageSwitch, SearchButton, UserAvatar } from "./action-buttons";
 import { NavBar } from "./nav-bar";
 
 export function Menu({ profile }: { profile?: Profile | null }) {
   const [isOpen, setOpen] = useState(false);
+  const [location] = useLocation();
+  const previousOverflowRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      if (previousOverflowRef.current !== null) {
+        document.body.style.overflow = previousOverflowRef.current;
+        previousOverflowRef.current = null;
+      }
+      return;
+    }
+
+    previousOverflowRef.current = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflowRef.current ?? "";
+      previousOverflowRef.current = null;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location]);
 
   function onClose() {
-    document.body.style.overflow = "auto";
     setOpen(false);
   }
 
@@ -26,7 +50,6 @@ export function Menu({ profile }: { profile?: Profile | null }) {
         position="bottom right"
         open={isOpen}
         nested
-        onOpen={() => (document.body.style.overflow = "hidden")}
         onClose={onClose}
         closeOnDocumentClick
         closeOnEscape
