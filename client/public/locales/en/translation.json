@@ -247,6 +247,10 @@
   "saving": "Saving",
   "settings": {
     "cache": {
+      "enabled": {
+        "title": "Enable cache",
+        "desc": "Cache public content responses. Disabled by default because it may increase latency in some deployments."
+      },
       "clear": {
         "confirm": {
           "desc": "Cache is used to reduce database access frequency, please try clearing cache only if there are cache errors.",

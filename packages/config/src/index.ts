@@ -4,6 +4,7 @@ export const WEBHOOK_URL_KEY = "WEBHOOK_URL";
 
 export const CLIENT_CONFIG_DEFAULTS = new Map(
   Object.entries({
+    "cache.enabled": false,
     "counter.enabled": true,
     "friend_apply_enable": true,
     "header.behavior": "fixed",

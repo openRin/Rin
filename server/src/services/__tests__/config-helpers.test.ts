@@ -4,12 +4,10 @@ import { buildServerConfigResponse, resolveWebhookConfig } from "../config-helpe
 import { cleanupTestDB, createMockDB } from "../../../tests/fixtures";
 
 describe("buildServerConfigResponse", () => {
-    let db: any;
     let sqlite: Database;
 
     beforeEach(async () => {
         const mockDB = createMockDB();
-        db = mockDB.db;
         sqlite = mockDB.sqlite;
     });
 
@@ -18,7 +16,7 @@ describe("buildServerConfigResponse", () => {
     });
 
     it("stringifies object-based webhook template values", async () => {
-        const response = await buildServerConfigResponse(db, {
+        const response = await buildServerConfigResponse({
             async all() {
                 return new Map<string, unknown>([
                     ["webhook.headers", { "X-Event": "{{event}}" }],
@@ -34,7 +32,7 @@ describe("buildServerConfigResponse", () => {
     });
 
     it("uses WEBHOOK_URL env as fallback when webhook_url is not stored", async () => {
-        const response = await buildServerConfigResponse(db, {
+        const response = await buildServerConfigResponse({
             async all() {
                 return new Map<string, unknown>();
             },
@@ -49,7 +47,7 @@ describe("buildServerConfigResponse", () => {
     });
 
     it("prefers stored webhook_url over WEBHOOK_URL env fallback", async () => {
-        const response = await buildServerConfigResponse(db, {
+        const response = await buildServerConfigResponse({
             async all() {
                 return new Map<string, unknown>([
                     ["webhook_url", "https://stored.example.com/webhook"],

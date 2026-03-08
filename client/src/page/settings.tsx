@@ -599,6 +599,14 @@ export function Settings() {
           />
 
           <ItemTitle title={t("settings.maintenance.title")} />
+          <ItemSwitch
+            title={t("settings.cache.enabled.title")}
+            description={t("settings.cache.enabled.desc")}
+            checked={Boolean(clientConfig.getBoolean("cache.enabled"))}
+            onChange={(checked) => {
+              setConfigValue("client", "cache.enabled", checked);
+            }}
+          />
           <ItemButton
             title={t("settings.cache.clear.title")}
             description={t("settings.cache.clear.desc")}

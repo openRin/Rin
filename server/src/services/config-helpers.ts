@@ -4,7 +4,7 @@ import {
   SENSITIVE_SERVER_CONFIG_FIELDS,
   WEBHOOK_URL_KEY,
 } from "@rin/config";
-import { getAIConfigForFrontend } from "../utils/db-config";
+import { getFrontendAIEnabled, readAIConfigFromMap } from "../utils/db-config";
 
 type ConfigMapLike = {
   all(): Promise<Map<string, unknown>>;
@@ -15,6 +15,8 @@ type ConfigMapLike = {
 type ConfigReaderLike = {
   get(key: string): Promise<unknown>;
 };
+
+type ConfigProfiler = <T>(name: string, task: () => Promise<T>) => Promise<T>;
 
 type ServerConfigResponseEnv = {
   WEBHOOK_URL?: string;
@@ -172,8 +174,11 @@ export async function persistRegularConfig(
 export async function getClientConfigWithDefaults(
   clientConfig: ConfigMapLike,
   env: Env,
+  profile?: ConfigProfiler,
 ): Promise<Record<string, unknown>> {
-  const all = await clientConfig.all();
+  const all = profile
+    ? await profile("client_config_all", () => clientConfig.all())
+    : await clientConfig.all();
   const result: Record<string, unknown> = Object.fromEntries(all);
 
   for (const [configKey, envKey] of Object.entries(CLIENT_CONFIG_ENV_DEFAULTS)) {
@@ -193,13 +198,12 @@ export async function getClientConfigWithDefaults(
 }
 
 export async function buildServerConfigResponse(
-  db: unknown,
   serverConfig: ConfigMapLike,
   env?: ServerConfigResponseEnv,
 ) {
   const all = await serverConfig.all();
   const configObj = normalizeWebhookConfigResponse(Object.fromEntries(all));
-  const aiConfig = await getAIConfigForFrontend(db);
+  const aiConfig = readAIConfigFromMap(all);
   const webhookUrlValue = configObj["webhook_url"] ?? configObj[WEBHOOK_URL_KEY] ?? env?.WEBHOOK_URL;
 
   if (webhookUrlValue !== undefined && webhookUrlValue !== "") {
@@ -214,34 +218,38 @@ export async function buildServerConfigResponse(
   configObj["ai_summary.provider"] = aiConfig.provider;
   configObj["ai_summary.model"] = aiConfig.model;
   configObj["ai_summary.api_url"] = aiConfig.api_url;
-  configObj["ai_summary.api_key"] = aiConfig.api_key_set ? "••••••••" : "";
+  configObj["ai_summary.api_key"] = aiConfig.api_key.length > 0 ? "••••••••" : "";
 
   return maskSensitiveFields(configObj);
 }
 
 export async function buildClientConfigResponse(
-  db: unknown,
   clientConfig: ConfigMapLike,
+  serverConfig: ConfigReaderLike,
   env: Env,
+  profile?: ConfigProfiler,
 ) {
-  const clientConfigData = await getClientConfigWithDefaults(clientConfig, env);
-  const aiConfig = await getAIConfigForFrontend(db);
+  const clientConfigData = profile
+    ? await profile("client_config_defaults", () => getClientConfigWithDefaults(clientConfig, env, profile))
+    : await getClientConfigWithDefaults(clientConfig, env);
+  const aiEnabled = profile
+    ? await profile("client_ai_enabled", () => getFrontendAIEnabled(serverConfig))
+    : await getFrontendAIEnabled(serverConfig);
 
   return {
     ...clientConfigData,
-    "ai_summary.enabled": aiConfig.enabled ?? false,
+    "ai_summary.enabled": aiEnabled,
   };
 }
 
 export async function buildCombinedConfigResponse(
-  db: unknown,
   clientConfig: ConfigMapLike,
-  serverConfig: ConfigMapLike,
+  serverConfig: ConfigMapLike & ConfigReaderLike,
   env: Env,
 ) {
   const [clientConfigData, serverConfigData] = await Promise.all([
-    buildClientConfigResponse(db, clientConfig, env),
-    buildServerConfigResponse(db, serverConfig, env),
+    buildClientConfigResponse(clientConfig, serverConfig, env),
+    buildServerConfigResponse(serverConfig, env),
   ]);
 
   return {

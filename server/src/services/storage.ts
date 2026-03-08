@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
+import { profileAsync } from "../core/server-timing";
 import { putStorageObject } from "../utils/storage";
 
 function buf2hex(buffer: ArrayBuffer) {
@@ -16,7 +17,7 @@ export function StorageService(): Hono {
         const uid = c.get('uid');
         const env = c.get('env');
         
-        const body = await c.req.parseBody();
+        const body = await profileAsync(c, 'storage_parse', () => c.req.parseBody());
         const key = body.key as string;
         const file = body.file as File;
         
@@ -25,15 +26,16 @@ export function StorageService(): Hono {
         }
         
         const suffix = key.includes(".") ? key.split('.').pop() : "";
-        const hashArray = await crypto.subtle.digest(
+        const fileBuffer = await profileAsync(c, 'storage_file_buffer', () => file.arrayBuffer());
+        const hashArray = await profileAsync(c, 'storage_hash', () => crypto.subtle.digest(
             { name: 'SHA-1' },
-            await file.arrayBuffer()
-        );
+            fileBuffer
+        ));
         const hash = buf2hex(hashArray);
         const hashkey = `${hash}.${suffix}`;
         
         try {
-            const result = await putStorageObject(env, hashkey, file, file.type);
+            const result = await profileAsync(c, 'storage_put', () => putStorageObject(env, hashkey, file, file.type));
             return c.json({ url: result.url });
         } catch (e: any) {
             console.error(e.message);

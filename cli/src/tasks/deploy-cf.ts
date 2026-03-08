@@ -96,6 +96,36 @@ export function buildWranglerTriggersConfig(preview = false) {
       `);
 }
 
+export function buildWranglerQueueConfig(taskQueueName: string, preview = false) {
+  return stripIndent(`
+    [[queues.producers]]
+    binding = "TASK_QUEUE"
+    queue = "${taskQueueName}"
+
+    [[queues.consumers]]
+    queue = "${taskQueueName}"
+    max_batch_size = 1
+    max_batch_timeout = 5
+  `);
+}
+
+export function buildWranglerObservabilityConfig(preview = false) {
+  if (!preview) {
+    return "";
+  }
+
+  return stripIndent(`
+    [observability]
+
+    [observability.logs]
+    enabled = true
+    invocation_logs = true
+
+    [observability.traces]
+    enabled = false
+  `);
+}
+
 async function resolveR2BucketInfo(r2BucketName: string) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   if (!accountId) return null;
@@ -114,7 +144,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
 
   const dbName = renv("DB_NAME", "rin");
   const workerName = renv("WORKER_NAME", "rin-server");
-  const taskQueueName = env("TASK_QUEUE_NAME", env("AI_SUMMARY_QUEUE_NAME", `${workerName}-tasks`));
+  const taskQueueName = env("TASK_QUEUE_NAME", env("AI_SUMMARY_QUEUE_NAME", `${workerName}-tasks`)) ?? `${workerName}-tasks`;
   const r2BucketName = env("R2_BUCKET_NAME", "");
   const s3Endpoint = env("S3_ENDPOINT", "");
   const s3AccessHost = env("S3_ACCESS_HOST", s3Endpoint);
@@ -166,6 +196,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
       directory = "./dist/client"
       binding = "ASSETS"
       ${buildWranglerTriggersConfig(preview)}
+      ${buildWranglerObservabilityConfig(preview)}
 
       [vars]
       S3_FOLDER = "${s3Folder}"
@@ -223,16 +254,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
     binding = "AI"
   `)} >> wrangler.toml`.quiet();
 
-  await $`echo ${stripIndent(`
-    [[queues.producers]]
-    binding = "TASK_QUEUE"
-    queue = "${taskQueueName}"
-
-    [[queues.consumers]]
-    queue = "${taskQueueName}"
-    max_batch_size = 1
-    max_batch_timeout = 5
-  `)} >> wrangler.toml`.quiet();
+  await $`echo ${buildWranglerQueueConfig(taskQueueName, preview)} >> wrangler.toml`.quiet();
 
   if (r2BucketName) {
     await $`echo ${stripIndent(`

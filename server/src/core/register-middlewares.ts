@@ -15,7 +15,7 @@ export function registerMiddlewares(app: RinApp) {
     }),
   );
 
-  app.use("*", timing());
+  app.use("*", timing({ totalDescription: "" }));
   app.use("*", initContainerMiddleware);
   app.use("*", authMiddleware);
 }

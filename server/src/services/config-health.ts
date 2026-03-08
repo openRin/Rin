@@ -42,7 +42,6 @@ function text(key: string, values?: HealthTextValues): HealthText {
 }
 
 export async function buildHealthCheckResponse(
-  db: any,
   clientConfig: { get: (key: string) => Promise<any>; getOrDefault: <T>(key: string, defaultValue: T) => Promise<T> },
   serverConfig: { get: (key: string) => Promise<any>; getOrDefault: <T>(key: string, defaultValue: T) => Promise<T> },
   env: Env,
@@ -62,7 +61,7 @@ export async function buildHealthCheckResponse(
     clientConfig.get("site.avatar"),
     serverConfig.get(WEBHOOK_URL_KEY),
     serverConfig.getOrDefault("friend_crontab", true),
-    getAIConfig(db),
+    getAIConfig(serverConfig),
   ]);
 
   const items: HealthCheckItem[] = [];

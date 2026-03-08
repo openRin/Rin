@@ -6,6 +6,10 @@ import { clearFeedCache } from "./feed";
 import { contentHasImagesMissingMetadata } from "../utils/image";
 import { getAIConfig } from "../utils/db-config";
 
+type ConfigReader = {
+  get(key: string): Promise<unknown>;
+};
+
 function isAISummaryBackfillEligible(feed: {
   draft: number;
   ai_summary: string;
@@ -33,8 +37,8 @@ function isAISummaryForceBackfillEligible(feed: {
   return feed.ai_summary_status !== "pending" && feed.ai_summary_status !== "processing";
 }
 
-export async function buildCompatTasksResponse(db: DB, env: Env) {
-  const aiConfig = await getAIConfig(db);
+export async function buildCompatTasksResponse(db: DB, serverConfig: ConfigReader, env: Env) {
+  const aiConfig = await getAIConfig(serverConfig);
   const items = await db.query.feeds.findMany({
     columns: {
       id: true,
@@ -59,8 +63,14 @@ export async function buildCompatTasksResponse(db: DB, env: Env) {
   };
 }
 
-export async function runCompatAISummaryBackfill(db: DB, cache: CacheImpl, env: Env, force = false) {
-  const aiConfig = await getAIConfig(db);
+export async function runCompatAISummaryBackfill(
+  db: DB,
+  cache: CacheImpl,
+  serverConfig: ConfigReader,
+  env: Env,
+  force = false,
+) {
+  const aiConfig = await getAIConfig(serverConfig);
   if (!aiConfig.enabled) {
     throw new Error("AI summary is not enabled");
   }
@@ -93,7 +103,7 @@ export async function runCompatAISummaryBackfill(db: DB, cache: CacheImpl, env: 
       continue;
     }
 
-    await syncFeedAISummaryQueueState(db, env, item.id, {
+    await syncFeedAISummaryQueueState(db, serverConfig, env, item.id, {
       draft: false,
       updatedAt: item.updatedAt,
       resetSummary: true,

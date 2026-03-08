@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
 import { desc, eq } from "drizzle-orm";
 import { comments, feeds, users } from "../db/schema";
+import { profileAsync } from "../core/server-timing";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
 
@@ -12,7 +13,7 @@ export function CommentService(): Hono {
         const db = c.get('db');
         const feedId = parseInt(c.req.param('feed'));
         
-        const comment_list = await db.query.comments.findMany({
+        const comment_list = await profileAsync(c, 'comment_list_db', () => db.query.comments.findMany({
             where: eq(comments.feedId, feedId),
             columns: { feedId: false, userId: false },
             with: {
@@ -21,7 +22,7 @@ export function CommentService(): Hono {
                 }
             },
             orderBy: [desc(comments.createdAt)]
-        });
+        }));
         
         return c.json(comment_list);
     });
@@ -32,7 +33,7 @@ export function CommentService(): Hono {
         const serverConfig = c.get('serverConfig');
         const uid = c.get('uid');
         const feedId = parseInt(c.req.param('feed'));
-        const body = await c.req.json();
+        const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
         const { content } = body;
         
         if (!uid) {
@@ -46,21 +47,21 @@ export function CommentService(): Hono {
             return c.text('Invalid uid', 400);
         }
         
-        const user = await db.query.users.findFirst({ where: eq(users.id, uid) });
+        const user = await profileAsync(c, 'comment_create_user', () => db.query.users.findFirst({ where: eq(users.id, uid) }));
         if (!user) {
             return c.text('User not found', 400);
         }
         
-        const exist = await db.query.feeds.findFirst({ where: eq(feeds.id, feedId) });
+        const exist = await profileAsync(c, 'comment_create_feed', () => db.query.feeds.findFirst({ where: eq(feeds.id, feedId) }));
         if (!exist) {
             return c.text('Feed not found', 400);
         }
 
-        await db.insert(comments).values({
+        await profileAsync(c, 'comment_create_insert', () => db.insert(comments).values({
             feedId,
             userId: uid,
             content
-        });
+        }));
 
         const {
             webhookUrl,
@@ -68,10 +69,10 @@ export function CommentService(): Hono {
             webhookContentType,
             webhookHeaders,
             webhookBodyTemplate,
-        } = await resolveWebhookConfig(serverConfig, env);
+        } = await profileAsync(c, 'comment_create_webhook_config', () => resolveWebhookConfig(serverConfig, env));
         const frontendUrl = new URL(c.req.url).origin;
         try {
-            await notify(
+            await profileAsync(c, 'comment_create_notify', () => notify(
                 webhookUrl || "",
                 {
                     event: "comment.created",
@@ -87,7 +88,7 @@ export function CommentService(): Hono {
                     headers: webhookHeaders,
                     bodyTemplate: webhookBodyTemplate,
                 },
-            );
+            ));
         } catch (error) {
             console.error("Failed to send comment webhook", error);
         }
@@ -104,7 +105,7 @@ export function CommentService(): Hono {
         }
         
         const id_num = parseInt(c.req.param('id'));
-        const comment = await db.query.comments.findFirst({ where: eq(comments.id, id_num) });
+        const comment = await profileAsync(c, 'comment_delete_lookup', () => db.query.comments.findFirst({ where: eq(comments.id, id_num) }));
         
         if (!comment) {
             return c.text('Not found', 404);
@@ -114,7 +115,7 @@ export function CommentService(): Hono {
             return c.text('Permission denied', 403);
         }
         
-        await db.delete(comments).where(eq(comments.id, id_num));
+        await profileAsync(c, 'comment_delete_db', () => db.delete(comments).where(eq(comments.id, id_num)));
         return c.text('OK');
     });
 

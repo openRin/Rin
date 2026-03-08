@@ -1,5 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { buildWranglerTriggersConfig, collectWorkerSecrets } from "./deploy-cf";
+import {
+  buildWranglerObservabilityConfig,
+  buildWranglerQueueConfig,
+  buildWranglerTriggersConfig,
+  collectWorkerSecrets,
+} from "./deploy-cf";
 
 describe("collectWorkerSecrets", () => {
   it("includes supported non-empty worker secrets", () => {
@@ -46,5 +51,35 @@ describe("buildWranglerTriggersConfig", () => {
   it("includes cron triggers for production deploys", () => {
     expect(buildWranglerTriggersConfig(false)).toContain("[triggers]");
     expect(buildWranglerTriggersConfig(false)).toContain('crons = ["*/20 * * * *"]');
+  });
+});
+
+describe("buildWranglerQueueConfig", () => {
+  it("includes queue consumers for preview deploys", () => {
+    const config = buildWranglerQueueConfig("rin-preview-tasks", true);
+    expect(config).toContain('queue = "rin-preview-tasks"');
+    expect(config).toContain("[[queues.consumers]]");
+  });
+
+  it("includes queue consumers for production deploys", () => {
+    const config = buildWranglerQueueConfig("rin-tasks", false);
+    expect(config).toContain("[[queues.producers]]");
+    expect(config).toContain("[[queues.consumers]]");
+  });
+});
+
+describe("buildWranglerObservabilityConfig", () => {
+  it("enables invocation logs and disables traces for preview deploys", () => {
+    const config = buildWranglerObservabilityConfig(true);
+    expect(config).toContain("[observability]");
+    expect(config).toContain("[observability.logs]");
+    expect(config).toContain("enabled = true");
+    expect(config).toContain("invocation_logs = true");
+    expect(config).toContain("[observability.traces]");
+    expect(config).toContain("enabled = false");
+  });
+
+  it("omits observability overrides for production deploys", () => {
+    expect(buildWranglerObservabilityConfig(false)).toBe("");
   });
 });
