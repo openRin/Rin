@@ -1,5 +1,4 @@
 import { getApp } from "./app-instance";
-import { injectClientConfigIntoHtml } from "./html-config";
 
 const ROOT_FEED_PATTERN = /^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/;
 const APP_PUBLIC_ROUTE_PATTERN = /^\/(favicon|favicon\.ico)(?:\/|$)/;
@@ -51,7 +50,7 @@ async function serveSpaEntry(request: Request, env: Env) {
     const indexRequest = new Request(new URL("/", url.origin), request);
     const indexResponse = await env.ASSETS.fetch(indexRequest);
     if (indexResponse.status === 200 || (indexResponse.status >= 300 && indexResponse.status < 400)) {
-      return injectClientConfigIntoHtml(indexResponse, env);
+      return indexResponse;
     }
   } catch {}
 
