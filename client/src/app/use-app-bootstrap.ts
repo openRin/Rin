@@ -3,6 +3,7 @@ import { ConfigWrapper } from "@rin/config";
 import type { Profile } from "../state/profile";
 import { defaultClientConfig } from "../state/config";
 import { applyThemeColor } from "../utils/theme-color";
+import { readBootstrappedClientConfig } from "./bootstrap-config";
 import { client } from "./runtime";
 
 function applyViewportScaling() {
@@ -28,19 +29,6 @@ export function useAppBootstrap() {
       applyThemeColor(typeof nextConfig["theme.color"] === "string" ? nextConfig["theme.color"] : undefined);
     };
 
-    const refreshClientConfig = async () => {
-      const { data } = await client.config.get("client");
-      if (!data) {
-        return;
-      }
-
-      const serializedNext = JSON.stringify(data);
-      const serializedCurrent = sessionStorage.getItem("config");
-      if (serializedCurrent !== serializedNext) {
-        updateClientConfig(data);
-      }
-    };
-
     client.user.profile().then(({ data, error }) => {
       if (data) {
         setProfile({
@@ -55,33 +43,17 @@ export function useAppBootstrap() {
     });
 
     const cachedConfig = sessionStorage.getItem("config");
-    if (cachedConfig) {
+    const bootstrappedConfig = readBootstrappedClientConfig();
+
+    if (bootstrappedConfig) {
+      updateClientConfig(bootstrappedConfig);
+    } else if (cachedConfig) {
       const configObject = JSON.parse(cachedConfig) as Record<string, unknown>;
       setConfig(new ConfigWrapper(configObject, defaultClientConfig));
       applyThemeColor(typeof configObject["theme.color"] === "string" ? configObject["theme.color"] : undefined);
     }
 
-    refreshClientConfig();
-
-    const handleFocus = () => {
-      refreshClientConfig();
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        refreshClientConfig();
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
     initializedRef.current = true;
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
   }, []);
 
   return { config, profile };
