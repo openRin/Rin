@@ -26,36 +26,60 @@ which automatically generates release notes from commit messages.
 ## [v0.3.0-rc.2] - 2026-03-08
 
 ### Overview
-This prerelease focuses on feed presentation controls and a cleaner settings experience. It adds configurable article card styles, optional masonry feed layout, and a unified preview shell for personalization settings while carrying forward the previously merged blurhash loading fixes from `rc1`.
+This prerelease expands `rc1` with a second round of UI and operability improvements centered on site customization, content maintenance, and deployment reliability. The largest user-facing changes are the new customizable header layouts, feed card presentation settings, and a tighter configuration experience around theme color, favicon, webhook handling, and compatibility backfill tasks.
 
 ### Added
+- **Customizable header layouts**: Added multiple header layout options with live previews, including a more compact text-first header variant.
 - **Feed presentation settings**: Added configurable feed card styles and feed layout options in settings.
 - **Editorial card variant**: Added a new editorial-style feed card variant with stronger visual hierarchy.
 - **Shared preview shell**: Added a shared settings preview card used by header layout and feed card style previews.
+- **Theme color controls**: Added configurable theme color options and runtime theme color application for the client.
+- **Forced AI compat backfill**: Added support for running compatibility backfill tasks even when AI summary state was already initialized.
+- **Webhook documentation**: Added dedicated English and Chinese webhook guides to the docs.
 
 ### Changed
 - **Feed browsing experience**: Feed, search, and hashtag pages can now render cards in either a standard list or a two-column masonry layout.
-- **Settings personalization UI**: Unified preview styling between header and feed card settings and simplified layout selection UX by removing redundant feed layout previews.
+- **Settings personalization UI**: Reworked the personalization section to cover header layout, theme color, feed card style, and feed layout with shared preview chrome and cleaner option grouping.
+- **Header architecture**: Split the old monolithic header into layout definitions, preview primitives, and reusable primitives so layout changes are easier to extend.
+- **Favicon handling**: Site favicon behavior now prefers the configured favicon route and can fall back to the site avatar more gracefully.
+- **Visibility of traffic stats**: PV/UV display now correctly follows the counter setting and stays hidden when statistics are disabled.
 
 ### Fixed
-- **Card rendering polish**: Fixed feed card image clipping, preview overflow, header compact preview sizing, and summary length behavior in denser layouts.
+- **Blurhash and image metadata**: Fixed blurhash loading races, preserved image metadata in feed avatars, and ensured feed card images fill their container correctly after load.
+- **Card rendering polish**: Fixed feed card image clipping, preview overflow, compact header preview sizing, and summary length behavior in denser layouts.
+- **Webhook template handling**: Fixed URL encoding for webhook GET template parameters while preserving template strings through configuration save/load flows.
+- **Deployment workflow reliability**: Fixed preview deployments to sync worker secrets correctly and tightened build/release validation around deploy artifacts.
+- **Compatibility task flow**: Fixed AI summary compatibility task response typing and improved compat task action spacing in the UI.
+- **Editor and route edge cases**: Fixed markdown editor preview visibility in edit mode and ensured `/favicon.ico` is served correctly.
 
 ### 中文版
 
 #### 概览
-这个预发布版本聚焦在文章列表展示控制和更整洁的设置体验上。它新增了可配置的文章卡片样式、可选的瀑布流列表布局，以及用于个性化设置的统一预览外壳，同时也延续了 `rc1` 中已经合入的 blurhash 加载修复。
+这个预发布版本在 `rc1` 的基础上继续推进 UI 与可运维性改进，重点放在站点个性化、内容维护，以及部署可靠性上。最显著的用户侧变化包括可配置的 Header 布局、文章卡片展示设置，以及围绕主题色、网站图标、Webhook 处理和兼容性补齐任务的整体体验打磨。
 
 #### 新增
+- **可配置 Header 布局**：新增多种 Header 布局选项和实时预览，包括更紧凑的纯文本风格布局。
 - **文章列表展示设置**：在设置页中新增文章卡片样式和列表布局选项。
 - **Editorial 卡片样式**：新增一个更强调视觉层级的文章卡片主题。
 - **共享预览外壳**：新增一套共享的设置预览卡组件，用于统一 Header 布局和文章卡片样式预览。
+- **主题色控制**：新增客户端主题色选项，并支持运行时应用站点主题色。
+- **强制兼容性补齐**：新增 AI 兼容性任务的强制补齐能力，即使摘要状态已经初始化也可以重新执行。
+- **Webhook 文档**：补充了中英文的专用 Webhook 使用文档。
 
 #### 变更
 - **文章浏览体验**：文章列表、搜索结果页和标签页现在可以在单列列表与双列瀑布流之间切换。
-- **设置页个性化 UI**：统一了 Header 预览和文章卡片预览的视觉样式，并移除了冗余的列表布局预览，使设置流程更直接。
+- **设置页个性化 UI**：重构了个性化设置区，统一管理 Header 布局、主题色、文章卡片样式和列表布局，并通过共享预览外壳保持视觉一致。
+- **Header 架构**：将原本较为集中的 Header 实现拆分为布局定义、预览基础组件和可复用 primitive，使后续布局扩展更容易维护。
+- **网站图标处理**：网站 favicon 的处理流程现在更明确地优先走配置路由，并能更自然地回退到站点头像。
+- **访问量显示逻辑**：PV/UV 显示现在会正确跟随统计开关，在禁用统计时不再继续展示。
 
 #### 修复
-- **卡片渲染细节**：修复了文章卡片图片裁切、预览区域 overflow、极简 Header 预览宽度/圆角，以及高密度布局下摘要长度控制等问题。
+- **Blurhash 与图片元数据**：修复了 blurhash 加载竞态，保留了 feed 头像中的图片元数据，并确保文章卡片图片在加载完成后正确填满容器。
+- **卡片渲染细节**：修复了文章卡片图片裁切、预览区域 overflow、极简 Header 预览尺寸，以及高密度布局下摘要长度控制等问题。
+- **Webhook 模板处理**：修复了 Webhook GET 请求模板参数的 URL 编码问题，同时保证模板字符串在配置读写流程中不被破坏。
+- **部署流程稳定性**：修复了 preview 部署时的 Worker Secret 同步问题，并加强了构建产物部署脚本的校验。
+- **兼容性任务流程**：修复了 AI 兼容性任务响应类型问题，并优化了兼容性任务操作区的间距表现。
+- **编辑器与路由边缘情况**：修复了编辑模式下 markdown 预览显示问题，并确保 `/favicon.ico` 路由可正常访问。
 
 ## [v0.3.0-rc.1] - 2026-03-06
 
