@@ -23,6 +23,23 @@ which automatically generates release notes from commit messages.
 
 ### Security
 
+## [v0.3.0-rc.2] - 2026-03-08
+
+### Overview
+This prerelease focuses on feed presentation controls and a cleaner settings experience. It adds configurable article card styles, optional masonry feed layout, and a unified preview shell for personalization settings while carrying forward the previously merged blurhash loading fixes from `rc1`.
+
+### Added
+- **Feed presentation settings**: Added configurable feed card styles and feed layout options in settings.
+- **Editorial card variant**: Added a new editorial-style feed card variant with stronger visual hierarchy.
+- **Shared preview shell**: Added a shared settings preview card used by header layout and feed card style previews.
+
+### Changed
+- **Feed browsing experience**: Feed, search, and hashtag pages can now render cards in either a standard list or a two-column masonry layout.
+- **Settings personalization UI**: Unified preview styling between header and feed card settings and simplified layout selection UX by removing redundant feed layout previews.
+
+### Fixed
+- **Card rendering polish**: Fixed feed card image clipping, preview overflow, header compact preview sizing, and summary length behavior in denser layouts.
+
 ## [v0.3.0-rc.1] - 2026-03-06
 
 ### Overview
@@ -221,7 +238,8 @@ If you're upgrading from v0.1.0, follow these steps:
 - Dark mode support
 - Scheduled tasks via Cloudflare Cron Triggers
 
-[Unreleased]: https://github.com/openRin/Rin/compare/v0.3.0-rc.1...HEAD
+[Unreleased]: https://github.com/openRin/Rin/compare/v0.3.0-rc.2...HEAD
+[v0.3.0-rc.2]: https://github.com/openRin/Rin/compare/v0.3.0-rc.1...v0.3.0-rc.2
 [v0.3.0-rc.1]: https://github.com/openRin/Rin/compare/v0.2.0...v0.3.0-rc.1
 [v0.2.0]: https://github.com/openRin/Rin/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/openRin/Rin/releases/tag/v0.1.0
