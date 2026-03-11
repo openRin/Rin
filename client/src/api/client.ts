@@ -13,6 +13,7 @@ import type {
   TimelineItem,
   CreateFeedRequest,
   UpdateFeedRequest,
+  AdjacentFeedResponse,
   UserProfile,
   UpdateProfileRequest,
   Tag,
@@ -134,6 +135,7 @@ export type {
   TimelineItem,
   CreateFeedRequest,
   UpdateFeedRequest,
+  AdjacentFeedResponse,
   UserProfile,
   UpdateProfileRequest,
   Tag,
@@ -313,8 +315,8 @@ class FeedAPI {
   }
 
   // GET /api/feed/adjacent/:id
-  async adjacent(id: number | string): Promise<ApiResponse<{ prev: Feed | null; next: Feed | null }>> {
-    return this.http.get<{ prev: Feed | null; next: Feed | null }>(`/api/feed/adjacent/${id}`);
+  async adjacent(id: number | string): Promise<ApiResponse<AdjacentFeedResponse>> {
+    return this.http.get<AdjacentFeedResponse>(`/api/feed/adjacent/${id}`);
   }
 
   // POST /api/feed/top/:id
