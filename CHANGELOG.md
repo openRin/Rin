@@ -23,6 +23,42 @@ which automatically generates release notes from commit messages.
 
 ### Security
 
+## [v0.3.0] - 2026-03-12
+
+### Overview
+This stable release finalizes the `0.3.0` line after the `rc1` and `rc2` rollout, promoting the new runtime architecture, shared package boundaries, and customization work to general availability. It also includes the final stabilization fixes completed after `rc.2`, with extra attention on routing, storage blob delivery, and production safety around assets and admin access.
+
+### Added
+- **Stable `0.3.0` baseline**: Promoted the new Worker runtime, shared workspace package structure, unified CLI workflows, and expanded site customization features from prerelease to stable.
+
+### Changed
+- **Release line hardening**: Consolidated the `rc1` and `rc2` feature set into the first stable `0.3.x` release so new installations and upgrades can target a non-prerelease version.
+
+### Fixed
+- **Storage blob routing**: Fixed storage blob delivery through API routes and restored correct streaming behavior when no public asset host is configured.
+- **Asset path fallback behavior**: Fixed dotted-path routing so real asset requests continue to resolve correctly while non-asset paths still fall back to the application.
+- **Admin availability**: Fixed an auth regression that could block admin access when login visibility was disabled.
+- **Navigation and rendering regressions**: Fixed post-navigation scroll restoration, adjacent feed API response handling, table-of-contents anchor offsets, footer script execution, and bootstrap config loading in the app shell.
+- **Webhook and cache behavior**: Fixed webhook error handling, cache gating, and several runtime/config edge cases discovered during the prerelease cycle.
+
+### 中文版
+
+#### 概览
+这个正式版在 `rc1` 与 `rc2` 的基础上完成了 `0.3.0` 版本线的收口，将新的 Worker 运行时架构、共享 workspace 包边界、统一 CLI 流程以及站点个性化能力正式提升为稳定可用状态。同时，它也吸收了 `rc.2` 之后最后一轮稳定性修复，重点覆盖路由回退、存储 Blob 访问，以及生产环境中的静态资源与管理员访问安全性。
+
+#### 新增
+- **稳定版 `0.3.0` 基线**：将新的 Worker 运行时、共享包结构、统一 CLI 工作流，以及扩展后的站点自定义能力从预发布状态正式提升为稳定版本。
+
+#### 变更
+- **发布线稳定收口**：将 `rc1` 与 `rc2` 的功能集合并为首个稳定的 `0.3.x` 正式版，使新部署与升级流程不再依赖 prerelease 版本号。
+
+#### 修复
+- **存储 Blob 路由**：修复了通过 API 路由访问存储 Blob 的行为，并恢复了在未配置公共资源 Host 时的正确流式返回逻辑。
+- **资源路径回退行为**：修复了带点号路径的路由回退问题，确保真实静态资源请求仍能正确命中，同时非资源路径依然能回退到应用入口。
+- **管理员可用性**：修复了在隐藏登录入口时可能导致管理员访问受阻的认证回归问题。
+- **导航与渲染回归**：修复了页面跳转后的滚动恢复、相邻文章 API 响应处理、目录锚点被 Header 遮挡、页脚脚本执行，以及应用壳配置注入加载等问题。
+- **Webhook 与缓存行为**：修复了 Webhook 错误处理、缓存启用边界，以及在预发布阶段发现的多项运行时 / 配置边缘问题。
+
 ## [v0.3.0-rc.2] - 2026-03-08
 
 ### Overview
@@ -284,3 +320,4 @@ If you're upgrading from v0.1.0, follow these steps:
 [v0.3.0-rc.1]: https://github.com/openRin/Rin/compare/v0.2.0...v0.3.0-rc.1
 [v0.2.0]: https://github.com/openRin/Rin/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/openRin/Rin/releases/tag/v0.1.0
+[v0.3.0]: https://github.com/openRin/Rin/releases/tag/v0.3.0

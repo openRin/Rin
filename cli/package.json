@@ -1,6 +1,6 @@
 {
   "name": "rin-cli",
-  "version": "0.3.0-rc.2",
+  "version": "0.3.0",
   "description": "Rin CLI - Unified command line interface for Rin blog platform",
   "type": "module",
   "bin": {
