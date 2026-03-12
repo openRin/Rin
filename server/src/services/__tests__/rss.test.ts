@@ -126,6 +126,53 @@ describe('RSSService', () => {
             const itemCount = (text.match(/<item>/g) || []).length;
             expect(itemCount).toBeLessThanOrEqual(20);
         });
+
+        it('should serve cached rss.xml through R2 without S3_ACCESS_HOST', async () => {
+            const cachedEnv = createMockEnv({
+                S3_ACCESS_HOST: '' as any,
+                S3_ENDPOINT: '' as any,
+                S3_BUCKET: '' as any,
+                S3_ACCESS_KEY_ID: '',
+                S3_SECRET_ACCESS_KEY: '',
+                R2_BUCKET: {
+                    get: async (key: string) => {
+                        if (key !== 'cache/rss.xml') {
+                            return null;
+                        }
+
+                        return {
+                            key,
+                            size: 18,
+                            etag: 'etag',
+                            httpEtag: 'etag',
+                            uploaded: new Date('2025-01-01T00:00:00Z'),
+                            storageClass: 'Standard',
+                            checksums: {} as R2Checksums,
+                            httpMetadata: { contentType: 'application/rss+xml; charset=UTF-8' },
+                            writeHttpMetadata(headers: Headers) {
+                                headers.set('Content-Type', 'application/rss+xml; charset=UTF-8');
+                            },
+                            body: new Blob(['<rss>cached</rss>']).stream(),
+                            bodyUsed: false,
+                            arrayBuffer: async () => new TextEncoder().encode('<rss>cached</rss>').buffer,
+                            text: async () => '<rss>cached</rss>',
+                            json: async () => ({ value: 'cached' }),
+                            blob: async () => new Blob(['<rss>cached</rss>']),
+                            bytes: async () => new Uint8Array(new TextEncoder().encode('<rss>cached</rss>')),
+                        } as unknown as R2ObjectBody;
+                    },
+                    head: async () => null,
+                } as unknown as R2Bucket,
+            });
+
+            const ctx = await setupTestApp(RSSService, cachedEnv);
+            const res = await ctx.app.request('/rss.xml', { method: 'GET' }, cachedEnv);
+
+            expect(res.status).toBe(200);
+            expect(await res.text()).toBe('<rss>cached</rss>');
+
+            cleanupTestDB(ctx.sqlite);
+        });
     });
 });
 

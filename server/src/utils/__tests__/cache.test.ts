@@ -444,6 +444,47 @@ describe('CacheImpl - 存储模式配置测试', () => {
         
         expect(cache).toBeDefined();
     });
+
+    it('应该在 R2 绑定下通过存储 API 读取缓存文件', async () => {
+        mockEnv = createMockEnv('s3');
+        mockEnv.R2_BUCKET = {
+            get: async (key: string) => {
+                if (key !== 'cache/cache.json') {
+                    return null;
+                }
+
+                return {
+                    key,
+                    size: 17,
+                    etag: 'etag',
+                    httpEtag: 'etag',
+                    uploaded: new Date('2025-01-01T00:00:00Z'),
+                    storageClass: 'Standard',
+                    checksums: {} as R2Checksums,
+                    httpMetadata: { contentType: 'application/json' },
+                    writeHttpMetadata(headers: Headers) {
+                        headers.set('Content-Type', 'application/json');
+                    },
+                    body: new Blob(['{"key1":"value1"}']).stream(),
+                    bodyUsed: false,
+                    arrayBuffer: async () => new TextEncoder().encode('{"key1":"value1"}').buffer,
+                    text: async () => '{"key1":"value1"}',
+                    json: async () => ({ key1: 'value1' }),
+                    blob: async () => new Blob(['{"key1":"value1"}']),
+                    bytes: async () => new Uint8Array(new TextEncoder().encode('{"key1":"value1"}')),
+                } as unknown as R2ObjectBody;
+            },
+        } as unknown as R2Bucket;
+        mockEnv.S3_ACCESS_HOST = '' as any;
+        mockEnv.S3_ENDPOINT = '' as any;
+        mockEnv.S3_BUCKET = '' as any;
+        mockEnv.S3_ACCESS_KEY_ID = '';
+        mockEnv.S3_SECRET_ACCESS_KEY = '';
+
+        const cache = new CacheImpl(db as any, mockEnv, 'cache', 's3');
+
+        expect(await cache.get('key1')).toBe('value1');
+    });
 });
 
 describe('CacheImpl - 工厂函数测试', () => {

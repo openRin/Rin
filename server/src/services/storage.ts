@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
 import { profileAsync } from "../core/server-timing";
-import { putStorageObject } from "../utils/storage";
+import { getStorageObject, putStorageObject } from "../utils/storage";
 
 function buf2hex(buffer: ArrayBuffer) {
     return [...new Uint8Array(buffer)]
@@ -35,12 +35,43 @@ export function StorageService(): Hono {
         const hashkey = `${hash}.${suffix}`;
         
         try {
-            const result = await profileAsync(c, 'storage_put', () => putStorageObject(env, hashkey, file, file.type));
+            const result = await profileAsync(c, 'storage_put', () => putStorageObject(env, hashkey, file, file.type, new URL(c.req.url).origin));
             return c.json({ url: result.url });
         } catch (e: any) {
             console.error(e.message);
             const status = e.message?.includes('is not defined') ? 500 : 400;
             return c.text(e.message, status);
+        }
+    });
+
+    return app;
+}
+
+export function BlobService(): Hono {
+    const app = new Hono();
+
+    app.get("/*", async (c: AppContext) => {
+        const env = c.get("env");
+        const key = c.req.path.replace(/^\/blob\/?/, "");
+
+        if (!key) {
+            return c.text("Blob key is required", 400);
+        }
+
+        try {
+            const response = await profileAsync(c, "blob_fetch", () => getStorageObject(env, decodeURIComponent(key)));
+
+            if (!response) {
+                return c.text("Not found", 404);
+            }
+
+            return new Response(response.body, {
+                status: response.status,
+                headers: response.headers,
+            });
+        } catch (error) {
+            console.error("Blob fetch failed:", error);
+            return c.text("Blob fetch failed", 500);
         }
     });
 

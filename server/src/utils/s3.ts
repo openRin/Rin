@@ -50,3 +50,16 @@ export async function putObject(
     
     return response;
 }
+
+export function buildS3ObjectUrl(env: Env, key: string): string {
+    const endpoint = env.S3_ENDPOINT;
+    const bucket = env.S3_BUCKET;
+    const forcePathStyle = env.S3_FORCE_PATH_STYLE === 'true';
+
+    if (forcePathStyle) {
+        return path_join(endpoint, bucket, key);
+    }
+
+    const urlObj = new URL(endpoint);
+    return `${urlObj.protocol}//${bucket}.${urlObj.host}/${key}`;
+}

@@ -1,5 +1,5 @@
 import { path_join } from "./path";
-import { createS3Client, putObject as putS3Object } from "./s3";
+import { buildS3ObjectUrl, createS3Client, putObject as putS3Object } from "./s3";
 
 type StorageTarget =
   | {
@@ -24,9 +24,6 @@ export function resolveStorageTarget(env: Env): StorageTarget {
   const publicBaseUrl = trimTrailingSlash(env.S3_ACCESS_HOST || env.S3_ENDPOINT || "");
 
   if (env.R2_BUCKET) {
-    if (!publicBaseUrl) {
-      throw new Error("S3_ACCESS_HOST is not defined");
-    }
     return {
       type: "r2",
       bucket: env.R2_BUCKET,
@@ -56,17 +53,127 @@ export function resolveStorageTarget(env: Env): StorageTarget {
   };
 }
 
+function encodeStorageKey(key: string) {
+  return key
+    .split("/")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
+function buildBlobUrl(storageKey: string, baseUrl?: string) {
+  const encodedKey = encodeStorageKey(storageKey);
+  const path = `/blob/${encodedKey}`;
+
+  if (!baseUrl) {
+    return path;
+  }
+
+  return `${trimTrailingSlash(baseUrl)}${path}`;
+}
+
+function createStorageResponse(object: R2ObjectBody | R2Object, body?: BodyInit | null) {
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+
+  if (object.httpEtag) {
+    headers.set("ETag", object.httpEtag);
+  }
+
+  if (!headers.has("Content-Length")) {
+    headers.set("Content-Length", String(object.size));
+  }
+
+  if (!headers.has("Last-Modified")) {
+    headers.set("Last-Modified", object.uploaded.toUTCString());
+  }
+
+  return new Response(body ?? null, {
+    status: 200,
+    headers,
+  });
+}
+
+export async function getStorageObject(env: Env, storageKey: string): Promise<Response | null> {
+  if (env.R2_BUCKET) {
+    const object = await env.R2_BUCKET.get(storageKey);
+    if (!object) {
+      return null;
+    }
+    return createStorageResponse(object, object.body);
+  }
+
+  const client = createS3Client(env);
+  const response = await client.fetch(buildS3ObjectUrl(env, storageKey), {
+    method: "GET",
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch storage object: ${response.status} ${response.statusText}`);
+  }
+
+  return response;
+}
+
+export async function headStorageObject(env: Env, storageKey: string): Promise<Response | null> {
+  if (env.R2_BUCKET) {
+    const object = await env.R2_BUCKET.head(storageKey);
+    if (!object) {
+      return null;
+    }
+    return createStorageResponse(object);
+  }
+
+  const client = createS3Client(env);
+  const response = await client.fetch(buildS3ObjectUrl(env, storageKey), {
+    method: "HEAD",
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to inspect storage object: ${response.status} ${response.statusText}`);
+  }
+
+  return response;
+}
+
+export function getStoragePublicUrl(env: Env, storageKey: string, baseUrl?: string) {
+  if (env.S3_ACCESS_HOST) {
+    return `${trimTrailingSlash(env.S3_ACCESS_HOST)}/${storageKey}`;
+  }
+
+  return buildBlobUrl(storageKey, baseUrl);
+}
+
 export async function putStorageObject(
   env: Env,
   key: string,
   body: Blob | ArrayBuffer | Uint8Array | string,
   contentType?: string,
+  baseUrl?: string,
 ) {
   const target = resolveStorageTarget(env);
   const storageKey = path_join(target.folder, key);
 
-  if (target.type === "r2") {
-    await target.bucket.put(storageKey, body, {
+  return putStorageObjectAtKey(env, storageKey, body, contentType, baseUrl);
+}
+
+export async function putStorageObjectAtKey(
+  env: Env,
+  storageKey: string,
+  body: Blob | ArrayBuffer | Uint8Array | string,
+  contentType?: string,
+  baseUrl?: string,
+) {
+  if (env.R2_BUCKET) {
+    await env.R2_BUCKET.put(storageKey, body, {
       httpMetadata: contentType ? { contentType } : undefined,
     });
   } else {
@@ -76,6 +183,6 @@ export async function putStorageObject(
 
   return {
     key: storageKey,
-    url: `${target.publicBaseUrl}/${storageKey}`,
+    url: getStoragePublicUrl(env, storageKey, baseUrl),
   };
 }
