@@ -160,8 +160,9 @@ export function UserAvatar({
   const label = t("github_login");
   const config = useContext(ClientConfigContext);
   const [isOpen, setIsOpen] = useState(false);
+  const shouldShowEntry = Boolean(profile) || config.getBoolean("login.enabled");
 
-  return config.getBoolean("login.enabled") ? (
+  return shouldShowEntry ? (
     <div className={className + " flex flex-row items-center"}>
       {profile ? (
         <Popup
