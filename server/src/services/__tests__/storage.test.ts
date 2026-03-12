@@ -192,7 +192,7 @@ describe('StorageService', () => {
             expect(payload.url).toMatch(/^https:\/\/images\.example\.com\/images\/[a-f0-9]+\.txt$/);
         });
 
-        it('should return a /blob URL when R2 is configured without S3_ACCESS_HOST', async () => {
+        it('should return an /api/blob URL when R2 is configured without S3_ACCESS_HOST', async () => {
             const putCalls: string[] = [];
             const r2Env = createMockEnv({
                 R2_BUCKET: {
@@ -232,7 +232,7 @@ describe('StorageService', () => {
             expect(putCalls).toHaveLength(1);
 
             const payload = await res.json() as { url: string };
-            expect(payload.url).toMatch(/^http:\/\/localhost\/blob\/images\/[a-f0-9]+\.txt$/);
+            expect(payload.url).toMatch(/^http:\/\/localhost\/api\/blob\/images\/[a-f0-9]+\.txt$/);
         });
 
         it('should return 500 when S3_ENDPOINT is not defined without R2 binding', async () => {

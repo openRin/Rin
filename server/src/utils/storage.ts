@@ -63,7 +63,7 @@ function encodeStorageKey(key: string) {
 
 function buildBlobUrl(storageKey: string, baseUrl?: string) {
   const encodedKey = encodeStorageKey(storageKey);
-  const path = `/blob/${encodedKey}`;
+  const path = `/api/blob/${encodedKey}`;
 
   if (!baseUrl) {
     return path;

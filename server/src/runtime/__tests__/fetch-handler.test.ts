@@ -33,14 +33,14 @@ describe("handleFetch", () => {
     expect(getAppFetch).toHaveBeenCalledTimes(0);
   });
 
-  it("falls back to the app when a dotted path is not a static asset", async () => {
+  it("routes /api/blob requests to the app before static assets", async () => {
     getAppFetch.mockResolvedValue(new Response("blob-body", { status: 200 }));
 
     const { handleFetch } = await import("../fetch-handler");
     const assetFetch = mock(async () => new Response("asset-body", { status: 404 }));
 
     const response = await handleFetch(
-      new Request("http://localhost/blob/images/test.txt"),
+      new Request("http://localhost/api/blob/images/test.txt"),
       {
         ASSETS: {
           fetch: assetFetch,
@@ -50,6 +50,7 @@ describe("handleFetch", () => {
 
     expect(await response.text()).toBe("blob-body");
     expect(getAppFetch).toHaveBeenCalledTimes(1);
-    expect(assetFetch).toHaveBeenCalledTimes(1);
+    expect(assetFetch).toHaveBeenCalledTimes(0);
+    expect(new URL(getAppFetch.mock.calls[0][0].url).pathname).toBe("/blob/images/test.txt");
   });
 });
