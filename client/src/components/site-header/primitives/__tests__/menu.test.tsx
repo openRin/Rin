@@ -4,6 +4,15 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Menu } from "../menu";
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      changeLanguage: vi.fn(),
+    },
+  }),
+}));
+
 vi.mock("wouter", () => ({
   useLocation: () => ["/", vi.fn()],
 }));
@@ -25,10 +34,20 @@ vi.mock("reactjs-popup", () => ({
   ),
 }));
 
-vi.mock("../action-buttons", () => ({
-  LanguageSwitch: () => <div>language-switch</div>,
-  SearchButton: ({ onClose }: { onClose?: () => void }) => <button onClick={onClose}>search</button>,
-  UserAvatar: () => <div>user-avatar</div>,
+vi.mock("react-modal", () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock("../../../app/runtime", () => ({
+  client: {
+    user: {
+      logout: vi.fn(),
+    },
+  },
+}));
+
+vi.mock("../../../utils/auth", () => ({
+  removeAuthToken: vi.fn(),
 }));
 
 vi.mock("../nav-bar", () => ({

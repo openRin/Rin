@@ -5,6 +5,7 @@ import { ClientConfigContext } from '../state/config';
 import { Helmet } from "react-helmet";
 import { siteName } from '../utils/constants';
 import { useTranslation } from "react-i18next";
+import { buildLoginPath, HIDDEN_LOGIN_REDIRECT } from "../utils/auth-redirect";
 
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
@@ -95,7 +96,7 @@ function Footer() {
                         if(doubleClickTimes >= 2){ // actually need 3 times doubleClick
                             setDoubleClickTimes(0)
                             if(!loginEnabled) {
-                                setLocation('/login')
+                                setLocation(buildLoginPath(HIDDEN_LOGIN_REDIRECT))
                             }
                         } else {
                             setDoubleClickTimes(doubleClickTimes + 1)
