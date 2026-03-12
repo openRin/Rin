@@ -178,7 +178,7 @@ export async function buildHealthCheckResponse(
 
   const usesR2Binding = Boolean(env.R2_BUCKET);
   const requiredStorageKeys = usesR2Binding
-    ? ([["S3_ACCESS_HOST", env.S3_ACCESS_HOST]] as const)
+    ? ([] as const)
     : ([
         ["S3_ENDPOINT", env.S3_ENDPOINT],
         ["S3_BUCKET", env.S3_BUCKET],
@@ -193,15 +193,11 @@ export async function buildHealthCheckResponse(
       createItem({
         id: "storage",
         title: text("health.items.storage.title"),
-        status: hasAccessHost ? "success" : "warning",
+        status: "success",
         configured: true,
         impact: text("health.items.storage.ready.impact"),
-        summary: hasAccessHost
-          ? text("health.items.storage.ready.summary")
-          : text("health.items.storage.ready.summary_missing_access_host"),
-        suggestion: hasAccessHost
-          ? text("health.items.common.no_action")
-          : text("health.items.storage.ready.suggestion_missing_access_host"),
+        summary: text("health.items.storage.ready.summary"),
+        suggestion: text("health.items.common.no_action"),
       }),
     );
   } else {

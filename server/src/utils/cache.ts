@@ -2,6 +2,7 @@ import { eq, and, like } from "drizzle-orm";
 import type { DB } from "../core/hono-types";
 import { cache } from "../db/schema";
 import { path_join } from "./path";
+import { getStorageObject, putStorageObjectAtKey } from "./storage";
 
 // Cache Utils for storing data in memory and persisting to database (with optional S3 backup)
 
@@ -130,32 +131,18 @@ class DatabaseStorageProvider implements StorageProvider {
 
 // S3 存储提供者
 class S3StorageProvider implements StorageProvider {
-    private s3Instance: any = null;
-    private cacheUrl: string;
+    private cacheKey: string;
 
     constructor(private env: Env, private cacheMap: Map<string, any>, private type: string) {
-        const slash = this.env.S3_ACCESS_HOST.endsWith('/') ? '' : '/';
-        this.cacheUrl = this.env.S3_ACCESS_HOST + slash + path_join(this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
-    }
-
-    private async getS3() {
-        if (!this.s3Instance) {
-            const { createS3Client } = await import('./s3');
-            this.s3Instance = createS3Client(this.env);
-        }
-        return this.s3Instance;
+        this.cacheKey = path_join(this.env.S3_CACHE_FOLDER || 'cache', `${type}.json`);
     }
 
     async load(): Promise<void> {
-        console.log('Cache load from S3', this.cacheUrl);
+        console.log('Cache load from storage', this.cacheKey);
         try {
-            const response = await fetch(new Request(this.cacheUrl));
-            if (!response.ok) {
-                if (response.status === 404) {
-                    console.log('Cache file not found in S3, starting with empty cache');
-                } else {
-                    console.error(`Cache load from S3 failed: HTTP ${response.status}`);
-                }
+            const response = await getStorageObject(this.env, this.cacheKey);
+            if (!response) {
+                console.log('Cache file not found in storage, starting with empty cache');
                 return;
             }
             const data = await response.json<any>();
@@ -170,23 +157,19 @@ class S3StorageProvider implements StorageProvider {
 
     async save(): Promise<void> {
         try {
-            const { putObject } = await import('./s3');
-            const s3 = await this.getS3();
-            const cacheKey = path_join(this.env.S3_CACHE_FOLDER, `${this.type}.json`);
-            await putObject(
-                s3,
+            await putStorageObjectAtKey(
                 this.env,
-                cacheKey,
+                this.cacheKey,
                 JSON.stringify(Object.fromEntries(this.cacheMap)),
                 'application/json'
             ).then(() => {
-                console.log('Cache saved to S3');
+                console.log('Cache saved to storage');
             }).catch((e: any) => {
-                console.error('Cache save to S3 failed');
+                console.error('Cache save to storage failed');
                 console.error(e.message);
             });
         } catch (e: any) {
-            console.error('Cache save to S3 failed');
+            console.error('Cache save to storage failed');
             console.error(e.message);
         }
     }

@@ -169,6 +169,38 @@ describe("ConfigService", () => {
                 ),
             ).toBe(true);
         });
+
+        it("should treat R2 storage without S3_ACCESS_HOST as configured", async () => {
+            env.R2_BUCKET = {
+                get: async () => null,
+                put: async () => null,
+                head: async () => null,
+                createMultipartUpload: () => {
+                    throw new Error("not implemented");
+                },
+                resumeMultipartUpload: () => {
+                    throw new Error("not implemented");
+                },
+                delete: async () => {},
+                list: async () => ({ objects: [], truncated: false, delimitedPrefixes: [] }),
+            } as unknown as R2Bucket;
+            env.S3_ACCESS_HOST = "" as any;
+
+            const res = await app.request("/health", {
+                method: "GET",
+                headers: {
+                    Authorization: "Bearer mock_token_1",
+                },
+            });
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as {
+                items: Array<{ id: string; status: string }>;
+            };
+            expect(
+                data.items.some((item) => item.id === "storage" && item.status === "success"),
+            ).toBe(true);
+        });
     });
 
     describe("GET /queue-status - Queue status", () => {

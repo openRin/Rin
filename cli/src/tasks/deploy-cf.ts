@@ -147,7 +147,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   const taskQueueName = env("TASK_QUEUE_NAME", env("AI_SUMMARY_QUEUE_NAME", `${workerName}-tasks`)) ?? `${workerName}-tasks`;
   const r2BucketName = env("R2_BUCKET_NAME", "");
   const s3Endpoint = env("S3_ENDPOINT", "");
-  const s3AccessHost = env("S3_ACCESS_HOST", s3Endpoint);
+  const s3AccessHost = env("S3_ACCESS_HOST", "");
   const s3Bucket = env("S3_BUCKET", "");
   const s3CacheFolder = renv("S3_CACHE_FOLDER", "cache/");
   const s3Folder = renv("S3_FOLDER", "images/");
@@ -167,12 +167,11 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   let finalS3Bucket = s3Bucket;
   let finalS3AccessHost = s3AccessHost;
 
-  if (!finalS3Endpoint || !finalS3Bucket || !finalS3AccessHost) {
+  if (!finalS3Endpoint || !finalS3Bucket) {
     const r2Info = await resolveR2BucketInfo(r2BucketName || "");
     if (r2Info) {
       finalS3Endpoint ||= r2Info.endpoint;
       finalS3Bucket ||= r2Info.name;
-      finalS3AccessHost ||= r2Info.accessHost;
     }
   }
 

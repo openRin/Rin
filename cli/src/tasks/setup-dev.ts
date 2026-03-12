@@ -24,7 +24,7 @@ export async function runSetupDev() {
     "JWT_SECRET",
   ];
   const storageRequiredVars = env.R2_BUCKET_NAME
-    ? ["S3_ACCESS_HOST"]
+    ? []
     : ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"];
   const requiredVars = [...baseRequiredVars, ...storageRequiredVars];
 
@@ -55,7 +55,7 @@ S3_FOLDER = "${env.S3_FOLDER || "images/"}"
 S3_CACHE_FOLDER = "${env.S3_CACHE_FOLDER || "cache/"}"
 S3_REGION = "${env.S3_REGION || "auto"}"
 S3_ENDPOINT = "${env.S3_ENDPOINT}"
-S3_ACCESS_HOST = "${env.S3_ACCESS_HOST || env.S3_ENDPOINT}"
+S3_ACCESS_HOST = "${env.S3_ACCESS_HOST || ""}"
 S3_BUCKET = "${env.S3_BUCKET}"
 S3_FORCE_PATH_STYLE = "${env.S3_FORCE_PATH_STYLE || "false"}"
 WEBHOOK_URL = "${env.WEBHOOK_URL || ""}"

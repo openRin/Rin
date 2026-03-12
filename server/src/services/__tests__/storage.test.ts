@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
-import { StorageService } from '../storage';
+import { BlobService, StorageService } from '../storage';
 import { Hono } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { Variables, JWTUtils, CacheImpl } from "../../core/hono-types";
@@ -91,6 +91,7 @@ describe('StorageService', () => {
 
         // Mount service
         app.route('/', StorageService());
+        app.route('/blob', BlobService());
 
         // Create test user
         await createTestUser();
@@ -123,6 +124,7 @@ describe('StorageService', () => {
             await next();
         }));
         serviceApp.route('/', StorageService());
+        serviceApp.route('/blob', BlobService());
         return serviceApp;
     }
 
@@ -164,7 +166,7 @@ describe('StorageService', () => {
                             writeHttpMetadata: () => {},
                         } as unknown as R2Object;
                     },
-                } as R2Bucket,
+                } as unknown as R2Bucket,
                 S3_ACCESS_HOST: 'https://images.example.com' as any,
                 S3_ENDPOINT: '' as any,
                 S3_BUCKET: '' as any,
@@ -188,6 +190,49 @@ describe('StorageService', () => {
             expect(putCalls[0]?.type).toBe('text/plain;charset=utf-8');
             const payload = await res.json() as { url: string };
             expect(payload.url).toMatch(/^https:\/\/images\.example\.com\/images\/[a-f0-9]+\.txt$/);
+        });
+
+        it('should return a /blob URL when R2 is configured without S3_ACCESS_HOST', async () => {
+            const putCalls: string[] = [];
+            const r2Env = createMockEnv({
+                R2_BUCKET: {
+                    put: async (key: string) => {
+                        putCalls.push(key);
+                        return {
+                            key,
+                            version: '1',
+                            size: 4,
+                            etag: 'etag',
+                            httpEtag: 'etag',
+                            uploaded: new Date(),
+                            storageClass: 'Standard',
+                            checksums: {} as R2Checksums,
+                            writeHttpMetadata: () => {},
+                        } as unknown as R2Object;
+                    },
+                } as unknown as R2Bucket,
+                S3_ACCESS_HOST: '' as any,
+                S3_ENDPOINT: '' as any,
+                S3_BUCKET: '' as any,
+                S3_ACCESS_KEY_ID: '',
+                S3_SECRET_ACCESS_KEY: '',
+            });
+
+            const r2App = createAppWithEnv(r2Env, 1);
+            const formData = new FormData();
+            formData.append('key', 'test.txt');
+            formData.append('file', new File(['test'], 'test.txt', { type: 'text/plain' }));
+
+            const res = await r2App.request('/', {
+                method: 'POST',
+                body: formData,
+            }, r2Env);
+
+            expect(res.status).toBe(200);
+            expect(putCalls).toHaveLength(1);
+
+            const payload = await res.json() as { url: string };
+            expect(payload.url).toMatch(/^http:\/\/localhost\/blob\/images\/[a-f0-9]+\.txt$/);
         });
 
         it('should return 500 when S3_ENDPOINT is not defined without R2 binding', async () => {
@@ -226,6 +271,53 @@ describe('StorageService', () => {
 
             expect(res.status).toBe(500);
             expect(await res.text()).toBe('S3_ACCESS_KEY_ID is not defined');
+        });
+    });
+
+    describe('GET /blob/* - Stream file', () => {
+        it('should stream an R2 object through the blob route', async () => {
+            const r2Env = createMockEnv({
+                R2_BUCKET: {
+                    get: async (key: string) => {
+                        if (key !== 'images/test.txt') {
+                            return null;
+                        }
+
+                        return {
+                            key,
+                            size: 4,
+                            etag: 'etag',
+                            httpEtag: 'etag',
+                            uploaded: new Date('2025-01-01T00:00:00Z'),
+                            storageClass: 'Standard',
+                            checksums: {} as R2Checksums,
+                            httpMetadata: { contentType: 'text/plain' },
+                            writeHttpMetadata(headers: Headers) {
+                                headers.set('Content-Type', 'text/plain');
+                            },
+                            body: new Blob(['test']).stream(),
+                            bodyUsed: false,
+                            arrayBuffer: async () => new TextEncoder().encode('test').buffer,
+                            text: async () => 'test',
+                            json: async () => ({ value: 'test' }),
+                            blob: async () => new Blob(['test']),
+                            bytes: async () => new Uint8Array(new TextEncoder().encode('test')),
+                        } as unknown as R2ObjectBody;
+                    },
+                } as unknown as R2Bucket,
+                S3_ACCESS_HOST: '' as any,
+                S3_ENDPOINT: '' as any,
+                S3_BUCKET: '' as any,
+                S3_ACCESS_KEY_ID: '',
+                S3_SECRET_ACCESS_KEY: '',
+            });
+
+            const r2App = createAppWithEnv(r2Env, 1);
+            const res = await r2App.request('/blob/images/test.txt', { method: 'GET' }, r2Env);
+
+            expect(res.status).toBe(200);
+            expect(res.headers.get('content-type')).toBe('text/plain');
+            expect(await res.text()).toBe('test');
         });
     });
 });

@@ -5,7 +5,7 @@ import { profileAsync } from "../core/server-timing";
 import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
 import { path_join } from "../utils/path";
-import { createS3Client, putObject } from "../utils/s3";
+import { getStorageObject, getStoragePublicUrl, headStorageObject, putStorageObjectAtKey } from "../utils/storage";
 import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
 import type { DB } from "../core/hono-types";
 
@@ -72,10 +72,7 @@ async function handleFeed(c: AppContext, fileName: string) {
     const env = c.get('env');
     const db = c.get('db');
 
-    const endpoint = env.S3_ENDPOINT;
-    const accessHost = env.S3_ACCESS_HOST || endpoint;
     const folder = env.S3_CACHE_FOLDER || 'cache/';
-    const host = `${(accessHost.startsWith("http://") || accessHost.startsWith("https://") ? '' : 'https://')}${accessHost}`;
 
     // Map file extensions to proper MIME types
     const contentTypeMap: Record<string, string> = {
@@ -88,40 +85,20 @@ async function handleFeed(c: AppContext, fileName: string) {
 
     // Try to fetch from S3 first (if configured)
     const key = path_join(folder, fileName);
-    const cleanHost = host.endsWith('/') ? host.slice(0, -1) : host;
-    const url = `${cleanHost}/${key}`;
     
-    // Check if S3 is properly configured (not default/placeholder values)
-    const s3Configured = host && 
-                       !host.includes('your-') && 
-                       !host.includes('undefined') &&
-                       env.S3_BUCKET && 
-                       !env.S3_BUCKET.includes('your-bucket');
-    
-    if (s3Configured) {
-        try {
-            console.log(`[RSS] Fetching from S3: ${url}`);
-            const response = await profileAsync(c, 'rss_s3_fetch', () => fetch(url, { 
-                cf: { cacheTtl: 60 } 
-            }));
-            
-            if (response.ok) {
-                console.log(`[RSS] S3 hit!`);
-                const text = await profileAsync(c, 'rss_s3_body', () => response.text());
-                return c.text(text, 200, {
-                    'Content-Type': contentType,
-                    'Cache-Control': 'public, max-age=3600',
-                });
-            }
-            
-            if (response.status !== 404) {
-                console.log(`[RSS] S3 error: ${response.status}, falling back to generation`);
-            }
-        } catch (e: any) {
-            console.log(`[RSS] S3 fetch failed: ${e.message}, falling back to generation`);
+    try {
+        const response = await profileAsync(c, 'rss_s3_fetch', () => getStorageObject(env, key));
+
+        if (response) {
+            console.log(`[RSS] Storage hit for ${key}`);
+            const text = await profileAsync(c, 'rss_s3_body', () => response.text());
+            return c.text(text, 200, {
+                'Content-Type': contentType,
+                'Cache-Control': 'public, max-age=3600',
+            });
         }
-    } else {
-        console.log(`[RSS] S3 not configured, generating feed in real-time`);
+    } catch (e: any) {
+        console.log(`[RSS] Storage fetch failed: ${e.message}, falling back to generation`);
     }
     
     // Generate feed in real-time (fallback or primary mode)
@@ -163,8 +140,8 @@ async function generateFeed(env: Env, db: DB, frontendUrl: string, c?: AppContex
     } else {
         await initRSSModules();
     }
-    const accessHost = env.S3_ACCESS_HOST || env.S3_ENDPOINT;
     const faviconKey = getFaviconKey(env);
+    const publicBaseUrl = frontendUrl || undefined;
 
     let feedConfig: any = {
         title: env.RSS_TITLE,
@@ -191,32 +168,30 @@ async function generateFeed(env: Env, db: DB, frontendUrl: string, c?: AppContex
         }
     }
 
-    // Try to get favicon from S3
-    if (accessHost && !accessHost.includes('your-') && !accessHost.includes('undefined')) {
-        for (const [_mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
-            const originFaviconKey = path_join(env.S3_FOLDER || "", `originFavicon${ext}`);
-            try {
-                const response = c
-                    ? await profileAsync(c, 'rss_origin_favicon_fetch', () => fetch(new Request(`${accessHost}/${originFaviconKey}`)))
-                    : await fetch(new Request(`${accessHost}/${originFaviconKey}`));
-                if (response.ok) {
-                    feedConfig.image = `${accessHost}/${originFaviconKey}`;
-                    break;
-                }
-            } catch (error) {
-                continue;
-            }
-        }
-
+    // Try to discover stored favicon assets.
+    for (const [_mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
+        const originFaviconKey = path_join(env.S3_FOLDER || "", `originFavicon${ext}`);
         try {
             const response = c
-                ? await profileAsync(c, 'rss_favicon_fetch', () => fetch(new Request(`${accessHost}/${faviconKey}`)))
-                : await fetch(new Request(`${accessHost}/${faviconKey}`));
-            if (response.ok) {
-                feedConfig.favicon = `${accessHost}/${faviconKey}`;
+                ? await profileAsync(c, 'rss_origin_favicon_fetch', () => headStorageObject(env, originFaviconKey))
+                : await headStorageObject(env, originFaviconKey);
+            if (response) {
+                feedConfig.image = getStoragePublicUrl(env, originFaviconKey, publicBaseUrl);
+                break;
             }
-        } catch (error) { }
+        } catch (error) {
+            continue;
+        }
     }
+
+    try {
+        const response = c
+            ? await profileAsync(c, 'rss_favicon_fetch', () => headStorageObject(env, faviconKey))
+            : await headStorageObject(env, faviconKey);
+        if (response) {
+            feedConfig.favicon = getStoragePublicUrl(env, faviconKey, publicBaseUrl);
+        }
+    } catch (error) { }
 
     const feed = new Feed(feedConfig);
 
@@ -287,13 +262,11 @@ export async function rssCrontab(env: Env, db: DB) {
     
     // Save to S3 (if configured)
     const folder = env.S3_CACHE_FOLDER || "cache/";
-    const s3 = createS3Client(env);
 
     async function save(name: string, data: string) {
         const hashkey = path_join(folder, name);
         try {
-            await putObject(
-                s3,
+            await putStorageObjectAtKey(
                 env,
                 hashkey,
                 data,

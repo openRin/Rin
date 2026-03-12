@@ -197,6 +197,68 @@ describe('FaviconService', () => {
                 globalThis.fetch = originalFetch;
             }
         });
+
+        it('should return favicon through R2 API when S3_ACCESS_HOST is missing', async () => {
+            const r2Env = createMockEnv({
+                S3_ACCESS_HOST: '' as any,
+                S3_ENDPOINT: '' as any,
+                S3_BUCKET: '' as any,
+                S3_ACCESS_KEY_ID: '',
+                S3_SECRET_ACCESS_KEY: '',
+                R2_BUCKET: {
+                    get: async (key: string) => {
+                        if (key !== 'images/favicon.webp') {
+                            return null;
+                        }
+
+                        return {
+                            key,
+                            size: 4,
+                            etag: 'etag',
+                            httpEtag: 'etag',
+                            uploaded: new Date('2025-01-01T00:00:00Z'),
+                            storageClass: 'Standard',
+                            checksums: {} as R2Checksums,
+                            httpMetadata: { contentType: 'image/webp' },
+                            writeHttpMetadata(headers: Headers) {
+                                headers.set('Content-Type', 'image/webp');
+                            },
+                            body: new Blob(['test']).stream(),
+                            bodyUsed: false,
+                            arrayBuffer: async () => new TextEncoder().encode('test').buffer,
+                            text: async () => 'test',
+                            json: async () => ({ value: 'test' }),
+                            blob: async () => new Blob(['test']),
+                            bytes: async () => new Uint8Array(new TextEncoder().encode('test')),
+                        } as unknown as R2ObjectBody;
+                    },
+                } as R2Bucket,
+            });
+
+            const r2App = new Hono<{ Bindings: Env; Variables: Variables }>();
+            r2App.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+                c.set('db', db);
+                c.set('cache', new TestCacheImpl());
+                c.set('serverConfig', new TestCacheImpl());
+                c.set('clientConfig', new TestCacheImpl());
+                c.set('jwt', {
+                    sign: async (payload: any) => `mock_token_${payload.id}`,
+                    verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+                } as JWTUtils);
+                c.set('oauth2', undefined);
+                c.set('env', r2Env);
+                c.set('uid', 1);
+                c.set('admin', true);
+                await next();
+            }));
+            r2App.route('/', FaviconService());
+
+            const res = await r2App.request('/', { method: 'GET' }, r2Env);
+
+            expect(res.status).toBe(200);
+            expect(res.headers.get('content-type')).toBe('image/webp');
+            expect(await res.text()).toBe('test');
+        });
     });
 
     describe('GET /original - Get original favicon', () => {
