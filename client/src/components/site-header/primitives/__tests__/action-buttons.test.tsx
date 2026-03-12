@@ -1,6 +1,6 @@
 import "../../../../test/setup";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConfigWrapper } from "../../../../state/config";
 import { ClientConfigContext, defaultClientConfig } from "../../../../state/config";
 import type { Profile } from "../../../../state/profile";
@@ -36,6 +36,10 @@ vi.mock("../../../../utils/auth", () => ({
   removeAuthToken: vi.fn(),
 }));
 
+afterEach(() => {
+  cleanup();
+});
+
 function renderUserAvatar({
   loginEnabled,
   profile,
@@ -54,13 +58,13 @@ function renderUserAvatar({
 
 describe("UserAvatar", () => {
   it("hides the login entry when login is disabled and the user is signed out", () => {
-    renderUserAvatar({ loginEnabled: false, profile: null });
+    const { container } = renderUserAvatar({ loginEnabled: false, profile: null });
 
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("shows the avatar menu when login is disabled but the user is signed in", () => {
-    renderUserAvatar({
+    const { container } = renderUserAvatar({
       loginEnabled: false,
       profile: {
         id: 1,
@@ -70,6 +74,6 @@ describe("UserAvatar", () => {
       },
     });
 
-    expect(screen.getByRole("button", { name: "profile.title" })).toBeInTheDocument();
+    expect(within(container).getByRole("button", { name: "profile.title" })).toBeInTheDocument();
   });
 });
