@@ -718,5 +718,6 @@
     "title": "健康检查"
   },
   "sort_latest": "最新",
-  "sort_popular": "热门"
+  "sort_popular": "热门",
+  "total_tags": "共 {{count}} 个标签"
 }

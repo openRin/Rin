@@ -718,5 +718,6 @@
     "title": "健康檢查"
   },
   "sort_latest": "最新",
-  "sort_popular": "熱門"
+  "sort_popular": "熱門",
+  "total_tags": "共 {{count}} 個標籤"
 }

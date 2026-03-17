@@ -64,7 +64,7 @@ export function HashtagsPage() {
                         </p>
                         <div className="flex flex-row justify-between">
                             <p className="text-sm mt-4 text-neutral-500 font-normal">
-                                {t('article.total$count', { count: sortedHashtags?.length || 0 })}
+                                {t('total_tags', { count: sortedHashtags?.length || 0 })}
                             </p>
                             <div className="flex flex-row items-center space-x-3">
                                 <button
