@@ -716,5 +716,7 @@
       "warning": "待检查项目"
     },
     "title": "健康检查"
-  }
+  },
+  "sort_latest": "最新",
+  "sort_popular": "热门"
 }

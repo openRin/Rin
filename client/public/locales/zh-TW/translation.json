@@ -716,5 +716,7 @@
       "warning": "待檢查項目"
     },
     "title": "健康檢查"
-  }
+  },
+  "sort_latest": "最新",
+  "sort_popular": "熱門"
 }
