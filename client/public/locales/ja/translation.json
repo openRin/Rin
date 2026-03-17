@@ -707,5 +707,7 @@
       "warning": "確認すべき項目"
     },
     "title": "ヘルスチェック"
-  }
+  },
+  "sort_latest": "新着",
+  "sort_popular": "人気"
 }

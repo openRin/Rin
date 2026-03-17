@@ -716,5 +716,7 @@
       "warning": "Items to review"
     },
     "title": "Health Check"
-  }
+  },
+  "sort_latest": "Latest",
+  "sort_popular": "Popular"
 }
