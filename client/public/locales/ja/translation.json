@@ -709,5 +709,6 @@
     "title": "ヘルスチェック"
   },
   "sort_latest": "新着",
-  "sort_popular": "人気"
+  "sort_popular": "人気",
+  "total_tags": "全 {{count}} 個のタグ"
 }

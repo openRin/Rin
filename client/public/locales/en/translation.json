@@ -718,5 +718,6 @@
     "title": "Health Check"
   },
   "sort_latest": "Latest",
-  "sort_popular": "Popular"
+  "sort_popular": "Popular",
+  "total_tags": "Total {{count}} tags"
 }
