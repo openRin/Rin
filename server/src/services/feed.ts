@@ -8,6 +8,7 @@ import { extractImageWithMetadata } from "../utils/image";
 import { syncFeedAISummaryQueueState } from "./feed-ai-summary";
 import { bindTagToPost } from "./tag";
 import { clearFeedCache } from "./clear-feed-cache";
+export { clearFeedCache } from "./clear-feed-cache";
 
 // Lazy-loaded modules for WordPress import
 let XMLParser: any;
