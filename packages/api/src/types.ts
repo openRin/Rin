@@ -141,6 +141,44 @@ export interface LoginResponse {
 }
 
 // ============================================================================
+// API Key Types
+// ============================================================================
+
+export interface ApiKeyRecord {
+  id: number;
+  name: string;
+  keyPrefix: string;
+  scopes: string[];
+  createdAt: string;
+  updatedAt: string;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  createdByUser: {
+    id: number;
+    username: string;
+  } | null;
+}
+
+export interface ApiKeyListResponse {
+  items: ApiKeyRecord[];
+}
+
+export interface CreateApiKeyRequest {
+  name: string;
+  expiresAt?: string | null;
+}
+
+export interface CreateApiKeyResponse {
+  secret: string;
+  apiKey: ApiKeyRecord;
+}
+
+export interface RevokeApiKeyResponse {
+  success: boolean;
+}
+
+// ============================================================================
 // Tag Types
 // ============================================================================
 
