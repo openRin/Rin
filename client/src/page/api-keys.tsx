@@ -133,10 +133,12 @@ export function ApiKeysPage() {
   }
 
   const exampleToken = createdSecret ?? "rin_your_api_key_here";
-  const curlExample = `curl -X POST '${apiBaseUrl}/api/feed' \\
-  -H 'Authorization: Bearer ${exampleToken}' \\
-  -H 'Content-Type: application/json' \\
-  -d '{"title":"Agent draft","content":"# Hello from Rin","summary":"Created by an external agent","draft":true,"listed":false,"tags":[]}'`;
+  const curlExample = [
+    `curl -X POST '${apiBaseUrl}/api/feed' \\`,
+    `  -H 'Authorization: Bearer ${exampleToken}' \\`,
+    `  -H 'Content-Type: application/json' \\`,
+    `  -d '{"title":"Agent draft","content":"# Hello from Rin","summary":"Created by an external agent","draft":true,"listed":false,"tags":[]}'`,
+  ].join("\n");
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -191,8 +193,8 @@ export function ApiKeysPage() {
         </SettingsCard>
       ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="space-y-4">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="min-w-0 space-y-4">
           <SettingsCard>
             <SettingsCardHeader title={t("api_keys.list.title")} description={t("api_keys.list.description")} />
             <SettingsCardBody>
@@ -253,15 +255,15 @@ export function ApiKeysPage() {
           </SettingsCard>
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <SettingsCard>
             <SettingsCardHeader title={t("api_keys.docs.title")} description={t("api_keys.docs.description")} />
             <SettingsCardBody>
               <div className="space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
                 <p>{t("api_keys.docs.scope_note")}</p>
                 <p>{t("api_keys.docs.routes_note")}</p>
-                <pre className="overflow-x-auto rounded-xl bg-black px-4 py-3 text-xs text-white">
-                  <code>{curlExample}</code>
+                <pre className="min-w-0 max-w-full overflow-x-auto whitespace-pre-wrap break-all rounded-xl bg-black px-4 py-3 text-xs text-white">
+                  <code className="break-all">{curlExample}</code>
                 </pre>
                 <div className="flex flex-wrap gap-3">
                   <Button title={t("api_keys.docs.copy_curl")} onClick={() => void copyText(curlExample)} />
