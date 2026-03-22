@@ -10,7 +10,8 @@
     "queue_status_description": "查看 AI 摘要佇列進度、最近任務結果與失敗資訊。",
     "settings_description": "在統一的後台空間中管理站點行為、整合配置與發佈規則。",
     "title": "後台管理",
-    "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。"
+    "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。",
+    "api_keys_description": "為需要內容存取能力的外部代理建立、檢視與撤銷 API Key。"
   },
   "compat_tasks": {
     "title": "相容任務",
@@ -169,7 +170,7 @@
   "listed": "列出在文章中",
   "load_more": "載入更多",
   "login": {
-    "error":{      
+    "error": {
       "empty": "請輸入用戶名和密碼",
       "failed": "登入失敗",
       "invalid": "用戶名或密碼錯誤",
@@ -281,47 +282,47 @@
         "success": "網站圖標更新成功"
       }
     },
-  "footer": {
-    "desc": "設定顯示於網站底部的內容（HTML）",
-    "title": "網站底部內容"
-  },
-  "webhook": {
-    "title": "Webhook",
-    "url": {
-      "title": "Webhook 位址",
-      "desc": "設定評論與友鏈通知使用的 webhook 位址。這裡同樣支援模板變數，適合在 GET 場景拼接 query string。"
+    "footer": {
+      "desc": "設定顯示於網站底部的內容（HTML）",
+      "title": "網站底部內容"
     },
-    "method": {
-      "title": "Webhook Method",
-      "desc": "設定 webhook 請求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
+    "webhook": {
+      "title": "Webhook",
+      "url": {
+        "title": "Webhook 位址",
+        "desc": "設定評論與友鏈通知使用的 webhook 位址。這裡同樣支援模板變數，適合在 GET 場景拼接 query string。"
+      },
+      "method": {
+        "title": "Webhook Method",
+        "desc": "設定 webhook 請求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
+      },
+      "content_type": {
+        "title": "Webhook Content-Type",
+        "desc": "設定 webhook 請求送出時使用的 Content-Type，例如 application/json 或 text/plain"
+      },
+      "headers": {
+        "title": "Webhook 請求標頭",
+        "desc": "以 JSON 模板自訂 webhook 請求標頭。可用變數與請求體模板一致。",
+        "label": "Webhook 請求標頭 JSON"
+      },
+      "body_template": {
+        "title": "Webhook 請求體模板",
+        "desc": "自訂 webhook 送出的請求體。可用變數：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
+        "label": "Webhook 請求體模板"
+      },
+      "test": {
+        "title": "發送測試 Webhook",
+        "desc": "使用目前頁面中的 webhook 設定發送一次測試請求。尚未儲存的修改也會直接生效。",
+        "button": "發送測試",
+        "sending": "發送中...",
+        "placeholder": "可選的測試訊息內容。留空時會使用預設測試負載。",
+        "success": "Webhook 測試發送成功",
+        "failed": "Webhook 測試發送失敗"
+      }
     },
-    "content_type": {
-      "title": "Webhook Content-Type",
-      "desc": "設定 webhook 請求送出時使用的 Content-Type，例如 application/json 或 text/plain"
+    "maintenance": {
+      "title": "維護"
     },
-    "headers": {
-      "title": "Webhook 請求標頭",
-      "desc": "以 JSON 模板自訂 webhook 請求標頭。可用變數與請求體模板一致。",
-      "label": "Webhook 請求標頭 JSON"
-    },
-    "body_template": {
-      "title": "Webhook 請求體模板",
-      "desc": "自訂 webhook 送出的請求體。可用變數：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
-      "label": "Webhook 請求體模板"
-    },
-    "test": {
-      "title": "發送測試 Webhook",
-      "desc": "使用目前頁面中的 webhook 設定發送一次測試請求。尚未儲存的修改也會直接生效。",
-      "button": "發送測試",
-      "sending": "發送中...",
-      "placeholder": "可選的測試訊息內容。留空時會使用預設測試負載。",
-      "success": "Webhook 測試發送成功",
-      "failed": "Webhook 測試發送失敗"
-    }
-  },
-  "maintenance": {
-    "title": "維護"
-  },
     "friend": {
       "apply": {
         "desc": "允許其他用戶申請友情連結（需審核）",
@@ -574,33 +575,33 @@
           "summary": "login.enabled 已關閉。",
           "suggestion": "如果此實例需要互動式後台存取，請在設定中啟用登入。"
         },
-      "missing": {
-        "impact": "使用者可以看到登入入口，但沒有任何可用的登入方式。",
-        "summary": "GitHub OAuth 和密碼登入都未配置。",
-        "suggestion": "請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
-      },
-      "default_password": {
-        "impact": "管理員帳號仍在使用預設使用者名稱與密碼，屬於嚴重安全風險。",
-        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
-        "suggestion": "在公開網站之前請立即修改預設使用者名稱或密碼。"
-      },
-      "oauth_missing": {
-        "impact": "目前只能使用本地密碼帳號登入，其他使用者無法透過 OAuth 登入並留言。",
-        "summary": "GitHub OAuth 未配置。",
-        "suggestion": "如果希望其他使用者登入，請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
-      },
-      "ready": {
-        "impact": "後台登入可用。",
-        "summary": "OAuth 登入已配置，且目前密碼登入未使用預設憑證。",
-        "suggestion": "無需處理。"
-      },
-      "details": {
-        "github_configured": "GitHub OAuth：已配置",
-        "github_missing": "GitHub OAuth：未配置",
-        "password_configured": "密碼登入：已配置",
-        "password_missing": "密碼登入：未配置",
-        "password_default": "密碼登入：使用預設憑證"
-      }
+        "missing": {
+          "impact": "使用者可以看到登入入口，但沒有任何可用的登入方式。",
+          "summary": "GitHub OAuth 和密碼登入都未配置。",
+          "suggestion": "請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
+        },
+        "default_password": {
+          "impact": "管理員帳號仍在使用預設使用者名稱與密碼，屬於嚴重安全風險。",
+          "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
+          "suggestion": "在公開網站之前請立即修改預設使用者名稱或密碼。"
+        },
+        "oauth_missing": {
+          "impact": "目前只能使用本地密碼帳號登入，其他使用者無法透過 OAuth 登入並留言。",
+          "summary": "GitHub OAuth 未配置。",
+          "suggestion": "如果希望其他使用者登入，請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
+        },
+        "ready": {
+          "impact": "後台登入可用。",
+          "summary": "OAuth 登入已配置，且目前密碼登入未使用預設憑證。",
+          "suggestion": "無需處理。"
+        },
+        "details": {
+          "github_configured": "GitHub OAuth：已配置",
+          "github_missing": "GitHub OAuth：未配置",
+          "password_configured": "密碼登入：已配置",
+          "password_missing": "密碼登入：未配置",
+          "password_default": "密碼登入：使用預設憑證"
+        }
       },
       "storage": {
         "title": "物件儲存",
@@ -719,5 +720,63 @@
   },
   "sort_latest": "最新",
   "sort_popular": "熱門",
-  "total_tags": "共 {{count}} 個標籤"
+  "total_tags": "共 {{count}} 個標籤",
+  "api_keys": {
+    "title": "API Key",
+    "loading": "正在載入 API Key...",
+    "empty": "尚未建立任何 API Key。",
+    "copied": "已複製到剪貼簿。",
+    "never": "永不",
+    "revoke": "撤銷",
+    "create": {
+      "title": "建立代理 API Key",
+      "description": "為需要讀取或寫入 Rin 內容的外部代理產生 Bearer Token。",
+      "name_label": "名稱",
+      "name_placeholder": "Agent Writer",
+      "expiry_label": "到期時間",
+      "submit": "建立 Key",
+      "creating": "建立中..."
+    },
+    "expiry": {
+      "never": "永不過期",
+      "30d": "30 天後到期",
+      "90d": "90 天後到期"
+    },
+    "secret": {
+      "title": "請立即複製金鑰",
+      "description": "Rin 只會顯示完整 Key 一次。關閉前請先保存到你的代理工具中。",
+      "copy": "複製 Key",
+      "dismiss": "關閉"
+    },
+    "list": {
+      "title": "現有 Key",
+      "description": "可在這裡查看 Key 狀態、最近使用時間與到期時間。"
+    },
+    "status": {
+      "active": "啟用中",
+      "revoked": "已撤銷"
+    },
+    "fields": {
+      "created_at": "建立時間：{{date}}",
+      "last_used_at": "最近使用：{{date}}",
+      "expires_at": "到期時間：{{date}}",
+      "capabilities": "能力範圍：{{scopes}}"
+    },
+    "docs": {
+      "title": "代理接入說明",
+      "description": "提供給外部代理使用 Rin API Key 的內建說明。",
+      "scope_note": "這些 Key 面向內容工作流程，例如建立文章、更新草稿、發布想法與上傳媒體。",
+      "routes_note": "管理設定介面不會對 API Key 開放。設定與診斷仍需使用互動式管理員工作階段。",
+      "copy_curl": "複製 curl 範例",
+      "open_skill": "開啟內建 Skill"
+    },
+    "revoke_confirm": {
+      "title": "撤銷 API Key",
+      "description": "確認撤銷 {{name}} 嗎？所有使用它的外部代理都會立即失效。"
+    },
+    "errors": {
+      "name_required": "請填寫名稱。",
+      "create_failed": "建立 API Key 失敗。"
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader, SettingsCardRow } from "@rin/ui";
+import { SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader } from "@rin/ui";
 import type { ApiKeyRecord } from "@rin/api";
 import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
@@ -180,9 +180,9 @@ export function ApiKeysPage() {
         <SettingsCard tone="warning">
           <SettingsCardHeader title={t("api_keys.secret.title")} description={t("api_keys.secret.description")} />
           <SettingsCardBody>
-            <div className="flex flex-col gap-3">
-              <code className="overflow-x-auto rounded-xl bg-black px-4 py-3 text-sm text-white">{createdSecret}</code>
-              <div className="flex gap-3">
+            <div className="flex min-w-0 flex-col gap-3">
+              <code className="block overflow-x-auto break-all rounded-xl bg-black px-4 py-3 text-sm text-white">{createdSecret}</code>
+              <div className="flex flex-wrap gap-3">
                 <Button title={t("api_keys.secret.copy")} onClick={() => void copyText(createdSecret)} />
                 <Button secondary title={t("api_keys.secret.dismiss")} onClick={() => setCreatedSecret(null)} />
               </div>
@@ -209,8 +209,8 @@ export function ApiKeysPage() {
                 <div className="space-y-3">
                   {items.map((item) => (
                     <SettingsCard key={item.id} tone={item.revokedAt ? "warning" : "default"}>
-                      <SettingsCardRow
-                        header={
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="min-w-0 flex-1">
                           <SettingsCardHeader
                             title={item.name}
                             description={`${item.keyPrefix}...`}
@@ -220,9 +220,9 @@ export function ApiKeysPage() {
                               </SettingsBadge>
                             }
                           />
-                        }
-                        action={
-                          item.revokedAt ? null : (
+                        </div>
+                        {item.revokedAt ? null : (
+                          <div className="flex shrink-0 flex-wrap items-center gap-3 md:justify-end">
                             <Button
                               secondary
                               title={t("api_keys.revoke")}
@@ -234,15 +234,15 @@ export function ApiKeysPage() {
                                 );
                               }}
                             />
-                          )
-                        }
-                      />
+                          </div>
+                        )}
+                      </div>
                       <SettingsCardBody>
                         <div className="grid gap-2 text-sm text-neutral-600 dark:text-neutral-300 md:grid-cols-2">
-                          <p>{t("api_keys.fields.created_at", { date: formatDate(item.createdAt, t) })}</p>
-                          <p>{t("api_keys.fields.last_used_at", { date: formatDate(item.lastUsedAt, t) })}</p>
-                          <p>{t("api_keys.fields.expires_at", { date: formatDate(item.expiresAt, t) })}</p>
-                          <p>{t("api_keys.fields.capabilities", { scopes: item.scopes.join(", ") })}</p>
+                          <p className="break-words">{t("api_keys.fields.created_at", { date: formatDate(item.createdAt, t) })}</p>
+                          <p className="break-words">{t("api_keys.fields.last_used_at", { date: formatDate(item.lastUsedAt, t) })}</p>
+                          <p className="break-words">{t("api_keys.fields.expires_at", { date: formatDate(item.expiresAt, t) })}</p>
+                          <p className="break-words">{t("api_keys.fields.capabilities", { scopes: item.scopes.join(", ") })}</p>
                         </div>
                       </SettingsCardBody>
                     </SettingsCard>
