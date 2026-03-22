@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import Popup from 'reactjs-popup';
 import { useLocation } from 'wouter';
 import { ClientConfigContext } from '../state/config';
 import { Helmet } from "react-helmet";
 import { siteName } from '../utils/constants';
 import { useTranslation } from "react-i18next";
+import { buildLoginPath, HIDDEN_LOGIN_REDIRECT } from "../utils/auth-redirect";
 
 type ThemeMode = 'light' | 'dark' | 'system';
 function Footer() {
@@ -13,13 +14,55 @@ function Footer() {
     const [modeState, setModeState] = useState<ThemeMode>('system');
     const config = useContext(ClientConfigContext);
     const footerHtml = config.get<string>('footer');
-    const loginEnabled = config.get<boolean>('login.enabled');
+    const footerHtmlRef = useRef<HTMLDivElement | null>(null);
+    const mountedScriptNodesRef = useRef<HTMLScriptElement[]>([]);
+    const loginEnabled = config.getBoolean('login.enabled');
     const [doubleClickTimes, setDoubleClickTimes] = useState(0);
     useEffect(() => {
         const mode = localStorage.getItem('theme') as ThemeMode || 'system';
         setModeState(mode);
         setMode(mode);
     }, [])
+
+    useEffect(() => {
+        const container = footerHtmlRef.current;
+        if (!container) {
+            return;
+        }
+
+        mountedScriptNodesRef.current.forEach((script) => script.remove());
+        mountedScriptNodesRef.current = [];
+        container.replaceChildren();
+
+        if (!footerHtml) {
+            return;
+        }
+
+        const template = document.createElement('template');
+        template.innerHTML = footerHtml;
+
+        const scripts = Array.from(template.content.querySelectorAll('script'));
+        scripts.forEach((script) => script.remove());
+
+        container.appendChild(template.content.cloneNode(true));
+
+        scripts.forEach((script) => {
+            const nextScript = document.createElement('script');
+
+            Array.from(script.attributes).forEach((attribute) => {
+                nextScript.setAttribute(attribute.name, attribute.value);
+            });
+
+            nextScript.textContent = script.textContent;
+            container.appendChild(nextScript);
+            mountedScriptNodesRef.current.push(nextScript);
+        });
+
+        return () => {
+            mountedScriptNodesRef.current.forEach((script) => script.remove());
+            mountedScriptNodesRef.current = [];
+        };
+    }, [footerHtml])
 
     const setMode = (mode: ThemeMode) => {
         setModeState(mode);
@@ -42,18 +85,18 @@ function Footer() {
     return (
         <footer>
             <Helmet>
-                <link rel="alternate" type="application/rss+xml" title={siteName} href="/sub/rss.xml" />
-                <link rel="alternate" type="application/atom+xml" title={siteName} href="/sub/atom.xml" />
-                <link rel="alternate" type="application/json" title={siteName} href="/sub/rss.json" />
+                <link rel="alternate" type="application/rss+xml" title={siteName} href="/rss.xml" />
+                <link rel="alternate" type="application/atom+xml" title={siteName} href="/atom.xml" />
+                <link rel="alternate" type="application/json" title={siteName} href="/rss.json" />
             </Helmet>
             <div className="flex flex-col mb-8 space-y-2 justify-center items-center t-primary ani-show">
-                {footerHtml && <div dangerouslySetInnerHTML={{ __html: footerHtml }} />}
+                <div ref={footerHtmlRef} />
                 <p className='text-sm text-neutral-500 font-normal link-line'>
                     <span onDoubleClick={() => {
                         if(doubleClickTimes >= 2){ // actually need 3 times doubleClick
                             setDoubleClickTimes(0)
                             if(!loginEnabled) {
-                                setLocation('/login')
+                                setLocation(buildLoginPath(HIDDEN_LOGIN_REDIRECT))
                             }
                         } else {
                             setDoubleClickTimes(doubleClickTimes + 1)
@@ -61,7 +104,7 @@ function Footer() {
                     }}>
                         © {new Date().getFullYear()} Powered by <a className='hover:underline' href="https://github.com/openRin/Rin" target="_blank">Rin</a>
                     </span>
-                    {config.get<boolean>('rss') && <>
+                    {config.getBoolean('rss') && <>
                         <Spliter />
                         <Popup trigger={
                             <button className="hover:underline" type="button">
@@ -76,13 +119,13 @@ function Footer() {
                                     {t('footer.rss')}
                                 </p>
                                 <p>
-                                    <a href='/sub/rss.xml'>
+                                    <a href='/rss.xml'>
                                         RSS
                                     </a> <Spliter />
-                                    <a href='/sub/atom.xml'>
+                                    <a href='/atom.xml'>
                                         Atom
                                     </a> <Spliter />
-                                    <a href='/sub/rss.json'>
+                                    <a href='/rss.json'>
                                         JSON
                                     </a>
                                 </p>

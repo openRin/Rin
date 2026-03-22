@@ -112,11 +112,10 @@ export class GlobalErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
     
-    // Send to error tracking service in production
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Integrate with error tracking service (e.g., Sentry)
-      // reportError(error, errorInfo);
-    }
+    // TODO: Integrate with error tracking service (e.g., Sentry)
+    // if (import.meta.env.PROD) {
+    //   reportError(error, errorInfo);
+    // }
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps) {

@@ -1,17 +1,15 @@
 import i18n from 'i18next';
 import _ from 'lodash';
-import {Calendar} from 'primereact/calendar';
-import 'primereact/resources/primereact.css';
-import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import {useCallback, useEffect, useState} from "react";
 import {Helmet} from "react-helmet";
 import {useTranslation} from "react-i18next";
 import Loading from 'react-loading';
 import {ShowAlertType, useAlert} from '../components/dialog';
 import {Checkbox, Input} from "../components/input";
-import {client} from "../main";
-import {headersWithAuth} from "../utils/auth";
+import { DateTimeInput, FlatMetaRow, FlatPanel } from "@rin/ui";
+import { client } from "../app/runtime";
 import {Cache} from '../utils/cache';
+import {useSiteConfig} from "../hooks/useSiteConfig";
 import {siteName} from "../utils/constants";
 import mermaid from 'mermaid';
 import { MarkdownEditor } from '../components/markdown_editor';
@@ -50,9 +48,6 @@ async function publish({
       listed,
       draft,
       createdAt: createdAt?.toISOString(),
-    },
-    {
-      headers: headersWithAuth(),
     }
   );
   if (onCompleted) {
@@ -106,9 +101,6 @@ async function update({
       listed,
       draft,
       createdAt: createdAt?.toISOString(),
-    },
-    {
-      headers: headersWithAuth(),
     }
   );
   if (onCompleted) {
@@ -127,6 +119,7 @@ async function update({
 // 写作页面
 export function WritingPage({ id }: { id?: number }) {
   const { t } = useTranslation();
+  const siteConfig = useSiteConfig();
   const cache = Cache.with(id);
   const [title, setTitle] = cache.useCache("title", "");
   const [summary, setSummary] = cache.useCache("summary", "");
@@ -192,9 +185,7 @@ export function WritingPage({ id }: { id?: number }) {
   useEffect(() => {
     if (id) {
       client.feed
-        .get(id, {
-          headers: headersWithAuth(),
-        })
+        .get(id)
         .then(({ data }) => {
           if (data) {
             if (title == "" && data.title) setTitle(data.title);
@@ -235,122 +226,121 @@ export function WritingPage({ id }: { id?: number }) {
   useEffect(() => {
     debouncedUpdate();
   }, [content, debouncedUpdate]);
+  function PublishButton({ className }: { className?: string }) {
+    return (
+      <button
+        onClick={publishButton}
+        className={`inline-flex items-center justify-center gap-2 rounded-xl bg-theme px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-theme-hover active:bg-theme-active disabled:cursor-not-allowed disabled:opacity-60 ${className ?? ""}`}
+        disabled={publishing}
+      >
+        {publishing && <Loading type="spin" height={16} width={16} />}
+        <span>{t('publish.title')}</span>
+      </button>
+    );
+  }
+
   function MetaInput({ className }: { className?: string }) {
     return (
-      <>
-        <div className={className}>
-          <Input
-            id={id}
-            value={title}
-            setValue={setTitle}
-            placeholder={t("title")}
-          />
-          <Input
-            id={id}
-            value={summary}
-            setValue={setSummary}
-            placeholder={t("summary")}
-            className="mt-4"
-          />
-          <Input
-            id={id}
-            value={tags}
-            setValue={setTags}
-            placeholder={t("tags")}
-            className="mt-4"
-          />
-          <Input
-            id={id}
-            value={alias}
-            setValue={setAlias}
-            placeholder={t("alias")}
-            className="mt-4"
-          />
-          <div
-            className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
-            onClick={() => setDraft(!draft)}
-          >
-            <p>{t('visible.self_only')}</p>
-            <Checkbox
-              id="draft"
-              value={draft}
-              setValue={setDraft}
-              placeholder={t('draft')}
+        <FlatPanel className={className}>
+          <div className="flex flex-row gap-4 border-b border-black/5 pb-5 dark:border-white/5 items-start justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme/70">{t('writing')}</p>
+              <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                {id !== undefined ? t("update.title") : t("publish.title")}
+              </p>
+            </div>
+            <PublishButton className="w-auto" />
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div className="lg:col-span-2">
+              <Input
+                id={id}
+                value={title}
+                setValue={setTitle}
+                placeholder={t("title")}
+                variant="flat"
+                className="text-base"
+              />
+            </div>
+            <Input
+              id={id}
+              value={summary}
+              setValue={setSummary}
+              placeholder={t("summary")}
+              variant="flat"
+            />
+            <Input
+              id={id}
+              value={alias}
+              setValue={setAlias}
+              placeholder={t("alias")}
+              variant="flat"
+            />
+            <Input
+              id={id}
+              value={tags}
+              setValue={setTags}
+              placeholder={t("tags")}
+              variant="flat"
+              className="lg:col-span-2"
             />
           </div>
-          <div
-            className="select-none flex flex-row justify-between items-center mt-6 mb-2 px-4"
-            onClick={() => setListed(!listed)}
-          >
-            <p>{t('listed')}</p>
-            <Checkbox
-              id="listed"
-              value={listed}
-              setValue={setListed}
-              placeholder={t('listed')}
-            />
+
+          <div className="mt-5 grid gap-2 sm:gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(18rem,2fr)]">
+            <FlatMetaRow
+              className="cursor-pointer rounded-none border-0 bg-transparent px-0 py-2 sm:rounded-2xl sm:border sm:bg-secondary sm:px-4 sm:py-3"
+              onClick={() => setDraft(!draft)}
+            >
+              <p>{t('visible.self_only')}</p>
+              <Checkbox
+                id="draft"
+                value={draft}
+                setValue={setDraft}
+                placeholder={t('draft')}
+              />
+            </FlatMetaRow>
+            <FlatMetaRow
+              className="cursor-pointer rounded-none border-0 bg-transparent px-0 py-2 sm:rounded-2xl sm:border sm:bg-secondary sm:px-4 sm:py-3"
+              onClick={() => setListed(!listed)}
+            >
+              <p>{t('listed')}</p>
+              <Checkbox
+                id="listed"
+                value={listed}
+                setValue={setListed}
+                placeholder={t('listed')}
+              />
+            </FlatMetaRow>
+            <FlatMetaRow className="gap-3 rounded-none border-0 bg-transparent px-0 py-2 sm:rounded-2xl sm:border sm:bg-secondary sm:px-4 sm:py-3 xl:col-span-1">
+              <p className="mr-2 whitespace-nowrap">
+                {t('created_at')}
+              </p>
+              <DateTimeInput value={createdAt} onChange={setCreatedAt} className="w-full max-w-[16rem]" />
+            </FlatMetaRow>
           </div>
-          <div className="select-none flex flex-row justify-between items-center mt-4 mb-2 pl-4">
-            <p className="break-keep mr-2">
-              {t('created_at')}
-            </p>
-            <Calendar value={createdAt} onChange={(e) => setCreatedAt(e.value || undefined)} showTime touchUI hourFormat="24" />
-          </div>
-        </div>
-      </>
+        </FlatPanel>
     )
   }
 
   return (
     <>
       <Helmet>
-        <title>{`${t('writing')} - ${process.env.NAME}`}</title>
+        <title>{`${t('writing')} - ${siteConfig.name}`}</title>
         <meta property="og:site_name" content={siteName} />
         <meta property="og:title" content={t('writing')} />
-        <meta property="og:image" content={process.env.AVATAR} />
+        <meta property="og:image" content={siteConfig.avatar} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={document.URL} />
       </Helmet>
-      <div className="grid grid-cols-1 md:grid-cols-3 t-primary mt-2">
-        <div className="col-span-2 pb-8">
-          <div className="bg-w rounded-2xl shadow-xl shadow-light p-4">
-            {MetaInput({ className: "visible md:hidden mb-8" })}
-            <MarkdownEditor content={content} setContent={setContent} height='600px' />
-          </div>
-          <div className="visible md:hidden flex flex-row justify-center mt-8">
-            <button
-              onClick={publishButton}
-              className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light flex flex-row justify-center items-center space-x-2"
-            >
-              {publishing &&
-                <Loading type="spin" height={16} width={16} />
-              }
-              <span>
-                {t('publish.title')}
-              </span>
-            </button>
-          </div>
-        </div>
-        <div className="hidden md:visible max-w-96 md:flex flex-col">
-          {MetaInput({ className: "bg-w rounded-2xl shadow-xl shadow-light p-4 mx-8" })}
-          <div className="flex flex-row justify-center mt-8">
-            <button
-              onClick={publishButton}
-              className="basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light flex flex-row justify-center items-center space-x-2"
-            >
-              {publishing &&
-                <Loading type="spin" height={16} width={16} />
-              }
-              <span>
-                {t('publish.title')}
-              </span>
-            </button>
-          </div>
-        </div>
+      <div className="mt-2 flex flex-col gap-4 t-primary sm:gap-6">
+        {MetaInput({ className: "p-4 sm:p-5 md:p-6" })}
+
+        <FlatPanel className="overflow-hidden p-0">
+          <MarkdownEditor content={content} setContent={setContent} height='680px' />
+        </FlatPanel>
       </div>
       <AlertUI />
     </>
-
   );
 }
-

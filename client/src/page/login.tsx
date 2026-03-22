@@ -4,8 +4,9 @@ import { useLocation } from "wouter";
 import { ButtonWithLoading } from "../components/button";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
-import { client, oauth_url } from "../main";
+import { client, oauth_url } from "../app/runtime";
 import { setAuthToken } from "../utils/auth";
+import { getLoginRedirectPath } from "../utils/auth-redirect";
 
 export function LoginPage() {
     const [username, setUsername] = useState('')
@@ -47,8 +48,7 @@ export function LoginPage() {
                 if (data.token) {
                     setAuthToken(data.token);
                 }
-                // Redirect to home page
-                setLocation('/');
+                setLocation(getLoginRedirectPath(window.location.search));
                 window.location.reload();
             } else {
                 setError(t('login.error.failed'));
@@ -61,7 +61,7 @@ export function LoginPage() {
     };
 
     return (
-        <div className="flex items-center justify-center bg-secondary my-8">
+        <div className="flex items-center justify-center my-8">
             <div className="bg-w w-full max-w-md flex flex-col items-center justify-between p-8 space-y-4 t-primary rounded-2xl shadow-lg">
                 <p className="text-2xl font-bold">{t('login.title')}</p>
 

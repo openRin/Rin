@@ -3,7 +3,59 @@
     "notfound": "將文章別名設定為 about 可以創建關於頁面",
     "title": "關於"
   },
+  "admin": {
+    "back_to_site": "返回站點",
+    "compat_tasks_description": "批次觸發向前相容任務，用於補齊歷史文章缺失的 AI 摘要與圖片 blurhash 中繼資料。",
+    "health_description": "檢查關鍵配置、缺失的整合項，以及可能影響服務正常運行的風險。",
+    "queue_status_description": "查看 AI 摘要佇列進度、最近任務結果與失敗資訊。",
+    "settings_description": "在統一的後台空間中管理站點行為、整合配置與發佈規則。",
+    "title": "後台管理",
+    "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。"
+  },
+  "compat_tasks": {
+    "title": "相容任務",
+    "loading": "正在載入相容任務狀態...",
+    "generated_at": "最近更新時間：{{date}}",
+    "running": "執行中",
+    "yes": "是",
+    "no": "否",
+    "ai_summary": {
+      "title": "補齊 AI 摘要",
+      "description": "掃描歷史已發佈文章，為尚未生成摘要的內容重新入列。",
+      "eligible": "待處理 {{count}} 篇",
+      "force_eligible": "可強制重跑 {{count}} 篇",
+      "enabled": "AI 摘要已啟用：{{value}}",
+      "queue_configured": "佇列已設定：{{value}}",
+      "run": "開始補齊",
+      "run_force": "強制全部重跑",
+      "result": "AI 摘要任務已入列 {{queued}} 篇，略過 {{skipped}} 篇。",
+      "result_force": "已強制重跑入列 {{queued}} 篇 AI 摘要任務，略過 {{skipped}} 篇。"
+    },
+    "blurhash": {
+      "title": "補齊圖片 Blurhash",
+      "description": "掃描歷史文章中的圖片，為缺失占位圖與尺寸中繼資料的圖片補齊 markdown fragment。",
+      "eligible": "待處理 {{count}} 篇",
+      "note": "此任務會在目前瀏覽器中執行，逐篇載入圖片並回寫中繼資料。",
+      "run": "開始補齊",
+      "progress": "已處理 {{processed}} / {{total}}，更新 {{updated}} 篇，失敗 {{failed}} 篇。",
+      "result": "Blurhash 補齊完成：共掃描 {{total}} 篇，成功更新 {{updated}} 篇，失敗 {{failed}} 篇。"
+    }
+  },
   "ai_summary": {
+    "message": {
+      "completed": "AI 摘要已生成。",
+      "failed": "AI 摘要生成失敗。",
+      "idle": "AI 摘要任務目前未執行。",
+      "pending": "AI 摘要任務已進入佇列。",
+      "processing": "AI 摘要正在生成中。"
+    },
+    "status": {
+      "completed": "已完成",
+      "failed": "失敗",
+      "idle": "閒置",
+      "pending": "排隊中",
+      "processing": "生成中"
+    },
     "title": "AI 總結"
   },
   "alert": "提示",
@@ -41,7 +93,7 @@
   "clear": "清除",
   "close": "關閉",
   "comment": {
-    "empty": "留言内容不能為空",
+    "empty": "留言內容不能為空",
     "placeholder": {
       "title": "說點什麼吧"
     },
@@ -52,7 +104,7 @@
   "comparison": "比較",
   "confirm": "確認",
   "content": {
-    "empty": "内容不能為空"
+    "empty": "內容不能為空"
   },
   "count": {
     "pv": "瀏覽數",
@@ -117,7 +169,16 @@
   "listed": "列出在文章中",
   "load_more": "載入更多",
   "login": {
+    "error":{      
+      "empty": "請輸入用戶名和密碼",
+      "failed": "登入失敗",
+      "invalid": "用戶名或密碼錯誤",
+      "network": "網路錯誤，請重試"
+    },
+    "loading": "登入中...",
+    "no_methods": "沒有可用的登入方式",
     "oauth_only": "請登入後繼續",
+    "or": "或",
     "password": {
       "placeholder": "請輸入密碼"
     },
@@ -145,11 +206,51 @@
     "success": "發布成功",
     "title": "發布"
   },
+  "queue_status": {
+    "binding": "佇列綁定",
+    "configured": "已配置",
+    "empty_description": "目前沒有排隊中或最近處理過的 AI 摘要任務。",
+    "empty_title": "暫無佇列活動",
+    "delete": "刪除",
+    "delete_confirm_description": "確定刪除 Feed #{{id}} 的佇列任務記錄嗎？",
+    "delete_confirm_title": "刪除佇列任務記錄",
+    "delete_success": "佇列任務記錄已刪除",
+    "deleting": "刪除中",
+    "feed_id": "Feed #{{id}}",
+    "generated_at": "最近更新時間：{{date}}",
+    "load_failed": "佇列狀態載入失敗",
+    "loading": "正在載入佇列任務狀態...",
+    "not_configured": "未配置",
+    "status": {
+      "completed": "已完成",
+      "failed": "失敗",
+      "idle": "閒置",
+      "pending": "排隊中",
+      "processing": "處理中"
+    },
+    "summary": {
+      "completed": "已完成任務",
+      "failed": "失敗任務",
+      "pending": "排隊任務",
+      "processing": "處理中任務"
+    },
+    "retry": "重試",
+    "retry_success": "佇列任務已重新入列",
+    "retrying": "重試中",
+    "title": "佇列狀態",
+    "untitled": "未命名 Feed",
+    "updated_at": "更新時間：{{date}}"
+  },
   "reload": "重試",
+  "reset": "重設",
   "save": "保存",
   "saving": "保存中",
   "settings": {
     "cache": {
+      "enabled": {
+        "title": "啟用緩存",
+        "desc": "為公開內容回應啟用緩存。預設關閉，因為在部分部署環境下它反而可能增加延遲。"
+      },
       "clear": {
         "confirm": {
           "desc": "緩存用於減少訪問資料庫頻率，請僅在緩存錯誤時嘗試清空緩存。",
@@ -180,10 +281,47 @@
         "success": "網站圖標更新成功"
       }
     },
-    "footer": {
-      "desc": "設定顯示於網站底部的内容（HTML）",
-      "title": "網站底部内容"
+  "footer": {
+    "desc": "設定顯示於網站底部的內容（HTML）",
+    "title": "網站底部內容"
+  },
+  "webhook": {
+    "title": "Webhook",
+    "url": {
+      "title": "Webhook 位址",
+      "desc": "設定評論與友鏈通知使用的 webhook 位址。這裡同樣支援模板變數，適合在 GET 場景拼接 query string。"
     },
+    "method": {
+      "title": "Webhook Method",
+      "desc": "設定 webhook 請求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
+    },
+    "content_type": {
+      "title": "Webhook Content-Type",
+      "desc": "設定 webhook 請求送出時使用的 Content-Type，例如 application/json 或 text/plain"
+    },
+    "headers": {
+      "title": "Webhook 請求標頭",
+      "desc": "以 JSON 模板自訂 webhook 請求標頭。可用變數與請求體模板一致。",
+      "label": "Webhook 請求標頭 JSON"
+    },
+    "body_template": {
+      "title": "Webhook 請求體模板",
+      "desc": "自訂 webhook 送出的請求體。可用變數：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
+      "label": "Webhook 請求體模板"
+    },
+    "test": {
+      "title": "發送測試 Webhook",
+      "desc": "使用目前頁面中的 webhook 設定發送一次測試請求。尚未儲存的修改也會直接生效。",
+      "button": "發送測試",
+      "sending": "發送中...",
+      "placeholder": "可選的測試訊息內容。留空時會使用預設測試負載。",
+      "success": "Webhook 測試發送成功",
+      "failed": "Webhook 測試發送失敗"
+    }
+  },
+  "maintenance": {
+    "title": "維護"
+  },
     "friend": {
       "apply": {
         "desc": "允許其他用戶申請友情連結（需審核）",
@@ -229,7 +367,17 @@
         "button": "儲存設定"
       },
       "save_success": "儲存成功",
-      "unsaved_changes": "您有未儲存的變更"
+      "unsaved_changes": "您有未儲存的變更",
+      "test": {
+        "title": "測試模型",
+        "desc": "測試 AI 模型是否可用",
+        "button": "測試連接",
+        "success": "測試成功",
+        "failed": "測試失敗",
+        "error": "測試出錯",
+        "testing": "正在測試...",
+        "http_error$status": "HTTP 錯誤 (狀態碼: {{status}})"
+      }
     },
     "get_config_failed$message": "獲取配置失敗，{{message}}",
     "import_failed$message": "匯入失敗，{{message}}",
@@ -239,12 +387,96 @@
     "import_success$success$skipped": "匯入成功，{{success}} 篇文章匯入成功，{{skipped}} 篇文章跳過",
     "login": {
       "enable": {
-        "desc": "開啟/關閉右上角登入按钮，關閉後可通過「雙擊」底部文字 “© 2024 Powered by” 「三次」觸發登入入口",
-        "title": "啟用右上角登入按钮"
+        "desc": "開啟/關閉右上角登入按鈕，關閉後可通過「雙擊」底部文字 “© 2026 Powered by” 「三次」觸發登入入口",
+        "title": "啟用右上角登入按鈕"
       }
     },
     "other": {
       "title": "其他設定"
+    },
+    "personalization": {
+      "title": "個人化"
+    },
+    "site": {
+      "title": "網站訊息",
+      "name": {
+        "title": "網站名稱",
+        "desc": "設定顯示在網站標題和導覽列的網站名稱",
+        "label": "網站名稱"
+      },
+      "description": {
+        "title": "網站描述",
+        "desc": "設定顯示在導覽列的簡短描述",
+        "label": "網站描述"
+      },
+      "avatar": {
+        "title": "網站頭像",
+        "desc": "設定顯示在導覽列的頭像，支援填寫 URL、上傳圖片或拖拽上傳",
+        "label": "頭像 URL"
+      },
+      "page_size": {
+        "title": "分頁大小",
+        "desc": "設定文章列表每頁顯示的數量",
+        "label": "每頁文章數量"
+      }
+    },
+    "header_layout": {
+      "title": "Header 版面樣式",
+      "desc": "選擇桌面端網站頂部的排列方式，並在下方預覽效果",
+      "options": {
+        "classic": "經典置中",
+        "compact": "極簡純文字"
+      },
+      "preview": {
+        "classic": "品牌、置中導覽與操作區維持目前這套平衡配置。",
+        "compact": "幾乎移除所有裝飾，只保留最必要的資訊與操作。"
+      }
+    },
+    "header_behavior": {
+      "title": "Header 顯示方式",
+      "desc": "控制頁面捲動時 Header 是否固定顯示在頂部",
+      "options": {
+        "fixed": "固定",
+        "static": "不固定",
+        "reveal": "上滑時顯示"
+      }
+    },
+    "feed_card": {
+      "title": "文章卡片樣式",
+      "desc": "選擇文章列表、搜尋結果與標籤頁中卡片的視覺風格",
+      "options": {
+        "default": "預設",
+        "editorial": "雜誌風"
+      },
+      "preview": {
+        "default": "目前這套緊湊卡片，表面乾淨，裝飾最少。",
+        "editorial": "更有展示感的卡片，帶有淡淡主題染色、更強層次，以及類似畫冊的 framing。"
+      }
+    },
+    "feed_layout": {
+      "title": "文章列表版面",
+      "desc": "選擇文章列表、搜尋結果與標籤頁中卡片的排列方式",
+      "preview_note": "僅供預覽。儲存設定後才會套用到站點。",
+      "options": {
+        "list": "單欄",
+        "masonry": "瀑布流"
+      },
+      "preview": {
+        "list": "穩定的單欄閱讀節奏，每列只放一張卡片。",
+        "masonry": "依卡片高度自動拼接的多欄版面，適合長短不一的內容。"
+      }
+    },
+    "theme_color": {
+      "title": "主題色",
+      "desc": "選擇按鈕、強調與互動元素使用的主色",
+      "custom": "自訂",
+      "options": {
+        "rose": "玫紅",
+        "violet": "紫色",
+        "blue": "藍色",
+        "teal": "青綠",
+        "orange": "橙色"
+      }
     },
     "rss": {
       "desc": "啟用網站底部 RSS 訂閱連結",
@@ -281,6 +513,15 @@
   "upload": {
     "failed": "上傳失敗",
     "failed$size": "上傳失敗，文件大小不能超過 {{size}} MB",
+    "image": {
+      "clear": "清空圖片",
+      "drag_drop": "拖拽圖片到這裡，或點擊選擇圖片",
+      "drag_hint": "也可以直接填寫圖片 URL",
+      "drop_now": "放開以上傳圖片",
+      "invalid_type": "請上傳圖片文件",
+      "preview_alt": "圖片預覽",
+      "url_placeholder": "填寫圖片 URL，或上傳一張圖片"
+    },
     "title": "上傳"
   },
   "uploading": "上傳中",
@@ -293,7 +534,7 @@
   "profile": {
     "title": "個人資料",
     "avatar": "頭像",
-    "avatar_hint": "點擊上傳頭像（最大 2MB）",
+    "avatar_hint": "支援填寫頭像 URL、上傳圖片或拖拽上傳（最大 2MB）",
     "username": "暱稱",
     "username_placeholder": "請輸入暱稱",
     "save": "儲存",
@@ -304,7 +545,179 @@
       "invalid_file_type": "請上傳圖片文件",
       "empty_username": "暱稱不能為空",
       "update_failed": "更新失敗",
-      "network": "網絡錯誤，請重試"
+      "network": "網路錯誤，請重試"
     }
-  }
+  },
+  "health": {
+    "generated_at": "最近檢查時間：{{date}}",
+    "items": {
+      "common": {
+        "no_action": "無需處理。"
+      },
+      "auth_runtime": {
+        "title": "認證運行環境",
+        "success": {
+          "impact": "認證 Cookie 與權杖校驗可以正常運作。",
+          "summary": "JWT 密鑰已配置。",
+          "suggestion": "如果需要讓所有現有會話失效，請謹慎輪換該密鑰。"
+        },
+        "danger": {
+          "impact": "登入與後台會話校驗可能完全失效。",
+          "summary": "缺少 JWT_SECRET。",
+          "suggestion": "在使用任何需要認證的路由前，請先為 Worker Secret 配置 JWT_SECRET。"
+        }
+      },
+      "login_methods": {
+        "title": "登入入口",
+        "disabled": {
+          "impact": "公開登入被停用，後台 UI 無法透過正常登入流程進入。",
+          "summary": "login.enabled 已關閉。",
+          "suggestion": "如果此實例需要互動式後台存取，請在設定中啟用登入。"
+        },
+      "missing": {
+        "impact": "使用者可以看到登入入口，但沒有任何可用的登入方式。",
+        "summary": "GitHub OAuth 和密碼登入都未配置。",
+        "suggestion": "請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
+      },
+      "default_password": {
+        "impact": "管理員帳號仍在使用預設使用者名稱與密碼，屬於嚴重安全風險。",
+        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
+        "suggestion": "在公開網站之前請立即修改預設使用者名稱或密碼。"
+      },
+      "oauth_missing": {
+        "impact": "目前只能使用本地密碼帳號登入，其他使用者無法透過 OAuth 登入並留言。",
+        "summary": "GitHub OAuth 未配置。",
+        "suggestion": "如果希望其他使用者登入，請配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
+      },
+      "ready": {
+        "impact": "後台登入可用。",
+        "summary": "OAuth 登入已配置，且目前密碼登入未使用預設憑證。",
+        "suggestion": "無需處理。"
+      },
+      "details": {
+        "github_configured": "GitHub OAuth：已配置",
+        "github_missing": "GitHub OAuth：未配置",
+        "password_configured": "密碼登入：已配置",
+        "password_missing": "密碼登入：未配置",
+        "password_default": "密碼登入：使用預設憑證"
+      }
+      },
+      "storage": {
+        "title": "物件儲存",
+        "ready": {
+          "impact": "上傳、網站圖示處理與 Feed 快取產物都可以使用物件儲存。",
+          "summary": "儲存憑證已配置。",
+          "summary_missing_access_host": "儲存本身可用，但缺少 S3_ACCESS_HOST，公開 URL 會退回到 endpoint。",
+          "suggestion_missing_access_host": "如果你需要穩定的公開資源 URL 或自訂資源網域，請設定 S3_ACCESS_HOST。"
+        },
+        "missing": {
+          "impact": "媒體上傳、網站圖示生成與預生成的 Feed 快取可能失敗或不可用。",
+          "summary_none": "物件儲存尚未配置。",
+          "summary_partial": "物件儲存僅部分配置完成。缺少：{{keys}}。",
+          "suggestion": "在依賴上傳或遠端快取產物前，請先補齊完整的 S3/R2 憑證。"
+        },
+        "details": {
+          "key": "{{key}}"
+        }
+      },
+      "ai_summary": {
+        "title": "AI 摘要",
+        "disabled": {
+          "impact": "文章發布時不會生成 AI 摘要。",
+          "summary": "AI 摘要已關閉。",
+          "suggestion": "如果你希望發布時自動生成摘要，請在設定中啟用。"
+        },
+        "no_model": {
+          "impact": "發布或更新內容時，摘要生成可能失敗。",
+          "summary": "AI 摘要已啟用，但未配置模型。",
+          "suggestion": "啟用 AI 摘要前，請先在設定中選擇模型。"
+        },
+        "worker_ai": {
+          "ready": {
+            "impact": "可以透過 Workers AI 生成 AI 摘要。",
+            "summary": "Workers AI 已為模型 {{model}} 配置完成。"
+          },
+          "missing": {
+            "impact": "發布內容時，AI 摘要請求會失敗。",
+            "summary": "AI 摘要使用了 worker-ai，但缺少 Workers AI binding。",
+            "suggestion": "在使用 worker-ai 提供方前，請先在 wrangler 設定中加入 AI binding。"
+          }
+        },
+        "external": {
+          "ready": {
+            "impact": "可以透過已配置的外部提供方生成 AI 摘要。",
+            "summary": "{{provider}} 已為 AI 摘要配置完成。",
+            "suggestion": "如果你想驗證遠端模型回應，可以在設定中使用測試功能。"
+          },
+          "missing": {
+            "impact": "發布內容時，AI 摘要請求會失敗。",
+            "summary_key": "缺少 AI 提供方金鑰。",
+            "summary_url": "缺少 AI 提供方 URL。",
+            "suggestion": "在啟用 AI 摘要前，請先在設定中配置提供方憑證。"
+          },
+          "details": {
+            "provider": "提供方：{{provider}}",
+            "model": "模型：{{model}}"
+          }
+        }
+      },
+      "webhook": {
+        "title": "Webhook 通知",
+        "ready": {
+          "impact": "評論與友鏈申請通知可以發送到已配置的 webhook。",
+          "summary": "Webhook URL 已配置。",
+          "suggestion_optional": "可選：如果你還希望啟用排程友鏈健康檢查，可以開啟 friend_crontab。"
+        },
+        "missing": {
+          "impact": "評論與友鏈事件不會推送到外部聊天工具。",
+          "summary": "Webhook URL 未配置。",
+          "suggestion": "如果你依賴外部通知，請在伺服器設定或環境變數中設定 WEBHOOK_URL。"
+        }
+      },
+      "rss": {
+        "title": "RSS 與 Feed 端點",
+        "enabled": {
+          "impact": "Feed 端點已啟用；如果沒有儲存支援，會退回到按需生成。",
+          "summary_cached": "RSS 已啟用，且物件儲存可用於快取生成的 Feed 產物。",
+          "summary_on_demand": "RSS 已啟用，但由於物件儲存不完整，Feed 產物將按需生成。",
+          "suggestion": "如果你希望遠端快取 Feed 產物，請配置物件儲存。"
+        },
+        "disabled": {
+          "impact": "訪客不會在網站頁尾看到 RSS/Atom 連結。",
+          "summary": "客戶端設定中已關閉 RSS。",
+          "suggestion": "如果你希望暴露 Feed 發現連結和 Feed 端點，請在設定中啟用 RSS。"
+        }
+      },
+      "site_identity": {
+        "title": "網站識別",
+        "ready": {
+          "impact": "訪客可以在介面中看到已配置的網站名稱。",
+          "summary": "網站識別已為 {{name}} 配置完成。",
+          "summary_missing_avatar": "網站名稱已配置為 {{name}}，但缺少頭像。",
+          "suggestion_missing_avatar": "如果你希望獲得更完整的頁首、分享與 Feed 展示效果，請補充網站頭像。"
+        },
+        "missing": {
+          "impact": "網站會退回到預設產品名，整體看起來像未完成的實例。",
+          "summary": "網站名稱未配置。",
+          "suggestion": "請在設定中配置 site.name，或在環境變數中設定 NAME。"
+        }
+      }
+    },
+    "load_failed": "健康檢查載入失敗",
+    "loading": "正在檢查運行環境與配置...",
+    "status": {
+      "danger": "需要處理",
+      "success": "已就緒",
+      "warning": "需要關注"
+    },
+    "summary": {
+      "danger": "嚴重問題",
+      "success": "已就緒項目",
+      "warning": "待檢查項目"
+    },
+    "title": "健康檢查"
+  },
+  "sort_latest": "最新",
+  "sort_popular": "熱門",
+  "total_tags": "共 {{count}} 個標籤"
 }

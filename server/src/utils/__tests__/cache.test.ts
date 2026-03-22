@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { Database } from 'bun:sqlite';
-import { CacheImpl, createPublicCache, createServerConfig, createClientConfig, type CacheStorageMode } from '../cache';
+import {
+    CacheImpl,
+    createPublicCache,
+    createServerConfig,
+    createClientConfig,
+    type CacheStorageMode,
+} from '../cache';
 import { cache } from '../../db/schema';
 import { eq, and } from 'drizzle-orm';
 import * as schema from '../../db/schema';
@@ -34,7 +40,6 @@ function createTestDB() {
 function createMockEnv(storageMode: CacheStorageMode = 'database'): Env {
     return {
         DB: {} as D1Database,
-        FRONTEND_URL: 'http://localhost:5173',
         S3_FOLDER: 'images/',
         S3_CACHE_FOLDER: 'cache/',
         S3_REGION: 'auto',
@@ -325,6 +330,46 @@ describe('CacheImpl - 数据库持久化测试', () => {
         expect(rows).toHaveLength(0);
     });
 
+    it('clear 不应该清除其他类型的数据（如 server.config 和 client.config）', async () => {
+        // 创建不同类型的缓存实例
+        const publicCache = new CacheImpl(db as any, mockEnv, 'cache', 'database');
+        const serverConfig = new CacheImpl(db as any, mockEnv, 'server.config', 'database');
+        const clientConfig = new CacheImpl(db as any, mockEnv, 'client.config', 'database');
+
+        // 设置数据
+        await publicCache.set('feed_1', 'feed_data');
+        await serverConfig.set('webhook_url', 'https://example.com');
+        await clientConfig.set('site.name', 'Test Site');
+
+        // 只清除公共缓存
+        await publicCache.clear();
+
+        // 验证公共缓存已清除
+        const publicRows = await db.select().from(cache).where(eq(cache.type, 'cache'));
+        expect(publicRows).toHaveLength(0);
+
+        // 验证 server.config 未被清除
+        const serverRows = await db.select().from(cache).where(eq(cache.type, 'server.config'));
+        expect(serverRows).toHaveLength(1);
+        expect(serverRows[0].key).toBe('webhook_url');
+        // 字符串值直接存储，不添加引号
+        expect(serverRows[0].value).toBe('https://example.com');
+
+        // 验证 client.config 未被清除
+        const clientRows = await db.select().from(cache).where(eq(cache.type, 'client.config'));
+        expect(clientRows).toHaveLength(1);
+        expect(clientRows[0].key).toBe('site.name');
+        // 字符串值直接存储，不添加引号
+        expect(clientRows[0].value).toBe('Test Site');
+
+        // 验证重新加载后 config 数据仍然存在
+        const newServerConfig = new CacheImpl(db as any, mockEnv, 'server.config', 'database');
+        const newClientConfig = new CacheImpl(db as any, mockEnv, 'client.config', 'database');
+
+        expect(await newServerConfig.get('webhook_url')).toBe('https://example.com');
+        expect(await newClientConfig.get('site.name')).toBe('Test Site');
+    });
+
     it('应该支持多个 cache 类型', async () => {
         const cache1 = new CacheImpl(db as any, mockEnv, 'type1', 'database');
         const cache2 = new CacheImpl(db as any, mockEnv, 'type2', 'database');
@@ -343,6 +388,22 @@ describe('CacheImpl - 数据库持久化测试', () => {
         // 字符串值直接存储，不添加引号
         expect(type1Rows[0].value).toBe('value1');
         expect(type2Rows[0].value).toBe('value2');
+    });
+
+    it('不应该接受空的 type 参数', () => {
+        // 空字符串应该抛出错误
+        expect(() => {
+            new CacheImpl(db as any, mockEnv, '', 'database');
+        }).toThrow('Cache type cannot be empty');
+
+        // 只有空格的字符串应该抛出错误
+        expect(() => {
+            new CacheImpl(db as any, mockEnv, '   ', 'database');
+        }).toThrow('Cache type cannot be empty');
+
+        // 有效的 type 应该正常创建
+        const validCache = new CacheImpl(db as any, mockEnv, 'valid', 'database');
+        expect(validCache).toBeDefined();
     });
 });
 
@@ -382,6 +443,47 @@ describe('CacheImpl - 存储模式配置测试', () => {
         const cache = new CacheImpl(db as any, mockEnv, 'cache', 'database');
         
         expect(cache).toBeDefined();
+    });
+
+    it('应该在 R2 绑定下通过存储 API 读取缓存文件', async () => {
+        mockEnv = createMockEnv('s3');
+        mockEnv.R2_BUCKET = {
+            get: async (key: string) => {
+                if (key !== 'cache/cache.json') {
+                    return null;
+                }
+
+                return {
+                    key,
+                    size: 17,
+                    etag: 'etag',
+                    httpEtag: 'etag',
+                    uploaded: new Date('2025-01-01T00:00:00Z'),
+                    storageClass: 'Standard',
+                    checksums: {} as R2Checksums,
+                    httpMetadata: { contentType: 'application/json' },
+                    writeHttpMetadata(headers: Headers) {
+                        headers.set('Content-Type', 'application/json');
+                    },
+                    body: new Blob(['{"key1":"value1"}']).stream(),
+                    bodyUsed: false,
+                    arrayBuffer: async () => new TextEncoder().encode('{"key1":"value1"}').buffer,
+                    text: async () => '{"key1":"value1"}',
+                    json: async () => ({ key1: 'value1' }),
+                    blob: async () => new Blob(['{"key1":"value1"}']),
+                    bytes: async () => new Uint8Array(new TextEncoder().encode('{"key1":"value1"}')),
+                } as unknown as R2ObjectBody;
+            },
+        } as unknown as R2Bucket;
+        mockEnv.S3_ACCESS_HOST = '' as any;
+        mockEnv.S3_ENDPOINT = '' as any;
+        mockEnv.S3_BUCKET = '' as any;
+        mockEnv.S3_ACCESS_KEY_ID = '';
+        mockEnv.S3_SECRET_ACCESS_KEY = '';
+
+        const cache = new CacheImpl(db as any, mockEnv, 'cache', 's3');
+
+        expect(await cache.get('key1')).toBe('value1');
     });
 });
 
@@ -624,5 +726,59 @@ describe('CacheImpl - getOrSet 和 getOrDefault', () => {
             expect(await cacheImpl.getOrDefault('array', [1, 2, 3])).toEqual([1, 2, 3]);
             expect(await cacheImpl.getOrDefault('object', { key: 'value' })).toEqual({ key: 'value' });
         });
+    });
+});
+
+describe('CacheImpl - 公共缓存开关', () => {
+    let { db, sqlite } = createTestDB();
+    let mockEnv: Env;
+    let cacheImpl: CacheImpl;
+    let clientConfig: CacheImpl;
+
+    beforeEach(() => {
+        const testDB = createTestDB();
+        db = testDB.db;
+        sqlite = testDB.sqlite;
+        mockEnv = createMockEnv('database');
+        cacheImpl = new CacheImpl(db as any, mockEnv, 'cache', 'database');
+        clientConfig = new CacheImpl(db as any, mockEnv, 'client.config', 'database');
+    });
+
+    afterEach(() => {
+        sqlite.close();
+    });
+
+    it('默认关闭时不读取或写入公共缓存', async () => {
+        const seededCache = new CacheImpl(db as any, mockEnv, 'cache', 'database');
+        await seededCache.set('feed_1', { title: 'cached' });
+        cacheImpl = new CacheImpl(db as any, mockEnv, 'cache', 'database', clientConfig);
+
+        expect(await cacheImpl.get('feed_1')).toBeNull();
+
+        let computed = false;
+        const value = await cacheImpl.getOrSet('feed_1', async () => {
+            computed = true;
+            return { title: 'fresh' };
+        });
+
+        expect(computed).toBe(true);
+        expect(value).toEqual({ title: 'fresh' });
+        expect(await seededCache.get('feed_1')).toEqual({ title: 'cached' });
+    });
+
+    it('启用后应正常命中公共缓存', async () => {
+        await clientConfig.set('cache.enabled', true);
+        await cacheImpl.set('feed_1', { title: 'cached' });
+
+        const enabledCache = new CacheImpl(db as any, mockEnv, 'cache', 'database', clientConfig);
+        expect(await enabledCache.get('feed_1')).toEqual({ title: 'cached' });
+    });
+
+    it('client.config 不应受公共缓存开关影响', async () => {
+        await clientConfig.set('cache.enabled', false);
+        await clientConfig.set('site.name', 'Rin Test');
+
+        const freshClientConfig = new CacheImpl(db as any, mockEnv, 'client.config', 'database');
+        expect(await freshClientConfig.get('site.name')).toBe('Rin Test');
     });
 });

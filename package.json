@@ -1,25 +1,33 @@
 {
   "name": "rin",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "workspaces": [
+    "packages/*",
+    "cli",
     "server",
     "client"
   ],
   "private": true,
   "scripts": {
     "dev": "bun cli/bin/rin.ts dev",
-    "dev:setup": "bun scripts/setup-dev.ts",
-    "dev:client": "bun cli/bin/rin.ts dev --client-only",
-    "dev:server": "bun cli/bin/rin.ts dev --server-only",
+    "dev:setup": "bun cli/bin/rin.ts setup-dev",
+    "dev:client": "bun cli/bin/rin.ts dev --client",
+    "dev:server": "bun cli/bin/rin.ts dev --server",
+    "dev:hot": "bun cli/bin/rin.ts dev",
     "dev:cron": "bun wrangler dev --port 11498 --test-scheduled",
+    "test": "bun test",
+    "test:server": "bun --filter './server' test",
+    "test:server:watch": "bun --filter './server' test --watch",
+    "test:coverage": "bun test --coverage",
     "db:migrate": "bun cli/bin/rin.ts db migrate",
     "db:generate": "bun --filter './server' db:gen",
-    "db:fix": "bun scripts/db-fix-top-field.ts",
-    "typecheck": "turbo check",
+    "db:fix": "bun cli/bin/rin.ts db fix-top-field",
+    "check": "turbo check",
     "deploy": "bun cli/bin/rin.ts deploy",
-    "deploy:server": "bun cli/bin/rin.ts deploy --server",
-    "deploy:client": "bun cli/bin/rin.ts deploy --client",
-    "build": "turbo build",
+    "build": "bun run build:client && bun run build:server",
+    "build:all": "turbo build",
+    "build:client": "bun --filter './client' build",
+    "build:server": "mkdir -p ./dist/server && bunx wrangler deploy --dry-run --outdir=dist/server",
     "i18n:extract": "bun --filter './client' i18n",
     "clean": "rm -rf dist node_modules client/node_modules server/node_modules .turbo wrangler.toml client/.env .dev.vars",
     "format:check": "turbo format:check",
@@ -27,6 +35,7 @@
     "release": "bun cli/bin/rin.ts release"
   },
   "devDependencies": {
-    "turbo": "^1.13.3"
+    "turbo": "^1.13.3",
+    "wrangler": "4.71.0"
   }
 }

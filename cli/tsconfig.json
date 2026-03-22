@@ -1,8 +1,7 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -13,6 +12,6 @@
     "allowSyntheticDefaultImports": true,
     "types": ["bun"]
   },
-  "include": ["bin/**/*"],
+  "include": ["bin/**/*", "src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

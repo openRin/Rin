@@ -2,9 +2,11 @@
   "index",
   "deploy",
   "development",
-  "seo",
+  "webhook",
   "rss",
+  "migration",
   "changelog",
+  "testing",
   "contribution",
   "commit-convention",
   "release"

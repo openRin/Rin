@@ -42,7 +42,6 @@ export function createTestDB() {
 export function createMockEnv(storageMode: CacheStorageMode = 'database'): Env {
     return {
         DB: {} as D1Database,
-        FRONTEND_URL: 'http://localhost:5173',
         S3_FOLDER: 'images/',
         S3_CACHE_FOLDER: 'cache/',
         S3_REGION: 'auto',

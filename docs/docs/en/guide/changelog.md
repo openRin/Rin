@@ -93,7 +93,7 @@ For normal version updates without special instructions, simply synchronize the 
 - Due to the introduction of SEO optimization, it is necessary to configure S3 storage environment variables in GitHub. Therefore, you need to additionally configure the following environment variables in GitHub (plain text, add to Variables):
 
 ```ini
-SEO_BASE_URL=<SEO base URL for SEO indexing, defaults to FRONTEND_URL>
+SEO_BASE_URL=<SEO base URL for SEO indexing>
 SEO_CONTAINS_KEY=<SEO indexing only includes links starting with SEO_BASE_URL or containing the SEO_CONTAINS_KEY keyword, defaults to empty>
 S3_FOLDER=<Folder for storing S3 image resources, defaults to 'images/'>
 S3_CACHE_FOLDER=<S3 cache folder (for SEO and high-frequency request caching), defaults to 'cache/'>

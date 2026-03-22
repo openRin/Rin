@@ -101,8 +101,8 @@ export function handleError(
     errorCode: appError.code,
     message: appError.message,
     stack: appError.stack,
-    userAgent: context.headers["user-agent"],
-    ip: context.headers["cf-connecting-ip"],
+    userAgent: context.headers.get("user-agent") ?? undefined,
+    ip: context.headers.get("cf-connecting-ip") ?? undefined,
   };
 
   ErrorLogger.log(logEntry);
@@ -114,7 +114,7 @@ export function handleError(
   });
 
   // Copy CORS headers from context if present
-  context.set.headers.forEach((value, key) => {
+  context.set.headers.forEach((value: string, key: string) => {
     if (key.toLowerCase().startsWith("access-control")) {
       headers.set(key, value);
     }

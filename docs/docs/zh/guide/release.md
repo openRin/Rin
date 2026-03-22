@@ -45,38 +45,41 @@ Rin 使用[语义化版本控制](https://semver.org/lang/zh-CN/)，并遵循结
 
 - [ ] 所有功能/修复已合并到 `main`
 - [ ] 所有提交遵循[常规提交格式](./commit-convention.md)
-- [ ] 测试通过（`bun run typecheck`、`bun run build`）
+- [ ] 测试通过（`bun run check`、`bun run build`）
 
 ### 2. 运行发布脚本
 
 ```bash
 # 升级补丁版本（0.1.0 -> 0.1.1）
-bun scripts/release.ts patch
+bun cli/bin/rin.ts release patch
 
 # 升级次要版本（0.1.0 -> 0.2.0）
-bun scripts/release.ts minor
+bun cli/bin/rin.ts release minor
 
 # 升级主要版本（0.1.0 -> 1.0.0）
-bun scripts/release.ts major
+bun cli/bin/rin.ts release major
 
 # 或设置特定版本
-bun scripts/release.ts 1.2.3
+bun cli/bin/rin.ts release 1.2.3
+
+# 预发布版本
+bun cli/bin/rin.ts release 0.3.0-rc.1
 ```
 
 脚本将：
 1. ✅ 运行发布前检查（typecheck、build、版本一致性）
-2. 📝 更新所有 `package.json` 文件中的版本
-3. 📝 生成包含提交列表的 CHANGELOG.md 模板
+2. 📝 更新 workspace 内所有 `package.json` 文件中的版本
+3. 🔗 为 `CHANGELOG.md` 追加 release link
 4. 🏷️ 创建 git 提交和标签
 
-**重要**：脚本会生成一个 CHANGELOG 模板。您应该在推送前审查和编辑它！
+**重要**：脚本不会替你撰写 changelog 正文；它会要求 `CHANGELOG.md` 中已经存在与目标版本匹配的章节。
 
 ### 3. 审查和编辑 CHANGELOG
 
 运行发布脚本后：
 
 ```bash
-# 打开 CHANGELOG.md 并编辑新版本部分
+# 打开 CHANGELOG.md 并补全新版本部分
 # 添加详细描述、迁移指南等
 nano CHANGELOG.md  # 或使用您喜欢的编辑器
 
@@ -90,7 +93,7 @@ git commit --amend --no-edit
 要在不应用更改的情况下预览：
 
 ```bash
-bun scripts/release.ts minor --dry-run
+bun cli/bin/rin.ts release minor --dry-run
 ```
 
 ### 5. 推送发布
@@ -100,7 +103,7 @@ bun scripts/release.ts minor --dry-run
 git push origin main
 
 # 推送标签（触发发布工作流）
-git push origin v0.2.0
+git push origin v0.3.0-rc.1
 ```
 
 ### 6. 自动发布流程
@@ -115,6 +118,7 @@ git push origin v0.2.0
    - 按类型分类提交（功能、修复等）
    - 从 CHANGELOG.md 提取详细说明
    - 创建格式化的 GitHub Release
+   - 将 `build-v<version>-cloudflare.tar.gz` 作为 release asset 附加到发布页
 
 3. **🚀 部署**（`deploy.yml`）
    - 验证部署版本
@@ -148,6 +152,17 @@ GitHub Releases 将包含：
 
 ## 对于 Fork 用户
 
+### 使用 release 产物进行手动部署
+
+如果你不想重新在自己的仓库里构建，可以直接使用 GitHub Release 附带的构建产物：
+
+1. 打开对应版本的 GitHub Release 页面
+2. 在 Assets 中找到 `build-v<version>-cloudflare.tar.gz`
+3. 复制该文件的下载链接
+4. 手动触发 `deploy.yml`，将这个链接作为 `artifact_url` 传入
+
+这个链接正是 `deploy.yml` 的 `artifact_url` 输入设计要消费的内容。
+
 ### 选项 1：同步 Fork（推荐）
 
 1. 转到您在 GitHub 上的 fork 仓库
@@ -177,9 +192,9 @@ git push origin main
 
 在创建发布之前：
 
-- [ ] 所有测试通过（`bun run typecheck`、`bun run build`）
+- [ ] 所有测试通过（`bun run check`、`bun run build`）
 - [ ] 所有提交遵循常规格式
-- [ ] CHANGELOG.md 模板已生成并编辑
+- [ ] CHANGELOG.md 已提前写好对应版本章节
 - [ ] 包含迁移指南（用于破坏性变更）
 - [ ] 文档已更新（如果需要）
 
@@ -201,7 +216,7 @@ git checkout -b fix/critical-bug v0.2.0
 git commit -m "fix(api): 解决严重安全问题"
 
 # 运行发布脚本
-bun scripts/release.ts patch
+bun cli/bin/rin.ts release patch
 
 # 推送（热修复不需要合并到 main）
 git push origin fix/critical-bug

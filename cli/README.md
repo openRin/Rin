@@ -91,10 +91,10 @@ CLI 会读取项目根目录的 `.env.local` 文件获取配置。
 
 | 原脚本 | CLI 命令 |
 |--------|----------|
-| `bun scripts/dev.ts` | `rin dev` |
-| `bun scripts/deploy-cf.ts` | `rin deploy` |
-| `bun scripts/db-migrate-local.ts` | `rin db migrate` |
-| `bun scripts/release.ts patch` | `rin release patch` |
+| `bun cli/bin/rin.ts dev` | `rin dev` |
+| `bun cli/bin/rin.ts deploy` | `rin deploy` |
+| `bun cli/bin/rin.ts db migrate` | `rin db migrate` |
+| `bun cli/bin/rin.ts release patch` | `rin release patch` |
 
 ## 特点
 

@@ -1,27 +1,12 @@
+import type { AdjacentFeed, AdjacentFeedResponse } from "@rin/api";
 import {useEffect, useState} from "react";
-import {client} from "../main.tsx";
+import { client } from "../app/runtime";
 import {timeago} from "../utils/timeago.ts";
 import {Link} from "wouter";
 import {useTranslation} from "react-i18next";
 
-export type AdjacentFeed = {
-    id: number;
-    title: string | null;
-    summary?: string;
-    hashtags?: {
-        id: number;
-        name: string;
-    }[];
-    createdAt: Date | string;
-    updatedAt: Date | string;
-};
-export type AdjacentFeeds = {
-    nextFeed: AdjacentFeed | null;
-    previousFeed: AdjacentFeed | null;
-};
-
 export function AdjacentSection({id, setError}: { id: string, setError: (error: string) => void }) {
-    const [adjacentFeeds, setAdjacentFeeds] = useState<AdjacentFeeds>();
+    const [adjacentFeeds, setAdjacentFeeds] = useState<AdjacentFeedResponse>();
 
     useEffect(() => {
         client.feed
@@ -29,11 +14,8 @@ export function AdjacentSection({id, setError}: { id: string, setError: (error: 
             .then(({data, error}) => {
                 if (error) {
                     setError(error.value as string);
-                } else if (data) {
-                    setAdjacentFeeds({
-                        nextFeed: data.next,
-                        previousFeed: data.prev
-                    });
+                } else if (data && typeof data !== "string") {
+                    setAdjacentFeeds(data);
                 }
             });
     }, [id, setError]);

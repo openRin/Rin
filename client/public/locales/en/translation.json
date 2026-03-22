@@ -3,7 +3,59 @@
     "notfound": "Set the article alias to `about` to create an about page",
     "title": "About"
   },
+  "admin": {
+    "back_to_site": "Back to site",
+    "compat_tasks_description": "Run compatibility jobs in bulk to backfill missing AI summaries and image blurhash metadata for older posts.",
+    "health_description": "Review required configuration, missing integrations, and risks that can affect runtime behavior.",
+    "queue_status_description": "Inspect AI summary queue progress, recent task results, and failures.",
+    "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
+    "title": "Admin",
+    "writing_description": "Write, edit, and publish content from the private management workspace."
+  },
+  "compat_tasks": {
+    "title": "Compatibility Tasks",
+    "loading": "Loading compatibility task status...",
+    "generated_at": "Last updated: {{date}}",
+    "running": "Running",
+    "yes": "Yes",
+    "no": "No",
+    "ai_summary": {
+      "title": "Backfill AI Summaries",
+      "description": "Scan existing published posts and enqueue AI summary generation for entries that do not have one yet.",
+      "eligible": "{{count}} posts pending",
+      "force_eligible": "{{count}} posts can be force re-run",
+      "enabled": "AI summary enabled: {{value}}",
+      "queue_configured": "Queue configured: {{value}}",
+      "run": "Start backfill",
+      "run_force": "Force re-run all",
+      "result": "Queued {{queued}} AI summary tasks and skipped {{skipped}} posts.",
+      "result_force": "Force re-run queued {{queued}} AI summary tasks and skipped {{skipped}} posts."
+    },
+    "blurhash": {
+      "title": "Backfill Image Blurhash",
+      "description": "Scan existing posts and write missing blurhash and image size metadata back into markdown image fragments.",
+      "eligible": "{{count}} posts pending",
+      "note": "This task runs in the current browser and processes images one post at a time.",
+      "run": "Start backfill",
+      "progress": "Processed {{processed}} / {{total}}, updated {{updated}} posts, failed {{failed}} posts.",
+      "result": "Blurhash backfill finished: scanned {{total}} posts, updated {{updated}}, failed {{failed}}."
+    }
+  },
   "ai_summary": {
+    "message": {
+      "completed": "AI summary is ready.",
+      "failed": "AI summary generation failed.",
+      "idle": "AI summary generation is idle.",
+      "pending": "AI summary task is queued.",
+      "processing": "AI summary is being generated."
+    },
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "idle": "Idle",
+      "pending": "Queued",
+      "processing": "Generating"
+    },
     "title": "AI Summary"
   },
   "alert": "Alert",
@@ -154,11 +206,51 @@
     "success": "Publish successful",
     "title": "Publish"
   },
+  "queue_status": {
+    "binding": "Queue binding",
+    "configured": "Configured",
+    "empty_description": "No AI summary tasks are currently queued or recently processed.",
+    "empty_title": "No queue activity",
+    "delete": "Delete",
+    "delete_confirm_description": "Delete the queue task record for Feed #{{id}}?",
+    "delete_confirm_title": "Delete queue task record",
+    "delete_success": "Queue task record deleted",
+    "deleting": "Deleting",
+    "feed_id": "Feed #{{id}}",
+    "generated_at": "Last updated: {{date}}",
+    "load_failed": "Failed to load queue status",
+    "loading": "Loading queue task status...",
+    "not_configured": "Not configured",
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "idle": "Idle",
+      "pending": "Queued",
+      "processing": "Processing"
+    },
+    "summary": {
+      "completed": "Completed tasks",
+      "failed": "Failed tasks",
+      "pending": "Queued tasks",
+      "processing": "Processing tasks"
+    },
+    "retry": "Retry",
+    "retry_success": "Queue task requeued",
+    "retrying": "Retrying",
+    "title": "Queue Status",
+    "untitled": "Untitled feed",
+    "updated_at": "Updated at {{date}}"
+  },
   "reload": "Retry",
+  "reset": "Reset",
   "save": "Save",
   "saving": "Saving",
   "settings": {
     "cache": {
+      "enabled": {
+        "title": "Enable cache",
+        "desc": "Cache public content responses. Disabled by default because it may increase latency in some deployments."
+      },
       "clear": {
         "confirm": {
           "desc": "Cache is used to reduce database access frequency, please try clearing cache only if there are cache errors.",
@@ -189,10 +281,47 @@
         "success": "Favicon update was successful"
       }
     },
-    "footer": {
-      "desc": "Set the footer content of the site (HTML)",
-      "title": "Footer"
+  "footer": {
+    "desc": "Set the footer content of the site (HTML)",
+    "title": "Footer"
+  },
+  "webhook": {
+    "title": "Webhook",
+    "url": {
+      "title": "Webhook URL",
+      "desc": "Set the webhook endpoint used for comment and friend-link notifications. Template variables are supported here too, which is useful for GET query strings."
     },
+    "method": {
+      "title": "Webhook Method",
+      "desc": "Set the HTTP method used for webhook requests, such as POST, PUT, or PATCH"
+    },
+    "content_type": {
+      "title": "Webhook Content-Type",
+      "desc": "Set the Content-Type header sent with webhook requests, for example application/json or text/plain"
+    },
+    "headers": {
+      "title": "Webhook Headers",
+      "desc": "Customize webhook headers as a JSON object template. Available variables are the same as the body template.",
+      "label": "Webhook headers JSON"
+    },
+    "body_template": {
+      "title": "Webhook Body Template",
+      "desc": "Customize the outgoing webhook payload. Available variables: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}.",
+      "label": "Webhook body template"
+    },
+    "test": {
+      "title": "Send Test Webhook",
+      "desc": "Send a test request with the current webhook settings. Unsaved values in this page are used directly.",
+      "button": "Send Test",
+      "sending": "Sending...",
+      "placeholder": "Optional test message. Leave empty to use the default test payload.",
+      "success": "Webhook test sent successfully",
+      "failed": "Webhook test failed"
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance"
+  },
     "friend": {
       "apply": {
         "desc": "Allow other users to apply for friend links (requires review)",
@@ -238,7 +367,17 @@
         "button": "Save Configuration"
       },
       "save_success": "Saved successfully",
-      "unsaved_changes": "You have unsaved changes"
+      "unsaved_changes": "You have unsaved changes",
+      "test": {
+        "title": "Test Model",
+        "desc": "Test if the AI model is available",
+        "button": "Test Connection",
+        "success": "Test successful",
+        "failed": "Test failed",
+        "error": "Test error",
+        "testing": "Testing...",
+        "http_error$status": "HTTP Error (Status: {{status}})"
+      }
     },
     "get_config_failed$message": "Failed to get configuration, {{message}}",
     "import_failed$message": "Import failed, {{message}}",
@@ -254,6 +393,90 @@
     },
     "other": {
       "title": "Other Settings"
+    },
+    "personalization": {
+      "title": "Personalization"
+    },
+    "site": {
+      "title": "Site Information",
+      "name": {
+        "title": "Site Name",
+        "desc": "Set the website name displayed in the site title and navigation bar",
+        "label": "Site Name"
+      },
+      "description": {
+        "title": "Site Description",
+        "desc": "Set the short description displayed in the navigation bar",
+        "label": "Site Description"
+      },
+      "avatar": {
+        "title": "Site Avatar",
+        "desc": "Set the avatar shown in the navigation bar by URL, upload, or drag and drop",
+        "label": "Avatar URL"
+      },
+      "page_size": {
+        "title": "Page Size",
+        "desc": "Set the number of articles displayed per page in the list",
+        "label": "Articles per page"
+      }
+    },
+    "header_layout": {
+      "title": "Header layout",
+      "desc": "Choose how the site header is arranged on desktop screens and preview each style below",
+      "options": {
+        "classic": "Classic centered",
+        "compact": "Minimal"
+      },
+      "preview": {
+        "classic": "Brand, centered navigation, and actions stay balanced like the current header.",
+        "compact": "A text-first header with almost no decoration, keeping only the essential information."
+      }
+    },
+    "header_behavior": {
+      "title": "Header behavior",
+      "desc": "Control whether the header stays visible at the top while scrolling",
+      "options": {
+        "fixed": "Fixed",
+        "static": "Not fixed",
+        "reveal": "Show on scroll up"
+      }
+    },
+    "feed_card": {
+      "title": "Feed card style",
+      "desc": "Choose the visual treatment used by article cards across feed, search, and tag lists",
+      "options": {
+        "default": "Default",
+        "editorial": "Editorial"
+      },
+      "preview": {
+        "default": "The current compact card with a simple surface and minimal framing.",
+        "editorial": "A more expressive card with a tinted surface, stronger hierarchy, and gallery-like framing."
+      }
+    },
+    "feed_layout": {
+      "title": "Feed layout",
+      "desc": "Choose how article cards are arranged in feed, search, and tag pages",
+      "preview_note": "Preview only. The selected layout is applied after saving settings.",
+      "options": {
+        "list": "Single column",
+        "masonry": "Masonry"
+      },
+      "preview": {
+        "list": "A steady reading flow with one card per row.",
+        "masonry": "A staggered multi-column layout that packs cards by height."
+      }
+    },
+    "theme_color": {
+      "title": "Theme color",
+      "desc": "Choose the accent color used by buttons, highlights, and interactive elements",
+      "custom": "Custom",
+      "options": {
+        "rose": "Rose",
+        "violet": "Violet",
+        "blue": "Blue",
+        "teal": "Teal",
+        "orange": "Orange"
+      }
     },
     "rss": {
       "desc": "Enable RSS subscription link at the site footer",
@@ -290,6 +513,15 @@
   "upload": {
     "failed": "Upload failed",
     "failed$size": "Upload failed, file size cannot exceed {{size}} MB",
+    "image": {
+      "clear": "Clear image",
+      "drag_drop": "Drag an image here, or click to choose one",
+      "drag_hint": "You can also paste an image URL directly",
+      "drop_now": "Drop to upload the image",
+      "invalid_type": "Please upload an image file",
+      "preview_alt": "Image preview",
+      "url_placeholder": "Enter an image URL, or upload an image"
+    },
     "title": "Upload"
   },
   "uploading": "Uploading...",
@@ -302,7 +534,7 @@
   "profile": {
     "title": "Profile",
     "avatar": "Avatar",
-    "avatar_hint": "Click to upload avatar (max 2MB)",
+    "avatar_hint": "Enter an avatar URL, upload an image, or drag one here (max 2MB)",
     "username": "Username",
     "username_placeholder": "Enter your username",
     "save": "Save",
@@ -315,5 +547,177 @@
       "update_failed": "Update failed",
       "network": "Network error, please try again"
     }
-  }
+  },
+  "health": {
+    "generated_at": "Last checked: {{date}}",
+    "items": {
+      "common": {
+        "no_action": "No action required."
+      },
+      "auth_runtime": {
+        "title": "Authentication runtime",
+        "success": {
+          "impact": "Authentication cookies and token verification work normally.",
+          "summary": "JWT secret is configured.",
+          "suggestion": "Rotate the secret carefully if you need to invalidate all existing sessions."
+        },
+        "danger": {
+          "impact": "Login and admin session verification can fail completely.",
+          "summary": "JWT_SECRET is missing.",
+          "suggestion": "Add JWT_SECRET to your Worker secrets before using any authenticated route."
+        }
+      },
+      "login_methods": {
+        "title": "Login entry",
+        "disabled": {
+          "impact": "Public login is disabled, so the admin UI cannot be entered through normal login flows.",
+          "summary": "login.enabled is disabled.",
+          "suggestion": "Enable login in settings if this instance needs interactive admin access."
+        },
+      "missing": {
+        "impact": "Users can see the login entry but no working login method is configured.",
+        "summary": "Neither GitHub OAuth nor password login is configured.",
+        "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET or ADMIN_USERNAME/ADMIN_PASSWORD."
+      },
+      "default_password": {
+        "impact": "The admin account is still using the default username and password, which is a critical security risk.",
+        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD are still set to admin / admin123.",
+        "suggestion": "Change the default username or password immediately before exposing the site."
+      },
+      "oauth_missing": {
+        "impact": "Only the local password account can sign in. Other users cannot log in and comment through OAuth.",
+        "summary": "GitHub OAuth is not configured.",
+        "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET if you expect other users to log in."
+      },
+      "ready": {
+        "impact": "Admin sign-in is available.",
+        "summary": "OAuth login is configured and the current password login configuration is not using the default credentials.",
+        "suggestion": "No action required."
+      },
+      "details": {
+        "github_configured": "GitHub OAuth: configured",
+        "github_missing": "GitHub OAuth: missing",
+        "password_configured": "Password login: configured",
+        "password_missing": "Password login: missing",
+        "password_default": "Password login: using default credentials"
+      }
+      },
+      "storage": {
+        "title": "Object storage",
+        "ready": {
+          "impact": "Uploads, favicon processing, and cached feed artifacts can use object storage.",
+          "summary": "Storage credentials are configured.",
+          "summary_missing_access_host": "Storage works, but S3_ACCESS_HOST is missing so public URLs fall back to the endpoint.",
+          "suggestion_missing_access_host": "Set S3_ACCESS_HOST if you want stable public asset URLs or a custom asset domain."
+        },
+        "missing": {
+          "impact": "Media upload, favicon generation, and pre-generated feed cache can fail or be unavailable.",
+          "summary_none": "Object storage is not configured.",
+          "summary_partial": "Object storage is partially configured. Missing: {{keys}}.",
+          "suggestion": "Set the full S3/R2 credential set before relying on uploads or remote cache artifacts."
+        },
+        "details": {
+          "key": "{{key}}"
+        }
+      },
+      "ai_summary": {
+        "title": "AI summary",
+        "disabled": {
+          "impact": "Articles will be published without AI-generated summaries.",
+          "summary": "AI summary is disabled.",
+          "suggestion": "Enable it in settings if you want summary generation during publishing."
+        },
+        "no_model": {
+          "impact": "Summary generation can fail during publish and update operations.",
+          "summary": "AI summary is enabled but no model is configured.",
+          "suggestion": "Choose a model in settings before enabling AI summary."
+        },
+        "worker_ai": {
+          "ready": {
+            "impact": "AI summaries can be generated through Workers AI.",
+            "summary": "Workers AI is configured for model {{model}}."
+          },
+          "missing": {
+            "impact": "AI summary requests will fail when publishing content.",
+            "summary": "AI summary uses worker-ai but the Workers AI binding is missing.",
+            "suggestion": "Add the AI binding in wrangler configuration before using the worker-ai provider."
+          }
+        },
+        "external": {
+          "ready": {
+            "impact": "AI summaries can be generated with the configured external provider.",
+            "summary": "{{provider}} is configured for AI summaries.",
+            "suggestion": "Use the test action in settings if you want to validate the remote model response."
+          },
+          "missing": {
+            "impact": "AI summary requests will fail when publishing content.",
+            "summary_key": "AI provider key is missing.",
+            "summary_url": "AI provider URL is missing.",
+            "suggestion": "Configure the provider credentials in settings before enabling AI summary."
+          },
+          "details": {
+            "provider": "Provider: {{provider}}",
+            "model": "Model: {{model}}"
+          }
+        }
+      },
+      "webhook": {
+        "title": "Webhook notifications",
+        "ready": {
+          "impact": "Comment and friend-application notifications can be sent to the configured webhook.",
+          "summary": "Webhook URL is configured.",
+          "suggestion_optional": "Optional: enable friend_crontab if you also want scheduled friend health checks."
+        },
+        "missing": {
+          "impact": "Comment and friend events will not push notifications to external chat tools.",
+          "summary": "Webhook URL is not configured.",
+          "suggestion": "Set WEBHOOK_URL in server config or environment if you rely on external notifications."
+        }
+      },
+      "rss": {
+        "title": "RSS and feed endpoints",
+        "enabled": {
+          "impact": "Feed endpoints are enabled; without storage they fall back to on-demand generation.",
+          "summary_cached": "RSS is enabled and storage can cache generated feed artifacts.",
+          "summary_on_demand": "RSS is enabled, but feed artifacts will be generated on demand because storage is incomplete.",
+          "suggestion": "Configure object storage if you want feed artifacts to be cached remotely."
+        },
+        "disabled": {
+          "impact": "Visitors will not see RSS/Atom links in the public site footer.",
+          "summary": "RSS is disabled in client settings.",
+          "suggestion": "Enable RSS in settings if you want feed discovery links and feed endpoints exposed."
+        }
+      },
+      "site_identity": {
+        "title": "Site identity",
+        "ready": {
+          "impact": "Visitors can see the configured site name across the UI.",
+          "summary": "Site identity is configured for {{name}}.",
+          "summary_missing_avatar": "Site name is configured for {{name}}, but avatar is missing.",
+          "suggestion_missing_avatar": "Add a site avatar if you want richer header, sharing, and feed presentation."
+        },
+        "missing": {
+          "impact": "The site falls back to the default product name, which makes the instance look unfinished.",
+          "summary": "Site name is not configured.",
+          "suggestion": "Set site.name in settings or NAME in the environment."
+        }
+      }
+    },
+    "load_failed": "Health check failed",
+    "loading": "Checking runtime and configuration...",
+    "status": {
+      "danger": "Action needed",
+      "success": "Ready",
+      "warning": "Needs review"
+    },
+    "summary": {
+      "danger": "Critical issues",
+      "success": "Ready items",
+      "warning": "Items to review"
+    },
+    "title": "Health Check"
+  },
+  "sort_latest": "Latest",
+  "sort_popular": "Popular",
+  "total_tags": "Total {{count}} tags"
 }

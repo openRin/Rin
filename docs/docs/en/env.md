@@ -1,58 +1,155 @@
-# Environment Variables List
+# Environment Variables Configuration Guide
 
-## Frontend Environment Variables List
+Rin requires two types of environment variables: **Variables (plaintext)** and **Secrets (encrypted)**.
 
-| Name         | Required | Description                             | Default Value | Example Value                                       |
-|--------------|----------|-----------------------------------------|---------------|----------------------------------------------------|
-| API_URL      | Yes      | Backend URL                             | None          | http://localhost:3001                              |
-| AVATAR       | Yes      | Avatar URL for the top left of the site | None          | https://avatars.githubusercontent.com/u/36541432   |
-| NAME         | Yes      | Name & Title for the top left of the site | None          | Xeu                                                |
-| DESCRIPTION  | No       | Description for the top left of the site | None          | Omnivore                                           |
-| PAGE_SIZE    | No       | Default pagination limit                | 5             | 5                                                  |
-| RSS_ENABLE   | No       | Enable RSS (displays RSS link at the bottom of the site if enabled) | false | true                                              |
+## Quick Reference
 
-**Deployment Environment Variables**
+| Type | Storage | Purpose | Examples |
+|------|---------|---------|----------|
+| **Variables** | Plaintext in `wrangler.toml` | Configuration parameters, feature flags | Bucket name, cache mode |
+| **Secrets** | Encrypted in Cloudflare | Sensitive credentials, keys | API keys, passwords, tokens |
 
-:::caution
-The following environment variables are required for deployment to Cloudflare Pages and cannot be modified.
+---
+
+## Variables (Plaintext)
+
+These variables are stored in plaintext in `wrangler.toml` and control feature flags and basic parameters.
+
+### Site Configuration
+
+| Variable | Required | Description | Default | Config Key |
+|----------|----------|-------------|---------|------------|
+| `NAME` | No | Site name & title | Rin | `site.name` |
+| `DESCRIPTION` | No | Site description | A lightweight personal blogging system | `site.description` |
+| `AVATAR` | No | Site avatar URL | - | `site.avatar` |
+| `PAGE_SIZE` | No | Default pagination size | 5 | `site.page_size` |
+| `RSS_ENABLE` | No | Enable RSS link | false | `rss` |
+
+:::tip
+Site configuration can be modified via the **Settings Page** after deployment. Environment variables serve as initial defaults only.
 :::
 
-| Name                     | Value                                                     | Description                   |
-|--------------------------|-----------------------------------------------------------|-------------------------------|
-| SKIP_DEPENDENCY_INSTALL  | true                                                      | Skip the default npm install command |
-| UNSTABLE_PRE_BUILD       | asdf install bun latest && asdf global bun latest && bun i | Install and use Bun for dependency installation |
+### Storage Configuration
 
-## Backend Environment Variables List
+| Variable | Required | Description | Default | Example |
+|----------|----------|-------------|---------|---------|
+| `S3_FOLDER` | Yes | Image storage path | images/ | `images/` |
+| `S3_CACHE_FOLDER` | No | Cache file path | cache/ | `cache/` |
+| `S3_BUCKET` | Yes | S3 bucket name | - | `my-bucket` |
+| `S3_REGION` | Yes | S3 region (use 'auto' for R2) | - | `auto` |
+| `S3_ENDPOINT` | Yes | S3 endpoint URL | - | `https://xxx.r2.cloudflarestorage.com` |
+| `S3_ACCESS_HOST` | No | Public access URL | Same as S3_ENDPOINT | `https://cdn.example.com` |
+| `S3_FORCE_PATH_STYLE` | No | Force path-style URLs | false | `false` |
 
-**Plaintext Environment Variables**
+### Feature Flags
 
-:::note
-The following variables can remain unencrypted in Cloudflare Workers.
+| Variable | Required | Description | Default | Recommended |
+|----------|----------|-------------|---------|-------------|
+| `CACHE_STORAGE_MODE` | No | Cache mode: s3/database | s3 | **database** |
+| `WEBHOOK_URL` | No | Comment notification webhook | - | - |
+| `RSS_TITLE` | No | RSS feed title | - | - |
+| `RSS_DESCRIPTION` | No | RSS feed description | - | - |
+
+:::tip For New Users
+We recommend setting `CACHE_STORAGE_MODE` to `database` to reduce deployment complexity without additional S3 cache configuration.
 :::
 
-| Name              | Required | Description                                           | Default Value  | Example Value                                                     |
-|-------------------|----------|-------------------------------------------------------|----------------|-------------------------------------------------------------------|
-| FRONTEND_URL      | Temporarily required | Required for including comment article link in comment notification Webhook, can be left blank | None          | https://xeu.life                                                  |
-| S3_FOLDER         | Yes      | File path for storing resources when uploading images | None           | images/                                                           |
-| S3_BUCKET         | Yes      | Name of the S3 bucket                                 | None           | images                                                            |
-| S3_REGION         | Yes      | Region of the S3 bucket, use 'auto' for Cloudflare R2 | None           | auto                                                              |
-| S3_ENDPOINT       | Yes      | Endpoint address of the S3 bucket                     | None           | https://1234567890abcdef1234567890abcd.r2.cloudflarestorage.com   |
-| WEBHOOK_URL       | No       | Target address for sending Webhook notifications when a new comment is added | None  | https://webhook.example.com/webhook                               |
-| S3_ACCESS_HOST    | No       | Access address of the S3 bucket                       | S3_ENDPOINT    | https://image.xeu.life                                            |
-| S3_CACHE_FOLDER   | No       | S3 cache folder (for SEO and high-frequency request caching) | cache/  | cache/                                                            |
+---
 
-**Encrypted Environment Variables**
+## Secrets (Encrypted)
 
-:::note
-All of the following variables are required (except Webhook) and must be encrypted after debugging in Cloudflare Workers. Unencrypted variables will be cleared during deployment if not listed in `wrangler.toml`.
+These sensitive values must be configured as **Cloudflare Workers Secrets**, entered via CLI during deployment or set in advance.
+
+### Authentication (Configure at least one)
+
+| Variable | Purpose | How to Obtain |
+|----------|---------|---------------|
+| `RIN_GITHUB_CLIENT_ID` | GitHub OAuth client ID | GitHub OAuth App settings |
+| `RIN_GITHUB_CLIENT_SECRET` | GitHub OAuth client secret | GitHub OAuth App settings |
+| `ADMIN_USERNAME` | Username for password login | Set yourself |
+| `ADMIN_PASSWORD` | Password for password login | Set yourself |
+| `JWT_SECRET` | JWT signing key (any random string) | Generate yourself |
+
+:::warning Authentication Required
+You must configure either **GitHub OAuth** or **Username/Password** authentication, otherwise you cannot access the admin panel.
 :::
 
-| Name                     | Description                                              | Example Value                                                   |
-|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------|
-| RIN_GITHUB_CLIENT_ID     | Client ID for GitHub OAuth (optional, alternative to username/password) | Ux66poMrKi1k11M1Q1b2                                            |
-| RIN_GITHUB_CLIENT_SECRET | Client secret for GitHub OAuth (optional, alternative to username/password) | 1234567890abcdef1234567890abcdef12345678                        |
-| ADMIN_USERNAME           | Username for username/password login (optional, alternative to GitHub OAuth) | admin                                                           |
-| ADMIN_PASSWORD           | Password for username/password login (optional, alternative to GitHub OAuth) | your_secure_password                                            |
-| JWT_SECRET               | Secret key required for JWT authentication, can be any regular format password | J0sT%Ch@nge#Me1                                                |
-| S3_ACCESS_KEY_ID         | KEY ID required for accessing the S3 bucket, for Cloudflare R2 use an API token ID with R2 edit permissions | 1234567890abcdef1234567890abcd                                  |
-| S3_SECRET_ACCESS_KEY     | Secret required for accessing the S3 bucket, for Cloudflare R2 use an API token with R2 edit permissions | 1234567890abcdef1234567890abcd|
+### S3 Storage Credentials
+
+| Variable | Purpose | How to Obtain |
+|----------|---------|---------------|
+| `S3_ACCESS_KEY_ID` | S3 access key ID | R2 API Token ID |
+| `S3_SECRET_ACCESS_KEY` | S3 secret access key | R2 API Token |
+
+### Cloudflare Deployment Credentials
+
+| Variable | Purpose | How to Obtain |
+|----------|---------|---------------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API access token | Cloudflare Dashboard → My Profile → API Tokens |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID | Right sidebar in Cloudflare Dashboard |
+
+---
+
+## GitHub Actions Variables
+
+When using GitHub Actions for automated deployment, configure these in your Repository settings:
+
+### Repository Variables (Settings → Secrets and variables → Variables)
+
+```
+NAME                    # Site name
+DESCRIPTION             # Site description
+AVATAR                  # Site avatar URL
+PAGE_SIZE               # Pagination size
+RSS_ENABLE              # Enable RSS
+CACHE_STORAGE_MODE      # Cache mode (recommended: database)
+R2_BUCKET_NAME          # Optional: if set, deploy derives S3_* from this bucket; if unset, no R2 bucket is auto-selected
+WORKER_NAME             # Worker name (optional)
+DB_NAME                 # D1 database name (optional)
+```
+
+### Repository Secrets (Settings → Secrets and variables → Secrets)
+
+```
+CLOUDFLARE_API_TOKEN          # Cloudflare API token
+CLOUDFLARE_ACCOUNT_ID         # Cloudflare account ID
+S3_ENDPOINT                   # S3/R2 endpoint URL
+S3_ACCESS_HOST                # S3/R2 access domain
+S3_BUCKET                     # S3 bucket name
+S3_ACCESS_KEY_ID              # S3 access key ID
+S3_SECRET_ACCESS_KEY          # S3 secret access key
+RIN_GITHUB_CLIENT_ID          # GitHub OAuth ID (optional)
+RIN_GITHUB_CLIENT_SECRET      # GitHub OAuth Secret (optional)
+ADMIN_USERNAME                # Admin username (optional)
+ADMIN_PASSWORD                # Admin password (optional)
+JWT_SECRET                    # JWT secret key
+```
+
+---
+
+## Local Development Environment
+
+For local development, use `.env` file (see `.env.example`):
+
+```bash
+# Site Configuration
+NAME="My Blog"
+DESCRIPTION="A personal blog"
+
+# S3 Storage (R2 or MinIO)
+S3_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+S3_BUCKET=my-bucket
+S3_ACCESS_KEY_ID=xxx
+S3_SECRET_ACCESS_KEY=xxx
+
+# Authentication (GitHub or Username/Password)
+RIN_GITHUB_CLIENT_ID=xxx
+RIN_GITHUB_CLIENT_SECRET=xxx
+# OR
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=secure_password
+
+# Others
+JWT_SECRET=random_secret_key
+CACHE_STORAGE_MODE=database
+```

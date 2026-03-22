@@ -15,42 +15,28 @@ RSS_DESCRIPTION=<RSS description, defaults to Feed from Rin>
 
 You can add these environment variables in GitHub under `Settings` > `Secrets and Variables` > `Actions` > `Variables` > `New repository variable`.
 
-### Workers Routes
+## Usage
 
-In the Cloudflare Workers panel, open the details page of your domain, click `Workers Routes`, and add a new route. The route should be:
-
-```
-<frontend domain>/sub/*
-```
-
-For example:
-
-```
-xeu.life/sub/*
-```
-
-Select the Worker you deployed, and click save.
+RSS no longer requires any extra Workers route configuration. After deployment, you can access the feed endpoints directly.
 
 :::note
-If you have also configured domestic CDN acceleration, you will need to set the Workers route for the origin domain in the same way as described above.
+Note: RSS subscription paths have been moved from `/sub/` to the root path. The old `/sub/` paths remain available for backward compatibility.
 :::
-
-## Usage
 
 The subscription address for RSS is:
 
 ```
-<frontend domain>/sub/rss.xml
+<frontend domain>/rss.xml
 ```
 
 The subscription address for Atom is:
 
 ```
-<frontend domain>/sub/atom.xml
+<frontend domain>/atom.xml
 ```
 
 The subscription address for Json is:
 
 ```
-<frontend domain>/sub/rss.json
+<frontend domain>/rss.json
 ```

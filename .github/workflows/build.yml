@@ -1,0 +1,83 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - trunk
+  pull_request:
+    branches:
+      - main
+      - master
+      - trunk
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.6
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run typecheck
+        run: bun run check
+
+      # Save build metadata for deploy workflow
+      - name: Save build metadata
+        run: |
+          DEPLOY_SCRIPT_HASH=$(cat ./cli/src/tasks/deploy-cf.ts ./cli/src/lib/db-migration.ts | sha256sum | awk '{print $1}')
+          mkdir -p ./build-meta
+          echo "${{ github.event_name }}" > ./build-meta/event_name
+          echo "${{ github.ref }}" > ./build-meta/ref
+          echo "${{ github.repository }}" > ./build-meta/repository
+          echo "${{ github.event.number || '0' }}" > ./build-meta/pr_number
+          echo "${{ github.sha }}" > ./build-meta/sha
+          echo "${{ github.event.pull_request.head.sha || github.sha }}" > ./build-meta/head_sha
+          echo "$DEPLOY_SCRIPT_HASH" > ./build-meta/deploy_script_hash
+
+      # Build client (no env vars needed, config is fetched from server at runtime)
+      # Note: vite.config.ts builds directly to ../dist/client
+      - name: Build client
+        run: |
+          cd client
+          bun run build
+          cd ..
+
+      # Generate wrangler.toml for build (required by wrangler deploy --dry-run)
+      - name: Setup Wrangler
+        uses: ./.github/actions/setup-wrangler
+        with:
+          mode: 'dry-run'
+
+      # Build server (wrangler dry-run to output dist)
+      # Note: Must run from root dir where wrangler.toml exists
+      - name: Build server
+        run: |
+          mkdir -p ./dist/server
+          bunx wrangler deploy --dry-run --outdir=dist/server
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.run_id }}
+          path: |
+            ./dist
+            ./build-meta
+            ./server/sql
+          retention-days: 1

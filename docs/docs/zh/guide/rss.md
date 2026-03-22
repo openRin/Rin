@@ -13,43 +13,28 @@ RSS_DESCRIPTION=<RSS 描述，默认为 Feed from Rin>
 
 以上环境变量通过在 Github 的 `Settings` > `Secrets and Variables` > `Actions` > `Variables` > `New repository variable` 中添加即可。
 
-## Workers 路由
+## 使用
 
-在 Cloudflare Workers 面板中打开自己的域名详情页，点击 `Workers 路由`，添加一个新路由，路由填写为：
-
-```
-<前端域名>/sub/*
-```
-
-如：
-
-```
-xeu.life/sub/*
-```
-
-Worker 选择为部署的 Worker，点击保存。
+RSS 现在不需要额外配置 Workers 路由，部署完成后即可直接访问订阅地址。
 
 :::note
-如果你还配置了国内 CDN 加速，还需要将回源域名按上述同样的方式设置 Workers 路由。
+注意：RSS 订阅地址已经从 `/sub/` 路径迁移到根路径，旧的 `/sub/` 路径仍然可用以保持向后兼容。
 :::
-
-
-## 使用
 
 RSS 的订阅地址为：
 
 ```
-<前端域名>/sub/rss.xml
+<前端域名>/rss.xml
 ```
 
 Atom 的订阅地址为：
 
 ```
-<前端域名>/sub/atom.xml
+<前端域名>/atom.xml
 ```
 
 Json 的订阅地址为：
 
 ```
-<前端域名>/sub/rss.json
+<前端域名>/rss.json
 ```

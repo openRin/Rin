@@ -35,34 +35,35 @@ bun run dev
 
 这将自动完成以下操作：
 - ✅ 生成 `wrangler.toml` 配置文件
-- ✅ 生成 `client/.env` 前端环境变量
 - ✅ 生成 `.dev.vars` 敏感信息文件
 - ✅ 运行数据库迁移
-- ✅ 启动后端服务（端口 11498）
-- ✅ 启动前端服务（端口 5173）
+- ✅ 启动开发服务器（端口 11498 - 前后端同源）
 
-访问 http://localhost:5173 即可开始开发！
+访问 http://localhost:11498 即可开始开发！
 
 ## 环境变量配置
 
 所有配置都集中在 `.env.local` 文件中：
 
-### 前端配置
+### 站点配置
+
+:::tip
+站点配置（名称、头像、描述、分页大小等）现在通过服务端配置下发，可以在部署后通过设置页面修改。环境变量仅作为默认值使用。
+
+你可以选择性设置以下环境变量：
 
 | 变量名 | 必填 | 说明 | 示例 |
 |--------|------|------|------|
-| `API_URL` | 是 | 后端 API 地址 | `http://localhost:11498` |
-| `NAME` | 是 | 网站名称 | `My Blog` |
-| `AVATAR` | 是 | 头像地址 | `https://...` |
-| `DESCRIPTION` | 否 | 网站描述 | `A blog` |
-| `PAGE_SIZE` | 否 | 分页大小 | `5` |
-| `RSS_ENABLE` | 否 | 启用 RSS | `false` |
+| `NAME` | 否 | 网站名称（可后续修改） | `My Blog` |
+| `AVATAR` | 否 | 头像地址（可后续修改） | `https://...` |
+| `DESCRIPTION` | 否 | 网站描述（可后续修改） | `A blog` |
+| `PAGE_SIZE` | 否 | 分页大小（可后续修改） | `5` |
+| `RSS_ENABLE` | 否 | 启用 RSS（可后续修改） | `false` |
 
 ### 后端配置
 
 | 变量名 | 必填 | 说明 | 示例 |
 |--------|------|------|------|
-| `FRONTEND_URL` | 是 | 前端地址 | `http://localhost:5173` |
 | `S3_ENDPOINT` | 是 | S3/R2 端点 | `https://...r2.cloudflarestorage.com` |
 | `S3_BUCKET` | 是 | 存储桶名称 | `images` |
 | `S3_REGION` | 否 | 区域 | `auto` |
@@ -107,11 +108,16 @@ bun run build
 bun run clean
 
 # 运行类型检查
-bun run typecheck
+bun run check
 
 # 格式化代码
 bun run format:write
 bun run format:check
+
+# 运行测试
+bun run test              # 运行所有测试
+bun run test:server       # 仅运行服务端测试
+ bun run test:coverage     # 运行测试并生成覆盖率报告
 ```
 
 ## 开发工作流
@@ -136,6 +142,74 @@ bun run format:check
 1. 修改 `server/src/db/schema.ts`
 2. 运行 `bun run db:generate` 生成迁移文件
 3. 运行 `bun run db:migrate` 应用迁移
+
+## 测试
+
+项目为客户端和服务端使用了不同的测试框架：
+
+### 客户端测试 (Vitest)
+
+客户端测试使用 Vitest 配合 jsdom 环境进行 React 组件测试。
+
+```bash
+# 运行客户端测试
+cd client && bun run test
+
+# 监视模式
+cd client && bun run test:watch
+
+# 生成覆盖率报告
+cd client && bun run test:coverage
+```
+
+测试文件位置：`client/src/**/__tests__/*.test.ts`
+
+### 服务端测试 (Bun)
+
+服务端测试使用 Bun 原生测试运行器和内存 SQLite 数据库。
+
+```bash
+# 运行服务端测试
+cd server && bun run test
+
+# 生成覆盖率报告
+cd server && bun run test:coverage
+```
+
+测试文件位置：
+- 单元测试：`server/src/**/__tests__/*.test.ts`
+- 集成测试：`server/tests/integration/`
+- 安全测试：`server/tests/security/`
+
+### 添加新测试
+
+添加新功能时，请包含相应的测试：
+
+1. **客户端**：在 `client/src/**/__tests__/*.test.ts` 添加测试
+2. **服务端**：在 `server/src/**/__tests__/*.test.ts` 或 `server/tests/` 添加测试
+
+## API 架构
+
+### 自定义 API 客户端
+
+项目使用自定义 HTTP 客户端替代 Eden，实现类型安全的 API 通信：
+
+- **位置**：`client/src/api/client.ts`
+- **特性**：类型安全请求、错误处理、认证令牌管理
+- **使用方式**：所有 API 调用都通过类型化客户端进行
+
+### 共享类型 (@rin/api)
+
+`@rin/api` 包为客户端和服务端提供共享的 TypeScript 类型：
+
+- **位置**：`packages/api/`
+- **用途**：API 契约的端到端类型安全
+- **使用方式**：在客户端和服务端代码中从 `@rin/api` 导入类型
+
+添加新 API 端点时：
+1. 在 `packages/api/src/types.ts` 中定义类型
+2. 在 `server/src/services/` 中实现服务端处理器
+3. 客户端通过共享类型自动获得类型安全
 
 ## 故障排除
 
@@ -177,22 +251,28 @@ bun run dev:setup
 
 ```
 .
-├── client/                 # 前端代码
+├── client/                 # 前端代码 (React + Vite)
 │   ├── src/
 │   │   ├── page/          # 页面组件
-│   │   ├── state/         # 状态管理
+│   │   ├── api/           # API 客户端
+│   │   ├── components/    # React 组件
 │   │   └── utils/         # 工具函数
 │   └── package.json
-├── server/                 # 后端代码
+├── server/                 # 后端代码 (Cloudflare Workers)
 │   ├── src/
 │   │   ├── services/      # 业务服务
-│   │   ├── db/            # 数据库
+│   │   ├── db/            # 数据库表结构
+│   │   ├── core/          # 路由和核心类型
 │   │   └── utils/         # 工具函数
+│   ├── tests/             # 测试文件
 │   └── package.json
-├── scripts/                # 开发脚本
-│   ├── dev.ts             # 开发服务器
-│   ├── setup-dev.ts       # 配置生成
-│   └── db-migrate-local.ts    # 数据库迁移
+├── packages/               # 共享包
+│   └── api/                # @rin/api - 共享 API 类型
+├── cli/                    # Rin CLI 工具
+│   ├── bin/               # 薄入口
+│   ├── src/               # 命令、任务、共享工具
+│   └── templates/         # Git hook 与文件模板
+├── scripts/                # 对 CLI 的兼容包装层
 ├── docs/                   # 文档
 ├── .env.example            # 环境变量示例
 ├── .env.local              # 本地配置（不提交到 Git）
