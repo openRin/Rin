@@ -1,6 +1,9 @@
-# Rin Agent Access
+---
+name: rin-agent
+description: Read and update Rin blog content through a user-provided API key. Use when an external agent needs to list posts, read a post, create or update drafts, publish moments, or upload media to a Rin site.
+---
 
-Use this skill when you need to read or update Rin blog content through a user-provided API key.
+# Rin Agent Access
 
 ## Required Inputs
 

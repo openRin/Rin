@@ -1,4 +1,4 @@
-import { SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader } from "@rin/ui";
+import { SearchableSelect, SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader } from "@rin/ui";
 import type { ApiKeyRecord } from "@rin/api";
 import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
@@ -10,6 +10,12 @@ import { useAlert, useConfirm } from "../components/dialog";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 
 type ExpiryOption = "never" | "30d" | "90d";
+
+const EXPIRY_OPTIONS: Array<{ value: ExpiryOption; labelKey: string }> = [
+  { value: "never", labelKey: "api_keys.expiry.never" },
+  { value: "30d", labelKey: "api_keys.expiry.30d" },
+  { value: "90d", labelKey: "api_keys.expiry.90d" },
+];
 
 function buildExpiryDate(option: ExpiryOption) {
   if (option === "never") {
@@ -159,17 +165,21 @@ export function ApiKeysPage() {
                 className="rounded-xl border border-black/10 bg-w px-4 py-3 outline-none focus:border-black/20 dark:border-white/10 dark:focus:border-white/20"
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm t-primary">
+            <label className="flex min-w-0 flex-col gap-2 text-sm t-primary">
               <span>{t("api_keys.create.expiry_label")}</span>
-              <select
+              <div className="min-w-0 [&>div]:min-w-0">
+                <SearchableSelect
                 value={expiry}
-                onChange={(event) => setExpiry(event.target.value as ExpiryOption)}
-                className="rounded-xl border border-black/10 bg-w px-4 py-3 outline-none focus:border-black/20 dark:border-white/10 dark:focus:border-white/20"
-              >
-                <option value="never">{t("api_keys.expiry.never")}</option>
-                <option value="30d">{t("api_keys.expiry.30d")}</option>
-                <option value="90d">{t("api_keys.expiry.90d")}</option>
-              </select>
+                onChange={(value) => setExpiry(value as ExpiryOption)}
+                options={EXPIRY_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: t(option.labelKey),
+                }))}
+                placeholder={t("api_keys.create.expiry_label")}
+                emptyLabel={t("api_keys.empty")}
+                searchable={false}
+              />
+              </div>
             </label>
             <div className="flex items-end">
               <Button title={submitting ? t("api_keys.create.creating") : t("api_keys.create.submit")} onClick={() => void handleCreate()} />
