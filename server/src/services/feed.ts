@@ -1,12 +1,14 @@
 import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
 import { Hono } from "hono";
-import type { Variables, CacheImpl } from "../core/hono-types";
+import type { Variables } from "../core/hono-types";
 import { profileAsync } from "../core/server-timing";
 import { feeds, visits, visitStats } from "../db/schema";
 import { HyperLogLog } from "../utils/hyperloglog";
 import { extractImageWithMetadata } from "../utils/image";
 import { syncFeedAISummaryQueueState } from "./feed-ai-summary";
 import { bindTagToPost } from "./tag";
+import { clearFeedCache } from "./clear-feed-cache";
+export { clearFeedCache } from "./clear-feed-cache";
 
 // Lazy-loaded modules for WordPress import
 let XMLParser: any;
@@ -659,13 +661,3 @@ type FeedItem = {
     tags?: string[];
 }
 
-export async function clearFeedCache(cache: CacheImpl, id: number, alias: string | null, newAlias: string | null) {
-    await cache.deletePrefix('feeds_');
-    await cache.deletePrefix('search_');
-    await cache.delete(`feed_${id}`, false);
-    await cache.deletePrefix(`${id}_previous_feed`);
-    await cache.deletePrefix(`${id}_next_feed`);
-    if (alias === newAlias) return;
-    if (alias) await cache.delete(`feed_${alias}`, false);
-    if (newAlias) await cache.delete(`feed_${newAlias}`, false);
-}
