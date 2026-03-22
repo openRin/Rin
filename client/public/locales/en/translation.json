@@ -546,10 +546,6 @@
     "wordpress": {
       "desc": "Upload the XML file exported from WordPress",
       "title": "Import from WordPress"
-    },
-    "mcp": {
-      "title": "MCP / Skill",
-      "desc": "Rin already exposes RESTful APIs for reading and writing posts. You can wrap these endpoints with a lightweight MCP server and pair them with a Skill prompt for external agents. See the MCP guide and examples in this repository."
     }
   },
   "sitename": "Site Name",

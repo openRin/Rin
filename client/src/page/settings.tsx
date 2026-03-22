@@ -545,19 +545,6 @@ export function Settings() {
               <SettingsCardRow
                 header={
                   <SettingsCardHeader
-                    title={t("settings.mcp.title")}
-                    description={t("settings.mcp.desc")}
-                  />
-                }
-              />
-            </SettingsCard>
-          </div>
-
-          <div className="w-full">
-            <SettingsCard>
-              <SettingsCardRow
-                header={
-                  <SettingsCardHeader
                     title={t("settings.webhook.test.title")}
                     description={t("settings.webhook.test.desc")}
                   />
