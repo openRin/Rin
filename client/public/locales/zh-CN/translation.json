@@ -281,47 +281,47 @@
         "success": "网站图标更新成功"
       }
     },
-  "footer": {
-    "desc": "设置显示于站点底部的内容（HTML）",
-    "title": "站点底部内容"
-  },
-  "webhook": {
-    "title": "Webhook",
-    "url": {
-      "title": "Webhook 地址",
-      "desc": "设置评论和友链通知使用的 webhook 地址。这里同样支持模板变量，适合 GET 场景拼接 query string。"
+    "footer": {
+      "desc": "设置显示于站点底部的内容（HTML）",
+      "title": "站点底部内容"
     },
-    "method": {
-      "title": "Webhook Method",
-      "desc": "设置 webhook 请求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
+    "webhook": {
+      "title": "Webhook",
+      "url": {
+        "title": "Webhook 地址",
+        "desc": "设置评论和友链通知使用的 webhook 地址。这里同样支持模板变量，适合 GET 场景拼接 query string。"
+      },
+      "method": {
+        "title": "Webhook Method",
+        "desc": "设置 webhook 请求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
+      },
+      "content_type": {
+        "title": "Webhook Content-Type",
+        "desc": "设置 webhook 请求发送时使用的 Content-Type，例如 application/json 或 text/plain"
+      },
+      "headers": {
+        "title": "Webhook 请求头",
+        "desc": "以 JSON 模板自定义 webhook 请求头。可用变量与请求体模板一致。",
+        "label": "Webhook 请求头 JSON"
+      },
+      "body_template": {
+        "title": "Webhook 请求体模板",
+        "desc": "自定义 webhook 发出的请求体。可用变量：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
+        "label": "Webhook 请求体模板"
+      },
+      "test": {
+        "title": "发送测试 Webhook",
+        "desc": "使用当前页面里的 webhook 设置发送一次测试请求。未保存的修改也会直接生效。",
+        "button": "发送测试",
+        "sending": "发送中...",
+        "placeholder": "可选的测试消息内容。留空时会使用默认测试负载。",
+        "success": "Webhook 测试发送成功",
+        "failed": "Webhook 测试发送失败"
+      }
     },
-    "content_type": {
-      "title": "Webhook Content-Type",
-      "desc": "设置 webhook 请求发送时使用的 Content-Type，例如 application/json 或 text/plain"
+    "maintenance": {
+      "title": "维护"
     },
-    "headers": {
-      "title": "Webhook 请求头",
-      "desc": "以 JSON 模板自定义 webhook 请求头。可用变量与请求体模板一致。",
-      "label": "Webhook 请求头 JSON"
-    },
-    "body_template": {
-      "title": "Webhook 请求体模板",
-      "desc": "自定义 webhook 发出的请求体。可用变量：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
-      "label": "Webhook 请求体模板"
-    },
-    "test": {
-      "title": "发送测试 Webhook",
-      "desc": "使用当前页面里的 webhook 设置发送一次测试请求。未保存的修改也会直接生效。",
-      "button": "发送测试",
-      "sending": "发送中...",
-      "placeholder": "可选的测试消息内容。留空时会使用默认测试负载。",
-      "success": "Webhook 测试发送成功",
-      "failed": "Webhook 测试发送失败"
-    }
-  },
-  "maintenance": {
-    "title": "维护"
-  },
     "friend": {
       "apply": {
         "desc": "允许其他用户申请友链（需审核）",
@@ -487,6 +487,10 @@
     "wordpress": {
       "desc": "上传 WordPress 导出的 XML 文件",
       "title": "从 WordPress 导入"
+    },
+    "mcp": {
+      "title": "MCP / Skill",
+      "desc": "Rin 已经提供了读写文章所需的 RESTful API。你可以基于这些接口封装一层轻量 MCP 服务，再配合 Skill 提示文件供外部 Agent 调用。可参考仓库内的 MCP 指南与示例文件。"
     }
   },
   "sitename": "站点名称",
@@ -574,33 +578,33 @@
           "summary": "login.enabled 已关闭。",
           "suggestion": "如果此实例需要交互式后台访问，请在设置中启用登录。"
         },
-      "missing": {
-        "impact": "用户可以看到登录入口，但没有任何可用的登录方式。",
-        "summary": "GitHub OAuth 和密码登录都未配置。",
-        "suggestion": "请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
-      },
-      "default_password": {
-        "impact": "管理员账号仍在使用默认用户名和密码，属于严重安全风险。",
-        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
-        "suggestion": "在公开站点前请立即修改默认用户名或密码。"
-      },
-      "oauth_missing": {
-        "impact": "当前只能使用本地密码账号登录，其他用户无法通过 OAuth 登录并评论。",
-        "summary": "GitHub OAuth 未配置。",
-        "suggestion": "如果希望其他用户登录，请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
-      },
-      "ready": {
-        "impact": "后台登录可用。",
-        "summary": "OAuth 登录已配置，且当前密码登录未使用默认凭据。",
-        "suggestion": "无需处理。"
-      },
-      "details": {
-        "github_configured": "GitHub OAuth：已配置",
-        "github_missing": "GitHub OAuth：未配置",
-        "password_configured": "密码登录：已配置",
-        "password_missing": "密码登录：未配置",
-        "password_default": "密码登录：使用默认凭据"
-      }
+        "missing": {
+          "impact": "用户可以看到登录入口，但没有任何可用的登录方式。",
+          "summary": "GitHub OAuth 和密码登录都未配置。",
+          "suggestion": "请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
+        },
+        "default_password": {
+          "impact": "管理员账号仍在使用默认用户名和密码，属于严重安全风险。",
+          "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
+          "suggestion": "在公开站点前请立即修改默认用户名或密码。"
+        },
+        "oauth_missing": {
+          "impact": "当前只能使用本地密码账号登录，其他用户无法通过 OAuth 登录并评论。",
+          "summary": "GitHub OAuth 未配置。",
+          "suggestion": "如果希望其他用户登录，请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
+        },
+        "ready": {
+          "impact": "后台登录可用。",
+          "summary": "OAuth 登录已配置，且当前密码登录未使用默认凭据。",
+          "suggestion": "无需处理。"
+        },
+        "details": {
+          "github_configured": "GitHub OAuth：已配置",
+          "github_missing": "GitHub OAuth：未配置",
+          "password_configured": "密码登录：已配置",
+          "password_missing": "密码登录：未配置",
+          "password_default": "密码登录：使用默认凭据"
+        }
       },
       "storage": {
         "title": "对象存储",

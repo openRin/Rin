@@ -5,6 +5,7 @@
       { "text": "简介", "link": "/guide/" },
       { "text": "部署", "link": "/guide/deploy" },
       { "text": "本地开发", "link": "/guide/development" },
+      { "text": "MCP 集成", "link": "/guide/mcp" },
       { "text": "Webhook", "link": "/guide/webhook" },
       { "text": "RSS", "link": "/guide/rss" },
       { "text": "迁移指南", "link": "/guide/migration" },

@@ -5,6 +5,7 @@
       { "text": "Introduction", "link": "/guide/" },
       { "text": "Deploy", "link": "/guide/deploy" },
       { "text": "Development", "link": "/guide/development" },
+      { "text": "MCP Integration", "link": "/guide/mcp" },
       { "text": "Webhook", "link": "/guide/webhook" },
       { "text": "RSS", "link": "/guide/rss" },
       { "text": "Migration", "link": "/guide/migration" },

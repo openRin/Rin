@@ -1,0 +1,81 @@
+{
+  "name": "openrin-blog",
+  "version": "0.1.0",
+  "description": "Example MCP wrapper spec for exposing Rin blog reading and writing workflows to external agents.",
+  "transport": {
+    "type": "http",
+    "base_url_env": "RIN_BASE_URL"
+  },
+  "auth": {
+    "type": "bearer",
+    "token_env": "RIN_ADMIN_TOKEN",
+    "notes": [
+      "Obtain this token from Rin's admin login flow at POST /api/auth/login, or forward the admin token cookie through your MCP bridge.",
+      "Read-only feed endpoints can be called without authentication, but write tools should always send admin credentials."
+    ]
+  },
+  "tools": [
+    {
+      "name": "list_posts",
+      "description": "List recent published posts for context gathering.",
+      "request": {
+        "method": "GET",
+        "path": "/api/feed",
+        "query": {
+          "page": "{{page|default:1}}",
+          "limit": "{{limit|default:20}}"
+        }
+      }
+    },
+    {
+      "name": "get_post",
+      "description": "Fetch a full Rin post by numeric ID or alias.",
+      "request": {
+        "method": "GET",
+        "path": "/api/feed/{{id_or_alias}}"
+      }
+    },
+    {
+      "name": "create_draft",
+      "description": "Create a new draft in Rin.",
+      "request": {
+        "method": "POST",
+        "path": "/api/feed",
+        "headers": {
+          "Authorization": "Bearer {{env.RIN_ADMIN_TOKEN}}",
+          "Content-Type": "application/json"
+        },
+        "json_body": {
+          "title": "{{title}}",
+          "content": "{{content}}",
+          "summary": "{{summary|default:''}}",
+          "alias": "{{alias|default:null}}",
+          "draft": true,
+          "listed": false,
+          "tags": "{{tags|default:[]}}"
+        }
+      }
+    },
+    {
+      "name": "update_post",
+      "description": "Update an existing Rin post or draft.",
+      "request": {
+        "method": "POST",
+        "path": "/api/feed/{{id}}",
+        "headers": {
+          "Authorization": "Bearer {{env.RIN_ADMIN_TOKEN}}",
+          "Content-Type": "application/json"
+        },
+        "json_body": {
+          "title": "{{title}}",
+          "content": "{{content}}",
+          "summary": "{{summary|default:''}}",
+          "alias": "{{alias|default:null}}",
+          "draft": "{{draft|default:true}}",
+          "listed": "{{listed|default:false}}",
+          "tags": "{{tags|default:[]}}"
+        }
+      }
+    }
+  ]
+}
