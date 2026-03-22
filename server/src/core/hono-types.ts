@@ -38,6 +38,8 @@ export interface Variables {
     uid?: number;
     admin: boolean;
     username?: string;
+    authType?: "jwt" | "api-key";
+    apiKeyScopes?: string[];
     env: Env;
 }
 

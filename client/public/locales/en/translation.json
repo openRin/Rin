@@ -4,6 +4,7 @@
     "title": "About"
   },
   "admin": {
+    "api_keys_description": "Create, review, and revoke API keys for external agents that need content access.",
     "back_to_site": "Back to site",
     "compat_tasks_description": "Run compatibility jobs in bulk to backfill missing AI summaries and image blurhash metadata for older posts.",
     "health_description": "Review required configuration, missing integrations, and risks that can affect runtime behavior.",
@@ -11,6 +12,64 @@
     "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
     "title": "Admin",
     "writing_description": "Write, edit, and publish content from the private management workspace."
+  },
+  "api_keys": {
+    "title": "API Keys",
+    "loading": "Loading API keys...",
+    "empty": "No API keys have been created yet.",
+    "copied": "Copied to clipboard.",
+    "never": "Never",
+    "revoke": "Revoke",
+    "create": {
+      "title": "Create Agent API Key",
+      "description": "Generate a bearer token for an external agent that needs to read or write Rin content.",
+      "name_label": "Label",
+      "name_placeholder": "Agent Writer",
+      "expiry_label": "Expiration",
+      "submit": "Create key",
+      "creating": "Creating..."
+    },
+    "expiry": {
+      "never": "Never expires",
+      "30d": "Expires in 30 days",
+      "90d": "Expires in 90 days"
+    },
+    "secret": {
+      "title": "Copy the secret now",
+      "description": "Rin only shows the full key once. Store it in your agent tool before dismissing this message.",
+      "copy": "Copy key",
+      "dismiss": "Dismiss"
+    },
+    "list": {
+      "title": "Existing keys",
+      "description": "Use this list to review active keys, last use, and expiration."
+    },
+    "status": {
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "fields": {
+      "created_at": "Created: {{date}}",
+      "last_used_at": "Last used: {{date}}",
+      "expires_at": "Expires: {{date}}",
+      "capabilities": "Capabilities: {{scopes}}"
+    },
+    "docs": {
+      "title": "Agent setup",
+      "description": "Built-in instructions for external agents that use Rin with an API key.",
+      "scope_note": "These keys are intended for blog content workflows such as creating posts, updating drafts, publishing moments, and uploading media.",
+      "routes_note": "Admin configuration routes stay blocked for API-key auth. Use an interactive admin session for settings and diagnostics.",
+      "copy_curl": "Copy curl example",
+      "open_skill": "Open bundled skill"
+    },
+    "revoke_confirm": {
+      "title": "Revoke API key",
+      "description": "Revoke {{name}}? External agents using it will stop working immediately."
+    },
+    "errors": {
+      "name_required": "A label is required.",
+      "create_failed": "Failed to create API key."
+    }
   },
   "compat_tasks": {
     "title": "Compatibility Tasks",
