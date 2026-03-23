@@ -9,12 +9,16 @@ import { Button } from "../components/button";
 import { useAlert, useConfirm } from "../components/dialog";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 
-type ExpiryOption = "never" | "30d" | "90d";
+type ExpiryOption = "never" | "7d" | "14d" | "30d" | "90d" | "180d" | "365d";
 
 const EXPIRY_OPTIONS: Array<{ value: ExpiryOption; labelKey: string }> = [
   { value: "never", labelKey: "api_keys.expiry.never" },
+  { value: "7d", labelKey: "api_keys.expiry.7d" },
+  { value: "14d", labelKey: "api_keys.expiry.14d" },
   { value: "30d", labelKey: "api_keys.expiry.30d" },
   { value: "90d", labelKey: "api_keys.expiry.90d" },
+  { value: "180d", labelKey: "api_keys.expiry.180d" },
+  { value: "365d", labelKey: "api_keys.expiry.365d" },
 ];
 
 function buildExpiryDate(option: ExpiryOption) {
@@ -23,7 +27,7 @@ function buildExpiryDate(option: ExpiryOption) {
   }
 
   const now = new Date();
-  const days = option === "30d" ? 30 : 90;
+  const days = option === "7d" ? 7 : option === "14d" ? 14 : option === "30d" ? 30 : option === "90d" ? 90 : option === "180d" ? 180 : 365;
   now.setDate(now.getDate() + days);
   return now.toISOString();
 }
