@@ -244,7 +244,7 @@ bun run dev:setup
 
 1. 访问 https://github.com/settings/developers
 2. 创建新的 OAuth App
-3. Authorization callback URL 填写：`http://localhost:11498/user/github/callback`
+3. Authorization callback URL 填写：`http://localhost:11498/api/user/github/callback`
 4. 将 Client ID 和 Client Secret 填入 `.env.local`
 
 ## 项目结构

@@ -57,7 +57,7 @@ cp .\cli\templates\git-commit-msg.sh .\.git\hooks\commit-msg
    将 `.dev.example.vars` 复制到 `.dev.vars` 并填写必要信息
    > [!TIP]   
    > 通常情况下，您需要填写 `RIN_GITHUB_CLIENT_ID` 和 `RIN_GITHUB_CLIENT_SECRET` 以及 `JWT_SECRET` 三项 \
-   > 开发环境下需要单独创建一个 Github OAuth 服务，回调地址为 `http://localhost:11498/user/github/callback` \
+   > 开发环境下需要单独创建一个 Github OAuth 服务，回调地址为 `http://localhost:11498/api/user/github/callback` \\
    > 如果手动修改过 server 的监听端口，请同时修改回调地址中的端口号
 
 8. 启动开发服务器

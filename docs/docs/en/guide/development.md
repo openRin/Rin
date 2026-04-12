@@ -244,7 +244,7 @@ GitHub OAuth needs to be configured for local development:
 
 1. Visit https://github.com/settings/developers
 2. Create a new OAuth App
-3. Authorization callback URL: `http://localhost:11498/user/github/callback`
+3. Authorization callback URL: `http://localhost:11498/api/user/github/callback`
 4. Fill Client ID and Client Secret into `.env.local`
 
 ## Project Structure
