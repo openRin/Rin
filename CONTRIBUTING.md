@@ -60,7 +60,7 @@ If you want to skip the hook, run `git commit` with the `--no-verify` option.
    > Typically, you need to fill in the `RIN_GITHUB_CLIENT_ID` and `RIN_GITHUB_CLIENT_SECRET` as well as
    the `JWT_SECRET` fields.
    > In the development environment, you need to create a separate GitHub OAuth service with a callback address
-   of `http://localhost:11498/user/github/callback` \
+   > of `http://localhost:11498/api/user/github/callback` \\
    > If you have changed the listening port of the server manually, please also change the port number in the callback
    address.
 
