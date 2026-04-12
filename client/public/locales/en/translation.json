@@ -4,6 +4,7 @@
     "title": "About"
   },
   "admin": {
+    "api_keys_description": "Create, review, and revoke API keys for external agents that need content access.",
     "back_to_site": "Back to site",
     "compat_tasks_description": "Run compatibility jobs in bulk to backfill missing AI summaries and image blurhash metadata for older posts.",
     "health_description": "Review required configuration, missing integrations, and risks that can affect runtime behavior.",
@@ -11,6 +12,68 @@
     "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
     "title": "Admin",
     "writing_description": "Write, edit, and publish content from the private management workspace."
+  },
+  "api_keys": {
+    "title": "API Keys",
+    "loading": "Loading API keys...",
+    "empty": "No API keys have been created yet.",
+    "copied": "Copied to clipboard.",
+    "never": "Never",
+    "revoke": "Revoke",
+    "create": {
+      "title": "Create Agent API Key",
+      "description": "Generate a bearer token for an external agent that needs to read or write Rin content.",
+      "name_label": "Label",
+      "name_placeholder": "Agent Writer",
+      "expiry_label": "Expiration",
+      "submit": "Create key",
+      "creating": "Creating..."
+    },
+    "expiry": {
+      "never": "Never expires",
+      "30d": "Expires in 30 days",
+      "90d": "Expires in 90 days",
+      "7d": "Expires in 7 days",
+      "14d": "Expires in 14 days",
+      "180d": "Expires in 180 days",
+      "365d": "Expires in 365 days"
+    },
+    "secret": {
+      "title": "Copy the secret now",
+      "description": "Rin only shows the full key once. Store it in your agent tool before dismissing this message.",
+      "copy": "Copy key",
+      "dismiss": "Dismiss"
+    },
+    "list": {
+      "title": "Existing keys",
+      "description": "Use this list to review active keys, last use, and expiration."
+    },
+    "status": {
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "fields": {
+      "created_at": "Created: {{date}}",
+      "last_used_at": "Last used: {{date}}",
+      "expires_at": "Expires: {{date}}",
+      "capabilities": "Capabilities: {{scopes}}"
+    },
+    "docs": {
+      "title": "Agent setup",
+      "description": "Built-in instructions for external agents that use Rin with an API key.",
+      "scope_note": "These keys are intended for blog content workflows such as creating posts, updating drafts, publishing moments, and uploading media.",
+      "routes_note": "Admin configuration routes stay blocked for API-key auth. Use an interactive admin session for settings and diagnostics.",
+      "copy_curl": "Copy curl example",
+      "open_skill": "Open bundled skill"
+    },
+    "revoke_confirm": {
+      "title": "Revoke API key",
+      "description": "Revoke {{name}}? External agents using it will stop working immediately."
+    },
+    "errors": {
+      "name_required": "A label is required.",
+      "create_failed": "Failed to create API key."
+    }
   },
   "compat_tasks": {
     "title": "Compatibility Tasks",
@@ -281,47 +344,47 @@
         "success": "Favicon update was successful"
       }
     },
-  "footer": {
-    "desc": "Set the footer content of the site (HTML)",
-    "title": "Footer"
-  },
-  "webhook": {
-    "title": "Webhook",
-    "url": {
-      "title": "Webhook URL",
-      "desc": "Set the webhook endpoint used for comment and friend-link notifications. Template variables are supported here too, which is useful for GET query strings."
+    "footer": {
+      "desc": "Set the footer content of the site (HTML)",
+      "title": "Footer"
     },
-    "method": {
-      "title": "Webhook Method",
-      "desc": "Set the HTTP method used for webhook requests, such as POST, PUT, or PATCH"
+    "webhook": {
+      "title": "Webhook",
+      "url": {
+        "title": "Webhook URL",
+        "desc": "Set the webhook endpoint used for comment and friend-link notifications. Template variables are supported here too, which is useful for GET query strings."
+      },
+      "method": {
+        "title": "Webhook Method",
+        "desc": "Set the HTTP method used for webhook requests, such as POST, PUT, or PATCH"
+      },
+      "content_type": {
+        "title": "Webhook Content-Type",
+        "desc": "Set the Content-Type header sent with webhook requests, for example application/json or text/plain"
+      },
+      "headers": {
+        "title": "Webhook Headers",
+        "desc": "Customize webhook headers as a JSON object template. Available variables are the same as the body template.",
+        "label": "Webhook headers JSON"
+      },
+      "body_template": {
+        "title": "Webhook Body Template",
+        "desc": "Customize the outgoing webhook payload. Available variables: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}.",
+        "label": "Webhook body template"
+      },
+      "test": {
+        "title": "Send Test Webhook",
+        "desc": "Send a test request with the current webhook settings. Unsaved values in this page are used directly.",
+        "button": "Send Test",
+        "sending": "Sending...",
+        "placeholder": "Optional test message. Leave empty to use the default test payload.",
+        "success": "Webhook test sent successfully",
+        "failed": "Webhook test failed"
+      }
     },
-    "content_type": {
-      "title": "Webhook Content-Type",
-      "desc": "Set the Content-Type header sent with webhook requests, for example application/json or text/plain"
+    "maintenance": {
+      "title": "Maintenance"
     },
-    "headers": {
-      "title": "Webhook Headers",
-      "desc": "Customize webhook headers as a JSON object template. Available variables are the same as the body template.",
-      "label": "Webhook headers JSON"
-    },
-    "body_template": {
-      "title": "Webhook Body Template",
-      "desc": "Customize the outgoing webhook payload. Available variables: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}.",
-      "label": "Webhook body template"
-    },
-    "test": {
-      "title": "Send Test Webhook",
-      "desc": "Send a test request with the current webhook settings. Unsaved values in this page are used directly.",
-      "button": "Send Test",
-      "sending": "Sending...",
-      "placeholder": "Optional test message. Leave empty to use the default test payload.",
-      "success": "Webhook test sent successfully",
-      "failed": "Webhook test failed"
-    }
-  },
-  "maintenance": {
-    "title": "Maintenance"
-  },
     "friend": {
       "apply": {
         "desc": "Allow other users to apply for friend links (requires review)",
@@ -574,33 +637,33 @@
           "summary": "login.enabled is disabled.",
           "suggestion": "Enable login in settings if this instance needs interactive admin access."
         },
-      "missing": {
-        "impact": "Users can see the login entry but no working login method is configured.",
-        "summary": "Neither GitHub OAuth nor password login is configured.",
-        "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET or ADMIN_USERNAME/ADMIN_PASSWORD."
-      },
-      "default_password": {
-        "impact": "The admin account is still using the default username and password, which is a critical security risk.",
-        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD are still set to admin / admin123.",
-        "suggestion": "Change the default username or password immediately before exposing the site."
-      },
-      "oauth_missing": {
-        "impact": "Only the local password account can sign in. Other users cannot log in and comment through OAuth.",
-        "summary": "GitHub OAuth is not configured.",
-        "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET if you expect other users to log in."
-      },
-      "ready": {
-        "impact": "Admin sign-in is available.",
-        "summary": "OAuth login is configured and the current password login configuration is not using the default credentials.",
-        "suggestion": "No action required."
-      },
-      "details": {
-        "github_configured": "GitHub OAuth: configured",
-        "github_missing": "GitHub OAuth: missing",
-        "password_configured": "Password login: configured",
-        "password_missing": "Password login: missing",
-        "password_default": "Password login: using default credentials"
-      }
+        "missing": {
+          "impact": "Users can see the login entry but no working login method is configured.",
+          "summary": "Neither GitHub OAuth nor password login is configured.",
+          "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET or ADMIN_USERNAME/ADMIN_PASSWORD."
+        },
+        "default_password": {
+          "impact": "The admin account is still using the default username and password, which is a critical security risk.",
+          "summary": "ADMIN_USERNAME/ADMIN_PASSWORD are still set to admin / admin123.",
+          "suggestion": "Change the default username or password immediately before exposing the site."
+        },
+        "oauth_missing": {
+          "impact": "Only the local password account can sign in. Other users cannot log in and comment through OAuth.",
+          "summary": "GitHub OAuth is not configured.",
+          "suggestion": "Configure RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET if you expect other users to log in."
+        },
+        "ready": {
+          "impact": "Admin sign-in is available.",
+          "summary": "OAuth login is configured and the current password login configuration is not using the default credentials.",
+          "suggestion": "No action required."
+        },
+        "details": {
+          "github_configured": "GitHub OAuth: configured",
+          "github_missing": "GitHub OAuth: missing",
+          "password_configured": "Password login: configured",
+          "password_missing": "Password login: missing",
+          "password_default": "Password login: using default credentials"
+        }
       },
       "storage": {
         "title": "Object storage",

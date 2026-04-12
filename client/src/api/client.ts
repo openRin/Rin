@@ -33,6 +33,10 @@ import type {
   AuthStatus,
   LoginRequest,
   LoginResponse,
+  ApiKeyListResponse,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+  RevokeApiKeyResponse,
 } from "@rin/api";
 
 export interface SettingsConfigResponse {
@@ -155,6 +159,10 @@ export type {
   AuthStatus,
   LoginRequest,
   LoginResponse,
+  ApiKeyListResponse,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+  RevokeApiKeyResponse,
 } from "@rin/api";
 
 
@@ -538,6 +546,22 @@ class ConfigAPI {
   }
 }
 
+class ApiKeysAPI {
+  constructor(private http: HttpClient) {}
+
+  async list(): Promise<ApiResponse<ApiKeyListResponse>> {
+    return this.http.get<ApiKeyListResponse>("/api/api-keys");
+  }
+
+  async create(body: CreateApiKeyRequest): Promise<ApiResponse<CreateApiKeyResponse>> {
+    return this.http.post<CreateApiKeyResponse>("/api/api-keys", body);
+  }
+
+  async revoke(id: number): Promise<ApiResponse<RevokeApiKeyResponse>> {
+    return this.http.post<RevokeApiKeyResponse>(`/api/api-keys/${id}/revoke`);
+  }
+}
+
 /**
  * AI Config API methods (deprecated, use ConfigAPI instead)
  * @deprecated AI config is now part of server config. Use client.config.get('server') and client.config.update('server', {...}) instead.
@@ -658,6 +682,7 @@ export class ApiClient {
   friend: FriendAPI;
   moments: MomentsAPI;
   config: ConfigAPI;
+  apiKeys: ApiKeysAPI;
   aiConfig: AIConfigAPI;
   storage: StorageAPI;
   search: SearchAPI;
@@ -674,6 +699,7 @@ export class ApiClient {
     this.friend = new FriendAPI(this.http);
     this.moments = new MomentsAPI(this.http);
     this.config = new ConfigAPI(this.http);
+    this.apiKeys = new ApiKeysAPI(this.http);
     this.aiConfig = new AIConfigAPI(this.http);
     this.storage = new StorageAPI(this.http);
     this.search = new SearchAPI(this.http);

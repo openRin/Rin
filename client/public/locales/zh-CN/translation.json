@@ -4,6 +4,7 @@
     "title": "关于"
   },
   "admin": {
+    "api_keys_description": "为需要访问内容的外部智能体创建、查看和撤销 API Key。",
     "back_to_site": "返回站点",
     "compat_tasks_description": "批量触发向前兼容任务，用于补齐历史帖子缺失的 AI 摘要和图片 blurhash 元数据。",
     "health_description": "检查关键配置、缺失的集成项，以及可能影响服务正常运行的风险。",
@@ -281,47 +282,47 @@
         "success": "网站图标更新成功"
       }
     },
-  "footer": {
-    "desc": "设置显示于站点底部的内容（HTML）",
-    "title": "站点底部内容"
-  },
-  "webhook": {
-    "title": "Webhook",
-    "url": {
-      "title": "Webhook 地址",
-      "desc": "设置评论和友链通知使用的 webhook 地址。这里同样支持模板变量，适合 GET 场景拼接 query string。"
+    "footer": {
+      "desc": "设置显示于站点底部的内容（HTML）",
+      "title": "站点底部内容"
     },
-    "method": {
-      "title": "Webhook Method",
-      "desc": "设置 webhook 请求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
+    "webhook": {
+      "title": "Webhook",
+      "url": {
+        "title": "Webhook 地址",
+        "desc": "设置评论和友链通知使用的 webhook 地址。这里同样支持模板变量，适合 GET 场景拼接 query string。"
+      },
+      "method": {
+        "title": "Webhook Method",
+        "desc": "设置 webhook 请求使用的 HTTP Method，例如 GET、POST、PUT 或 PATCH"
+      },
+      "content_type": {
+        "title": "Webhook Content-Type",
+        "desc": "设置 webhook 请求发送时使用的 Content-Type，例如 application/json 或 text/plain"
+      },
+      "headers": {
+        "title": "Webhook 请求头",
+        "desc": "以 JSON 模板自定义 webhook 请求头。可用变量与请求体模板一致。",
+        "label": "Webhook 请求头 JSON"
+      },
+      "body_template": {
+        "title": "Webhook 请求体模板",
+        "desc": "自定义 webhook 发出的请求体。可用变量：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
+        "label": "Webhook 请求体模板"
+      },
+      "test": {
+        "title": "发送测试 Webhook",
+        "desc": "使用当前页面里的 webhook 设置发送一次测试请求。未保存的修改也会直接生效。",
+        "button": "发送测试",
+        "sending": "发送中...",
+        "placeholder": "可选的测试消息内容。留空时会使用默认测试负载。",
+        "success": "Webhook 测试发送成功",
+        "failed": "Webhook 测试发送失败"
+      }
     },
-    "content_type": {
-      "title": "Webhook Content-Type",
-      "desc": "设置 webhook 请求发送时使用的 Content-Type，例如 application/json 或 text/plain"
+    "maintenance": {
+      "title": "维护"
     },
-    "headers": {
-      "title": "Webhook 请求头",
-      "desc": "以 JSON 模板自定义 webhook 请求头。可用变量与请求体模板一致。",
-      "label": "Webhook 请求头 JSON"
-    },
-    "body_template": {
-      "title": "Webhook 请求体模板",
-      "desc": "自定义 webhook 发出的请求体。可用变量：{{event}}、{{message}}、{{title}}、{{url}}、{{username}}、{{content}}、{{description}}。",
-      "label": "Webhook 请求体模板"
-    },
-    "test": {
-      "title": "发送测试 Webhook",
-      "desc": "使用当前页面里的 webhook 设置发送一次测试请求。未保存的修改也会直接生效。",
-      "button": "发送测试",
-      "sending": "发送中...",
-      "placeholder": "可选的测试消息内容。留空时会使用默认测试负载。",
-      "success": "Webhook 测试发送成功",
-      "failed": "Webhook 测试发送失败"
-    }
-  },
-  "maintenance": {
-    "title": "维护"
-  },
     "friend": {
       "apply": {
         "desc": "允许其他用户申请友链（需审核）",
@@ -574,33 +575,33 @@
           "summary": "login.enabled 已关闭。",
           "suggestion": "如果此实例需要交互式后台访问，请在设置中启用登录。"
         },
-      "missing": {
-        "impact": "用户可以看到登录入口，但没有任何可用的登录方式。",
-        "summary": "GitHub OAuth 和密码登录都未配置。",
-        "suggestion": "请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
-      },
-      "default_password": {
-        "impact": "管理员账号仍在使用默认用户名和密码，属于严重安全风险。",
-        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
-        "suggestion": "在公开站点前请立即修改默认用户名或密码。"
-      },
-      "oauth_missing": {
-        "impact": "当前只能使用本地密码账号登录，其他用户无法通过 OAuth 登录并评论。",
-        "summary": "GitHub OAuth 未配置。",
-        "suggestion": "如果希望其他用户登录，请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
-      },
-      "ready": {
-        "impact": "后台登录可用。",
-        "summary": "OAuth 登录已配置，且当前密码登录未使用默认凭据。",
-        "suggestion": "无需处理。"
-      },
-      "details": {
-        "github_configured": "GitHub OAuth：已配置",
-        "github_missing": "GitHub OAuth：未配置",
-        "password_configured": "密码登录：已配置",
-        "password_missing": "密码登录：未配置",
-        "password_default": "密码登录：使用默认凭据"
-      }
+        "missing": {
+          "impact": "用户可以看到登录入口，但没有任何可用的登录方式。",
+          "summary": "GitHub OAuth 和密码登录都未配置。",
+          "suggestion": "请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET 或 ADMIN_USERNAME/ADMIN_PASSWORD。"
+        },
+        "default_password": {
+          "impact": "管理员账号仍在使用默认用户名和密码，属于严重安全风险。",
+          "summary": "ADMIN_USERNAME/ADMIN_PASSWORD 仍然是 admin / admin123。",
+          "suggestion": "在公开站点前请立即修改默认用户名或密码。"
+        },
+        "oauth_missing": {
+          "impact": "当前只能使用本地密码账号登录，其他用户无法通过 OAuth 登录并评论。",
+          "summary": "GitHub OAuth 未配置。",
+          "suggestion": "如果希望其他用户登录，请配置 RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET。"
+        },
+        "ready": {
+          "impact": "后台登录可用。",
+          "summary": "OAuth 登录已配置，且当前密码登录未使用默认凭据。",
+          "suggestion": "无需处理。"
+        },
+        "details": {
+          "github_configured": "GitHub OAuth：已配置",
+          "github_missing": "GitHub OAuth：未配置",
+          "password_configured": "密码登录：已配置",
+          "password_missing": "密码登录：未配置",
+          "password_default": "密码登录：使用默认凭据"
+        }
       },
       "storage": {
         "title": "对象存储",
@@ -719,5 +720,67 @@
   },
   "sort_latest": "最新",
   "sort_popular": "热门",
-  "total_tags": "共 {{count}} 个标签"
+  "total_tags": "共 {{count}} 个标签",
+  "api_keys": {
+    "title": "API Key",
+    "loading": "正在加载 API Key...",
+    "empty": "还没有创建任何 API Key。",
+    "copied": "已复制到剪贴板。",
+    "never": "永不",
+    "revoke": "撤销",
+    "create": {
+      "title": "创建智能体 API Key",
+      "description": "为需要读取或写入 Rin 内容的外部智能体生成 Bearer Token。",
+      "name_label": "名称",
+      "name_placeholder": "Agent Writer",
+      "expiry_label": "过期时间",
+      "submit": "创建 Key",
+      "creating": "创建中..."
+    },
+    "expiry": {
+      "never": "永不过期",
+      "30d": "30 天后过期",
+      "90d": "90 天后过期",
+      "7d": "7 天后过期",
+      "14d": "14 天后过期",
+      "180d": "180 天后过期",
+      "365d": "365 天后过期"
+    },
+    "secret": {
+      "title": "请立即复制密钥",
+      "description": "Rin 只会展示完整 Key 一次。关闭前请先保存到你的智能体工具中。",
+      "copy": "复制 Key",
+      "dismiss": "关闭"
+    },
+    "list": {
+      "title": "已有 Key",
+      "description": "在这里查看 Key 状态、最近使用时间和过期时间。"
+    },
+    "status": {
+      "active": "生效中",
+      "revoked": "已撤销"
+    },
+    "fields": {
+      "created_at": "创建时间：{{date}}",
+      "last_used_at": "最近使用：{{date}}",
+      "expires_at": "过期时间：{{date}}",
+      "capabilities": "能力范围：{{scopes}}"
+    },
+    "docs": {
+      "title": "智能体接入说明",
+      "description": "提供给外部智能体使用 Rin API Key 的内置说明。",
+      "scope_note": "这些 Key 面向内容工作流，例如创建文章、更新草稿、发布想法和上传媒体。",
+      "routes_note": "管理配置接口不会对 API Key 开放。设置和诊断仍需使用交互式管理员会话。",
+      "copy_curl": "复制 curl 示例",
+      "open_skill": "打开内置 Skill"
+    },
+    "revoke_confirm": {
+      "title": "撤销 API Key",
+      "description": "确认撤销 {{name}} 吗？所有使用它的外部智能体会立即失效。"
+    },
+    "errors": {
+      "name_required": "请填写名称。",
+      "create_failed": "创建 API Key 失败。"
+    }
+  }
 }
