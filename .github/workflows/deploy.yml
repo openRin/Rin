@@ -224,7 +224,19 @@ jobs:
           else
             bun run deploy --preview | tee deploy_output.log
           fi
-          URL=$(grep -oP 'App URL: \Khttps://[^\s]+' deploy_output.log || echo "https://${WORKER_NAME}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev")
+          URL="$(grep -oP 'App URL:\s*\Khttps://[^\s]+' deploy_output.log | tail -n 1 || true)"
+          if [[ -z "$URL" ]]; then
+            URL="$(awk '
+              /^Deployed .* triggers/ { in_targets = 1; next }
+              in_targets && match($0, /https?:\/\/[^[:space:]]+/) { print substr($0, RSTART, RLENGTH); exit }
+            ' deploy_output.log)"
+          fi
+          if [[ -z "$URL" ]]; then
+            echo "❌ Unable to determine deployment URL from deploy output."
+            grep -E 'App URL:|Deployed .* triggers|https?://' deploy_output.log || true
+            exit 1
+          fi
+          echo "Resolved deployment URL: ${URL}"
           echo "url=${URL}" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
