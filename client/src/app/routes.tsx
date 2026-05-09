@@ -24,6 +24,7 @@ import { MomentsPage } from "../page/moments";
 import { ProfilePage } from "../page/profile";
 import { QueueStatusPage } from "../page/queue-status";
 import { SearchPage } from "../page/search";
+import { ApiKeysPage } from "../page/api-keys";
 import { Settings } from "../page/settings";
 import { TimelinePage } from "../page/timeline";
 import { WritingPage } from "../page/writing";
@@ -66,6 +67,10 @@ export function AppRoutes() {
 
       <AdminRoute path="/admin/settings" requirePermission title={t("settings.title")} description={t("admin.settings_description")}>
         <Settings />
+      </AdminRoute>
+
+      <AdminRoute path="/admin/api-keys" requirePermission title={t("api_keys.title")} description={t("admin.api_keys_description")}>
+        <ApiKeysPage />
       </AdminRoute>
 
       <AdminRoute path="/admin/health" requirePermission title={t("health.title")} description={t("admin.health_description")}>

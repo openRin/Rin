@@ -73,6 +73,20 @@ export const users = sqliteTable("users", {
     updatedAt: updated_at,
 });
 
+export const apiKeys = sqliteTable("api_keys", {
+    id: integer("id").primaryKey(),
+    name: text("name").notNull(),
+    keyPrefix: text("key_prefix").notNull(),
+    keyHash: text("key_hash").notNull().unique(),
+    scopes: text("scopes").default("[]").notNull(),
+    createdByUid: integer("created_by_uid").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    lastUsedAt: integer("last_used_at", { mode: 'timestamp' }),
+    expiresAt: integer("expires_at", { mode: 'timestamp' }),
+    revokedAt: integer("revoked_at", { mode: 'timestamp' }),
+    createdAt: created_at,
+    updatedAt: updated_at,
+});
+
 export const comments = sqliteTable("comments", {
     id: integer("id").primaryKey(),
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
@@ -131,6 +145,13 @@ export const commentsRelations = relations(comments, ({ one }) => ({
     }),
     user: one(users, {
         fields: [comments.userId],
+        references: [users.id],
+    }),
+}));
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+    createdByUser: one(users, {
+        fields: [apiKeys.createdByUid],
         references: [users.id],
     }),
 }));

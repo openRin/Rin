@@ -10,7 +10,8 @@
     "queue_status_description": "AI 要約キューの進行状況、最近のタスク結果、失敗内容を確認します。",
     "settings_description": "サイトの挙動、連携設定、公開ルールを一か所で管理します。",
     "title": "管理画面",
-    "writing_description": "非公開の管理ワークスペースから記事を作成、編集、公開します。"
+    "writing_description": "非公開の管理ワークスペースから記事を作成、編集、公開します。",
+    "api_keys_description": "外部エージェント向けの API キーを作成、確認、無効化します。"
   },
   "compat_tasks": {
     "title": "互換タスク",
@@ -272,47 +273,47 @@
         "success": "ファビコンの更新が成功しました"
       }
     },
-  "footer": {
-    "desc": "サイトのフッターコンテンツを設定する（HTML）",
-    "title": "フッター"
-  },
-  "webhook": {
-    "title": "Webhook",
-    "url": {
-      "title": "Webhook URL",
-      "desc": "コメント通知と友達リンク通知に使う webhook URL を設定します。ここでもテンプレート変数が使えるので、GET の query string にも利用できます。"
+    "footer": {
+      "desc": "サイトのフッターコンテンツを設定する（HTML）",
+      "title": "フッター"
     },
-    "method": {
-      "title": "Webhook Method",
-      "desc": "webhook リクエストで使う HTTP Method を設定します。GET、POST、PUT、PATCH などに対応します。"
+    "webhook": {
+      "title": "Webhook",
+      "url": {
+        "title": "Webhook URL",
+        "desc": "コメント通知と友達リンク通知に使う webhook URL を設定します。ここでもテンプレート変数が使えるので、GET の query string にも利用できます。"
+      },
+      "method": {
+        "title": "Webhook Method",
+        "desc": "webhook リクエストで使う HTTP Method を設定します。GET、POST、PUT、PATCH などに対応します。"
+      },
+      "content_type": {
+        "title": "Webhook Content-Type",
+        "desc": "Webhook リクエスト送信時の Content-Type を設定します。例: application/json, text/plain"
+      },
+      "headers": {
+        "title": "Webhook Headers",
+        "desc": "JSON テンプレートで webhook ヘッダーをカスタマイズします。使える変数は本文テンプレートと同じです。",
+        "label": "Webhook headers JSON"
+      },
+      "body_template": {
+        "title": "Webhook ボディテンプレート",
+        "desc": "送信する webhook リクエスト本文をカスタマイズします。使用可能変数: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}。",
+        "label": "Webhook ボディテンプレート"
+      },
+      "test": {
+        "title": "テスト Webhook を送信",
+        "desc": "このページ上の現在の webhook 設定でテストリクエストを送信します。未保存の値もそのまま使われます。",
+        "button": "テスト送信",
+        "sending": "送信中...",
+        "placeholder": "任意のテストメッセージ。空の場合は既定のテスト payload を使います。",
+        "success": "Webhook テストの送信に成功しました",
+        "failed": "Webhook テストの送信に失敗しました"
+      }
     },
-    "content_type": {
-      "title": "Webhook Content-Type",
-      "desc": "Webhook リクエスト送信時の Content-Type を設定します。例: application/json, text/plain"
+    "maintenance": {
+      "title": "メンテナンス"
     },
-    "headers": {
-      "title": "Webhook Headers",
-      "desc": "JSON テンプレートで webhook ヘッダーをカスタマイズします。使える変数は本文テンプレートと同じです。",
-      "label": "Webhook headers JSON"
-    },
-    "body_template": {
-      "title": "Webhook ボディテンプレート",
-      "desc": "送信する webhook リクエスト本文をカスタマイズします。使用可能変数: {{event}}, {{message}}, {{title}}, {{url}}, {{username}}, {{content}}, {{description}}。",
-      "label": "Webhook ボディテンプレート"
-    },
-    "test": {
-      "title": "テスト Webhook を送信",
-      "desc": "このページ上の現在の webhook 設定でテストリクエストを送信します。未保存の値もそのまま使われます。",
-      "button": "テスト送信",
-      "sending": "送信中...",
-      "placeholder": "任意のテストメッセージ。空の場合は既定のテスト payload を使います。",
-      "success": "Webhook テストの送信に成功しました",
-      "failed": "Webhook テストの送信に失敗しました"
-    }
-  },
-  "maintenance": {
-    "title": "メンテナンス"
-  },
     "friend": {
       "apply": {
         "desc": "他のユーザーが友人リンクを申請できるようにする（審査が必要）",
@@ -565,33 +566,33 @@
           "summary": "login.enabled が無効です。",
           "suggestion": "このインスタンスで対話的な管理アクセスが必要なら、設定でログインを有効にしてください。"
         },
-      "missing": {
-        "impact": "ログイン入口は表示されますが、利用可能なログイン方法がありません。",
-        "summary": "GitHub OAuth とパスワードログインのどちらも設定されていません。",
-        "suggestion": "RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET または ADMIN_USERNAME/ADMIN_PASSWORD を設定してください。"
-      },
-      "default_password": {
-        "impact": "管理者アカウントがまだ既定のユーザー名とパスワードを使っており、重大なセキュリティリスクです。",
-        "summary": "ADMIN_USERNAME/ADMIN_PASSWORD が admin / admin123 のままです。",
-        "suggestion": "サイトを公開する前に既定のユーザー名またはパスワードを直ちに変更してください。"
-      },
-      "oauth_missing": {
-        "impact": "現在はローカルのパスワードアカウントしか使えず、他のユーザーは OAuth でログインしてコメントできません。",
-        "summary": "GitHub OAuth が設定されていません。",
-        "suggestion": "他のユーザーにもログインを許可するなら、RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET を設定してください。"
-      },
-      "ready": {
-        "impact": "管理ログインが利用可能です。",
-        "summary": "OAuth ログインが設定済みで、現在のパスワードログインも既定の認証情報を使っていません。",
-        "suggestion": "対応は不要です。"
-      },
-      "details": {
-        "github_configured": "GitHub OAuth: 設定済み",
-        "github_missing": "GitHub OAuth: 未設定",
-        "password_configured": "パスワードログイン: 設定済み",
-        "password_missing": "パスワードログイン: 未設定",
-        "password_default": "パスワードログイン: 既定の認証情報を使用中"
-      }
+        "missing": {
+          "impact": "ログイン入口は表示されますが、利用可能なログイン方法がありません。",
+          "summary": "GitHub OAuth とパスワードログインのどちらも設定されていません。",
+          "suggestion": "RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET または ADMIN_USERNAME/ADMIN_PASSWORD を設定してください。"
+        },
+        "default_password": {
+          "impact": "管理者アカウントがまだ既定のユーザー名とパスワードを使っており、重大なセキュリティリスクです。",
+          "summary": "ADMIN_USERNAME/ADMIN_PASSWORD が admin / admin123 のままです。",
+          "suggestion": "サイトを公開する前に既定のユーザー名またはパスワードを直ちに変更してください。"
+        },
+        "oauth_missing": {
+          "impact": "現在はローカルのパスワードアカウントしか使えず、他のユーザーは OAuth でログインしてコメントできません。",
+          "summary": "GitHub OAuth が設定されていません。",
+          "suggestion": "他のユーザーにもログインを許可するなら、RIN_GITHUB_CLIENT_ID/RIN_GITHUB_CLIENT_SECRET を設定してください。"
+        },
+        "ready": {
+          "impact": "管理ログインが利用可能です。",
+          "summary": "OAuth ログインが設定済みで、現在のパスワードログインも既定の認証情報を使っていません。",
+          "suggestion": "対応は不要です。"
+        },
+        "details": {
+          "github_configured": "GitHub OAuth: 設定済み",
+          "github_missing": "GitHub OAuth: 未設定",
+          "password_configured": "パスワードログイン: 設定済み",
+          "password_missing": "パスワードログイン: 未設定",
+          "password_default": "パスワードログイン: 既定の認証情報を使用中"
+        }
       },
       "storage": {
         "title": "オブジェクトストレージ",
@@ -710,5 +711,67 @@
   },
   "sort_latest": "新着",
   "sort_popular": "人気",
-  "total_tags": "全 {{count}} 個のタグ"
+  "total_tags": "全 {{count}} 個のタグ",
+  "api_keys": {
+    "title": "API キー",
+    "loading": "API キーを読み込んでいます...",
+    "empty": "まだ API キーは作成されていません。",
+    "copied": "クリップボードにコピーしました。",
+    "never": "なし",
+    "revoke": "無効化",
+    "create": {
+      "title": "エージェント用 API キーを作成",
+      "description": "Rin のコンテンツを読み書きする外部エージェント向け Bearer トークンを発行します。",
+      "name_label": "ラベル",
+      "name_placeholder": "Agent Writer",
+      "expiry_label": "有効期限",
+      "submit": "キーを作成",
+      "creating": "作成中..."
+    },
+    "expiry": {
+      "never": "無期限",
+      "30d": "30 日後に期限切れ",
+      "90d": "90 日後に期限切れ",
+      "7d": "7 日後に期限切れ",
+      "14d": "14 日後に期限切れ",
+      "180d": "180 日後に期限切れ",
+      "365d": "365 日後に期限切れ"
+    },
+    "secret": {
+      "title": "今すぐシークレットを保存してください",
+      "description": "完全なキーはこの一度だけ表示されます。閉じる前にエージェントツールへ保存してください。",
+      "copy": "キーをコピー",
+      "dismiss": "閉じる"
+    },
+    "list": {
+      "title": "既存のキー",
+      "description": "状態、最終使用時刻、有効期限を確認できます。"
+    },
+    "status": {
+      "active": "有効",
+      "revoked": "無効"
+    },
+    "fields": {
+      "created_at": "作成日時: {{date}}",
+      "last_used_at": "最終使用: {{date}}",
+      "expires_at": "有効期限: {{date}}",
+      "capabilities": "権限: {{scopes}}"
+    },
+    "docs": {
+      "title": "エージェント設定",
+      "description": "Rin を API キーで利用する外部エージェント向けの組み込み手順です。",
+      "scope_note": "これらのキーは、投稿作成、下書き更新、モーメント投稿、メディアアップロードなどのコンテンツ作業向けです。",
+      "routes_note": "管理設定系の API は API キーでは使えません。設定や診断は管理者セッションで行ってください。",
+      "copy_curl": "curl 例をコピー",
+      "open_skill": "組み込み Skill を開く"
+    },
+    "revoke_confirm": {
+      "title": "API キーを無効化",
+      "description": "{{name}} を無効化しますか。このキーを使う外部エージェントはすぐに動作しなくなります。"
+    },
+    "errors": {
+      "name_required": "ラベルを入力してください。",
+      "create_failed": "API キーの作成に失敗しました。"
+    }
+  }
 }
