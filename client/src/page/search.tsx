@@ -4,8 +4,9 @@ import { useTranslation } from "react-i18next"
 import { Link, useSearch } from "wouter"
 import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
-import { client } from "../main"
-import { headersWithAuth } from "../utils/auth"
+import { client } from "../app/runtime"
+
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
 import { tryInt } from "../utils/int"
 
@@ -17,22 +18,21 @@ type FeedsData = {
 
 export function SearchPage({ keyword }: { keyword: string }) {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const query = new URLSearchParams(useSearch());
     const [status, setStatus] = useState<'loading' | 'idle'>('idle')
     const [feeds, setFeeds] = useState<FeedsData>()
     const page = tryInt(1, query.get("page"))
-    const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
+    const limit = tryInt(siteConfig.pageSize, query.get("limit"))
+    const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 md:columns-2" : "wauto flex flex-col";
     const ref = useRef("")
     function fetchFeeds() {
         if (!keyword) return
-        client.search({ keyword }).get({
-            query: {
-                page: page,
-                limit: limit
-            },
-            headers: headersWithAuth()
+        client.search.search(keyword, {
+            page,
+            limit,
         }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
+            if (data) {
                 setFeeds(data)
                 setStatus('idle')
             }
@@ -49,10 +49,10 @@ export function SearchPage({ keyword }: { keyword: string }) {
     return (
         <>
             <Helmet>
-                <title>{`${title} - ${process.env.NAME}`}</title>
+                <title>{`${title} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={title} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>
@@ -69,21 +69,21 @@ export function SearchPage({ keyword }: { keyword: string }) {
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto flex flex-col">
+                        <div className={feedListClass}>
                             {feeds?.data.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}
                         </div>
                         <div className="wauto flex flex-row items-center mt-4 ani-show">
                             {page > 1 &&
-                                <Link href={`?page=${(page - 1)}`}
+                                <Link href={`?page=${(page - 1)}&limit=${limit}`}
                                     className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
                                     {t('previous')}
                                 </Link>
                             }
                             <div className="flex-1" />
                             {feeds?.hasNext &&
-                                <Link href={`?page=${(page + 1)}`}
+                                <Link href={`?page=${(page + 1)}&limit=${limit}`}
                                     className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
                                     {t('next')}
                                 </Link>

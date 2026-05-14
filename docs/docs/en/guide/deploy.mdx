@@ -1,0 +1,247 @@
+# Rin Deployment Guide
+
+This document will guide you through deploying the Rin blog system to Cloudflare from scratch.
+
+## Prerequisites
+
+- A GitHub account
+- A Cloudflare account (free tier is sufficient)
+- Approximately 10-15 minutes of your time
+
+## Deployment Steps
+
+### Step 1: Fork the Repository
+
+1. Visit the [Rin GitHub Repository](https://github.com/openRin/Rin)
+2. Click the **"Fork"** button in the top right corner
+   ![1000000657](https://github.com/OXeu/Rin/assets/36541432/df3607ca-a8a9-49b8-92ce-6b348afeb13f)
+3. Select your personal account, keep the default settings, and click **"Create fork"**
+
+### Obtaining Account ID and API Token
+
+Refer to https://developers.cloudflare.com/workers/wrangler/ci-cd/ to configure the Cloudflare login environment variables required for GitHub Actions.
+
+**Account ID**: Click on any domain you have bound. After entering, you can find the `Account ID` on the right side (you need to scroll down a bit).
+
+**Creating an API Token**: Click your `Profile` icon in the top right > `My Profile` > `API Tokens` > `Create Token`, and select the `Edit Cloudflare Workers` template:
+![1000000663](/cloudflare-api-key-en.png)
+
+Save the token after creation.
+
+### Step 2: Configure GitHub Secrets
+
+1. On your forked repository page, click the **"Settings"** tab
+2. In the left menu, expand **"Secrets and variables"** and select **"Actions"**
+3. Click the **"New repository secret"** button to add the following secrets:
+
+#### Required Secrets
+
+| Secret Name | Value | Description |
+|-------------|-------|-------------|
+| `CLOUDFLARE_API_TOKEN` | `ThEApiKeyIsRaNdomStR1ngNearly40CharsLong` | Cloudflare API Token |
+| `CLOUDFLARE_ACCOUNT_ID` | `0123456789abcdef0123456789abcdef` | Cloudflare Account ID |
+| `JWT_SECRET` | Any random string | JWT signing key |
+
+> **Tip**: `JWT_SECRET` can be any random string of any length, for example: `MySecretKey123!@#`
+
+#### Login Configuration Secrets
+
+Rin currently supports username/password login and GitHub OAuth login. You can choose one or configure both.
+
+**Username/Password Login (Recommended)**
+
+| Secret Name | Value | Description |
+|-------------|-------|-------------|
+| `ADMIN_USERNAME` | Your desired username | Login username |
+| `ADMIN_PASSWORD` | Your desired password | Login password |
+
+**GitHub OAuth Login (Optional)**
+
+If you want to use your GitHub account to log in, please refer to the [Advanced Configuration](#github-oauth-configuration) section to add OAuth configuration.
+
+> **Tip**: Username/password login and GitHub OAuth login can be enabled simultaneously. Users can freely choose their preferred login method on the login page.
+
+### Step 3: Trigger Deployment
+
+1. Go to the **"Actions"** tab in your repository
+2. Select the **"Build"** workflow on the left
+3. Click the **"Run workflow"** button
+4. Keep the default branch (main) and click **"Run workflow"**
+
+The deployment process takes approximately 3-5 minutes. You can view the deployment progress on the Actions page.
+
+> **Tip**: The deployment script will automatically configure frontend environment variables; no manual configuration is needed. You can customize the site name, description, etc., in GitHub Variables (optional).
+
+### Step 4: Access Your Blog
+
+After deployment is complete, you can access your blog through the following addresses:
+
+- **Frontend**: `https://rin-client.pages.dev` (or the name you set in `PAGES_NAME`)
+- **Backend API**: `https://rin-server.your-account-id.workers.dev`
+
+### Step 5: First Login
+
+1. Visit the frontend page
+2. Click the login icon in the top right corner
+3. Log in using the `ADMIN_USERNAME` and `ADMIN_PASSWORD` you set in Secrets
+4. After logging in, click your avatar to enter the **Profile** page, where you can modify your nickname and upload an avatar
+
+## Publishing Your First Post
+
+1. After logging in, click the **"Write"** button in the top right corner
+2. Fill in the article title and content
+3. Click the **"Publish"** button
+
+🎉 Congratulations! Your Rin blog has been successfully deployed and your first post has been published!
+
+---
+
+## Advanced Configuration
+
+### Custom Domain
+
+1. Log in to the Cloudflare Dashboard
+2. Go to **Pages** > Your Project > **Custom Domains**
+3. Follow the prompts to add your domain
+
+### Image Storage Configuration
+
+Rin supports two storage methods: **Cloudflare R2** (recommended) or **S3-compatible storage**.
+
+#### Using Cloudflare R2 (Recommended)
+
+If no S3 environment variables are configured, the deployment script will automatically attempt to use Cloudflare R2. You only need to set the following in GitHub Variables:
+
+| Variable Name | Description | Example |
+|--------------|-------------|---------|
+| `R2_BUCKET_NAME` | R2 bucket name | `my-blog-images` |
+
+The deployment script will automatically construct the R2 endpoint and access host. If you want to use a custom domain for images, you can additionally set:
+
+| Variable Name | Description | Example |
+|--------------|-------------|---------|
+| `S3_ACCESS_HOST` | Image access domain (optional) | `https://images.myblog.com` |
+
+#### Using S3-Compatible Storage
+
+If you need to use other S3-compatible storage (such as AWS S3, MinIO, etc.), you need to fully configure the following Secrets:
+
+| Secret Name | Description |
+|-------------|-------------|
+| `S3_ENDPOINT` | S3 endpoint address |
+| `S3_ACCESS_KEY_ID` | Access Key ID |
+| `S3_SECRET_ACCESS_KEY` | Secret Access Key |
+| `S3_BUCKET` | Bucket name |
+
+And the following Variables (optional):
+
+| Variable Name | Description | Default |
+|--------------|-------------|---------|
+| `S3_ACCESS_HOST` | Image access domain | Same as `S3_ENDPOINT` |
+| `S3_REGION` | Storage region | `auto` |
+| `S3_FOLDER` | Image storage path | `images/` |
+| `S3_FORCE_PATH_STYLE` | Use path-style URLs | `false` |
+
+### GitHub OAuth Configuration
+
+If you want to log in with your GitHub account:
+
+1. Visit GitHub Settings > Developer settings > OAuth Apps
+2. Click **"New OAuth App"**
+3. Fill in the application information:
+    - **Application name**: Rin Blog
+    - **Homepage URL**: Your frontend page address
+    - **Authorization callback URL**: `https://your-worker-name.your-account-id.workers.dev/api/user/github/callback`
+4. After creation, obtain the Client ID and Client Secret
+5. Add to GitHub Secrets:
+    - `RIN_GITHUB_CLIENT_ID`
+    - `RIN_GITHUB_CLIENT_SECRET`
+
+### Webhook Notifications
+
+If you want Rin to send comment and friend-link notifications to a bot, chat service, or automation platform, see the [Webhook Guide](./webhook).
+
+---
+
+## Troubleshooting
+
+### Deployment Failed
+
+1. Check if GitHub Secrets are configured correctly
+2. View the Actions logs for detailed error messages
+3. Ensure your Cloudflare account has permissions for Workers, Pages, and D1
+
+### Cannot Log In
+
+1. Confirm that `ADMIN_USERNAME` and `ADMIN_PASSWORD` are set correctly
+2. Check Worker logs for authentication errors
+3. Clear browser cache and try again
+
+### Database Migration Failed
+
+The deployment script will automatically run database migrations. If it fails:
+
+1. Manually go to Cloudflare Dashboard > D1
+2. Find your database and click **"Console"**
+3. Manually execute the migration SQL (refer to files in the `server/migrations/` directory)
+
+---
+
+## GitHub Actions Workflows
+
+The repository includes several GitHub Actions workflows that automate testing, building, and deployment:
+
+### CI Workflow (`ci.yml`)
+Runs on every push and pull request to check code quality:
+- TypeScript type checking
+- Code formatting verification
+- Build verification
+
+### Test Workflow (`test.yml`)
+Runs comprehensive tests on every push and PR:
+- **Server tests**: Unit and integration tests using Bun
+- **Client tests**: Component tests using Vitest
+- **Coverage report**: Uploads coverage to Codecov
+
+### Build Workflow (`build.yml`)
+Runs on pushes to main and develop branches:
+- Builds both frontend and backend
+- Validates build artifacts
+- Triggers deployment workflow on success
+
+### Deploy Workflow (`deploy.yml`)
+Triggered manually or by build completion:
+- Deploys frontend to Cloudflare Pages
+- Deploys backend to Cloudflare Workers
+- Runs database migrations
+
+### PR Preview
+When you create a Pull Request, a preview deployment will be automatically generated so you can test changes before merging.
+
+---
+
+## Updating Your Blog
+
+When a new version is released:
+
+1. Click **"Sync fork"** on your forked repository page
+2. Click **"Update branch"**
+3. Deployment will be triggered automatically
+
+Or update manually:
+
+```bash
+git remote add upstream https://github.com/openRin/Rin.git
+git fetch upstream
+git checkout main
+git merge upstream/main
+git push origin main
+```
+
+---
+
+## Need Help?
+
+- 📖 [Full Documentation](https://docs.openrin.org)
+- 🐛 [GitHub Issues](https://github.com/openRin/Rin/issues)
+- 💬 [GitHub Discussions](https://github.com/openRin/Rin/discussions)

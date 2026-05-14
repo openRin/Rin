@@ -2,8 +2,8 @@ import {useEffect, useRef, useState} from "react"
 import {Helmet} from 'react-helmet'
 import {Link} from "wouter"
 import {Waiting} from "../components/loading"
-import {client} from "../main"
-import {headersWithAuth} from "../utils/auth"
+import { client } from "../app/runtime"
+import {useSiteConfig} from "../hooks/useSiteConfig";
 import {siteName} from "../utils/constants"
 import {useTranslation} from "react-i18next";
 
@@ -18,25 +18,24 @@ export function TimelinePage() {
     const [length, setLength] = useState(0)
     const ref = useRef(false)
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     function fetchFeeds() {
-        client.feed.timeline.get({
-            headers: headersWithAuth()
-        })
+        client.feed.timeline()
         .then(({ data }) => {
-            if (data && typeof data !== 'string') {
+            if (data) {
                 const arr = Array.isArray(data) ? data : []
                 setLength(arr.length)
                 // 兼容的分组逻辑
                 const groups = (Object.groupBy
                     ? Object.groupBy(arr, ({ createdAt }) => new Date(createdAt).getFullYear())
-                    : arr.reduce<Record<number, FeedItem[]>>((acc, item) => {
+                    : arr.reduce<Record<number, any[]>>((acc, item) => {
                         const key = new Date(item.createdAt).getFullYear()
                         ;(acc[key] ||= []).push(item)
                         return acc
                     }, {})
                 )
 
-                setFeeds(groups)
+                setFeeds(groups as any)
             }
         })
         .catch(err => {
@@ -52,10 +51,10 @@ export function TimelinePage() {
     return (
         <>
             <Helmet>
-                <title>{`${t('timeline')} - ${process.env.NAME}`}</title>
+                <title>{`${t('timeline')} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('timeline')} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>

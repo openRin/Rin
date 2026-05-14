@@ -1,17 +1,18 @@
 import {useEffect} from "react";
-import {setCookie} from "typescript-cookie";
-import {useLocation, useSearch} from "wouter";
+import {useLocation} from "wouter";
+import { setAuthToken } from "../utils/auth";
 
 export function CallbackPage() {
-    const searchParams = new URLSearchParams(useSearch());
     const [, setLocation] = useLocation();
     useEffect(() => {
-        const token = searchParams.get('token');
+        // Try to get token from URL query parameter (for cross-domain OAuth)
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
         if (token) {
-            setCookie('token', token, { expires: 7, path: '/' })
-            setLocation("/");
+            setAuthToken(token);
         }
-    }, [searchParams]);
+        setLocation("/");
+    }, []);
     return (<>
         <div className="w-screen h-screen flex justify-center items-center">
             <div className="text-center text-black p-4 text-xl font-bold">

@@ -41,4 +41,35 @@
     .writeauto {
       @apply w-full md:w-7/12 lg:w-8/12 duration-300;
     }
+
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+
+    input[type="color"].color-input-reset {
+      appearance: none;
+      -webkit-appearance: none;
+      border: none;
+      background: transparent;
+    }
+
+    input[type="color"].color-input-reset::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    input[type="color"].color-input-reset::-webkit-color-swatch {
+      border: none;
+      border-radius: 9999px;
+    }
+
+    input[type="color"].color-input-reset::-moz-color-swatch {
+      border: none;
+      border-radius: 9999px;
+    }
+
   }

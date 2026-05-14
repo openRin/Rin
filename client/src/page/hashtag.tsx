@@ -3,9 +3,11 @@ import { Helmet } from 'react-helmet'
 import { useTranslation } from "react-i18next"
 import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
-import { client } from "../main"
-import { headersWithAuth } from "../utils/auth"
+import { client } from "../app/runtime"
+
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
+
 
 type FeedsData = {
     name: string;
@@ -33,16 +35,16 @@ type FeedsData = {
 
 export function HashtagPage({ name }: { name: string }) {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const [status, setStatus] = useState<'loading' | 'idle'>('idle')
     const [hashtag, setHashtag] = useState<FeedsData>()
+    const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 md:columns-2" : "wauto flex flex-col";
     const ref = useRef("")
     function fetchFeeds() {
         const nameDecoded = decodeURI(name)
-        client.tag({ name: nameDecoded }).get({
-            headers: headersWithAuth()
-        }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
-                setHashtag(data)
+        client.tag.get(nameDecoded).then(({ data }) => {
+            if (data) {
+                setHashtag(data as any)
                 setStatus('idle')
             }
         })
@@ -56,10 +58,10 @@ export function HashtagPage({ name }: { name: string }) {
     return (
         <>
             <Helmet>
-                <title>{`${hashtag?.name} - ${process.env.NAME}`}</title>
+                <title>{`${hashtag?.name} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={hashtag?.name} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>
@@ -76,7 +78,7 @@ export function HashtagPage({ name }: { name: string }) {
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto flex flex-col">
+                        <div className={feedListClass}>
                             {hashtag?.feeds?.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}

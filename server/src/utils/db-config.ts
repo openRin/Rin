@@ -1,108 +1,91 @@
-import { eq } from "drizzle-orm";
-import { getDB } from "./di";
-import { info } from "../db/schema";
+import type { AIConfig } from "@rin/api";
+import { AI_CONFIG_PREFIX, DEFAULT_AI_CONFIG } from "@rin/config";
 
-/**
- * Database-backed configuration storage for sensitive data like API keys
- * This stores configurations in the D1 database instead of S3
- */
-
-// Prefix for AI summary related configurations
-const AI_CONFIG_PREFIX = "ai_summary.";
-
-export interface AIConfig {
-    enabled: boolean;
-    provider: string;
-    model: string;
-    api_key: string;
-    api_url: string;
-}
-
-const defaultAIConfig: AIConfig = {
-    enabled: false,
-    provider: "openai",
-    model: "gpt-4o-mini",
-    api_key: "",
-    api_url: "https://api.openai.com/v1/chat/completions",
+type ConfigReader = {
+    get(key: string): Promise<unknown>;
 };
 
-/**
- * Get a configuration value from the database
- */
-export async function getDBConfig(key: string): Promise<string | null> {
-    const db = getDB();
-    const result = await db.select().from(info).where(eq(info.key, key)).get();
-    return result?.value ?? null;
-}
+type ConfigWriter = ConfigReader & {
+    set(key: string, value: unknown, save?: boolean): Promise<void>;
+    save(): Promise<void>;
+};
 
-/**
- * Set a configuration value in the database (upsert)
- */
-export async function setDBConfig(key: string, value: string): Promise<void> {
-    const db = getDB();
-    // Use SQLite's INSERT OR REPLACE to handle upsert
-    await db.insert(info)
-        .values({ key, value })
-        .onConflictDoUpdate({
-            target: info.key,
-            set: { value }
-        });
-}
+const AI_CONFIG_FIELDS = ["enabled", "provider", "model", "api_key", "api_url"] as const;
 
-/**
- * Get AI configuration from database
- */
-export async function getAIConfig(): Promise<AIConfig> {
-    const config: AIConfig = { ...defaultAIConfig };
+export function readAIConfigFromValues(values: Record<string, unknown>): AIConfig {
+    const config: AIConfig = { ...DEFAULT_AI_CONFIG };
 
-    const enabled = await getDBConfig(AI_CONFIG_PREFIX + "enabled");
-    if (enabled !== null) config.enabled = enabled === "true";
+    const enabled = values[AI_CONFIG_PREFIX + "enabled"];
+    if (enabled != null) {
+        config.enabled = enabled === true || enabled === "true";
+    }
 
-    const provider = await getDBConfig(AI_CONFIG_PREFIX + "provider");
-    if (provider !== null) config.provider = provider;
+    const provider = values[AI_CONFIG_PREFIX + "provider"];
+    if (typeof provider === "string" && provider.length > 0) {
+        config.provider = provider;
+    }
 
-    const model = await getDBConfig(AI_CONFIG_PREFIX + "model");
-    if (model !== null) config.model = model;
+    const model = values[AI_CONFIG_PREFIX + "model"];
+    if (typeof model === "string") {
+        config.model = model;
+    }
 
-    const apiKey = await getDBConfig(AI_CONFIG_PREFIX + "api_key");
-    if (apiKey !== null) config.api_key = apiKey;
+    const apiKey = values[AI_CONFIG_PREFIX + "api_key"];
+    if (typeof apiKey === "string") {
+        config.api_key = apiKey;
+    }
 
-    const apiUrl = await getDBConfig(AI_CONFIG_PREFIX + "api_url");
-    if (apiUrl !== null) config.api_url = apiUrl;
+    const apiUrl = values[AI_CONFIG_PREFIX + "api_url"];
+    if (typeof apiUrl === "string") {
+        config.api_url = apiUrl;
+    }
 
     return config;
 }
 
-/**
- * Set AI configuration in database
- */
-export async function setAIConfig(updates: Partial<AIConfig>): Promise<void> {
-    if (updates.enabled !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "enabled", String(updates.enabled));
-    }
-    if (updates.provider !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "provider", updates.provider);
-    }
-    if (updates.model !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "model", updates.model);
-    }
-    if (updates.api_key !== undefined && updates.api_key.trim() !== "") {
-        // Only update API key if a new value is provided
-        await setDBConfig(AI_CONFIG_PREFIX + "api_key", updates.api_key);
-    }
-    if (updates.api_url !== undefined) {
-        await setDBConfig(AI_CONFIG_PREFIX + "api_url", updates.api_url);
-    }
+export function readAIConfigFromMap(values: Map<string, unknown>): AIConfig {
+    return readAIConfigFromValues(Object.fromEntries(values));
 }
 
-/**
- * Get AI config for frontend (with masked API key)
- */
-export async function getAIConfigForFrontend(): Promise<AIConfig & { api_key_set: boolean }> {
-    const config = await getAIConfig();
+export async function getAIConfig(config: ConfigReader): Promise<AIConfig> {
+    const values = await Promise.all(
+        AI_CONFIG_FIELDS.map(async (field) => [field, await config.get(AI_CONFIG_PREFIX + field)] as const),
+    );
+
+    return readAIConfigFromValues(
+        Object.fromEntries(values.map(([field, value]) => [AI_CONFIG_PREFIX + field, value])),
+    );
+}
+
+export async function getFrontendAIEnabled(config: ConfigReader): Promise<boolean> {
+    const enabled = await config.get(AI_CONFIG_PREFIX + "enabled");
+    return enabled == null ? DEFAULT_AI_CONFIG.enabled : enabled === true || enabled === "true";
+}
+
+export async function setAIConfig(config: ConfigWriter, updates: Partial<AIConfig>): Promise<void> {
+    for (const field of AI_CONFIG_FIELDS) {
+        const value = updates[field];
+        if (value === undefined) {
+            continue;
+        }
+
+        if (field === "api_key" && typeof value === "string" && value.trim() === "") {
+            continue;
+        }
+
+        await config.set(AI_CONFIG_PREFIX + field, value, false);
+    }
+
+    await config.save();
+}
+
+export async function getAIConfigForFrontend(
+    config: ConfigReader,
+): Promise<AIConfig & { api_key_set: boolean }> {
+    const aiConfig = await getAIConfig(config);
     return {
-        ...config,
-        api_key: "", // Never expose the actual key
-        api_key_set: config.api_key.length > 0,
+        ...aiConfig,
+        api_key: "",
+        api_key_set: aiConfig.api_key.length > 0,
     };
 }

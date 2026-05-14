@@ -1,0 +1,22 @@
+{
+  "name": "rin-cli",
+  "version": "0.3.0",
+  "description": "Rin CLI - Unified command line interface for Rin blog platform",
+  "type": "module",
+  "bin": {
+    "rin": "./bin/rin.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.930.0",
+    "puppeteer": "^24.7.1",
+    "strip-indent": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.2",
+    "typescript": "^5.0.0"
+  }
+}

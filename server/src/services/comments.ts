@@ -1,92 +1,123 @@
+import { Hono } from "hono";
+import type { AppContext } from "../core/hono-types";
 import { desc, eq } from "drizzle-orm";
-import Elysia, { t } from "elysia";
-import type { DB } from "../_worker";
-import type { Env } from "../db/db";
 import { comments, feeds, users } from "../db/schema";
-import { setup } from "../setup";
-import { ServerConfig } from "../utils/cache";
-import { Config } from "../utils/config";
-import { getDB, getEnv } from "../utils/di";
+import { profileAsync } from "../core/server-timing";
 import { notify } from "../utils/webhook";
+import { resolveWebhookConfig } from "./config-helpers";
 
-export function CommentService() {
-    const db: DB = getDB();
-    const env: Env = getEnv();
-    return new Elysia({ aot: false })
-        .use(setup())
-        .group('/feed/comment', (group) =>
-            group
-                .get('/:feed', async ({ params: { feed } }) => {
-                    const feedId = parseInt(feed);
-                    const comment_list = await db.query.comments.findMany({
-                        where: eq(comments.feedId, feedId),
-                        columns: { feedId: false, userId: false },
-                        with: {
-                            user: {
-                                columns: { id: true, username: true, avatar: true, permission: true }
-                            }
-                        },
-                        orderBy: [desc(comments.createdAt)]
-                    });
-                    return comment_list;
-                })
-                .post('/:feed', async ({ uid, set, params: { feed }, body: { content } }) => {
-                    if (!uid) {
-                        set.status = 401;
-                        return 'Unauthorized';
-                    }
-                    if (!content) {
-                        set.status = 400;
-                        return 'Content is required';
-                    }
-                    const feedId = parseInt(feed);
-                    const userId = parseInt(uid);
-                    const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
-                    if (!user) {
-                        set.status = 400;
-                        return 'User not found';
-                    }
-                    const exist = await db.query.feeds.findFirst({ where: eq(feeds.id, feedId) });
-                    if (!exist) {
-                        set.status = 400;
-                        return 'Feed not found';
-                    }
+export function CommentService(): Hono {
+    const app = new Hono();
 
-                    await db.insert(comments).values({
-                        feedId,
-                        userId,
-                        content
-                    });
+    app.get('/:feed', async (c: AppContext) => {
+        const db = c.get('db');
+        const feedId = parseInt(c.req.param('feed'));
+        
+        const comment_list = await profileAsync(c, 'comment_list_db', () => db.query.comments.findMany({
+            where: eq(comments.feedId, feedId),
+            columns: { feedId: false, userId: false },
+            with: {
+                user: {
+                    columns: { id: true, username: true, avatar: true, permission: true }
+                }
+            },
+            orderBy: [desc(comments.createdAt)]
+        }));
+        
+        return c.json(comment_list);
+    });
 
-                    const webhookUrl = await ServerConfig().get(Config.webhookUrl) || env.WEBHOOK_URL;
-                    // notify
-                    await notify(webhookUrl, `${env.FRONTEND_URL}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`);
-                    return 'OK';
-                }, {
-                    body: t.Object({
-                        content: t.String()
-                    })
-                })
-        )
-        .group('/comment', (group) =>
-            group
-                .delete('/:id', async ({ uid, admin, set, params: { id } }) => {
-                    if (uid === undefined) {
-                        set.status = 401;
-                        return 'Unauthorized';
-                    }
-                    const id_num = parseInt(id);
-                    const comment = await db.query.comments.findFirst({ where: eq(comments.id, id_num) });
-                    if (!comment) {
-                        set.status = 404;
-                        return 'Not found';
-                    }
-                    if (!admin && comment.userId !== parseInt(uid)) {
-                        set.status = 403;
-                        return 'Permission denied';
-                    }
-                    await db.delete(comments).where(eq(comments.id, id_num));
-                    return 'OK';
-                })
-        );
+    app.post('/:feed', async (c: AppContext) => {
+        const db = c.get('db');
+        const env = c.get('env');
+        const serverConfig = c.get('serverConfig');
+        const uid = c.get('uid');
+        const feedId = parseInt(c.req.param('feed'));
+        const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
+        const { content } = body;
+        
+        if (!uid) {
+            return c.text('Unauthorized', 401);
+        }
+        if (!content) {
+            return c.text('Content is required', 400);
+        }
+        
+        if (uid == undefined) {
+            return c.text('Invalid uid', 400);
+        }
+        
+        const user = await profileAsync(c, 'comment_create_user', () => db.query.users.findFirst({ where: eq(users.id, uid) }));
+        if (!user) {
+            return c.text('User not found', 400);
+        }
+        
+        const exist = await profileAsync(c, 'comment_create_feed', () => db.query.feeds.findFirst({ where: eq(feeds.id, feedId) }));
+        if (!exist) {
+            return c.text('Feed not found', 400);
+        }
+
+        await profileAsync(c, 'comment_create_insert', () => db.insert(comments).values({
+            feedId,
+            userId: uid,
+            content
+        }));
+
+        const {
+            webhookUrl,
+            webhookMethod,
+            webhookContentType,
+            webhookHeaders,
+            webhookBodyTemplate,
+        } = await profileAsync(c, 'comment_create_webhook_config', () => resolveWebhookConfig(serverConfig, env));
+        const frontendUrl = new URL(c.req.url).origin;
+        try {
+            await profileAsync(c, 'comment_create_notify', () => notify(
+                webhookUrl || "",
+                {
+                    event: "comment.created",
+                    message: `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`,
+                    title: exist.title || "",
+                    url: `${frontendUrl}/feed/${feedId}`,
+                    username: user.username,
+                    content,
+                },
+                {
+                    method: webhookMethod,
+                    contentType: webhookContentType,
+                    headers: webhookHeaders,
+                    bodyTemplate: webhookBodyTemplate,
+                },
+            ));
+        } catch (error) {
+            console.error("Failed to send comment webhook", error);
+        }
+        return c.text('OK');
+    });
+
+    app.delete('/:id', async (c: AppContext) => {
+        const db = c.get('db');
+        const uid = c.get('uid');
+        const admin = c.get('admin');
+        
+        if (uid === undefined) {
+            return c.text('Unauthorized', 401);
+        }
+        
+        const id_num = parseInt(c.req.param('id'));
+        const comment = await profileAsync(c, 'comment_delete_lookup', () => db.query.comments.findFirst({ where: eq(comments.id, id_num) }));
+        
+        if (!comment) {
+            return c.text('Not found', 404);
+        }
+        
+        if (!admin && comment.userId !== uid) {
+            return c.text('Permission denied', 403);
+        }
+        
+        await profileAsync(c, 'comment_delete_db', () => db.delete(comments).where(eq(comments.id, id_num)));
+        return c.text('OK');
+    });
+
+    return app;
 }

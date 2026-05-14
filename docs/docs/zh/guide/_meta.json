@@ -1,0 +1,13 @@
+[
+  "index",
+  "deploy",
+  "development",
+  "webhook",
+  "rss",
+  "migration",
+  "changelog",
+  "testing",
+  "contribution",
+  "commit-convention",
+  "release"
+]

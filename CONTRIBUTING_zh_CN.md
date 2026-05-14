@@ -6,16 +6,16 @@
 
 # Commit-msg 钩子
 
-我们在 `scripts/commit-msg.sh` 中有一个示例 commit-msg hook。请运行以下命令设置：
+我们在 `cli/templates/git-commit-msg.sh` 中有一个示例 commit-msg hook。请运行以下命令设置：
 
 ```sh
-ln -s ../../scripts/commit-msg.sh ./.git/hooks/commit-msg
+ln -s ../../cli/templates/git-commit-msg.sh ./.git/hooks/commit-msg
 ```
 
-Windows 下请直接将 `commit-msg.sh` 文件复制到 `.git/hooks/commit-msg`。
+Windows 下请直接将 `cli/templates/git-commit-msg.sh` 复制到 `.git/hooks/commit-msg`。
 
 ```powershell
-cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
+cp .\cli\templates\git-commit-msg.sh .\.git\hooks\commit-msg
 ```
 
 这将在每次提交之前运行以下检查：
@@ -48,16 +48,16 @@ cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
 6. 执行数据库迁移
    > [!TIP]  
    > 如果您的数据库名称(`wrangler.toml`中`database_name`)不为 `rin`\
-   > 请在执行迁移之前修改 `scripts/dev-migrator.sh` 中的 `DB_NAME` 字段
+   > 请在执行迁移之前通过本地环境变量或 CLI 参数指定 `DB_NAME`
     ```sh
-    bun m
+    bun run db:migrate
     ```
 
 7. 配置 `.dev.vars` 文件
    将 `.dev.example.vars` 复制到 `.dev.vars` 并填写必要信息
    > [!TIP]   
    > 通常情况下，您需要填写 `RIN_GITHUB_CLIENT_ID` 和 `RIN_GITHUB_CLIENT_SECRET` 以及 `JWT_SECRET` 三项 \
-   > 开发环境下需要单独创建一个 Github OAuth 服务，回调地址为 `http://localhost:11498/user/github/callback` \
+   > 开发环境下需要单独创建一个 Github OAuth 服务，回调地址为 `http://localhost:11498/api/user/github/callback` \\
    > 如果手动修改过 server 的监听端口，请同时修改回调地址中的端口号
 
 8. 启动开发服务器

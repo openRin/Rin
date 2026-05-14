@@ -3,9 +3,10 @@ import { Helmet } from 'react-helmet'
 import { Link, useSearch } from "wouter"
 import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
-import { client } from "../main"
+import { client } from "../app/runtime"
 import { ProfileContext } from "../state/profile"
-import { headersWithAuth } from "../utils/auth"
+
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
 import { tryInt } from "../utils/int"
 import { useTranslation } from "react-i18next";
@@ -24,6 +25,7 @@ type FeedsMap = {
 
 export function FeedsPage() {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const query = new URLSearchParams(useSearch());
     const profile = useContext(ProfileContext);
     const [listState, _setListState] = useState<FeedType>(query.get("type") as FeedType || 'normal')
@@ -34,18 +36,16 @@ export function FeedsPage() {
         normal: { size: 0, data: [], hasNext: false }
     })
     const page = tryInt(1, query.get("page"))
-    const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
+    const limit = tryInt(siteConfig.pageSize, query.get("limit"))
+    const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 ani-show md:columns-2" : "wauto flex flex-col ani-show";
     const ref = useRef("")
     function fetchFeeds(type: FeedType) {
-        client.feed.index.get({
-            query: {
-                page: page,
-                limit: limit,
-                type: type
-            },
-            headers: headersWithAuth()
+        client.feed.list({
+            page: page,
+            limit: limit,
+            type: type
         }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
+            if (data) {
                 setFeeds({
                     ...feeds,
                     [type]: data
@@ -55,7 +55,7 @@ export function FeedsPage() {
         })
     }
     useEffect(() => {
-        const key = `${query.get("page")} ${query.get("type")}`
+        const key = `${query.get("page")} ${query.get("type")} ${limit}`
         if (ref.current == key) return
         const type = query.get("type") as FeedType || 'normal'
         if (type !== listState) {
@@ -64,14 +64,14 @@ export function FeedsPage() {
         setStatus('loading')
         fetchFeeds(type)
         ref.current = key
-    }, [query.get("page"), query.get("type")])
+    }, [limit, query.get("page"), query.get("type")])
     return (
         <>
             <Helmet>
-                <title>{`${t('article.title')} - ${process.env.NAME}`}</title>
+                <title>{`${t('article.title')} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('article.title')} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>
@@ -98,7 +98,7 @@ export function FeedsPage() {
                         </div>
                     </div>
                     <Waiting for={status === 'idle'}>
-                        <div className="wauto flex flex-col ani-show">
+                        <div className={feedListClass}>
                             {feeds[listState].data.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}

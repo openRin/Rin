@@ -6,16 +6,16 @@ We are happy to accept your patches and contributions to this project. You just 
 
 # Commit-msg hooks
 
-We have a sample commit-msg hook in `scripts/commit-msg.sh`. Please run the following command to set it up:
+We have a sample commit-msg hook in `cli/templates/git-commit-msg.sh`. Please run the following command to set it up:
 
 ```sh
-ln -s ../../scripts/commit-msg.sh commit-msg
+ln -s ../../cli/templates/git-commit-msg.sh commit-msg
 ```
 
-On Windows, copy the `commit-msg.sh` file directly to `.git/hooks/commit-msg`.
+On Windows, copy the `git-commit-msg.sh` file directly from `cli/templates/` to `.git/hooks/commit-msg`.
 
 ```powershell
-cp .\scripts\commit-msg.sh .\.git\hooks\commit-msg
+cp .\cli\templates\git-commit-msg.sh .\.git\hooks\commit-msg
 ```
 
 This will run the following checks before each commit:
@@ -49,9 +49,9 @@ If you want to skip the hook, run `git commit` with the `--no-verify` option.
 6. Perform the database migration
    > [!TIP]  
    > If your database name (`database_name` in `wrangler.toml`) is not `rin`\
-   > Please modify the `DB_NAME` field in `scripts/dev-migrator.sh` before performing the migration
+   > Please modify `DB_NAME` in your local env or pass the CLI option before performing the migration
     ```sh
-    bun m
+    bun run db:migrate
     ```
 
 7. Configuring the `.dev.vars' file
@@ -60,7 +60,7 @@ If you want to skip the hook, run `git commit` with the `--no-verify` option.
    > Typically, you need to fill in the `RIN_GITHUB_CLIENT_ID` and `RIN_GITHUB_CLIENT_SECRET` as well as
    the `JWT_SECRET` fields.
    > In the development environment, you need to create a separate GitHub OAuth service with a callback address
-   of `http://localhost:11498/user/github/callback` \
+   > of `http://localhost:11498/api/user/github/callback` \\
    > If you have changed the listening port of the server manually, please also change the port number in the callback
    address.
 

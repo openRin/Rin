@@ -1,88 +1,82 @@
 import { and, eq } from "drizzle-orm";
-import Elysia from "elysia";
-import type { DB } from "../_worker";
+import { Hono } from "hono";
+import type { DB } from "../core/hono-types";
+import { profileAsync } from "../core/server-timing";
 import { feedHashtags, hashtags } from "../db/schema";
-import { getDB } from "../utils/di";
-import { setup } from "../setup";
+import type { AppContext } from "../core/hono-types";
 
-export function TagService() {
-    const db: DB = getDB();
-    return new Elysia({ aot: false })
-        .use(setup())
-        .group('/tag', (group) =>
-            group
-                .get('/', async () => {
-                    const tag_list = await db.query.hashtags.findMany({
-                        with: {
-                            feeds: {
-                                columns: { feedId: true }
-                            }
-                        }
-                    });
-                    return tag_list.map((tag) => {
-                        return {
-                            ...tag,
-                            feeds: tag.feeds.length
-                        }
-                    })
-                })
-                .get('/:name', async ({ admin, set, params: { name } }) => {
-                    const nameDecoded = decodeURI(name)
-                    const tag = await db.query.hashtags.findFirst({
-                        where: eq(hashtags.name, nameDecoded),
-                        with: {
-                            feeds: {
-                                with: {
-                                    feed: {
-                                        columns: {
-                                            id: true, title: true, summary: true, content: true, createdAt: true, updatedAt: true,
-                                            draft: false,
-                                            listed: false
-                                        },
-                                        with: {
-                                            user: {
-                                                columns: { id: true, username: true, avatar: true }
-                                            },
-                                            hashtags: {
-                                                columns: {},
-                                                with: {
-                                                    hashtag: {
-                                                        columns: { id: true, name: true }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        where: (feeds: any) => admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
-                                    } as any
+export function TagService(): Hono {
+    const app = new Hono();
+
+    // GET /tag
+    app.get('/', async (c: AppContext) => {
+        const db = c.get('db');
+        
+        const tag_list = await profileAsync(c, 'tag_list_db', () => db.query.hashtags.findMany({
+            with: {
+                feeds: { columns: { feedId: true } }
+            }
+        }));
+        
+        const result = tag_list.map((tag: any) => ({
+            ...tag,
+            feeds: tag.feeds.length
+        }));
+        
+        return c.json(result);
+    });
+
+    // GET /tag/:name
+    app.get('/:name', async (c: AppContext) => {
+        const db = c.get('db');
+        const admin = c.get('admin');
+        const nameDecoded = decodeURI(c.req.param('name'));
+        
+        const tag = await profileAsync(c, 'tag_detail_db', () => db.query.hashtags.findFirst({
+            where: eq(hashtags.name, nameDecoded),
+            with: {
+                feeds: {
+                    with: {
+                        feed: {
+                            columns: {
+                                id: true, title: true, summary: true, content: true, 
+                                createdAt: true, updatedAt: true, draft: false, listed: false
+                            },
+                            with: {
+                                user: { columns: { id: true, username: true, avatar: true } },
+                                hashtags: {
+                                    columns: {},
+                                    with: { hashtag: { columns: { id: true, name: true } } }
                                 }
-                            }
-                        }
-                    });
-                    const tagFeeds = tag?.feeds.map((tag: any) => {
-                        if (!tag.feed) {
-                            return null;
-                        }
-                        return {
-                            ...tag.feed,
-                            hashtags: tag.feed.hashtags.map((tag: any) => tag.hashtag)
-                        }
-                    }).filter((feed: any) => feed !== null);
-                    if (!tag) {
-                        set.status = 404;
-                        return 'Not found';
+                            },
+                            where: (feeds: any) => admin ? undefined : and(eq(feeds.draft, 0), eq(feeds.listed, 1))
+                        } as any
                     }
-                    return {
-                        ...tag,
-                        feeds: tagFeeds
-                    };
-                })
-        );
+                }
+            }
+        }));
+        
+        const tagFeeds = tag?.feeds.map((tagFeed: any) => {
+            if (!tagFeed.feed) return null;
+            return {
+                ...tagFeed.feed,
+                hashtags: tagFeed.feed.hashtags.map((hashtag: any) => hashtag.hashtag)
+            };
+        }).filter((feed: any) => feed !== null);
+        
+        if (!tag) {
+            return c.text('Not found', 404);
+        }
+        
+        return c.json({ ...tag, feeds: tagFeeds });
+    });
+
+    return app;
 }
 
-
 export async function bindTagToPost(db: DB, feedId: number, tags: string[]) {
-    await db.delete(feedHashtags).where(
-        eq(feedHashtags.feedId, feedId));
+    await db.delete(feedHashtags).where(eq(feedHashtags.feedId, feedId));
+    
     for (const tag of tags) {
         const tagId = await getTagIdOrCreate(db, tag);
         await db.insert(feedHashtags).values({
@@ -97,13 +91,11 @@ async function getTagByName(db: DB, name: string) {
 }
 
 async function getTagIdOrCreate(db: DB, name: string) {
-    const tag = await getTagByName(db, name)
+    const tag = await getTagByName(db, name);
     if (tag) {
         return tag.id;
     } else {
-        const result = await db.insert(hashtags).values({
-            name
-        }).returning({ insertedId: hashtags.id });
+        const result = await db.insert(hashtags).values({ name }).returning({ insertedId: hashtags.id });
         if (result.length === 0) {
             throw new Error('Failed to insert');
         } else {

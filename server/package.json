@@ -1,21 +1,25 @@
 {
   "name": "rin-server",
+  "version": "0.3.0",
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "cf:deploy": "wrangler deploy",
-    "dev": "bun wrangler dev --port 11498",
-    "dev:cron": "bun wrangler dev --port 11498 --test-scheduled #see https://developers.cloudflare.com/workers/configuration/cron-triggers/#test-cron-triggers",
-    "cf-typegen": "wrangler types",
+    "build": "bun x wrangler deploy --dry-run --outdir=dist",
+    "cf:deploy": "bun x wrangler deploy",
+    "dev": "bun x wrangler dev --port 11498",
+    "dev:cron": "bun x wrangler dev --port 11498 --test-scheduled #see https://developers.cloudflare.com/workers/configuration/cron-triggers/#test-cron-triggers",
+    "cf-typegen": "bun x wrangler types",
     "db:gen": "bun drizzle-kit generate",
-    "preview": "wrangler pages dev dist --compatibility-date=2023-12-20"
+    "preview": "wrangler pages dev dist --compatibility-date=2023-12-20",
+    "migrate:visits": "bun run scripts/migrate-visits.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "check": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "^1.1.2",
     "drizzle-kit": "^0.21.2",
-    "wrangler": "^3.63.1",
     "@cloudflare/vitest-pool-workers": "^0.1.0",
-    "@cloudflare/workers-types": "^4.20240529.0",
     "typescript": "^5.0.4",
     "strip-indent": "^4.0.0"
   },
@@ -23,26 +27,21 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.583.0",
-    "@aws-sdk/s3-request-presigner": "^3.583.0",
-    "@elysiajs/cors": "1.0.2",
-    "@elysiajs/cron": "^1.0.3",
-    "@elysiajs/eden": "^1.0.13",
-    "@elysiajs/server-timing": "^1.0.2",
-    "arctic": "^1.9.0",
+    "@rin/api": "workspace:*",
+    "@rin/config": "workspace:*",
+    "arctic": "^3.7.0",
+    "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.30.10",
-    "elysia": "^1.0.21",
-    "elysia-oauth2": "1.2.0",
+    "fast-xml-parser": "^4.3.0",
     "feed": "^4.2.2",
+    "hono": "^4.12.2",
+    "html-to-md": "^0.8.5",
     "jose": "^5.3.0",
-    "reflect-metadata": "^0.2.2",
     "rehype-stringify": "^10.0.0",
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.0",
-    "typedi": "^0.10.0",
-    "unified": "^11.0.4",
-    "url": "^0.11.3"
+    "unified": "^11.0.4"
   },
   "trustedDependencies": [
     "es5-ext"

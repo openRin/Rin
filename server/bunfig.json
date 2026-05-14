@@ -1,0 +1,22 @@
+{
+  "coverage": {
+    "reporter": ["text", "json", "lcov"],
+    "exclude": [
+      "**/node_modules/**",
+      "**/tests/**",
+      "**/__tests__/**",
+      "**/*.test.ts",
+      "**/dist/**",
+      "**/drizzle/**"
+    ],
+    "include": [
+      "src/**/*.ts"
+    ],
+    "threshold": {
+      "lines": 70,
+      "functions": 70,
+      "branches": 60,
+      "statements": 70
+    }
+  }
+}

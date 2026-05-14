@@ -1,7 +1,8 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { Helmet } from 'react-helmet'
-import { client } from "../main"
-import { headersWithAuth } from "../utils/auth"
+import { client } from "../app/runtime"
+
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
 import { useTranslation } from "react-i18next"
 import { ProfileContext } from "../state/profile"
@@ -33,8 +34,9 @@ export function MomentsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingMoment, setEditingMoment] = useState<Moment | null>(null)
     const query = new URLSearchParams(useSearch());
-    const ref = useRef(false)
+    const ref = useRef("")
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const profile = useContext(ProfileContext);
     const { showAlert, AlertUI } = useAlert()
     const { showConfirm, ConfirmUI } = useConfirm()
@@ -43,7 +45,7 @@ export function MomentsPage() {
     const [hasNextPage, setHasNextPage] = useState(false)
     const [loadingMore, setLoadingMore] = useState(false)
     
-    const limit = tryInt(10, query.get("limit"), process.env.PAGE_SIZE)
+    const limit = tryInt(siteConfig.pageSize, query.get("limit"))
     
     function fetchMoments(page = 1, append = false) {
         if (loadingMore) return
@@ -55,21 +57,18 @@ export function MomentsPage() {
             setLoadingMore(true)
         }
         
-        client.moments.index.get({
-            query: {
-                page: page,
-                limit: limit
-            },
-            headers: headersWithAuth()
+        client.moments.list({
+            page: page,
+            limit: limit
         }).then(({ data }) => {
-            if (data && typeof data !== 'string') {
-                setLength(data.size)
+            if (data) {
+                setLength(data.data.length)
                 setHasNextPage(data.hasNext)
                 
                 if (append) {
-                    setMoments(prev => [...prev, ...data.data])
+                    setMoments(prev => [...prev, ...data.data] as any)
                 } else {
-                    setMoments(data.data)
+                    setMoments(data.data as any)
                 }
                 
                 setCurrentPage(page)
@@ -95,31 +94,31 @@ export function MomentsPage() {
         setLoading(true)
         
         if (editingMoment) {
-            client.moments({ id: editingMoment.id }).post(
-                { content },
-                { headers: headersWithAuth() }
-            ).then(() => {
-                setContent("")
-                setEditingMoment(null)
-                setIsModalOpen(false)
-                fetchMoments(1, false)
-                showAlert(t('update.success'))
-            }).catch(error => {
-                showAlert(t('update.failed$message', { message: error.message }))
+            client.moments.update(editingMoment.id, { content })
+            .then(({ error }) => {
+                if (error) {
+                    showAlert(t('update.failed$message', { message: error.value }))
+                } else {
+                    setContent("")
+                    setEditingMoment(null)
+                    setIsModalOpen(false)
+                    fetchMoments(1, false)
+                    showAlert(t('update.success'))
+                }
             }).finally(() => {
                 setLoading(false)
             })
         } else {
-            client.moments.index.post(
-                { content },
-                { headers: headersWithAuth() }
-            ).then(() => {
-                setContent("")
-                setIsModalOpen(false)
-                fetchMoments(1, false)
-                showAlert(t('publish.success'))
-            }).catch(error => {
-                showAlert(t('publish.failed$message', { message: error.message }))
+            client.moments.create({ content })
+            .then(({ error }) => {
+                if (error) {
+                    showAlert(t('publish.failed$message', { message: error.value }))
+                } else {
+                    setContent("")
+                    setIsModalOpen(false)
+                    fetchMoments(1, false)
+                    showAlert(t('publish.success'))
+                }
             }).finally(() => {
                 setLoading(false)
             })
@@ -137,13 +136,13 @@ export function MomentsPage() {
             t("delete.title"),
             t("delete.confirm"),
             () => {
-                client.moments({ id: id }).delete({}, {
-                    headers: headersWithAuth()
-                }).then(() => {
-                    fetchMoments(1, false)
-                    showAlert(t('delete.success'))
-                }).catch(error => {
-                    showAlert(t('delete.failed$message', { message: error.message }))
+                client.moments.delete(id).then(({ error }) => {
+                    if (error) {
+                        showAlert(t('delete.failed$message', { message: error.value }))
+                    } else {
+                        fetchMoments(1, false)
+                        showAlert(t('delete.success'))
+                    }
                 })
             }
         )
@@ -156,18 +155,19 @@ export function MomentsPage() {
     }
     
     useEffect(() => {
-        if (ref.current) return
+        const key = `${limit}`
+        if (ref.current === key) return
         fetchMoments(1, false)
-        ref.current = true
-    }, [])
+        ref.current = key
+    }, [limit])
     
     return (
         <>
             <Helmet>
-                <title>{`${t('moments.title')} - ${process.env.NAME}`}</title>
+                <title>{`${t('moments.title')} - ${siteConfig.name}`}</title>
                 <meta property="og:site_name" content={siteName} />
                 <meta property="og:title" content={t('moments.title')} />
-                <meta property="og:image" content={process.env.AVATAR} />
+                <meta property="og:image" content={siteConfig.avatar} />
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>

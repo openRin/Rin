@@ -1,0 +1,248 @@
+# Rin 部署指南
+
+本文档将指导您从零开始部署 Rin 博客系统到 Cloudflare。
+
+## 前置要求
+
+- 一个 GitHub 账号
+- 一个 Cloudflare 账号（免费版即可）
+- 大约 10-15 分钟时间
+
+## 部署步骤
+
+### 第一步：Fork 仓库
+
+1. 访问 [Rin GitHub 仓库](https://github.com/openRin/Rin)
+2. 点击右上角的 **"Fork"** 按钮
+![1000000657](https://github.com/OXeu/Rin/assets/36541432/df3607ca-a8a9-49b8-92ce-6b348afeb13f)
+3. 选择您的个人账户，保持默认设置，点击 **"Create fork"**
+
+### 获取用户 ID 与 API 令牌
+
+参照 https://developers.cloudflare.com/workers/wrangler/ci-cd/ 来配置 GitHub Actions 所需的 Cloudflare 登录环境变量
+
+ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下滑动一段距离）可以找到`账户ID`
+
+创建 API 令牌：点击右上角`头像` > `我的个人资料` > `API 令牌` > `创建令牌`，模板选择`编辑 Cloudflare Workers`：
+![1000000663](/cloudflare-api-key-cn.png)
+
+创建完成后保存令牌
+
+### 第二步：配置 GitHub Secrets
+
+1. 在您 fork 的仓库页面，点击 **"Settings"** 标签
+2. 在左侧菜单中，展开 **"Secrets and variables"**，选择 **"Actions"**
+3. 点击 **"New repository secret"** 按钮，添加以下 Secrets：
+
+#### 必需 Secrets
+
+| Secret 名称 | 值                                           | 说明 |
+|------------|---------------------------------------------|------|
+| `CLOUDFLARE_API_TOKEN` | `ThEApiKeyIsRaNdomStR1ngNearly40CharsLong` | Cloudflare API 令牌 |
+| `CLOUDFLARE_ACCOUNT_ID` | `0123456789abcdef0123456789abcdef`          | Cloudflare 账户 ID |
+| `JWT_SECRET` | 任意随机字符串 | JWT 签名密钥 |
+
+> **提示**: JWT_SECRET 可以是任意长度的随机字符串，例如：`MySecretKey123!@#`
+
+#### 登录配置 Secrets
+
+Rin 目前支持账号密码登录与 Github OAuth 登录，可二选一或同时配置
+
+**账号密码登录（推荐）**
+
+| Secret 名称 | 值 | 说明 |
+|------------|-----|------|
+| `ADMIN_USERNAME` | 您想设置的用户名 | 登录用户名 |
+| `ADMIN_PASSWORD` | 您想设置的密码 | 登录密码 |
+
+
+**GitHub OAuth 登录（可选）**
+
+如果您想使用 GitHub 账号登录，请参考[高级配置](#github-oauth-配置)部分添加 OAuth 配置。
+
+> **提示**: 账号密码登录和 GitHub OAuth 登录可以同时启用，用户可以在登录页面自由选择登录方式。
+
+### 第三步：触发部署
+
+1. 进入仓库的 **"Actions"** 标签
+2. 在左侧选择 **"Build"** 工作流
+3. 点击 **"Run workflow"** 按钮
+4. 保持默认分支（main），点击 **"Run workflow"**
+
+部署过程大约需要 3-5 分钟。您可以在 Actions 页面查看部署进度。
+
+> **提示**: 部署脚本会自动配置前端环境变量，无需手动配置。您可以在 GitHub Variables 中自定义网站名称、描述等（可选）。
+
+### 第四步：访问您的博客
+
+部署完成后，您可以通过以下地址访问：
+
+- **前端页面**: `https://rin-client.pages.dev`（或您在 `PAGES_NAME` 中设置的名称）
+- **后端 API**: `https://rin-server.your-account-id.workers.dev`
+
+### 第五步：首次登录
+
+1. 访问前端页面
+2. 点击右上角的登录图标
+3. 使用您在 Secrets 中设置的 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD` 登录
+4. 登录后，点击头像进入 **个人资料** 页面，可以修改昵称和上传头像
+
+## 发布第一篇文章
+
+1. 登录后，点击右上角的 **"写作"** 按钮
+2. 填写文章标题和内容
+3. 点击 **"发布"** 按钮
+
+🎉 恭喜！您的 Rin 博客已经成功部署并发布了第一篇文章！
+
+---
+
+## 高级配置
+
+### 自定义域名
+
+1. 登录 Cloudflare Dashboard
+2. 进入 **Pages** > 您的项目 > **自定义域**
+3. 按照提示添加您的域名
+
+### 图片存储配置
+
+Rin 支持两种存储方式：**Cloudflare R2**（推荐）或 **S3 兼容存储**。
+
+#### 使用 Cloudflare R2（推荐）
+
+如果未配置任何 S3 环境变量，部署脚本会自动尝试使用 Cloudflare R2。您只需在 GitHub Variables 中设置：
+
+| Variable 名称 | 说明 | 示例 |
+|--------------|------|------|
+| `R2_BUCKET_NAME` | R2 存储桶名称 | `my-blog-images` |
+
+部署脚本会自动构建 R2 的 endpoint 和 access host。如果您希望使用自定义域名访问图片，可以额外设置：
+
+| Variable 名称 | 说明 | 示例 |
+|--------------|------|------|
+| `S3_ACCESS_HOST` | 图片访问域名（可选） | `https://images.myblog.com` |
+
+#### 使用 S3 兼容存储
+
+如果您需要使用其他 S3 兼容存储（如 AWS S3、MinIO 等），需要完整配置以下 Secrets：
+
+| Secret 名称 | 说明 |
+|------------|------|
+| `S3_ENDPOINT` | S3 端点地址 |
+| `S3_ACCESS_KEY_ID` | Access Key ID |
+| `S3_SECRET_ACCESS_KEY` | Secret Access Key |
+| `S3_BUCKET` | 存储桶名称 |
+
+以及以下 Variable（可选）：
+
+| Variable 名称 | 说明 | 默认值 |
+|--------------|------|--------|
+| `S3_ACCESS_HOST` | 图片访问域名 | 同 `S3_ENDPOINT` |
+| `S3_REGION` | 存储区域 | `auto` |
+| `S3_FOLDER` | 图片存放路径 | `images/` |
+| `S3_FORCE_PATH_STYLE` | 是否使用路径样式 | `false` |
+
+### GitHub OAuth 配置
+
+如果您想使用 GitHub 账号登录：
+
+1. 访问 GitHub Settings > Developer settings > OAuth Apps
+2. 点击 **"New OAuth App"**
+3. 填写应用信息：
+   - **Application name**: Rin Blog
+   - **Homepage URL**: 您的前端页面地址
+   - **Authorization callback URL**: `https://your-worker-name.your-account-id.workers.dev/api/user/github/callback`
+4. 创建后，获取 Client ID 和 Client Secret
+5. 在 GitHub Secrets 中添加：
+   - `RIN_GITHUB_CLIENT_ID`
+   - `RIN_GITHUB_CLIENT_SECRET`
+
+### Webhook 通知
+
+如果您希望 Rin 将评论通知和友链申请通知发送到机器人、聊天工具或自动化平台，请继续阅读 [Webhook 指南](./webhook)。
+
+---
+
+## 故障排除
+
+### 部署失败
+
+1. 检查 GitHub Secrets 是否正确配置
+2. 查看 Actions 日志获取详细错误信息
+3. 确保 Cloudflare 账户有 Workers、Pages、D1 的权限
+
+### 无法登录
+
+1. 确认 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD` 已正确设置
+2. 检查 Worker 日志查看认证错误
+3. 清除浏览器缓存后重试
+
+### 数据库迁移失败
+
+部署脚本会自动运行数据库迁移。如果失败：
+
+1. 手动进入 Cloudflare Dashboard > D1
+2. 找到您的数据库，点击 **"Console"**
+3. 手动执行迁移 SQL（参考 `server/migrations/` 目录下的文件）
+
+---
+
+## GitHub Actions 工作流
+
+仓库包含多个 GitHub Actions 工作流，用于自动化测试、构建和部署：
+
+### CI 工作流 (`ci.yml`)
+每次推送和 Pull Request 时运行，检查代码质量：
+- TypeScript 类型检查
+- 代码格式化验证
+- 构建验证
+
+### 测试工作流 (`test.yml`)
+每次推送和 PR 时运行全面的测试：
+- **服务端测试**：使用 Bun 的单元测试和集成测试
+- **客户端测试**：使用 Vitest 的组件测试
+- **覆盖率报告**：上传覆盖率到 Codecov
+
+### 构建工作流 (`build.yml`)
+在推送到 main 和 develop 分支时运行：
+- 构建前端和后端
+- 验证构建产物
+- 成功后触发部署工作流
+
+### 部署工作流 (`deploy.yml`)
+手动触发或由构建完成时触发：
+- 部署前端到 Cloudflare Pages
+- 部署后端到 Cloudflare Workers
+- 运行数据库迁移
+
+### PR 预览
+创建 Pull Request 时，会自动生成预览部署，方便在合并前测试更改。
+
+---
+
+## 更新博客
+
+当有新版本发布时：
+
+1. 在您的 fork 仓库页面点击 **"Sync fork"**
+2. 点击 **"Update branch"**
+3. 部署会自动触发
+
+或者手动更新：
+
+```bash
+git remote add upstream https://github.com/openRin/Rin.git
+git fetch upstream
+git checkout main
+git merge upstream/main
+git push origin main
+```
+
+---
+
+## 需要帮助？
+
+- 📖 [完整文档](https://docs.openrin.org)
+- 🐛 [GitHub Issues](https://github.com/openRin/Rin/issues)
+- 💬 [GitHub Discussions](https://github.com/openRin/Rin/discussions)

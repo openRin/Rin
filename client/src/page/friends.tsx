@@ -3,14 +3,15 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
 import { useTranslation } from "react-i18next";
 import Modal from 'react-modal';
-import Select from 'react-select';
+import { FlatActionButton, FlatPanel, SearchableSelect } from "@rin/ui";
 import { ShowAlertType, useAlert, useConfirm } from "../components/dialog";
 import { Input } from "../components/input";
 import { Waiting } from "../components/loading";
-import { client } from "../main";
+import { client } from "../app/runtime";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
-import { headersWithAuth } from "../utils/auth";
+
+import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants";
 
 
@@ -30,13 +31,11 @@ type FriendItem = {
 
 async function publish({ name, avatar, desc, url, showAlert }: { name: string, avatar: string, desc: string, url: string, showAlert: ShowAlertType }) {
     const t = i18next.t
-    const { error } = await client.friend.index.post({
+    const { error } = await client.friend.create({
         avatar,
         name,
         desc,
         url
-    }, {
-        headers: headersWithAuth()
     })
     if (error) {
         showAlert(error.value as string)
@@ -49,8 +48,9 @@ async function publish({ name, avatar, desc, url, showAlert }: { name: string, a
 
 export function FriendsPage() {
     const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
     const config = useContext(ClientConfigContext)
-    let [apply, setApply] = useState<FriendItem>()
+    let [apply] = useState<FriendItem>()
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
     const [avatar, setAvatar] = useState("")
@@ -65,20 +65,17 @@ export function FriendsPage() {
     const { showAlert, AlertUI } = useAlert()
     useEffect(() => {
         if (ref.current) return
-        client.friend.index.get({
-            headers: headersWithAuth()
-        }).then(({ data }) => {
+        client.friend.list().then(({ data }) => {
             if (data) {
-                const friends_available = data.friend_list?.filter(({ health, accepted }) => health.length === 0 && accepted === 1) || []
-                setFriendsAvailable(friends_available)
-                const friends_unavailable = data.friend_list?.filter(({ health, accepted }) => health.length > 0 && accepted === 1) || []
-                setFriendsUnavailable(friends_unavailable)
-                const waitList = data.friend_list?.filter(({ accepted }) => accepted === 0) || []
-                setWaitList(waitList)
-                const refuesdList = data.friend_list?.filter(({ accepted }) => accepted === -1) || []
-                setRefusedList(refuesdList)
-                if (data.apply_list)
-                    setApply(data.apply_list)
+                const friend_list = data.friend_list || []
+                const friends_available = friend_list.filter(({ health, accepted }: any) => health.length === 0 && accepted === 1) || []
+                setFriendsAvailable(friends_available as any)
+                const friends_unavailable = friend_list.filter(({ health, accepted }: any) => health.length > 0 && accepted === 1) || []
+                setFriendsUnavailable(friends_unavailable as any)
+                const waitList = friend_list.filter(({ accepted }: any) => accepted === 0) || []
+                setWaitList(waitList as any)
+                const refuesdList = friend_list.filter(({ accepted }: any) => accepted === -1) || []
+                setRefusedList(refuesdList as any)
             }
             setStatus('idle')
         })
@@ -89,10 +86,10 @@ export function FriendsPage() {
     }
     return (<>
         <Helmet>
-            <title>{`${t('friends.title')} - ${process.env.NAME}`}</title>
+            <title>{`${t('friends.title')} - ${siteConfig.name}`}</title>
             <meta property="og:site_name" content={siteName} />
             <meta property="og:title" content={t('friends.title')} />
-            <meta property="og:image" content={process.env.AVATAR} />
+            <meta property="og:image" content={siteConfig.avatar} />
             <meta property="og:type" content="article" />
             <meta property="og:url" content={document.URL} />
         </Helmet>
@@ -105,20 +102,20 @@ export function FriendsPage() {
                 <FriendList title={t('friends.my_apply')} show={profile?.permission !== true && apply !== undefined} friends={apply ? [apply] : []} />
                 {profile && (profile.permission || config.get("friend_apply_enable")) &&
                     <div className="wauto t-primary flex text-start text-2xl font-bold mt-8">
-                        <div className="md:basis-1/2 bg-w rounded-xl p-4">
+                        <FlatPanel className="md:basis-1/2 p-6">
                             <p>
                                 {profile.permission ? t('friends.create') : t('friends.apply')}
                             </p>
                             <div className="text-sm mt-4 text-neutral-500 font-normal">
-                                <Input value={name} setValue={setName} placeholder={t('sitename')} />
-                                <Input value={desc} setValue={setDesc} placeholder={t('description')} className="mt-2" />
-                                <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
-                                <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
+                                <Input value={name} setValue={setName} placeholder={t('sitename')} variant="flat" />
+                                <Input value={desc} setValue={setDesc} placeholder={t('description')} variant="flat" className="mt-2" />
+                                <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} variant="flat" className="mt-2" />
+                                <Input value={url} setValue={setUrl} placeholder={t('url')} variant="flat" className="my-2" />
                                 <div className='flex flex-row justify-center'>
-                                    <button onClick={publishButton} className='basis-1/2 bg-theme text-white py-4 rounded-full shadow-xl shadow-light'>{t('create.title')}</button>
+                                    <button onClick={publishButton} className='basis-1/2 rounded-full bg-theme py-4 text-white'>{t('create.title')}</button>
                                 </div>
                             </div>
-                        </div>
+                        </FlatPanel>
                     </div>
                 }
             </main>
@@ -164,9 +161,7 @@ function Friend({ friend }: { friend: FriendItem }) {
             t('delete.title'),
             t('delete.confirm'),
             () => {
-                client.friend({ id: friend.id }).delete(friend.id, {
-                    headers: headersWithAuth()
-                }).then(({ error }) => {
+                client.friend.delete(friend.id).then(({ error }) => {
                     if (error) {
                         showAlert(error.value as string)
                     } else {
@@ -179,15 +174,13 @@ function Friend({ friend }: { friend: FriendItem }) {
     }, [friend.id])
 
     const updateFriend = useCallback(() => {
-        client.friend({ id: friend.id }).put({
+        client.friend.update(friend.id, {
             avatar,
             name,
             desc,
             url,
             accepted: status,
             sort_order: sortOrder
-        }, {
-            headers: headersWithAuth()
         }).then(({ error }) => {
             if (error) {
                 showAlert(error.value as string)
@@ -248,7 +241,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                 onRequestClose={() => setIsOpen(false)}
                 contentLabel={t('update$sth', { sth: friend.name })}
             >
-                <div className="w-[80vw] sm:w-[60vw] md:w-[50vw] lg:w-[40vw] xl:w-[30vw] bg-w rounded-xl p-4 flex flex-col justify-start items-center relative">
+                <FlatPanel className="relative flex w-[80vw] flex-col items-center justify-start p-6 sm:w-[60vw] md:w-[50vw] lg:w-[40vw] xl:w-[30vw]">
                     <div className="w-16 h-16">
                         <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
                     </div>
@@ -261,13 +254,20 @@ function Friend({ friend }: { friend: FriendItem }) {
                                     </p>
                                 </div>
                                 <div className="flex flex-row items-center justify-center space-x-4">
-                                    <Select options={statusOption} required defaultValue={statusOption[friend.accepted + 1]}
-                                        onChange={(newValue, _) => {
-                                            const value = newValue?.value
-                                            if (value !== undefined) {
-                                                setStatus(value)
+                                    <SearchableSelect
+                                        value={String(status)}
+                                        onChange={(nextValue) => {
+                                            const parsed = Number(nextValue)
+                                            if (!Number.isNaN(parsed)) {
+                                                setStatus(parsed)
                                             }
                                         }}
+                                        options={statusOption.map((option) => ({
+                                            label: option.label,
+                                            value: String(option.value),
+                                        }))}
+                                        placeholder={t('status')}
+                                        searchPlaceholder={t('status')}
                                     />
                                 </div>
                             </div>
@@ -281,21 +281,22 @@ function Friend({ friend }: { friend: FriendItem }) {
                                     <Input
                                         value={sortOrder.toString()} 
                                         setValue={(val) => setSortOrder(parseInt(val) || 0)} 
-                                        placeholder={t('sort_order')} 
+                                        placeholder={t('sort_order')}
+                                        variant="flat"
                                     />
                                 </div>
                             </div>
                         </div>
                     }
-                    <Input value={name} setValue={setName} placeholder={t('sitename')} className="mt-4" />
-                    <Input value={desc} setValue={setDesc} placeholder={t('description')} className="mt-2" />
-                    <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} className="mt-2" />
-                    <Input value={url} setValue={setUrl} placeholder={t('url')} className="my-2" />
+                    <Input value={name} setValue={setName} placeholder={t('sitename')} variant="flat" className="mt-4" />
+                    <Input value={desc} setValue={setDesc} placeholder={t('description')} variant="flat" className="mt-2" />
+                    <Input value={avatar} setValue={setAvatar} placeholder={t('avatar.url')} variant="flat" className="mt-2" />
+                    <Input value={url} setValue={setUrl} placeholder={t('url')} variant="flat" className="my-2" />
                     <div className='flex flex-row justify-center space-x-2'>
-                        <button onClick={deleteFriend} className="bg-secondary text-theme rounded-full bg-button px-4 py-2 mt-2">{t('delete.title')}</button>
-                        <button onClick={updateFriend} className="bg-secondary t-primary rounded-full bg-button px-4 py-2 mt-2">{t('save')}</button>
+                        <FlatActionButton onClick={deleteFriend} className="mt-2 text-theme">{t('delete.title')}</FlatActionButton>
+                        <FlatActionButton onClick={updateFriend} className="mt-2 t-primary">{t('save')}</FlatActionButton>
                     </div>
-                </div >
+                </FlatPanel>
             </Modal>
             <ConfirmUI />
             <AlertUI />

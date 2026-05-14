@@ -3,14 +3,15 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "../packages/ui/src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: ['selector','[data-color-mode="dark"]'],
   theme: {
     extend: {
       colors: {
-        'theme': '#ccccff',
-        'theme-hover': '#8b7ec8',
-        'theme-active': '#a699d0',
+        'theme': 'rgb(var(--theme-rgb) / <alpha-value>)',
+        'theme-hover': 'rgb(var(--theme-hover-rgb) / <alpha-value>)',
+        'theme-active': 'rgb(var(--theme-active-rgb) / <alpha-value>)',
         'background': {
           'light': '#fffcf0',
           'dark': '#100f0f',
@@ -28,4 +29,3 @@ export default {
     require('@tailwindcss/typography'),
   ],
 }
-
