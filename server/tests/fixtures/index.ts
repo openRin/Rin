@@ -110,12 +110,8 @@ export function createMockDB() {
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             feed_id INTEGER NOT NULL,
-            user_id INTEGER,
+            user_id INTEGER NOT NULL,
             content TEXT NOT NULL,
-            guest_name TEXT DEFAULT '',
-            guest_email TEXT DEFAULT '',
-            guest_website TEXT DEFAULT '',
-            approved INTEGER DEFAULT 1 NOT NULL,
             created_at INTEGER DEFAULT (unixepoch()),
             updated_at INTEGER DEFAULT (unixepoch()),
             FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE,
