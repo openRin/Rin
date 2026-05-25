@@ -165,16 +165,31 @@ export interface Comment {
   content: string;
   createdAt: string;
   updatedAt: string;
-  user: {
+  /** 登录用户的评论 */
+  user?: {
     id: number;
     username: string;
     avatar: string | null;
     permission: number | null;
-  };
+  } | null;
+  /** 游客评论的昵称 */
+  guestName?: string;
+  /** 游客评论的邮箱 */
+  guestEmail?: string;
+  /** 游客评论的网站 */
+  guestWebsite?: string;
+  /** 审核状态 */
+  approved: boolean;
 }
 
 export interface CreateCommentRequest {
   content: string;
+  /** 游客昵称（未登录时必填） */
+  guestName?: string;
+  /** 游客邮箱（可选） */
+  guestEmail?: string;
+  /** 游客网站（可选） */
+  guestWebsite?: string;
 }
 
 // ============================================================================
