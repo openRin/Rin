@@ -376,67 +376,33 @@ function CommentInput({
 }) {
   const { t } = useTranslation();
   const [content, setContent] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
-  const [guestWebsite, setGuestWebsite] = useState("");
   const [error, setError] = useState("");
   const { showAlert, AlertUI } = useAlert();
   const profile = useContext(ProfileContext);
   const [, setLocation] = useLocation();
-  const config = useContext(ClientConfigContext);
-  // guest comments enabled by default; admin can disable via client config `comment.guest.enabled=false`
-  const rawGuest = config.get('comment.guest.enabled');
-  const guestEnabled = rawGuest !== false && rawGuest !== 'false';
   function errorHumanize(error: string) {
     if (error === "Unauthorized") return t("login.required");
     else if (error === "Content is required") return t("comment.empty");
-    else if (error === "Guest name is required") return t("comment.guest_name_required");
     return error;
   }
   function submit() {
-    if (profile) {
-      client.comment
-        .create(parseInt(id), { content })
-        .then(({ error }) => {
-          if (error) {
-            setError(errorHumanize(error.value as string));
-          } else {
-            setContent("");
-            setError("");
-            showAlert(t("comment.success"), () => {
-              onRefresh();
-            });
-          }
-        });
-    } else if (guestEnabled) {
-      if (!guestName.trim()) {
-        setError(t("comment.guest_name_required"));
-        return;
-      }
-      client.comment
-        .create(parseInt(id), {
-          content,
-          guestName: guestName.trim(),
-          guestEmail: guestEmail.trim() || undefined,
-          guestWebsite: guestWebsite.trim() || undefined,
-        })
-        .then(({ error }) => {
-          if (error) {
-            setError(errorHumanize(error.value as string));
-          } else {
-            setContent("");
-            setGuestName("");
-            setGuestEmail("");
-            setGuestWebsite("");
-            setError("");
-            showAlert(t("comment.success"), () => {
-              onRefresh();
-            });
-          }
-        });
-    } else {
-      setLocation('/login');
+    if (!profile) {
+      setLocation('/login')
+      return;
     }
+    client.comment
+      .create(parseInt(id), { content })
+      .then(({ error }) => {
+        if (error) {
+          setError(errorHumanize(error.value as string));
+        } else {
+          setContent("");
+          setError("");
+          showAlert(t("comment.success"), () => {
+            onRefresh();
+          });
+        }
+      });
   }
   return (
     <div className="w-full rounded-2xl bg-w t-primary p-6 items-end flex flex-col">
@@ -457,42 +423,7 @@ function CommentInput({
         >
           {t("comment.submit")}
         </button>
-      </>) : guestEnabled ? (<>
-        <input
-          type="text"
-          placeholder={t("comment.guest_name_placeholder")}
-          className="bg-w w-full rounded-lg px-3 py-2 mb-2 border border-gray-200 dark:border-gray-700"
-          value={guestName}
-          onChange={(e) => setGuestName(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder={t("comment.guest_email_placeholder")}
-          className="bg-w w-full rounded-lg px-3 py-2 mb-2 border border-gray-200 dark:border-gray-700"
-          value={guestEmail}
-          onChange={(e) => setGuestEmail(e.target.value)}
-        />
-        <input
-          type="url"
-          placeholder={t("comment.guest_website_placeholder")}
-          className="bg-w w-full rounded-lg px-3 py-2 mb-2 border border-gray-200 dark:border-gray-700"
-          value={guestWebsite}
-          onChange={(e) => setGuestWebsite(e.target.value)}
-        />
-        <textarea
-          id="comment"
-          placeholder={t("comment.placeholder.title")}
-          className="bg-w w-full h-24 rounded-lg"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
-        <button
-          className="mt-4 bg-theme text-white px-4 py-2 rounded-full"
-          onClick={submit}
-        >
-          {t("comment.submit")}
-        </button>
-      </>) : (
+      </>      ) : (
         <div className="flex flex-row w-full items-center justify-center space-x-2 py-12">
           <button
             className="mt-2 bg-theme text-white px-4 py-2 rounded-full"
@@ -513,15 +444,12 @@ type Comment = {
   content: string;
   createdAt: Date;
   updatedAt: Date;
-  user?: {
+  user: {
     id: number;
     username: string;
     avatar: string | null;
     permission: number | null;
-  } | null;
-  guestName?: string;
-  guestEmail?: string;
-  guestWebsite?: string;
+  };
 };
 
 function Comments({ id }: { id: string }) {
@@ -593,8 +521,6 @@ function CommentItem({
   const { showAlert, AlertUI } = useAlert();
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
-  const commenterName = comment.user?.username || comment.guestName || t("anonymous");
-  const commenterAvatar = comment.user?.avatar || "";
   function deleteComment() {
     showConfirm(
       t("delete.comment.title"),
@@ -616,24 +542,14 @@ function CommentItem({
   return (
     <div className="flex flex-row items-start rounded-xl mt-2">
       <img
-        src={commenterAvatar}
+        src={comment.user.avatar || ""}
         className="w-8 h-8 rounded-full mt-4"
       />
       <div className="flex flex-col flex-1 w-0 ml-2 bg-w rounded-xl p-4">
         <div className="flex flex-row">
           <span className="t-primary text-base font-bold">
-            {commenterName}
+            {comment.user.username}
           </span>
-          {comment.guestWebsite && (
-            <a
-              href={comment.guestWebsite}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 text-gray-400 hover:text-theme transition-colors"
-            >
-              <i className="ri-external-link-line"></i>
-            </a>
-          )}
           <div className="flex-1 w-0" />
           <span
             title={new Date(comment.createdAt).toLocaleString()}
@@ -644,7 +560,7 @@ function CommentItem({
         </div>
         <p className="t-primary break-words">{comment.content}</p>
         <div className="flex flex-row justify-end">
-          {(profile?.permission || (comment.user && profile?.id == comment.user.id)) && (
+          {(profile?.permission || profile?.id == comment.user.id) && (
             <Popup
               arrow={false}
               trigger={

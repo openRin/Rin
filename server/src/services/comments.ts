@@ -24,24 +24,7 @@ export function CommentService(): Hono {
             orderBy: [desc(comments.createdAt)]
         }));
         
-        // 将结果统一为前端兼容格式：登录用户用 user 字段，游客用 guestName 等
-        const result = comment_list.map((c: any) => {
-            if (c.user) {
-                // 登录用户的评论
-                return c;
-            }
-            // 游客评论：去掉空的 user 字段，保留 guestName 等
-            const { user, ...rest } = c;
-            return {
-                ...rest,
-                user: null,
-                guestName: rest.guestName || "",
-                guestEmail: rest.guestEmail || "",
-                guestWebsite: rest.guestWebsite || "",
-            };
-        });
-        
-        return c.json(result);
+        return c.json(comment_list);
     });
 
     app.post('/:feed', async (c: AppContext) => {
@@ -51,10 +34,22 @@ export function CommentService(): Hono {
         const uid = c.get('uid');
         const feedId = parseInt(c.req.param('feed'));
         const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
-        const { content, guestName, guestEmail, guestWebsite } = body;
+        const { content } = body;
         
+        if (!uid) {
+            return c.text('Unauthorized', 401);
+        }
         if (!content) {
             return c.text('Content is required', 400);
+        }
+        
+        if (uid == undefined) {
+            return c.text('Invalid uid', 400);
+        }
+        
+        const user = await profileAsync(c, 'comment_create_user', () => db.query.users.findFirst({ where: eq(users.id, uid) }));
+        if (!user) {
+            return c.text('User not found', 400);
         }
         
         const exist = await profileAsync(c, 'comment_create_feed', () => db.query.feeds.findFirst({ where: eq(feeds.id, feedId) }));
@@ -62,73 +57,29 @@ export function CommentService(): Hono {
             return c.text('Feed not found', 400);
         }
 
-        // 登录用户评论
-        if (uid) {
-            const user = await profileAsync(c, 'comment_create_user', () => db.query.users.findFirst({ where: eq(users.id, uid) }));
-            if (!user) {
-                return c.text('User not found', 400);
-            }
-
-            await db.insert(comments).values({
-                feedId,
-                userId: uid,
-                content
-            });
-
-            const { webhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate } =
-                await profileAsync(c, 'comment_create_webhook_config', () => resolveWebhookConfig(serverConfig, env));
-            const frontendUrl = new URL(c.req.url).origin;
-            try {
-                await profileAsync(c, 'comment_create_notify', () => notify(
-                    webhookUrl || "",
-                    {
-                        event: "comment.created",
-                        message: `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`,
-                        title: exist.title || "",
-                        url: `${frontendUrl}/feed/${feedId}`,
-                        username: user.username,
-                        content,
-                    },
-                    {
-                        method: webhookMethod,
-                        contentType: webhookContentType,
-                        headers: webhookHeaders,
-                        bodyTemplate: webhookBodyTemplate,
-                    },
-                ));
-            } catch (error) {
-                console.error("Failed to send comment webhook", error);
-            }
-            return c.text('OK');
-        }
-
-        // 游客评论
-        if (!guestName || !guestName.trim()) {
-            return c.text('Guest name is required', 400);
-        }
-
-        await db.insert(comments).values({
+        await profileAsync(c, 'comment_create_insert', () => db.insert(comments).values({
             feedId,
-            userId: null,
-            content,
-            guestName: guestName.trim(),
-            guestEmail: guestEmail?.trim() || "",
-            guestWebsite: guestWebsite?.trim() || "",
-            approved: 1,
-        });
+            userId: uid,
+            content
+        }));
 
-        const { webhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate } =
-            await profileAsync(c, 'comment_create_webhook_config', () => resolveWebhookConfig(serverConfig, env));
+        const {
+            webhookUrl,
+            webhookMethod,
+            webhookContentType,
+            webhookHeaders,
+            webhookBodyTemplate,
+        } = await profileAsync(c, 'comment_create_webhook_config', () => resolveWebhookConfig(serverConfig, env));
         const frontendUrl = new URL(c.req.url).origin;
         try {
             await profileAsync(c, 'comment_create_notify', () => notify(
                 webhookUrl || "",
                 {
                     event: "comment.created",
-                    message: `${frontendUrl}/feed/${feedId}\n游客 ${guestName} 评论了: ${exist.title}\n${content}`,
+                    message: `${frontendUrl}/feed/${feedId}\n${user.username} 评论了: ${exist.title}\n${content}`,
                     title: exist.title || "",
                     url: `${frontendUrl}/feed/${feedId}`,
-                    username: guestName,
+                    username: user.username,
                     content,
                 },
                 {
@@ -160,17 +111,11 @@ export function CommentService(): Hono {
             return c.text('Not found', 404);
         }
         
-        // 管理员可删任意评论；普通用户只能删自己的
-        if (admin) {
-            await db.delete(comments).where(eq(comments.id, id_num));
-            return c.text('OK');
-        }
-        
-        if (comment.userId !== uid) {
+        if (!admin && comment.userId !== uid) {
             return c.text('Permission denied', 403);
         }
         
-        await db.delete(comments).where(eq(comments.id, id_num));
+        await profileAsync(c, 'comment_delete_db', () => db.delete(comments).where(eq(comments.id, id_num)));
         return c.text('OK');
     });
 
