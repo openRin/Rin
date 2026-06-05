@@ -33,7 +33,6 @@ export function stripMarkdown(content: string): string {
     text = text.replace(/:\w+:/g, "");
     text = text.replace(/^> \[!\w+\]/gm, "");
 
-    text = text.replace(/\n{2,}/g, "\n");
     text = text.trim();
 
     return text;
