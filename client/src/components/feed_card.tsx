@@ -33,7 +33,7 @@ function FeedCardImage({ src, variant }: { src: string; variant: FeedCardVariant
     return (
         <div
             className={imageFrameClass}
-            style={{ aspectRatio }}
+            style={{ aspectRatio: aspectRatio || '16 / 9' }}
         >
             {blurhash && !loaded ? (
                 <canvas

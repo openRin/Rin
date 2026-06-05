@@ -77,7 +77,17 @@ export function extractImage(content: string) {
 }
 
 export function extractImageWithMetadata(content: string) {
-    const img_reg = /!\[.*?\]\((\S+?)(?:\s+"[^"]*")?\)/;
-    const img_match = img_reg.exec(content);
-    return img_match?.[1];
+    const mdImgReg = /!\[.*?\]\((\S+?)(?:\s+"[^"]*")?\)/;
+    const mdImgMatch = mdImgReg.exec(content);
+    if (mdImgMatch) {
+        return mdImgMatch[1];
+    }
+
+    const htmlImgReg = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i;
+    const htmlImgMatch = htmlImgReg.exec(content);
+    if (htmlImgMatch) {
+        return htmlImgMatch[1];
+    }
+
+    return undefined;
 }

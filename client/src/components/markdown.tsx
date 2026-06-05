@@ -408,6 +408,22 @@ export function Markdown({ content }: { content: string }) {
           });
           return <section {...props}>{modifiedChildren}</section>;
         },
+        iframe({ node, src, title, ...props }) {
+          return (
+            <div className="my-4 w-full">
+              <iframe
+                src={src}
+                title={title || "Embedded content"}
+                className="w-full rounded-xl border border-black/10 dark:border-white/10"
+                style={{ minHeight: "400px" }}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                {...props}
+              />
+            </div>
+          );
+        },
         div({ children, node, ...props }) {
           return <div {...props}>{children}</div>;
         },
