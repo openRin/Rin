@@ -74,7 +74,7 @@ export function CompatTasksPage() {
         return;
       }
 
-      const items = data?.items || [];
+      const items = Array.isArray(data?.items) ? data.items : [];
       setBlurhashProgress({ total: items.length, processed: 0, updated: 0, failed: 0 });
 
       let processed = 0;

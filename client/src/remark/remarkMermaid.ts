@@ -3,8 +3,8 @@ import type { Content, Root } from 'mdast';
 
 function processNode(child: Content, index: number, siblings: Content[]) {
   if (child.type !== 'code') {
-    if ('children' in child) {
-      child.children.map(processNode);
+    if ('children' in child && Array.isArray(child.children)) {
+      child.children.forEach(processNode);
     }
     return;
   }
@@ -20,7 +20,9 @@ function processNode(child: Content, index: number, siblings: Content[]) {
 }
 
 const remarkMermaid: Plugin<[], Root> = () => (root: Root) => {
-  root.children.map(processNode)
+  if (Array.isArray(root.children)) {
+    root.children.forEach(processNode)
+  }
 };
 
 export default remarkMermaid;
