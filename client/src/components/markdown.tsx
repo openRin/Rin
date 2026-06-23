@@ -413,6 +413,7 @@ export function Markdown({ content }: { content: string }) {
           return (
             <div className="my-4 w-full">
               <iframe
+                {...props}
                 src={src}
                 title={title || "Embedded content"}
                 className="w-full rounded-xl border border-black/10 dark:border-white/10"
@@ -420,7 +421,6 @@ export function Markdown({ content }: { content: string }) {
                 loading="lazy"
                 referrerPolicy="no-referrer"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                {...props}
               />
             </div>
           );

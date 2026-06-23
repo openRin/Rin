@@ -67,27 +67,19 @@ export function contentHasImagesMissingMetadata(content: string) {
 }
 
 export function extractImage(content: string) {
-    const img_reg = /!\[.*?\]\((\S+?)(?:\s+"[^"]*")?\)/;
-    const img_match = img_reg.exec(content);
-    let avatar: string | undefined = undefined;
-    if (img_match) {
-        avatar = stripImageMetadataFromUrl(img_match[1]);
+    const urls = listContentImageUrls(content);
+    for (const url of urls) {
+        if (url.startsWith('data:')) continue;
+        return stripImageMetadataFromUrl(url);
     }
-    return avatar;
+    return undefined;
 }
 
 export function extractImageWithMetadata(content: string) {
-    const mdImgReg = /!\[.*?\]\((\S+?)(?:\s+"[^"]*")?\)/;
-    const mdImgMatch = mdImgReg.exec(content);
-    if (mdImgMatch) {
-        return mdImgMatch[1];
+    const urls = listContentImageUrls(content);
+    for (const url of urls) {
+        if (url.startsWith('data:')) continue;
+        return url;
     }
-
-    const htmlImgReg = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i;
-    const htmlImgMatch = htmlImgReg.exec(content);
-    if (htmlImgMatch) {
-        return htmlImgMatch[1];
-    }
-
     return undefined;
 }

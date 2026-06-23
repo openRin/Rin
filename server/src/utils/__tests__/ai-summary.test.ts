@@ -1,21 +1,28 @@
 import { afterEach, describe, expect, it, mock } from "bun:test";
+import type { AIConfig } from "@rin/api";
+import { AI_CONFIG_PREFIX } from "@rin/config";
 
 const originalFetch = globalThis.fetch;
 
-const getAIConfigMock = mock();
-
-mock.module("../db-config", () => ({
-  getAIConfig: getAIConfigMock,
-}));
-
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  getAIConfigMock.mockReset();
 });
+
+function createAIConfigReader(config: AIConfig) {
+  const values = new Map<string, unknown>(
+    Object.entries(config).map(([key, value]) => [`${AI_CONFIG_PREFIX}${key}`, value]),
+  );
+
+  return {
+    async get(key: string) {
+      return values.get(key);
+    },
+  };
+}
 
 describe("generateAISummaryResult", () => {
   it("returns a concrete error when AI responds with empty content", async () => {
-    getAIConfigMock.mockResolvedValue({
+    const serverConfig = createAIConfigReader({
       enabled: true,
       provider: "worker-ai",
       model: "llama-3-8b",
@@ -29,7 +36,7 @@ describe("generateAISummaryResult", () => {
       AI: {
         run: async () => ({ response: "" }),
       },
-    } as unknown as Env, {} as any, "test content");
+    } as unknown as Env, serverConfig, "test content");
 
     expect(result.summary).toBeNull();
     expect(result.skipped).toBe(false);
@@ -37,7 +44,7 @@ describe("generateAISummaryResult", () => {
   });
 
   it("sends summary system prompt to Workers AI", async () => {
-    getAIConfigMock.mockResolvedValue({
+    const serverConfig = createAIConfigReader({
       enabled: true,
       provider: "worker-ai",
       model: "llama-3-8b",
@@ -55,7 +62,7 @@ describe("generateAISummaryResult", () => {
           return { response: "summary" };
         },
       },
-    } as unknown as Env, {} as any, "test content");
+    } as unknown as Env, serverConfig, "test content");
 
     expect(result.summary).toBe("summary");
     expect(calls).toHaveLength(1);
@@ -70,7 +77,7 @@ describe("generateAISummaryResult", () => {
   });
 
   it("sends summary system prompt to external AI providers", async () => {
-    getAIConfigMock.mockResolvedValue({
+    const serverConfig = createAIConfigReader({
       enabled: true,
       provider: "openai",
       model: "gpt-4o-mini",
@@ -91,7 +98,7 @@ describe("generateAISummaryResult", () => {
 
     const { AI_SUMMARY_SYSTEM_PROMPT, generateAISummaryResult } = await import("../ai");
 
-    const result = await generateAISummaryResult({} as Env, {} as any, "external content");
+    const result = await generateAISummaryResult({} as Env, serverConfig, "external content");
 
     expect(result.summary).toBe("summary");
     expect(requests).toHaveLength(1);

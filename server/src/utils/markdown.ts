@@ -11,9 +11,9 @@ export function stripMarkdown(content: string): string {
     text = text.replace(/\[([^\]]*)\]\(.*?\)/g, "$1");
     text = text.replace(/^#{1,6}\s+/gm, "");
     text = text.replace(/^>\s+/gm, "");
+    text = text.replace(/^(\s*)- \[[ x]\]\s+/gm, "$1");
     text = text.replace(/^[-*+]\s+/gm, "");
     text = text.replace(/^\d+\.\s+/gm, "");
-    text = text.replace(/^(\s*)- \[[ x]\]\s+/gm, "$1");
     text = text.replace(/`{3}[\s\S]*?`{3}/g, "");
     text = text.replace(/`([^`]+)`/g, "$1");
     text = text.replace(/\*\*(.+?)\*\*/g, "$1");

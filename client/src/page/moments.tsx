@@ -62,13 +62,14 @@ export function MomentsPage() {
             limit: limit
         }).then(({ data }) => {
             if (data) {
-                setLength(data.data.length)
+                const momentData = Array.isArray(data.data) ? data.data : [];
+                setLength(momentData.length)
                 setHasNextPage(data.hasNext)
                 
                 if (append) {
-                    setMoments(prev => [...prev, ...data.data] as any)
+                    setMoments(prev => [...prev, ...momentData] as any)
                 } else {
-                    setMoments(data.data as any)
+                    setMoments(momentData as any)
                 }
                 
                 setCurrentPage(page)

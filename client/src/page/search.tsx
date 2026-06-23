@@ -25,6 +25,7 @@ export function SearchPage({ keyword }: { keyword: string }) {
     const page = tryInt(1, query.get("page"))
     const limit = tryInt(siteConfig.pageSize, query.get("limit"))
     const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 md:columns-2" : "wauto flex flex-col";
+    const feedData = Array.isArray(feeds?.data) ? feeds.data : [];
     const ref = useRef("")
     function fetchFeeds() {
         if (!keyword) return
@@ -70,7 +71,7 @@ export function SearchPage({ keyword }: { keyword: string }) {
                     </div>
                     <Waiting for={status === 'idle'}>
                         <div className={feedListClass}>
-                            {feeds?.data.map(({ id, ...feed }: any) => (
+                            {feedData.map(({ id, ...feed }: any) => (
                                 <FeedCard key={id} id={id} {...feed} />
                             ))}
                         </div>

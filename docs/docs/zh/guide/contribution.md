@@ -46,7 +46,7 @@ bun run test
 
 :::tip
 通常情况下，您只需要填写 `AVATAR`、`NAME` 和 `DESCRIPTION`。
-如需配置 GitHub OAuth，需要创建一个 OAuth App，回调地址为 `http://localhost:11498/user/github/callback`
+如需配置 GitHub OAuth，需要创建一个 OAuth App，回调地址为 `http://localhost:11498/api/user/github/callback`
 :::
 
 5. 运行设置脚本生成配置文件

@@ -105,7 +105,7 @@ export function QueueStatusPage() {
           setQueueConfigured(data.queueConfigured);
           setGeneratedAt(data.generatedAt);
           setSummary(data.summary);
-          setItems(data.items);
+          setItems(Array.isArray(data.items) ? data.items : []);
         }
       })
       .finally(() => setLoading(false));

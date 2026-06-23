@@ -189,7 +189,7 @@ export function WritingPage({ id }: { id?: number }) {
         .then(({ data }) => {
           if (data) {
             if (title == "" && data.title) setTitle(data.title);
-            if (tags == "" && data.hashtags)
+            if (tags == "" && Array.isArray(data.hashtags))
               setTags(data.hashtags.map(({ name }: {name: string}) => `#${name}`).join(" "));
             if (alias == "" && (data as any).alias) setAlias((data as any).alias);
             if (content == "") setContent(data.content);

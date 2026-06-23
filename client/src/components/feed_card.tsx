@@ -13,7 +13,7 @@ function FeedCardImage({ src, variant }: { src: string; variant: FeedCardVariant
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { src: cleanSrc, blurhash, width, height } = parseImageUrlMetadata(src);
     const { failed, imageRef, loaded, onError, onLoad } = useImageLoadState(cleanSrc);
-    const aspectRatio = width && height ? `${width} / ${height}` : undefined;
+    const aspectRatio = width && height ? `${width} / ${height}` : "16 / 9";
     const imageFrameClass =
         variant === "editorial"
             ? "relative flex max-h-80 w-full flex-row items-center overflow-hidden rounded-[20px]"
@@ -91,7 +91,7 @@ export type FeedCardProps = {
     top?: number;
     title: string;
     summary: string;
-    hashtags: { id: number, name: string }[];
+    hashtags?: { id: number, name: string }[];
     createdAt: Date;
     updatedAt: Date;
     preview?: boolean;
@@ -101,6 +101,7 @@ export type FeedCardProps = {
 export function FeedCard({ id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt, preview = false, variant }: FeedCardProps) {
     const { t } = useTranslation();
     const siteConfig = useSiteConfig();
+    const safeHashtags = Array.isArray(hashtags) ? hashtags : [];
     const activeVariant = normalizeFeedCardVariant(variant ?? siteConfig.feedCardVariant);
     const styles = FEED_CARD_STYLES[activeVariant];
     const body = (
@@ -128,9 +129,9 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                     {top === 1 && <span className="text-theme">{t('article.top.title')}</span>}
                 </p>
                 <p className={`whitespace-pre-line ${styles.summary} ${activeVariant === "editorial" ? "mt-4 max-w-3xl" : ""}`}>{summary}</p>
-                {hashtags.length > 0 &&
+                {safeHashtags.length > 0 &&
                     <div className={`flex flex-row flex-wrap justify-start gap-2 ${activeVariant === "editorial" ? "mt-4" : "mt-2 gap-x-2"}`}>
-                        {hashtags.map(({ name }, index) => (
+                        {safeHashtags.map(({ name }, index) => (
                             <HashTag key={index} name={name} />
                         ))}
                     </div>

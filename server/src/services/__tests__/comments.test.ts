@@ -122,14 +122,67 @@ describe('CommentService', () => {
             expect(comments.length).toBe(3);
         });
 
-        it('should require authentication', async () => {
+        it('should create guest comment with guestName', async () => {
+            const res = await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: 'Guest comment',
+                    guestName: 'Visitor',
+                    guestEmail: 'visitor@example.com',
+                    guestWebsite: 'https://example.com',
+                }),
+            }, env);
+
+            expect(res.status).toBe(200);
+
+            // Verify via direct DB query
+            const row = sqlite.prepare(
+                `SELECT content, guest_name, guest_email, guest_website FROM comments WHERE guest_name = 'Visitor'`
+            ).get() as any;
+            expect(row).toBeDefined();
+            expect(row.content).toBe('Guest comment');
+            expect(row.guest_name).toBe('Visitor');
+            expect(row.guest_email).toBe('visitor@example.com');
+            expect(row.guest_website).toBe('https://example.com');
+        });
+
+        it('should reject guest comment without guestName', async () => {
+            const res = await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: 'Guest no name' }),
+            }, env);
+            expect(res.status).toBe(400);
+        });
+
+        it('should return guest comments with user: null in list', async () => {
+            // Create a guest comment first
+            const createRes = await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: 'Hi from guest', guestName: 'Guest' }),
+            }, env);
+            expect(createRes.status).toBe(200);
+
+            const res = await app.request('/1', { method: 'GET' }, env);
+            expect(res.status).toBe(200);
+            const data = await res.json() as any[];
+            const guestComment = data.find((c: any) => c.guestName === 'Guest');
+            expect(guestComment).toBeDefined();
+            expect(guestComment.user).toBeNull();
+            expect(guestComment.content).toBe('Hi from guest');
+        });
+
+        it('should return 400 when not authenticated and guest name missing', async () => {
             const res = await app.request('/1', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: 'Test comment' }),
             }, env);
 
-            expect(res.status).toBe(401);
+            expect(res.status).toBe(400);
+            expect(await res.text()).toContain('Guest name is required');
         });
 
         it('should require content', async () => {
