@@ -133,6 +133,36 @@
   "draft": "Draft",
   "draft_bin": "Draft Bin",
   "edit": "Edit",
+  "markdown_editor": {
+    "placeholder": {
+      "bold": "bold text",
+      "code": "code",
+      "code_block": "code block",
+      "heading": "Heading",
+      "image_alt": "image description",
+      "image_url": "https://example.com/image.png",
+      "italic": "italic text",
+      "link_text": "link text",
+      "link_url": "https://example.com",
+      "list_item": "List item",
+      "quote": "Quote"
+    },
+    "toolbar": {
+      "bold": "Bold",
+      "code_block": "Code block",
+      "heading": "Heading",
+      "horizontal_rule": "Horizontal rule",
+      "image": "Image link",
+      "inline_code": "Inline code",
+      "italic": "Italic",
+      "label": "Markdown toolbar",
+      "link": "Link",
+      "ordered_list": "Ordered list",
+      "quote": "Quote",
+      "unordered_list": "Unordered list",
+      "upload_image": "Upload image"
+    }
+  },
   "error": {
     "api_url": "API_URL in Pages environment variables should be the Worker address. Please check if API_URL in Pages environment variables is correct.",
     "api_url_slash": "API_URL in Pages environment variables should be the Worker address. Please check if API_URL in Pages environment variables is correct and ensure API_URL does not end with a slash (/).",

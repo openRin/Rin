@@ -133,6 +133,36 @@
   "draft": "草稿",
   "draft_bin": "草稿箱",
   "edit": "編輯",
+  "markdown_editor": {
+    "placeholder": {
+      "bold": "粗體文字",
+      "code": "程式碼",
+      "code_block": "程式碼區塊",
+      "heading": "標題",
+      "image_alt": "圖片描述",
+      "image_url": "https://example.com/image.png",
+      "italic": "斜體文字",
+      "link_text": "連結文字",
+      "link_url": "https://example.com",
+      "list_item": "列表項目",
+      "quote": "引用內容"
+    },
+    "toolbar": {
+      "bold": "粗體",
+      "code_block": "程式碼區塊",
+      "heading": "標題",
+      "horizontal_rule": "分隔線",
+      "image": "圖片連結",
+      "inline_code": "行內程式碼",
+      "italic": "斜體",
+      "label": "Markdown 工具列",
+      "link": "連結",
+      "ordered_list": "有序列表",
+      "quote": "引用",
+      "unordered_list": "無序列表",
+      "upload_image": "上傳圖片"
+    }
+  },
   "error": {
     "api_url": "Pages 環境變數中 API_URL 應為 Worker 地址，請檢查 Pages 環境變數中 API_URL 是否正確",
     "api_url_slash": "Pages 環境變數中 API_URL 應為 Worker 地址，請檢查 Pages 環境變數中 API_URL 是否正確，且 API_URL 末尾不能有 /",

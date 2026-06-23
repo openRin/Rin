@@ -133,6 +133,36 @@
   "draft": "草稿",
   "draft_bin": "草稿箱",
   "edit": "编辑",
+  "markdown_editor": {
+    "placeholder": {
+      "bold": "加粗文字",
+      "code": "代码",
+      "code_block": "代码块",
+      "heading": "标题",
+      "image_alt": "图片描述",
+      "image_url": "https://example.com/image.png",
+      "italic": "斜体文字",
+      "link_text": "链接文字",
+      "link_url": "https://example.com",
+      "list_item": "列表项",
+      "quote": "引用内容"
+    },
+    "toolbar": {
+      "bold": "加粗",
+      "code_block": "代码块",
+      "heading": "标题",
+      "horizontal_rule": "分割线",
+      "image": "图片链接",
+      "inline_code": "行内代码",
+      "italic": "斜体",
+      "label": "Markdown 工具栏",
+      "link": "链接",
+      "ordered_list": "有序列表",
+      "quote": "引用",
+      "unordered_list": "无序列表",
+      "upload_image": "上传图片"
+    }
+  },
   "error": {
     "api_url": "Pages 环境变量中 API_URL 应为 Worker 地址，请检查 Pages 环境变量中 API_URL 是否正确",
     "api_url_slash": "Pages 环境变量中 API_URL 应为 Worker 地址，请检查 Pages 环境变量中 API_URL 是否正确，且 API_URL 末尾不能有 /",

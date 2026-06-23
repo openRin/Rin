@@ -133,6 +133,36 @@
   "draft": "下書き",
   "draft_bin": "下書き",
   "edit": "編集",
+  "markdown_editor": {
+    "placeholder": {
+      "bold": "太字テキスト",
+      "code": "コード",
+      "code_block": "コードブロック",
+      "heading": "見出し",
+      "image_alt": "画像の説明",
+      "image_url": "https://example.com/image.png",
+      "italic": "斜体テキスト",
+      "link_text": "リンクテキスト",
+      "link_url": "https://example.com",
+      "list_item": "リスト項目",
+      "quote": "引用"
+    },
+    "toolbar": {
+      "bold": "太字",
+      "code_block": "コードブロック",
+      "heading": "見出し",
+      "horizontal_rule": "区切り線",
+      "image": "画像リンク",
+      "inline_code": "インラインコード",
+      "italic": "斜体",
+      "label": "Markdown ツールバー",
+      "link": "リンク",
+      "ordered_list": "番号付きリスト",
+      "quote": "引用",
+      "unordered_list": "箇条書き",
+      "upload_image": "画像をアップロード"
+    }
+  },
   "error": {
     "api_url": "Pages 環境変数のAPI_URLはWorkerアドレスである必要があります。Pages環境変数のAPI_URLが正しいか確認してください。",
     "api_url_slash": "Pages 環境変数のAPI_URLはWorkerアドレスである必要があります。Pages環境変数のAPI_URLが正しいか、またAPI_URLの末尾にスラッシュ（/）がないか確認してください。",
