@@ -12,7 +12,8 @@ describe('clearFeedCache', () => {
             },
             async delete(key: string, save?: boolean) {
                 deletedKeys.push({ key, save });
-            }
+            },
+            async save() {}
         } as any;
 
         await clearFeedCache(cache, 42, 'about', 'about');
@@ -37,7 +38,8 @@ describe('clearFeedCache', () => {
             async deletePrefix() {},
             async delete(key: string, save?: boolean) {
                 deletedKeys.push({ key, save });
-            }
+            },
+            async save() {}
         } as any;
 
         await clearFeedCache(cache, 42, 'about', 'about-us');
@@ -49,6 +51,35 @@ describe('clearFeedCache', () => {
             { key: 'feed_alias_about', save: false },
             { key: 'feed_about-us', save: false },
             { key: 'feed_alias_about-us', save: false }
+        ]);
+    });
+
+    it('saves after deleting exact detail cache keys', async () => {
+        const operations: string[] = [];
+        const cache = {
+            async deletePrefix(prefix: string) {
+                operations.push(`prefix:${prefix}`);
+            },
+            async delete(key: string, save?: boolean) {
+                operations.push(`delete:${key}:${save}`);
+            },
+            async save() {
+                operations.push('save');
+            }
+        } as any;
+
+        await clearFeedCache(cache, 42, 'about', 'about');
+
+        expect(operations).toEqual([
+            'prefix:feeds_',
+            'prefix:search_',
+            'delete:feed_42:false',
+            'delete:feed_id_42:false',
+            'delete:feed_about:false',
+            'delete:feed_alias_about:false',
+            'prefix:42_previous_feed',
+            'prefix:42_next_feed',
+            'save'
         ]);
     });
 });

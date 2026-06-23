@@ -454,7 +454,7 @@ export function FeedService(): Hono<{
         }
 
         await profileAsync(c, 'feed_top_db', () => db.update(feeds).set({ top }).where(eq(feeds.id, feed.id)));
-        await profileAsync(c, 'feed_top_cache_invalidate', () => clearFeedCache(cache, feed.id, null, null));
+        await profileAsync(c, 'feed_top_cache_invalidate', () => clearFeedCache(cache, feed.id, feed.alias, feed.alias));
         return c.text('Updated');
     });
 
