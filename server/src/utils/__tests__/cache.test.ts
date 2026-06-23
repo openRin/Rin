@@ -774,6 +774,21 @@ describe('CacheImpl - 公共缓存开关', () => {
         expect(await enabledCache.get('feed_1')).toEqual({ title: 'cached' });
     });
 
+    it('启用后应清理旧的不安全公共缓存键', async () => {
+        await clientConfig.set('cache.enabled', true);
+        await cacheImpl.set('feed_id_1', { content: 'private detail' });
+        await cacheImpl.set('feed_alias_secret', { content: 'private alias detail' });
+        await cacheImpl.set('search_secret', [{ title: 'private search result' }]);
+        await cacheImpl.set('feeds_undefined_0_20', { data: [{ title: 'public list' }] });
+
+        const enabledCache = new CacheImpl(db as any, mockEnv, 'cache', 'database', clientConfig);
+
+        expect(await enabledCache.get('feed_id_1')).toBeUndefined();
+        expect(await enabledCache.get('feed_alias_secret')).toBeUndefined();
+        expect(await enabledCache.get('search_secret')).toBeUndefined();
+        expect(await enabledCache.get('feeds_undefined_0_20')).toEqual({ data: [{ title: 'public list' }] });
+    });
+
     it('client.config 不应受公共缓存开关影响', async () => {
         await clientConfig.set('cache.enabled', false);
         await clientConfig.set('site.name', 'Rin Test');

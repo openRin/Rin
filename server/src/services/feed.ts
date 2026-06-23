@@ -34,6 +34,18 @@ async function initWPModules() {
     }
 }
 
+function isPublicFeed(feed: any) {
+    return Boolean(feed) && Number(feed.draft) === 0 && Number(feed.listed) === 1;
+}
+
+function publicFeedCacheKey(id: string, idNum: number | null) {
+    return idNum === null ? `public_feed_alias_${id}` : `public_feed_id_${idNum}`;
+}
+
+function publicSearchCacheKey(keyword: string) {
+    return `public_search_${keyword}`;
+}
+
 export function FeedService(): Hono<{
     Bindings: Env;
     Variables: Variables;
@@ -187,6 +199,8 @@ export function FeedService(): Hono<{
             resetSummary: true,
         }));
         await profileAsync(c, 'feed_create_cache_invalidate', () => cache.deletePrefix('feeds_'));
+        await profileAsync(c, 'feed_create_search_cache_invalidate', () => cache.deletePrefix('search_'));
+        await profileAsync(c, 'feed_create_public_search_cache_invalidate', () => cache.deletePrefix('public_search_'));
 
         if (result.length === 0) {
             return c.text('Failed to insert', 500);
@@ -204,21 +218,33 @@ export function FeedService(): Hono<{
         const uid = c.get('uid');
         const id = c.req.param('id');
         const id_num = parseFeedId(id);
-        const cacheKey = id_num === null ? `feed_alias_${id}` : `feed_id_${id_num}`;
+        const cacheKey = publicFeedCacheKey(id, id_num);
         const where = id_num === null ? eq(feeds.alias, id) : eq(feeds.id, id_num);
 
-        const feed = await profileAsync(c, 'feed_detail_cache_db', () => cache.getOrSet(cacheKey, () => db.query.feeds.findFirst({
-            where,
-            with: {
-                hashtags: {
-                    columns: {},
-                    with: {
-                        hashtag: { columns: { id: true, name: true } }
-                    }
-                },
-                user: { columns: { id: true, username: true, avatar: true } }
+        let feed = !admin ? await profileAsync(c, 'feed_detail_cache_get', () => cache.get(cacheKey)) : null;
+        if (feed && !isPublicFeed(feed)) {
+            await profileAsync(c, 'feed_detail_cache_delete_private', () => cache.delete(cacheKey));
+            feed = null;
+        }
+
+        if (!feed) {
+            feed = await profileAsync(c, 'feed_detail_db', () => db.query.feeds.findFirst({
+                where,
+                with: {
+                    hashtags: {
+                        columns: {},
+                        with: {
+                            hashtag: { columns: { id: true, name: true } }
+                        }
+                    },
+                    user: { columns: { id: true, username: true, avatar: true } }
+                }
+            }));
+
+            if (!admin && isPublicFeed(feed)) {
+                await profileAsync(c, 'feed_detail_cache_set', () => cache.set(cacheKey, feed));
             }
-        })));
+        }
 
         if (!feed) {
             return c.text('Not found', 404);
@@ -510,7 +536,7 @@ export function SearchService(): Hono<{
             return c.json({ size: 0, data: [], hasNext: false });
         }
 
-        const cacheKey = `search_${keyword}`;
+        const cacheKey = publicSearchCacheKey(keyword);
         const searchKeyword = `%${keyword}%`;
         const whereClause = or(
             like(feeds.title, searchKeyword),
@@ -519,24 +545,33 @@ export function SearchService(): Hono<{
             like(feeds.alias, searchKeyword)
         );
 
-        const feed_list = (await profileAsync(c, 'feed_search_cache_db', () => cache.getOrSet(cacheKey, () => db.query.feeds.findMany({
-            where: admin ? whereClause : and(whereClause, eq(feeds.draft, 0)),
-            columns: admin ? undefined : { draft: false, listed: false },
-            with: {
-                hashtags: {
-                    columns: {},
-                    with: { hashtag: { columns: { id: true, name: true } } }
+        let feed_list = !admin ? await profileAsync(c, 'feed_search_cache_get', () => cache.get(cacheKey)) : null;
+        if (!Array.isArray(feed_list)) {
+            const searchResults = await profileAsync(c, 'feed_search_db', () => db.query.feeds.findMany({
+                where: admin ? whereClause : and(whereClause, eq(feeds.draft, 0), eq(feeds.listed, 1)),
+                columns: admin ? undefined : { draft: false, listed: false },
+                with: {
+                    hashtags: {
+                        columns: {},
+                        with: { hashtag: { columns: { id: true, name: true } } }
+                    },
+                    user: { columns: { id: true, username: true, avatar: true } }
                 },
-                user: { columns: { id: true, username: true, avatar: true } }
-            },
-            orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
-        })))).map(({ content, hashtags, summary, ...other }: any) => {
-            return {
-                summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
-                hashtags: hashtags.map(({ hashtag }: any) => hashtag),
-                ...other
-            };
-        });
+                orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
+            }));
+
+            feed_list = searchResults.map(({ content, hashtags, summary, ...other }: any) => {
+                return {
+                    summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
+                    hashtags: hashtags.map(({ hashtag }: any) => hashtag),
+                    ...other
+                };
+            });
+
+            if (!admin) {
+                await profileAsync(c, 'feed_search_cache_set', () => cache.set(cacheKey, feed_list));
+            }
+        }
 
         if (feed_list.length <= page_num * limit_num) {
             return c.json({ size: feed_list.length, data: [], hasNext: false });
@@ -654,6 +689,8 @@ export function WordPressService(): Hono<{
         }
 
         await profileAsync(c, 'wp_import_cache_invalidate', () => cache.deletePrefix('feeds_'));
+        await profileAsync(c, 'wp_import_search_cache_invalidate', () => cache.deletePrefix('search_'));
+        await profileAsync(c, 'wp_import_public_search_cache_invalidate', () => cache.deletePrefix('public_search_'));
         return c.json({ success, skipped, skippedList });
     });
     return app;
