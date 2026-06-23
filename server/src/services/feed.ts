@@ -14,6 +14,15 @@ export { clearFeedCache } from "./clear-feed-cache";
 let XMLParser: any;
 let html2md: any;
 
+function parseFeedId(value: string): number | null {
+    if (!/^[1-9]\d*$/.test(value)) {
+        return null;
+    }
+
+    const id = Number(value);
+    return Number.isSafeInteger(id) ? id : null;
+}
+
 async function initWPModules() {
     if (!XMLParser) {
         const fxp = await import("fast-xml-parser");
@@ -194,11 +203,12 @@ export function FeedService(): Hono<{
         const admin = c.get('admin');
         const uid = c.get('uid');
         const id = c.req.param('id');
-        const id_num = parseInt(id);
-        const cacheKey = `feed_${id}`;
+        const id_num = parseFeedId(id);
+        const cacheKey = id_num === null ? `feed_alias_${id}` : `feed_id_${id_num}`;
+        const where = id_num === null ? eq(feeds.alias, id) : eq(feeds.id, id_num);
 
         const feed = await profileAsync(c, 'feed_detail_cache_db', () => cache.getOrSet(cacheKey, () => db.query.feeds.findFirst({
-            where: or(eq(feeds.id, id_num), eq(feeds.alias, id)),
+            where,
             with: {
                 hashtags: {
                     columns: {},
@@ -275,16 +285,14 @@ export function FeedService(): Hono<{
         const db = c.get('db');
         const cache = c.get('cache');
         const id = c.req.param('id');
-        let id_num: number;
+        let id_num = parseFeedId(id);
 
-        if (isNaN(parseInt(id))) {
+        if (id_num === null) {
             const aliasRecord = await profileAsync(c, 'feed_adjacent_alias_lookup', () => db.select({ id: feeds.id }).from(feeds).where(eq(feeds.alias, id)));
             if (aliasRecord.length === 0) {
                 return c.text("Not found", 404);
             }
             id_num = aliasRecord[0].id;
-        } else {
-            id_num = parseInt(id);
         }
 
         const feed = await profileAsync(c, 'feed_adjacent_current', () => db.query.feeds.findFirst({
@@ -660,4 +668,3 @@ type FeedItem = {
     updatedAt: Date;
     tags?: string[];
 }
-
