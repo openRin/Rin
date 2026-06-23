@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
-import { FeedService } from '../feed';
+import { FeedService, SearchService } from '../feed';
 import { Hono } from "hono";
 import type { Variables } from "../../core/hono-types";
 import { setupTestApp, createTestUser, cleanupTestDB } from '../../../tests/fixtures';
@@ -312,6 +312,55 @@ describe('FeedService', () => {
 
             expect(data.title).toBe('Fresh Feed');
         });
+
+        it('should only write published listed feed details to public cache', async () => {
+            await clientConfig.set('cache.enabled', true);
+            await clientConfig.set('counter.enabled', false);
+
+            async function createFeed(title: string, content: string, listed: boolean, draft: boolean) {
+                const res = await app.request('/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer mock_token_1',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                        listed,
+                        draft,
+                        tags: [],
+                    }),
+                }, env);
+                expect(res.status).toBe(200);
+                return ((await res.json()) as any).insertedId as number;
+            }
+
+            const publicId = await createFeed('Public Cache Feed', 'Public cache content', true, false);
+            const draftId = await createFeed('Draft Cache Feed', 'Draft private content', true, true);
+            const unlistedId = await createFeed('Unlisted Cache Feed', 'Unlisted private content', false, false);
+
+            const publicRes = await app.request(`/${publicId}`, { method: 'GET' }, env);
+            expect(publicRes.status).toBe(200);
+
+            const draftRes = await app.request(`/${draftId}`, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer mock_token_1' },
+            }, env);
+            expect(draftRes.status).toBe(200);
+
+            const unlistedRes = await app.request(`/${unlistedId}`, { method: 'GET' }, env);
+            expect(unlistedRes.status).toBe(200);
+
+            const entries = await cache.all();
+            expect(entries.has(`public_feed_id_${publicId}`)).toBe(true);
+            expect(entries.has(`public_feed_id_${draftId}`)).toBe(false);
+            expect(entries.has(`public_feed_id_${unlistedId}`)).toBe(false);
+
+            const serializedCache = JSON.stringify(Object.fromEntries(entries));
+            expect(serializedCache).not.toContain('Draft private content');
+            expect(serializedCache).not.toContain('Unlisted private content');
+        });
     });
 
     describe('POST / - Create feed', () => {
@@ -588,5 +637,56 @@ describe('FeedService', () => {
 
             expect(res.status).toBe(404);
         });
+    });
+});
+
+describe('SearchService', () => {
+    let sqlite: Database;
+    let env: Env;
+    let app: Hono<{ Bindings: Env; Variables: Variables }>;
+    let cache: TestCacheImpl;
+    let clientConfig: TestCacheImpl;
+
+    beforeEach(async () => {
+        const ctx = await setupTestApp(SearchService);
+        sqlite = ctx.sqlite;
+        env = ctx.env;
+        app = ctx.app;
+        cache = ctx.cache;
+        clientConfig = ctx.clientConfig;
+
+        await createTestUser(sqlite);
+        await clientConfig.set('cache.enabled', true);
+    });
+
+    afterEach(() => {
+        cleanupTestDB(sqlite);
+    });
+
+    it('should cache only published listed search results for public users', async () => {
+        sqlite.exec(`
+            INSERT INTO feeds (id, title, content, summary, uid, listed, draft)
+            VALUES
+                (1, 'Public needle', 'Public searchable content', '', 1, 1, 0),
+                (2, 'Draft needle', 'Draft private searchable content', '', 1, 1, 1),
+                (3, 'Unlisted needle', 'Unlisted private searchable content', '', 1, 0, 0)
+        `);
+
+        const res = await app.request('/needle?page=1&limit=10', { method: 'GET' }, env);
+
+        expect(res.status).toBe(200);
+        const data = await res.json() as any;
+        expect(data.size).toBe(1);
+        expect(data.data.map((item: any) => item.title)).toEqual(['Public needle']);
+
+        const entries = await cache.all();
+        expect(entries.has('public_search_needle')).toBe(true);
+
+        const serializedCache = JSON.stringify(Object.fromEntries(entries));
+        expect(serializedCache).toContain('Public needle');
+        expect(serializedCache).not.toContain('Draft private searchable content');
+        expect(serializedCache).not.toContain('Unlisted private searchable content');
+        expect(serializedCache).not.toContain('"draft"');
+        expect(serializedCache).not.toContain('"listed"');
     });
 });

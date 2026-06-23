@@ -8,6 +8,8 @@ import { getStorageObject, putStorageObjectAtKey } from "./storage";
 
 export type CacheStorageMode = 'database' | 's3';
 
+const LEGACY_UNSAFE_PUBLIC_CACHE_PREFIXES = ["feed_id_", "feed_alias_", "search_"];
+
 type CacheConfigReader = {
     getOrDefault<T>(key: string, defaultValue: T): Promise<T>;
 };
@@ -240,9 +242,29 @@ export class CacheImpl {
         return this.cacheEnabled;
     }
 
+    private pruneLegacyUnsafePublicCacheKeys() {
+        if (this.type !== "cache") {
+            return false;
+        }
+
+        let pruned = false;
+        for (const key of Array.from(this.cache.keys())) {
+            if (LEGACY_UNSAFE_PUBLIC_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+                this.cache.delete(key);
+                pruned = true;
+            }
+        }
+
+        return pruned;
+    }
+
     async load() {
         await this.storageProvider.load();
+        const pruned = this.pruneLegacyUnsafePublicCacheKeys();
         this.loaded = true;
+        if (pruned) {
+            await this.storageProvider.save();
+        }
     }
 
     async all() {

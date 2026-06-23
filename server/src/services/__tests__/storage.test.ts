@@ -108,7 +108,7 @@ describe('StorageService', () => {
         `);
     }
 
-    function createAppWithEnv(appEnv: Env, uid?: number) {
+    function createAppWithEnv(appEnv: Env, uid?: number, admin = false) {
         const serviceApp = new Hono<{ Bindings: Env; Variables: Variables }>();
         serviceApp.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
             c.set('db', db);
@@ -121,6 +121,7 @@ describe('StorageService', () => {
             } as JWTUtils);
             c.set('env', appEnv);
             c.set('uid', uid);
+            c.set('admin', admin);
             await next();
         }));
         serviceApp.route('/', StorageService());
@@ -174,7 +175,7 @@ describe('StorageService', () => {
                 S3_SECRET_ACCESS_KEY: '',
             });
 
-            const r2App = createAppWithEnv(r2Env, 1);
+            const r2App = createAppWithEnv(r2Env, 1, true);
             const formData = new FormData();
             formData.append('key', 'test.txt');
             formData.append('file', new File(['test content'], 'test.txt', { type: 'text/plain' }));
@@ -190,6 +191,32 @@ describe('StorageService', () => {
             expect(putCalls[0]?.type).toBe('text/plain;charset=utf-8');
             const payload = await res.json() as { url: string };
             expect(payload.url).toMatch(/^https:\/\/images\.example\.com\/images\/[a-f0-9]+\.txt$/);
+        });
+
+        it('should reject authenticated non-admin uploads', async () => {
+            const putCalls: string[] = [];
+            const r2Env = createMockEnv({
+                R2_BUCKET: {
+                    put: async (key: string) => {
+                        putCalls.push(key);
+                        return {} as unknown as R2Object;
+                    },
+                } as unknown as R2Bucket,
+            });
+
+            const r2App = createAppWithEnv(r2Env, 2, false);
+            const formData = new FormData();
+            formData.append('key', 'test.txt');
+            formData.append('file', new File(['test content'], 'test.txt', { type: 'text/plain' }));
+
+            const res = await r2App.request('/', {
+                method: 'POST',
+                body: formData,
+            }, r2Env);
+
+            expect(res.status).toBe(403);
+            expect(await res.text()).toBe('Permission denied');
+            expect(putCalls).toHaveLength(0);
         });
 
         it('should return an /api/blob URL when R2 is configured without S3_ACCESS_HOST', async () => {
@@ -218,7 +245,7 @@ describe('StorageService', () => {
                 S3_SECRET_ACCESS_KEY: '',
             });
 
-            const r2App = createAppWithEnv(r2Env, 1);
+            const r2App = createAppWithEnv(r2Env, 1, true);
             const formData = new FormData();
             formData.append('key', 'test.txt');
             formData.append('file', new File(['test'], 'test.txt', { type: 'text/plain' }));
@@ -239,7 +266,7 @@ describe('StorageService', () => {
             const envNoS3 = createMockEnv({
                 S3_ENDPOINT: '' as any,
             });
-            const appNoS3 = createAppWithEnv(envNoS3, 1);
+            const appNoS3 = createAppWithEnv(envNoS3, 1, true);
 
             const formData = new FormData();
             formData.append('key', 'test.txt');
@@ -258,7 +285,7 @@ describe('StorageService', () => {
             const envNoKey = createMockEnv({
                 S3_ACCESS_KEY_ID: '',
             });
-            const appNoKey = createAppWithEnv(envNoKey, 1);
+            const appNoKey = createAppWithEnv(envNoKey, 1, true);
 
             const formData = new FormData();
             formData.append('key', 'test.txt');

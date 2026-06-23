@@ -15,16 +15,28 @@ export function StorageService(): Hono {
     // POST /storage
     app.post('/', async (c: AppContext) => {
         const uid = c.get('uid');
+        const admin = c.get('admin');
         const env = c.get('env');
-        
-        const body = await profileAsync(c, 'storage_parse', () => c.req.parseBody());
-        const key = body.key as string;
-        const file = body.file as File;
-        
+
         if (!uid) {
             return c.text('Unauthorized', 401);
         }
-        
+
+        if (!admin) {
+            return c.text('Permission denied', 403);
+        }
+
+        const body = await profileAsync(c, 'storage_parse', () => c.req.parseBody());
+        const file = body.file;
+
+        if (!(file instanceof File)) {
+            return c.text('File is required', 400);
+        }
+
+        const key = typeof body.key === 'string' && body.key.length > 0
+            ? body.key
+            : file.name;
+
         const suffix = key.includes(".") ? key.split('.').pop() : "";
         const fileBuffer = await profileAsync(c, 'storage_file_buffer', () => file.arrayBuffer());
         const hashArray = await profileAsync(c, 'storage_hash', () => crypto.subtle.digest(
