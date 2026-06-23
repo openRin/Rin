@@ -166,6 +166,76 @@ describe('FeedService', () => {
             expect(data.title).toBe('Test Feed');
         });
 
+        it('should prefer a numeric feed id over another feed numeric alias', async () => {
+            const firstRes = await app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Previous Feed',
+                    alias: '2',
+                    content: 'Previous Content',
+                    listed: true,
+                    draft: false,
+                    tags: [],
+                }),
+            }, env);
+            expect(firstRes.status).toBe(200);
+
+            const secondRes = await app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Target Feed',
+                    content: 'Target Content',
+                    listed: true,
+                    draft: false,
+                    tags: [],
+                }),
+            }, env);
+            expect(secondRes.status).toBe(200);
+            const secondData = await secondRes.json() as any;
+
+            const getRes = await app.request(`/${secondData.insertedId}`, { method: 'GET' }, env);
+
+            expect(getRes.status).toBe(200);
+            const data = await getRes.json() as any;
+            expect(data.id).toBe(secondData.insertedId);
+            expect(data.title).toBe('Target Feed');
+            expect(data.content).toBe('Target Content');
+        });
+
+        it('should return feed by non-numeric alias', async () => {
+            const createRes = await app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Alias Feed',
+                    alias: 'custom-slug',
+                    content: 'Alias Content',
+                    listed: true,
+                    draft: false,
+                    tags: [],
+                }),
+            }, env);
+
+            expect(createRes.status).toBe(200);
+
+            const getRes = await app.request('/custom-slug', { method: 'GET' }, env);
+
+            expect(getRes.status).toBe(200);
+            const data = await getRes.json() as any;
+            expect(data.title).toBe('Alias Feed');
+        });
+
         it('should return AI summary generation status for a queued feed', async () => {
             await serverConfig.set('ai_summary.enabled', 'true', false);
             await serverConfig.set('ai_summary.provider', 'worker-ai', false);
