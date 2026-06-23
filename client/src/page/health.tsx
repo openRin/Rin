@@ -67,7 +67,7 @@ export function HealthPage() {
           return;
         }
         if (data) {
-          setItems(data.items);
+          setItems(Array.isArray(data.items) ? data.items : []);
           setSummary(data.summary);
           setGeneratedAt(data.generatedAt);
         }
