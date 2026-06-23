@@ -12,6 +12,7 @@ import gfm from "remark-gfm";
 import remarkMermaid from "../remark/remarkMermaid";
 import { remarkAlert } from "remark-github-blockquote-alert";
 import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
 import Lightbox, { SlideImage } from "yet-another-react-lightbox";
 import Counter from "yet-another-react-lightbox/plugins/counter";
 import Download from "yet-another-react-lightbox/plugins/download";
@@ -126,7 +127,7 @@ export function Markdown({ content }: { content: string }) {
   const Content = useMemo(() => (
     <ReactMarkdown
       className="toc-content dark:text-neutral-300"
-      remarkPlugins={[gfm, remarkMermaid, remarkMath, remarkAlert]}
+      remarkPlugins={[gfm, remarkMermaid, remarkMath, remarkAlert, remarkBreaks]}
       children={content}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
       components={{
@@ -407,6 +408,22 @@ export function Markdown({ content }: { content: string }) {
             return child;
           });
           return <section {...props}>{modifiedChildren}</section>;
+        },
+        iframe({ node, src, title, ...props }) {
+          return (
+            <div className="my-4 w-full">
+              <iframe
+                {...props}
+                src={src}
+                title={title || "Embedded content"}
+                className="w-full rounded-xl border border-black/10 dark:border-white/10"
+                style={{ minHeight: "400px" }}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+              />
+            </div>
+          );
         },
         div({ children, node, ...props }) {
           return <div {...props}>{children}</div>;
