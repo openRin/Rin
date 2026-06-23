@@ -362,6 +362,60 @@ describe('FeedService', () => {
             expect(data.title).toBe('Updated Title');
         });
 
+        it('should return updated content through unchanged alias after edit', async () => {
+            await clientConfig.set('counter.enabled', false);
+
+            const createRes = await app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Alias Title',
+                    alias: 'alias-post',
+                    content: 'Original alias content',
+                    listed: true,
+                    draft: false,
+                    tags: [],
+                }),
+            }, env);
+
+            expect(createRes.status).toBe(200);
+            const createData = await createRes.json() as any;
+            const feedId = createData.insertedId;
+
+            const cachedAliasRes = await app.request('/alias-post', { method: 'GET' }, env);
+            expect(cachedAliasRes.status).toBe(200);
+            expect(((await cachedAliasRes.json()) as any).content).toBe('Original alias content');
+
+            const updateRes = await app.request(`/${feedId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Alias Title Updated',
+                    alias: 'alias-post',
+                    content: 'Updated alias content',
+                    listed: true,
+                }),
+            }, env);
+
+            expect(updateRes.status).toBe(200);
+
+            const aliasRes = await app.request('/alias-post', { method: 'GET' }, env);
+            expect(aliasRes.status).toBe(200);
+            const aliasData = await aliasRes.json() as any;
+            expect(aliasData.title).toBe('Alias Title Updated');
+            expect(aliasData.content).toBe('Updated alias content');
+
+            const idRes = await app.request(`/${feedId}`, { method: 'GET' }, env);
+            expect(idRes.status).toBe(200);
+            expect(((await idRes.json()) as any).content).toBe('Updated alias content');
+        });
+
         it('should require admin permission to update', async () => {
             // Create feed first
             const createRes = await app.request('/', {
