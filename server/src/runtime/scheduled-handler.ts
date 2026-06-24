@@ -9,8 +9,8 @@ export async function handleScheduled(
   const schema = await import("../db/schema");
   const db = drizzle(env.DB, { schema });
 
-  const serverConfig = new CacheImpl(db, env, "server.config", "database");
-  const clientConfig = new CacheImpl(db, env, "client.config");
+  const serverConfig = new CacheImpl(db, env, "blog.server.config", "database");
+  const clientConfig = new CacheImpl(db, env, "blog.client.config");
   const cache = new CacheImpl(db, env, "cache", undefined, clientConfig);
 
   const { friendCrontab } = await import("../services/friends");

@@ -387,10 +387,13 @@ export function createPublicCache(db: DB, env: Env, storageMode?: CacheStorageMo
     return new CacheImpl(db, env, "cache", storageMode);
 }
 
+// 注意：namespace 加 'blog.' 前缀是为了与 LZone 图床（rin-server worker）共享同一个 D1 数据库 'rin'
+// 但隔离站点配置（site.name / theme.color / AdSense 等）。两边 worker 写入 cache 表的 type 字段不同，
+// 因此 site.name 在 LZone 是 'LZone'、在博客可以独立设为 'log.chainseek.top'。
 export function createServerConfig(db: DB, env: Env, storageMode?: CacheStorageMode) {
-    return new CacheImpl(db, env, "server.config", storageMode);
+    return new CacheImpl(db, env, "blog.server.config", storageMode);
 }
 
 export function createClientConfig(db: DB, env: Env, storageMode?: CacheStorageMode) {
-    return new CacheImpl(db, env, "client.config", storageMode);
+    return new CacheImpl(db, env, "blog.client.config", storageMode);
 }

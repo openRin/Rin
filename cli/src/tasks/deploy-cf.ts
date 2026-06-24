@@ -146,6 +146,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   const workerName = renv("WORKER_NAME", "rin-server");
   const taskQueueName = env("TASK_QUEUE_NAME", env("AI_SUMMARY_QUEUE_NAME", `${workerName}-tasks`)) ?? `${workerName}-tasks`;
   const r2BucketName = env("R2_BUCKET_NAME", "");
+  const siteDomain = env("SITE_DOMAIN", "");
   const s3Endpoint = env("S3_ENDPOINT", "");
   const s3AccessHost = env("S3_ACCESS_HOST", "");
   const s3Bucket = env("S3_BUCKET", "");
@@ -262,6 +263,21 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
       bucket_name = "${r2BucketName}"
       preview_bucket_name = "${r2BucketName}"
     `)} >> wrangler.toml`.quiet();
+  }
+
+  if (!preview && siteDomain) {
+    const hostname = siteDomain
+      .trim()
+      .replace(/^https?:\/\//i, "")
+      .replace(/\/.*$/, "")
+      .trim();
+    if (hostname) {
+      await $`echo ${stripIndent(`
+        [[routes]]
+        pattern = "${hostname}"
+        custom_domain = true
+      `)} >> wrangler.toml`.quiet();
+    }
   }
 
   const migrationVersion = await getMigrationVersion("remote", dbName);
