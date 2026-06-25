@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
+import { motion } from "motion/react";
 import { timeago } from "../utils/timeago";
 import { HashTag } from "./hashtag";
 import { useEffect, useRef } from "react";
@@ -17,6 +18,8 @@ function FeedCardImage({ src, variant }: { src: string; variant: FeedCardVariant
     const imageFrameClass =
         variant === "editorial"
             ? "relative flex max-h-80 w-full flex-row items-center overflow-hidden rounded-[20px]"
+            : variant === "glass"
+            ? "relative flex max-h-80 w-full flex-row items-center overflow-hidden rounded-[32px]"
             : "relative mb-2 flex max-h-80 w-full flex-row items-center overflow-hidden rounded-xl";
 
     useEffect(() => {
@@ -68,18 +71,25 @@ const FEED_CARD_STYLES: Record<
     }
 > = {
     default: {
-        card: "my-2 inline-block w-full break-inside-avoid rounded-2xl bg-w p-6 duration-300 bg-button",
+        card: "card squircle p-6 my-3 inline-block w-full break-inside-avoid",
         imageWrap: "",
-        meta: "text-gray-400 text-sm",
-        summary: "line-clamp-4 text-pretty overflow-hidden dark:text-neutral-500",
-        title: "text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden",
+        meta: "text-secondary text-sm",
+        summary: "line-clamp-4 text-pretty overflow-hidden text-secondary",
+        title: "text-xl font-bold text-primary text-pretty overflow-hidden",
     },
     editorial: {
-        card: "my-3 inline-block w-full break-inside-avoid overflow-hidden rounded-[28px] border border-black/10 bg-w p-3 shadow-[0_24px_60px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)] dark:border-white/10",
+        card: "card squircle p-3 my-3 inline-block w-full break-inside-avoid overflow-hidden shadow-[0_24px_60px_rgba(15,23,42,0.08)] dark:shadow-none",
         imageWrap: "mb-3 overflow-hidden rounded-[22px] border border-black/5 dark:border-white/10",
-        meta: "text-[12px] font-medium uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400",
-        summary: "line-clamp-5 text-pretty text-[15px] leading-7 text-neutral-600 dark:text-neutral-300",
-        title: "text-2xl font-semibold tracking-[-0.02em] text-neutral-900 dark:text-white text-pretty overflow-hidden",
+        meta: "text-[12px] font-medium uppercase tracking-[0.18em] text-secondary",
+        summary: "line-clamp-5 text-pretty text-[15px] leading-7 text-secondary",
+        title: "text-2xl font-semibold tracking-[-0.02em] text-primary text-pretty overflow-hidden",
+    },
+    glass: {
+        card: "card glass squircle my-3 inline-block w-full break-inside-avoid p-6",
+        imageWrap: "mb-4 overflow-hidden rounded-[32px]",
+        meta: "text-[13px] text-secondary",
+        summary: "line-clamp-4 text-pretty text-[15px] leading-relaxed text-secondary",
+        title: "text-2xl font-bold tracking-[-0.01em] text-primary text-pretty overflow-hidden",
     },
 };
 
@@ -96,15 +106,26 @@ export type FeedCardProps = {
     updatedAt: Date;
     preview?: boolean;
     variant?: FeedCardVariant;
+    index?: number;
 };
 
-export function FeedCard({ id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt, preview = false, variant }: FeedCardProps) {
+export function FeedCard({ id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt, preview = false, variant, index = 0 }: FeedCardProps) {
     const { t } = useTranslation();
     const siteConfig = useSiteConfig();
     const activeVariant = normalizeFeedCardVariant(variant ?? siteConfig.feedCardVariant);
     const styles = FEED_CARD_STYLES[activeVariant];
-    const body = (
-        <div className={styles.card}>
+    const cardContent = (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{
+                opacity: { duration: 0.5, delay: index * 0.08 },
+                scale: { type: "spring", stiffness: 200, damping: 20, delay: index * 0.08 },
+            }}
+            className={styles.card}
+        >
             {avatar ? (
                 <div className={styles.imageWrap}>
                     <FeedCardImage src={avatar} variant={activeVariant} />
@@ -136,8 +157,8 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                     </div>
                 }
             </div>
-        </div>
+        </motion.div>
     );
 
-    return preview ? body : <Link href={`/feed/${id}`} target="_blank" className="block w-full">{body}</Link>;
+    return preview ? cardContent : <Link href={`/feed/${id}`} target="_blank" className="block w-full">{cardContent}</Link>;
 }

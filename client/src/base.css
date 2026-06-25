@@ -1,43 +1,105 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Glassmorphism variables */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: rgba(0, 0, 0, 0.05);
+  --glass-inset: rgba(255, 255, 255, 0.25);
+  --glass-blur: 4px;
+  --glass-radius: 40px;
+
+  /* Advanced theme color system (light mode) — aligned with 2025-blog */
+  --theme-brand: #35bfab;
+  --theme-brand-secondary: #1fc9e7;
+  --theme-primary: #334f52;
+  --theme-secondary: #7b888e;
+  --theme-bg: #eeeeee;
+  --theme-card: #ffffff66;
+  --theme-article: #ffffffcc;
+  --theme-border: #ffffff;
+}
+
+[data-color-mode="dark"] {
+  /* Glassmorphism variables */
+  --glass-bg: rgba(30, 30, 30, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.2);
+  --glass-inset: rgba(255, 255, 255, 0.05);
+  --glass-blur: 4px;
+  --glass-radius: 40px;
+
+  /* Advanced theme color system (dark mode) */
+  --theme-brand: #4ed4c2;
+  --theme-brand-secondary: #2fd5f0;
+  --theme-primary: #e0e6e7;
+  --theme-secondary: #a0acb1;
+  --theme-bg: #1a1d1e;
+  --theme-card: rgba(40, 44, 46, 0.6);
+  --theme-article: rgba(35, 38, 40, 0.8);
+  --theme-border: rgba(255, 255, 255, 0.1);
+}
+
 @layer base {
-    .bg-w {
-      @apply bg-white dark:bg-dark;
+    html {
+      scroll-behavior: smooth;
     }
-  
+
+    body {
+      color: var(--theme-primary);
+      background-color: var(--theme-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .bg-w {
+      background-color: var(--theme-card);
+    }
+
+    .card-panel {
+      background-color: var(--theme-card);
+      border: 1px solid var(--theme-border);
+      border-radius: var(--glass-radius);
+    }
+
     .bg-secondary {
       @apply bg-neutral-100 dark:bg-neutral-700;
     }
-  
+
     .bg-button {
-      @apply hover:bg-neutral-200 dark:hover:bg-neutral-600 active:bg-neutral-300 dark:active:bg-neutral-500;
+      @apply hover:bg-white/60 dark:hover:bg-white/10 active:bg-white/80 dark:active:bg-white/20;
     }
 
     .bg-hover {
-      @apply hover:bg-neutral-200 dark:hover:bg-neutral-600;
+      @apply hover:bg-white/60 dark:hover:bg-white/10;
     }
-  
+
     .shadow-light {
       @apply shadow-neutral-200/30 dark:shadow-black/10;
     }
-  
+
     .shadow-deep {
       @apply shadow-neutral-200/70 dark:shadow-black/30;
     }
-  
+
     .t-primary {
-      @apply text-black dark:text-white;
+      color: var(--theme-primary);
     }
-  
+
+    [data-color-mode="dark"] .t-primary {
+      color: white;
+    }
+
     .t-secondary {
-      @apply text-neutral-500 dark:text-neutral-200;
+      color: var(--theme-secondary);
     }
-  
+
     .wauto {
       @apply w-full md:w-11/12 lg:w-10/12 xl:w-8/12 2xl:w-6/12 duration-300;
     }
-  
+
     .writeauto {
       @apply w-full md:w-7/12 lg:w-8/12 duration-300;
     }
@@ -70,6 +132,83 @@
     input[type="color"].color-input-reset::-moz-color-swatch {
       border: none;
       border-radius: 9999px;
+    }
+
+    /* Glassmorphism card — aligned with 2025-blog */
+    .glass-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--glass-radius);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow:
+        0 40px 50px -32px var(--glass-shadow),
+        inset 0 0 20px var(--glass-inset);
+    }
+
+    .glass-card-interactive {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--glass-radius);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow:
+        0 40px 50px -32px var(--glass-shadow),
+        inset 0 0 20px var(--glass-inset);
+    }
+
+    .glass-tag {
+      @apply text-sm px-3 py-1 rounded-2xl;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* 2025-blog style utilities */
+    .text-linear {
+      background: linear-gradient(to right bottom, rgba(0,0,0,0.2) 0%, rgba(170,170,170,0.06) 100%),
+                  linear-gradient(to right bottom, var(--theme-brand) 40%, var(--theme-brand-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .bg-linear {
+      background: linear-gradient(to right bottom, var(--theme-brand) 0%, var(--theme-brand-secondary));
+      color: white;
+    }
+
+    .btn-rounded {
+      @apply rounded-xl;
+    }
+
+    .brand-btn {
+      @apply bg-linear btn-rounded inline-flex items-center gap-2 border-[1.5px] border-transparent px-4 py-2 text-sm font-medium text-white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-rounded {
+      border-radius: var(--glass-radius);
+    }
+
+    .squircle {
+      @supports (corner-shape: squircle) {
+        corner-shape: squircle;
+        border-radius: 64px;
+      }
+    }
+
+    .card {
+      @apply glass-card-interactive transition-transform duration-300;
+    }
+
+    .card.glass {
+      @apply glass-card-interactive;
+    }
+
+    .border-border {
+      border-color: var(--theme-border);
     }
 
   }

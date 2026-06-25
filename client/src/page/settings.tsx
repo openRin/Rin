@@ -18,7 +18,7 @@ import { FEED_CARD_VARIANTS, normalizeFeedCardVariant } from "../components/feed
 import { FeedCardPreview } from "../components/feed-card-preview";
 import { FEED_LAYOUT_OPTIONS, normalizeFeedLayout } from "../components/feed-layout-options";
 import { useSiteConfig } from "../hooks/useSiteConfig";
-import { applyThemeColor, normalizeThemeColor } from "../utils/theme-color";
+import { applyThemeColor, normalizeThemeColor, applyThemePalette, clearThemePalette, DEFAULT_THEME_PALETTE, type ThemePalette } from "../utils/theme-color";
 import { AISummarySettings } from "./settings-ai";
 import { ItemButton, ItemImageInput, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
 import {
@@ -97,9 +97,9 @@ export function Settings() {
   const { clientConfig, serverConfig } = useMemo(() => createSettingsConfigWrappers(draft), [draft]);
   const aiValue = useMemo(() => buildAIConfigDraftValue(draft, hasStoredAiApiKey), [draft, hasStoredAiApiKey]);
   const hasUnsavedChanges = !areSettingsDraftsEqual(draft, initialDraft);
-  const themeColorValue = normalizeThemeColor(String(clientConfig.get("theme.color") ?? "#fc466b"));
+  const themeColorValue = normalizeThemeColor(String(clientConfig.get("theme.color") ?? "#35bfab"));
   const feedLayoutValue = normalizeFeedLayout(String(clientConfig.get("feed.layout") ?? "list"));
-  const feedCardVariantValue = normalizeFeedCardVariant(String(clientConfig.get("feed.card_variant") ?? "default"));
+  const feedCardVariantValue = normalizeFeedCardVariant(String(clientConfig.get("feed.card_variant") ?? "glass"));
   const previewSiteName = String(clientConfig.get("site.name") ?? clientConfig.default("site.name") ?? "Rin");
   const previewSiteAvatar = String(clientConfig.get("site.avatar") ?? clientConfig.default("site.avatar") ?? "");
 
@@ -400,6 +400,45 @@ export function Settings() {
                 <SettingsCardRow
                   header={
                     <SettingsCardHeader
+                      title={t("settings.theme_palette.title")}
+                      description={t("settings.theme_palette.desc")}
+                    />
+                  }
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearThemePalette();
+                      }}
+                      className="text-sm text-neutral-500 hover:text-theme"
+                    >
+                      {t("settings.theme_palette.reset")}
+                    </button>
+                  }
+                />
+                <SettingsCardBody>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {(Object.keys(DEFAULT_THEME_PALETTE) as (keyof ThemePalette)[]).map((key) => (
+                      <label key={key} className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          defaultValue={DEFAULT_THEME_PALETTE[key]}
+                          onChange={(e) => {
+                            const palette = { [key]: e.target.value };
+                            applyThemePalette(palette);
+                          }}
+                          className="color-input-reset h-8 w-8 cursor-pointer rounded-full"
+                        />
+                        <span className="text-sm t-secondary">{t(`settings.theme_palette.colors.${key}`)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </SettingsCardBody>
+              </div>
+              <div className="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
+                <SettingsCardRow
+                  header={
+                    <SettingsCardHeader
                       title={t("settings.header_behavior.title")}
                       description={t("settings.header_behavior.desc")}
                     />
@@ -455,6 +494,14 @@ export function Settings() {
             checked={clientConfig.getBoolean("rss")}
             onChange={(checked) => {
               setConfigValue("client", "rss", checked);
+            }}
+          />
+          <ItemSwitch
+            title={t("settings.background.bubbles.title")}
+            description={t("settings.background.bubbles.desc")}
+            checked={clientConfig.getBoolean("background.bubbles")}
+            onChange={(checked) => {
+              setConfigValue("client", "background.bubbles", checked);
             }}
           />
           <ItemWithUpload

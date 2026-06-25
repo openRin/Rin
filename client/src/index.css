@@ -1,9 +1,9 @@
 @import "./base.css";
 
 :root {
-  --theme-rgb: 252 70 107;
-  --theme-hover-rgb: 177 48 73;
-  --theme-active-rgb: 151 32 56;
+  --theme-rgb: 53 191 171;
+  --theme-hover-rgb: 37 134 119;
+  --theme-active-rgb: 28 105 94;
 }
 
 /* cantarell-latin-400-normal */
@@ -20,8 +20,7 @@
 }
 
 body {
-  @apply bg-background-light dark:bg-background-dark text-gray-800;
-  font-family: Cantarell, "Source Han Serif CN VF" !important;
+  font-family: theme('fontFamily.sans');
 }
 
 textarea:focus {
@@ -30,7 +29,7 @@ textarea:focus {
 
 .wmde-markdown {
   @apply bg-w;
-  font-family: Cantarell, "Source Han Serif CN VF" !important;
+  font-family: theme('fontFamily.sans');
 }
 
 .w-md-editor {
@@ -133,6 +132,18 @@ ul {
 
 .ani-show-fast {
   animation: anvil 0.3s cubic-bezier(0.38, 0.1, 0.36, 0.9) forwards;
+}
+
+/* motion-driven card entrance — 2025-blog style */
+@keyframes card-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .table {

@@ -1,4 +1,4 @@
-export const FEED_CARD_VARIANTS = ["default", "editorial"] as const;
+export const FEED_CARD_VARIANTS = ["default", "editorial", "glass"] as const;
 
 export type FeedCardVariant = (typeof FEED_CARD_VARIANTS)[number];
 

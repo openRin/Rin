@@ -37,7 +37,7 @@ export function FeedsPage() {
     })
     const page = tryInt(1, query.get("page"))
     const limit = tryInt(siteConfig.pageSize, query.get("limit"))
-    const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 ani-show md:columns-2" : "wauto flex flex-col ani-show";
+    const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 md:columns-2" : "wauto flex flex-col";
     const ref = useRef("")
     function fetchFeeds(type: FeedType) {
         client.feed.list({
@@ -76,21 +76,21 @@ export function FeedsPage() {
                 <meta property="og:url" content={document.URL} />
             </Helmet>
             <Waiting for={feeds.draft.size + feeds.normal.size + feeds.unlisted.size > 0 || status === 'idle'}>
-                <main className="w-full flex flex-col justify-center items-center mb-8">
-                    <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
-                        <p>
+                <main className="w-full flex flex-col justify-center items-center mb-8 px-4">
+                    <div className="wauto text-start py-8">
+                        <p className="text-4xl font-bold text-primary">
                             {listState === 'draft' ? t('draft_bin') : listState === 'normal' ? t('article.title') : t('unlisted')}
                         </p>
-                        <div className="flex flex-row justify-between">
-                            <p className="text-sm mt-4 text-neutral-500 font-normal">
+                        <div className="flex flex-row justify-between items-end">
+                            <p className="text-sm mt-4 text-secondary font-normal">
                                 {t('article.total$count', { count: feeds[listState]?.size })}
                             </p>
                             {profile?.permission &&
                                 <div className="flex flex-row space-x-4">
-                                    <Link href={listState === 'draft' ? '/?type=normal' : '/?type=draft'} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'draft' ? "text-theme" : ""}`}>
+                                    <Link href={listState === 'draft' ? '/?type=normal' : '/?type=draft'} className={`text-sm mt-4 font-normal ${listState === 'draft' ? "text-theme" : "text-secondary"}`}>
                                         {t('draft_bin')}
                                     </Link>
-                                    <Link href={listState === 'unlisted' ? '/?type=normal' : '/?type=unlisted'} className={`text-sm mt-4 text-neutral-500 font-normal ${listState === 'unlisted' ? "text-theme" : ""}`}>
+                                    <Link href={listState === 'unlisted' ? '/?type=normal' : '/?type=unlisted'} className={`text-sm mt-4 font-normal ${listState === 'unlisted' ? "text-theme" : "text-secondary"}`}>
                                         {t('unlisted')}
                                     </Link>
                                 </div>
@@ -99,21 +99,21 @@ export function FeedsPage() {
                     </div>
                     <Waiting for={status === 'idle'}>
                         <div className={feedListClass}>
-                            {feeds[listState].data.map(({ id, ...feed }: any) => (
-                                <FeedCard key={id} id={id} {...feed} />
+                            {feeds[listState].data.map(({ id, ...feed }: any, index: number) => (
+                                <FeedCard key={id} id={id} {...feed} index={index} />
                             ))}
                         </div>
-                        <div className="wauto flex flex-row items-center mt-4 ani-show">
+                        <div className="wauto flex flex-row items-center mt-6">
                             {page > 1 &&
                                 <Link href={`/?type=${listState}&page=${(page - 1)}`}
-                                    className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
+                                    className="text-sm font-medium rounded-full px-5 py-2 text-white bg-linear brand-btn">
                                     {t('previous')}
                                 </Link>
                             }
                             <div className="flex-1" />
                             {feeds[listState]?.hasNext &&
                                 <Link href={`/?type=${listState}&page=${(page + 1)}`}
-                                    className={`text-sm font-normal rounded-full px-4 py-2 text-white bg-theme`}>
+                                    className="text-sm font-medium rounded-full px-5 py-2 text-white bg-linear brand-btn">
                                     {t('next')}
                                 </Link>
                             }
