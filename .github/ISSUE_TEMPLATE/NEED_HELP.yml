@@ -1,0 +1,47 @@
+name: Need Help
+description: Create an issue to ask for help
+title: "[Help]: "
+labels: ["help wanted"]
+
+body:
+  - type: textarea
+    attributes:
+      label: 问题描述
+      description: 请清晰、简洁地描述你遇到的问题
+      placeholder: 请详细说明你遇到的具体问题
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 复现步骤
+      description: 请描述如何复现该问题
+      placeholder: |
+        1. 进入 xxxx 页面
+        2. 设置 xxx 为 xxx
+        3. 出现 xxx 问题
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 期望行为
+      description: 正常情况下你希望发生的结果
+      placeholder: 请描述你认为正确的行为
+    validations:
+      required: true
+
+  - type: upload
+    id: screenshots
+    attributes:
+      label: 截图
+      description: 如有必要，请上传截图以帮助我们更好地理解问题
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: 额外信息
+      description: 请提供任何额外信息以帮助我们更好地理解问题。敏感信息请用 xxxx 或其他方式脱敏处理
+    validations:
+      required: false
