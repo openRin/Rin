@@ -22,6 +22,11 @@ type EditorPosition = {
   column: number;
 };
 
+type PlainTextRange = {
+  start: number;
+  end: number;
+};
+
 function positionAfterText(startLineNumber: number, startColumn: number, text: string): EditorPosition {
   const lines = text.split("\n");
 
@@ -69,33 +74,124 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   const { t } = useTranslation();
   const colorMode = useColorMode();
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const plainTextSelectionRef = useRef<PlainTextRange>({ start: 0, end: 0 });
   const isComposingRef = useRef(false);
   const [preview, setPreview] = useState<'edit' | 'preview' | 'comparison'>('edit');
   const [uploading, setUploading] = useState(false);
+  const [usePlainTextEditor, setUsePlainTextEditor] = useState(false);
   const { showAlert, AlertUI } = useAlert();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (typeof window.matchMedia !== "function") return;
+
+    // Monaco is great on desktop, but mobile browsers often cannot long-press
+    // select/copy/paste reliably inside Monaco's hidden-textarea input model.
+    // Use a native textarea on touch/small-screen devices so the OS clipboard
+    // and selection handles work normally.
+    const mediaQuery = window.matchMedia("(pointer: coarse), (max-width: 640px)");
+    const updateEditorMode = () => setUsePlainTextEditor(mediaQuery.matches);
+
+    updateEditorMode();
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", updateEditorMode);
+      return () => mediaQuery.removeEventListener("change", updateEditorMode);
+    }
+
+    mediaQuery.addListener(updateEditorMode);
+    return () => mediaQuery.removeListener(updateEditorMode);
+  }, []);
+
+  useEffect(() => {
+    if (usePlainTextEditor) {
+      editorRef.current = undefined;
+    }
+  }, [usePlainTextEditor]);
 
   async function insertImage(
     file: File,
-    range: NonNullable<ReturnType<editor.IStandaloneCodeEditor["getSelection"]>>,
+    range: Selection | PlainTextRange,
     showAlert: (msg: string) => void,
   ) {
     try {
       const result = await uploadImageFile(file);
-      const editorInstance = editorRef.current;
-      if (!editorInstance) return;
-      editorInstance.executeEdits(undefined, [{
-        range,
-        text: buildMarkdownImage(file.name, result.url, {
-          blurhash: result.blurhash,
-          width: result.width,
-          height: result.height,
-        }),
-      }]);
+      const markdownImage = buildMarkdownImage(file.name, result.url, {
+        blurhash: result.blurhash,
+        width: result.width,
+        height: result.height,
+      });
+
+      if ("startLineNumber" in range) {
+        const editorInstance = editorRef.current;
+        if (!editorInstance) return;
+        editorInstance.executeEdits(undefined, [{
+          range,
+          text: markdownImage,
+        }]);
+        setContent(editorInstance.getValue());
+        return;
+      }
+
+      replacePlainTextRange(range.start, range.end, markdownImage);
     } catch (error) {
       console.error(error);
       showAlert(error instanceof Error ? error.message : t("upload.failed"));
     }
   }
+
+  const getPlainTextSelection = (): PlainTextRange => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      const start = Math.min(plainTextSelectionRef.current.start, content.length);
+      const end = Math.min(plainTextSelectionRef.current.end, content.length);
+      return { start, end };
+    }
+
+    const start = Math.min(textarea.selectionStart, textarea.selectionEnd);
+    const end = Math.max(textarea.selectionStart, textarea.selectionEnd);
+    plainTextSelectionRef.current = { start, end };
+    return { start, end };
+  };
+
+  const rememberPlainTextSelection = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = Math.min(textarea.selectionStart, textarea.selectionEnd);
+    const end = Math.max(textarea.selectionStart, textarea.selectionEnd);
+    plainTextSelectionRef.current = { start, end };
+  };
+
+  const focusPlainTextSelection = (range: PlainTextRange) => {
+    plainTextSelectionRef.current = range;
+
+    window.requestAnimationFrame(() => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      textarea.focus();
+      textarea.setSelectionRange(range.start, range.end);
+    });
+  };
+
+  const replacePlainTextRange = (start: number, end: number, text: string, nextSelection?: PlainTextRange) => {
+    const nextContent = `${content.slice(0, start)}${text}${content.slice(end)}`;
+    const cursor = start + text.length;
+    setContent(nextContent);
+    focusPlainTextSelection(nextSelection ?? { start: cursor, end: cursor });
+  };
+
+  const getPlainTextLineBounds = (selection: PlainTextRange) => {
+    const startLineStart = content.lastIndexOf("\n", Math.max(0, selection.start - 1)) + 1;
+    const effectiveEnd = selection.end > selection.start && content[selection.end - 1] === "\n"
+      ? selection.end - 1
+      : selection.end;
+    const nextLineBreak = content.indexOf("\n", effectiveEnd);
+    const endLineEnd = nextLineBreak === -1 ? content.length : nextLineBreak;
+
+    return { startLineStart, endLineEnd };
+  };
 
   const getEditorAndSelection = () => {
     const editorInstance = editorRef.current;
@@ -131,6 +227,24 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   };
 
   const wrapSelection = (prefix: string, suffix: string, fallback: string) => {
+    if (usePlainTextEditor) {
+      const selection = getPlainTextSelection();
+      const selectedText = content.slice(selection.start, selection.end);
+      const innerText = selectedText || fallback;
+      const insertedText = `${prefix}${innerText}${suffix}`;
+      const innerStart = selection.start + prefix.length;
+      const innerEnd = innerStart + innerText.length;
+      const end = selection.start + insertedText.length;
+
+      replacePlainTextRange(
+        selection.start,
+        selection.end,
+        insertedText,
+        selectedText ? { start: end, end } : { start: innerStart, end: innerEnd },
+      );
+      return;
+    }
+
     const editorState = getEditorAndSelection();
     if (!editorState) return;
 
@@ -149,6 +263,20 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   };
 
   const insertLink = () => {
+    if (usePlainTextEditor) {
+      const selection = getPlainTextSelection();
+      const selectedText = content.slice(selection.start, selection.end);
+      const label = selectedText || t("markdown_editor.placeholder.link_text");
+      const url = t("markdown_editor.placeholder.link_url");
+      const prefix = `[${label}](`;
+      const insertedText = `${prefix}${url})`;
+      const urlStart = selection.start + prefix.length;
+      const urlEnd = urlStart + url.length;
+
+      replacePlainTextRange(selection.start, selection.end, insertedText, { start: urlStart, end: urlEnd });
+      return;
+    }
+
     const editorState = getEditorAndSelection();
     if (!editorState) return;
 
@@ -165,6 +293,20 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   };
 
   const insertMarkdownImage = () => {
+    if (usePlainTextEditor) {
+      const selection = getPlainTextSelection();
+      const selectedText = content.slice(selection.start, selection.end);
+      const alt = selectedText || t("markdown_editor.placeholder.image_alt");
+      const url = t("markdown_editor.placeholder.image_url");
+      const prefix = `![${alt}](`;
+      const insertedText = `${prefix}${url})`;
+      const urlStart = selection.start + prefix.length;
+      const urlEnd = urlStart + url.length;
+
+      replacePlainTextRange(selection.start, selection.end, insertedText, { start: urlStart, end: urlEnd });
+      return;
+    }
+
     const editorState = getEditorAndSelection();
     if (!editorState) return;
 
@@ -181,6 +323,25 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   };
 
   const insertCodeBlock = () => {
+    if (usePlainTextEditor) {
+      const selection = getPlainTextSelection();
+      const selectedText = content.slice(selection.start, selection.end);
+      const innerText = selectedText || t("markdown_editor.placeholder.code_block");
+      const prefix = "```\n";
+      const insertedText = `${prefix}${innerText}\n\`\`\``;
+      const innerStart = selection.start + prefix.length;
+      const innerEnd = innerStart + innerText.length;
+      const end = selection.start + insertedText.length;
+
+      replacePlainTextRange(
+        selection.start,
+        selection.end,
+        insertedText,
+        selectedText ? { start: end, end } : { start: innerStart, end: innerEnd },
+      );
+      return;
+    }
+
     const editorState = getEditorAndSelection();
     if (!editorState) return;
 
@@ -200,6 +361,12 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   };
 
   const insertHorizontalRule = () => {
+    if (usePlainTextEditor) {
+      const selection = getPlainTextSelection();
+      replacePlainTextRange(selection.start, selection.end, "\n---\n");
+      return;
+    }
+
     const editorState = getEditorAndSelection();
     if (!editorState) return;
 
@@ -210,6 +377,20 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     formatter: (line: string, index: number) => string,
     emptyLineFallback: string,
   ) => {
+    if (usePlainTextEditor) {
+      const selection = getPlainTextSelection();
+      const { startLineStart, endLineEnd } = getPlainTextLineBounds(selection);
+      const selectedBlock = content.slice(startLineStart, endLineEnd);
+      const isEmptySingleLine = selection.start === selection.end && selectedBlock.trim().length === 0;
+      const insertedText = isEmptySingleLine
+        ? emptyLineFallback
+        : selectedBlock.split("\n").map(formatter).join("\n");
+      const cursor = startLineStart + insertedText.length;
+
+      replacePlainTextRange(startLineStart, endLineEnd, insertedText, { start: cursor, end: cursor });
+      return;
+    }
+
     const editorState = getEditorAndSelection();
     if (!editorState) return;
 
@@ -288,23 +469,19 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     { key: "horizontal-rule", icon: "ri-separator", label: t("markdown_editor.toolbar.horizontal_rule"), onClick: insertHorizontalRule },
   ];
 
-  const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
-    const clipboardData = event.clipboardData;
-    if (clipboardData.files.length === 1) {
-      const editor = editorRef.current;
-      if (!editor) return;
-      editor.trigger(undefined, "undo", undefined);
-      setUploading(true);
-      const myfile = clipboardData.files[0] as File;
-      const selection = editor.getSelection();
-      if (!selection) {
-        setUploading(false);
-        return;
-      }
-      void insertImage(myfile, selection, showAlert).finally(() => {
-        setUploading(false);
-      });
-    }
+  const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement | HTMLTextAreaElement>) => {
+    const imageFile = Array.from(event.clipboardData.files).find((file) => file.type.startsWith("image/"));
+    if (!imageFile) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    const selection = usePlainTextEditor ? getPlainTextSelection() : editorRef.current?.getSelection();
+    if (!selection) return;
+
+    setUploading(true);
+    void insertImage(imageFile, selection, showAlert).finally(() => {
+      setUploading(false);
+    });
   };
 
   function UploadImageButton() {
@@ -321,9 +498,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           showAlert(t("upload.failed$size", { size: 5 }));
           uploadRef.current!.value = "";
         } else {
-          const editor = editorRef.current;
-          if (!editor) return;
-          const selection = editor.getSelection();
+          const selection = usePlainTextEditor ? getPlainTextSelection() : editorRef.current?.getSelection();
           if (!selection) return;
           setUploading(true);
           void insertImage(file, selection, showAlert).finally(() => {
@@ -380,6 +555,8 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   /* ---------------- synchronization ---------------- */
 
   useEffect(() => {
+    if (usePlainTextEditor) return;
+
     const editor = editorRef.current;
     if (!editor) return;
 
@@ -392,7 +569,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     if (editorValue !== content) {
       editor.setValue(content);
     }
-  }, [content]);
+  }, [content, usePlainTextEditor]);
 
   /* ---------------- UI ---------------- */
 
@@ -432,12 +609,11 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
         <div className={"flex min-w-0 flex-col " + (preview === 'preview' ? "hidden" : "")}>
           <div
             className={"relative min-h-0 overflow-hidden rounded-none border-0 bg-w"}
+            onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
-              const editor = editorRef.current;
-              if (!editor) return;
               for (let i = 0; i < e.dataTransfer.files.length; i++) {
-                const selection = editor.getSelection();
+                const selection = usePlainTextEditor ? getPlainTextSelection() : editorRef.current?.getSelection();
                 if (!selection) return;
                 const file = e.dataTransfer.files[i];
                 setUploading(true);
@@ -448,34 +624,63 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
             }}
             onPaste={handlePaste}
           >
-            <Editor
-              onMount={handleEditorMount}
-              height={height}
-              defaultLanguage="markdown"
-              defaultValue={content}
-              theme={colorMode === "dark" ? "vs-dark" : "light"}
-              options={{
-                wordWrap: "on",
+            {usePlainTextEditor ? (
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(event) => {
+                  const textarea = event.currentTarget;
+                  setContent(textarea.value);
+                  plainTextSelectionRef.current = {
+                    start: Math.min(textarea.selectionStart, textarea.selectionEnd),
+                    end: Math.max(textarea.selectionStart, textarea.selectionEnd),
+                  };
+                }}
+                onSelect={rememberPlainTextSelection}
+                onClick={rememberPlainTextSelection}
+                onKeyUp={rememberPlainTextSelection}
+                onTouchEnd={rememberPlainTextSelection}
+                onPaste={handlePaste}
+                placeholder={placeholder}
+                spellCheck={false}
+                className="block w-full resize-y border-0 bg-w px-4 py-3 font-mono text-sm leading-6 t-primary outline-none placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+                style={{
+                  height,
+                  touchAction: "manipulation",
+                  userSelect: "text",
+                  WebkitUserSelect: "text",
+                }}
+              />
+            ) : (
+              <Editor
+                onMount={handleEditorMount}
+                height={height}
+                defaultLanguage="markdown"
+                defaultValue={content}
+                theme={colorMode === "dark" ? "vs-dark" : "light"}
+                options={{
+                  wordWrap: "on",
 
-                // Chinese IME stability key
-                fontFamily: "Sarasa Mono SC, JetBrains Mono, monospace",
-                fontLigatures: false,
-                letterSpacing: 0,
+                  // Chinese IME stability key
+                  fontFamily: "Sarasa Mono SC, JetBrains Mono, monospace",
+                  fontLigatures: false,
+                  letterSpacing: 0,
 
-                fontSize: 14,
-                lineNumbers: "off",
+                  fontSize: 14,
+                  lineNumbers: "off",
 
-                accessibilitySupport: "off",
-                unicodeHighlight: { ambiguousCharacters: false },
+                  accessibilitySupport: "off",
+                  unicodeHighlight: { ambiguousCharacters: false },
 
-                renderWhitespace: "none",
-                renderControlCharacters: false,
-                smoothScrolling: false,
+                  renderWhitespace: "none",
+                  renderControlCharacters: false,
+                  smoothScrolling: false,
 
-                dragAndDrop: true,
-                pasteAs: { enabled: false },
-              }}
-            />
+                  dragAndDrop: true,
+                  pasteAs: { enabled: false },
+                }}
+              />
+            )}
           </div>
         </div>
         <div
