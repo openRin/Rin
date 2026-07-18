@@ -1,0 +1,35 @@
+name: Feature Request
+description: Suggest an idea for this project
+title: "[Feature Request]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    attributes:
+      label: 你的功能请求是否与某个问题相关？请描述
+      description: 清晰、简洁地描述当前存在的问题
+      placeholder: 例如：我在使用过程中经常遇到 [...问题...]
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 你考虑过的替代方案
+      description: 描述你尝试过或思考过的其他解决方案或功能方案
+      placeholder: 例如：我曾尝试 [...方法...]，但效果不理想
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 你期望的解决方案
+      description: 清晰描述你希望系统实现的功能或行为
+      placeholder: 例如：我希望可以增加一个功能，让 [...]
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 其他信息
+      description: 任何补充信息、截图或相关背景内容
+    validations:
+      required: false

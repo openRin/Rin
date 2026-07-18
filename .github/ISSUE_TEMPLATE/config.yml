@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📘Rin Docs
+    url: https://docs.openrin.org/en
+    about: Please check the documentation for answers to common questions.
+  - name: 💬Discord
+    url: https://discord.gg/JWbSTHvAPN
+    about: Join the Discord server to ask questions and get help from the community.

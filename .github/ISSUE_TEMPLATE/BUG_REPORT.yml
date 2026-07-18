@@ -1,0 +1,46 @@
+name: Bug report
+description: Create a issue to find help
+title: "[Bug]:"
+labels: ["bug"]
+
+body:
+  - type: textarea
+    attributes:
+      label: 复现步骤
+      description: 请尽可能清晰地描述如何复现该问题
+      placeholder: |
+        1. 进入 xxxx 页面
+        2. 设置 xxx 为 xxx
+        3. 出现 xxx 问题
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 预期行为
+      description: 正常情况下你期望发生的行为
+      placeholder: 描述你认为应该发生的正确结果
+    validations:
+      required: true
+
+  - type: upload
+    id: screenshots
+    attributes:
+      label: 截图
+      description: 如有必要，请上传截图以帮助我们更好地理解问题
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: 环境信息
+      description: 请填写运行环境信息。敏感信息请用 xxxx 或其他方式脱敏处理
+      placeholder: |
+        Cloudflare Worker:
+        -
+        -
+        GitHub Action:
+        -
+        -
+    validations:
+      required: false
