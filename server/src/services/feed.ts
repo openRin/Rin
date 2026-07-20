@@ -130,6 +130,38 @@ export function FeedService(): Hono<{
             orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
         })));
     });
+        // POST /feed/ai-generate - AI 自动生成标题/标签/简介
+    app.post('/ai-generate', async (c) => {
+        const serverConfig = c.get('serverConfig');
+        const env = c.get('env');
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Permission denied', 403);
+        }
+
+        const body = await c.req.json().catch(() => ({}));
+        const content: string = (body?.content as string) ?? '';
+
+        if (!content.trim()) {
+            return c.json({ error: '内容不能为空' }, 400);
+        }
+
+        const [titleRes, tagsRes, summaryRes] = await Promise.all([
+            generateAITitleResult(env, serverConfig, content),
+            generateAITagsResult(env, serverConfig, content),
+            generateAISummaryResult(env, serverConfig, content),
+        ]);
+
+        return c.json({
+            title: titleRes.title ?? '',
+            tags: tagsRes.tags ?? [],
+            summary: summaryRes.summary ?? '',
+        });
+    });
+
+    // POST /feed - Create feed
+    app.post('/', async (c) => {
 
     // POST /feed - Create feed
     app.post('/', async (c) => {
