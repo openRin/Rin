@@ -344,3 +344,87 @@ export function getAvailableModels(provider: string): string[] {
 export function requiresApiKey(provider: string): boolean {
     return provider !== 'worker-ai';
 }
+// ===== 新增：AI 自动生成标题 / 标签 =====
+
+export const AI_TITLE_SYSTEM_PROMPT = `你是一个博客文章标题生成助手。请根据用户提供的文章正文，生成 1 到 2 个简洁、吸引人、贴合内容的中文标题候选。
+要求：
+- 每个标题单独占一行
+- 不要使用引号、编号或多余符号
+- 不要添加任何解释
+示例输出：
+如何用好 AI 辅助教学
+AI 工具让备课效率翻倍`;
+
+export const AI_TAGS_SYSTEM_PROMPT = `你是一个博客文章标签生成助手。请根据用户提供的文章正文，生成 1 到 3 个简短的中文标签。
+要求：
+- 每个标签单独占一行，或用中文逗号、英文逗号分隔
+- 标签控制在 2 到 6 个字
+- 不要添加任何解释
+示例输出：
+人工智能
+教学效率
+备课`;
+
+export async function generateAITitleResult(
+  env: Env,
+  serverConfig: ConfigReader,
+  content: string
+): Promise<{ title: string | null; skipped: boolean; error?: string }> {
+  const config = await getAIConfig(serverConfig);
+  if (!config.enabled) {
+    return { title: null, skipped: true };
+  }
+  const maxContentLength = 8000;
+  const truncatedContent = content.length > maxContentLength
+    ? content.slice(0, maxContentLength) + "..."
+    : content;
+  const messages = [
+    { role: "system" as const, content: AI_TITLE_SYSTEM_PROMPT },
+    { role: "user" as const, content: truncatedContent },
+  ];
+  try {
+    const result = await executeExternalAI(config, messages);
+    if (!result || !result.trim()) {
+      return { title: null, skipped: false, error: `Empty response from AI provider "${config.provider}"` };
+    }
+    const lines = result.split(/\r?\n/).map((l) => stripReasoningTags(l).trim()).filter(Boolean);
+    return { title: lines[0] ?? null, skipped: false };
+  } catch (error) {
+    console.error("[AI Title] Failed:", error);
+    return { title: null, skipped: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function generateAITagsResult(
+  env: Env,
+  serverConfig: ConfigReader,
+  content: string
+): Promise<{ tags: string[]; skipped: boolean; error?: string }> {
+  const config = await getAIConfig(serverConfig);
+  if (!config.enabled) {
+    return { tags: [], skipped: true };
+  }
+  const maxContentLength = 8000;
+  const truncatedContent = content.length > maxContentLength
+    ? content.slice(0, maxContentLength) + "..."
+    : content;
+  const messages = [
+    { role: "system" as const, content: AI_TAGS_SYSTEM_PROMPT },
+    { role: "user" as const, content: truncatedContent },
+  ];
+  try {
+    const result = await executeExternalAI(config, messages);
+    if (!result || !result.trim()) {
+      return { tags: [], skipped: false, error: `Empty response from AI provider "${config.provider}"` };
+    }
+    const tags = result
+      .split(/[\r\n,，]/)
+      .map((t) => stripReasoningTags(t).trim())
+      .filter(Boolean)
+      .slice(0, 3);
+    return { tags, skipped: false };
+  } catch (error) {
+    console.error("[AI Tags] Failed:", error);
+    return { tags: [], skipped: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
