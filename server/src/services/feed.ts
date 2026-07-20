@@ -9,6 +9,7 @@ import { stripMarkdown } from "../utils/markdown";
 import { syncFeedAISummaryQueueState } from "./feed-ai-summary";
 import { bindTagToPost } from "./tag";
 import { clearFeedCache } from "./clear-feed-cache";
+import { generateAISummaryResult, generateAITitleResult, generateAITagsResult } from "../utils/ai";
 export { clearFeedCache } from "./clear-feed-cache";
 
 // Lazy-loaded modules for WordPress import
@@ -130,7 +131,8 @@ export function FeedService(): Hono<{
             orderBy: [desc(feeds.createdAt), desc(feeds.updatedAt)],
         })));
     });
-        // POST /feed/ai-generate - AI 自动生成标题/标签/简介
+
+    // POST /feed/ai-generate - AI 自动生成标题/标签/简介
     app.post('/ai-generate', async (c) => {
         const serverConfig = c.get('serverConfig');
         const env = c.get('env');
@@ -159,9 +161,6 @@ export function FeedService(): Hono<{
             summary: summaryRes.summary ?? '',
         });
     });
-
-    // POST /feed - Create feed
-    app.post('/', async (c) => {
 
     // POST /feed - Create feed
     app.post('/', async (c) => {
