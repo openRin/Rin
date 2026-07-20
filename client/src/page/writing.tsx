@@ -254,22 +254,43 @@ export function WritingPage({ id }: { id?: number }) {
 
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             <div className="lg:col-span-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  id={id}
+                  value={title}
+                  setValue={setTitle}
+                  placeholder={t("title")}
+                  variant="flat"
+                  className="text-base flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => aiFill('title')}
+                  disabled={genTitle}
+                  className="shrink-0 rounded-lg border border-black/20 px-3 py-2 text-xs text-neutral-600 hover:bg-black/5 dark:border-white/20 dark:text-neutral-300 dark:hover:bg-white/10 disabled:opacity-50"
+                >
+                  {genTitle ? '生成中…' : '自动生成'}
+                </button>
+              </div>
+            </div>
+           <div className="flex items-center gap-2">
               <Input
                 id={id}
-                value={title}
-                setValue={setTitle}
-                placeholder={t("title")}
+                value={summary}
+                setValue={setSummary}
+                placeholder={t("summary")}
                 variant="flat"
-                className="text-base"
+                className="flex-1"
               />
+              <button
+                type="button"
+                onClick={() => aiFill('summary')}
+                disabled={genSummary}
+                className="shrink-0 rounded-lg border border-black/20 px-3 py-2 text-xs text-neutral-600 hover:bg-black/5 dark:border-white/20 dark:text-neutral-300 dark:hover:bg-white/10 disabled:opacity-50"
+              >
+                {genSummary ? '生成中…' : '自动生成'}
+              </button>
             </div>
-            <Input
-              id={id}
-              value={summary}
-              setValue={setSummary}
-              placeholder={t("summary")}
-              variant="flat"
-            />
             <Input
               id={id}
               value={alias}
@@ -277,14 +298,24 @@ export function WritingPage({ id }: { id?: number }) {
               placeholder={t("alias")}
               variant="flat"
             />
-            <Input
-              id={id}
-              value={tags}
-              setValue={setTags}
-              placeholder={t("tags")}
-              variant="flat"
-              className="lg:col-span-2"
-            />
+            <div className="lg:col-span-2 flex items-center gap-2">
+              <Input
+                id={id}
+                value={tags}
+                setValue={setTags}
+                placeholder={t("tags")}
+                variant="flat"
+                className="flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => aiFill('tags')}
+                disabled={genTags}
+                className="shrink-0 rounded-lg border border-black/20 px-3 py-2 text-xs text-neutral-600 hover:bg-black/5 dark:border-white/20 dark:text-neutral-300 dark:hover:bg-white/10 disabled:opacity-50"
+              >
+                {genTags ? '生成中…' : '自动生成'}
+              </button>
+            </div>
           </div>
 
           <div className="mt-5 grid gap-2 sm:gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(18rem,2fr)]">
