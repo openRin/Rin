@@ -330,7 +330,6 @@ class FeedAPI {
   }
 }
 
-
 /**
  * Tag API methods
  */
