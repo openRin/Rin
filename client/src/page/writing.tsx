@@ -130,7 +130,38 @@ export function WritingPage({ id }: { id?: number }) {
   const [content, setContent] = cache.useCache("content", "");
   const [createdAt, setCreatedAt] = useState<Date | undefined>(new Date());
   const [publishing, setPublishing] = useState(false)
+  const [genTitle, setGenTitle] = useState(false)
+  const [genSummary, setGenSummary] = useState(false)
+  const [genTags, setGenTags] = useState(false)
   const { showAlert, AlertUI } = useAlert()
+  async function aiFill(field: 'title' | 'summary' | 'tags') {
+    if (!content.trim()) {
+      showAlert("请先填写文章正文内容");
+      return;
+    }
+    if (field === 'title') setGenTitle(true);
+    if (field === 'summary') setGenSummary(true);
+    if (field === 'tags') setGenTags(true);
+    try {
+      const { data, error } = await client.feed.aiGenerate(content);
+      if (error) {
+        showAlert(typeof error.value === 'string' ? error.value : '生成失败');
+        return;
+      }
+      if (data) {
+        if (field === 'title' && data.title) setTitle(data.title);
+        if (field === 'summary' && data.summary) setSummary(data.summary);
+        if (field === 'tags' && data.tags?.length) setTags(data.tags.join('#'));
+      }
+    } catch (e) {
+      showAlert(e instanceof Error ? e.message : '生成出错');
+    } finally {
+      setGenTitle(false);
+      setGenSummary(false);
+      setGenTags(false);
+    }
+  }
+  
   function publishButton() {
     if (publishing) return;
     const tagsplit =
