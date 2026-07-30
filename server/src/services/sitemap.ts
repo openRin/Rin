@@ -1,12 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AppContext, DB } from "../core/hono-types";
 import { feeds, friends, hashtags, moments } from "../db/schema";
 import { path_join } from "../utils/path";
 import { getStorageObject, putStorageObjectAtKey } from "../utils/storage";
 
-// 始终收录的静态页面
-const STATIC_ROUTES = ["/", "/timeline", "/moments", "/friends", "/hashtags"];
 const SITEMAP_CACHE_FOLDER = "cache/";
 const SITEMAP_CONTENT_TYPE = "application/xml; charset=utf-8";
 const ROBOTS_CONTENT_TYPE = "text/plain; charset=utf-8";
@@ -49,7 +47,7 @@ async function generateSitemapXml(env: Env, db: DB): Promise<string> {
     db
       .select({ id: feeds.id, alias: feeds.alias, updatedAt: feeds.updatedAt })
       .from(feeds)
-      .where(and(eq(feeds.draft, 0), eq(feeds.listed, 1))),
+      .where(eq(feeds.draft, 0)),
     db.select({ updatedAt: moments.updatedAt }).from(moments).orderBy(desc(moments.updatedAt)).limit(1),
     db.select({ updatedAt: friends.updatedAt }).from(friends).orderBy(desc(friends.updatedAt)).limit(1),
     db.select({ name: hashtags.name, updatedAt: hashtags.updatedAt }).from(hashtags),
@@ -66,22 +64,28 @@ async function generateSitemapXml(env: Env, db: DB): Promise<string> {
     );
   };
 
-  // 静态页面
-  for (const route of STATIC_ROUTES) {
-    addUrl(route);
-  }
+  // 取一组时间中最新的一条，作为聚合页面的 lastmod
+  const latestOf = (dates: (Date | null | undefined)[]): Date | null => {
+    let latest: Date | null = null;
+    for (const d of dates) {
+      if (d != null && (!latest || d.getTime() > latest.getTime())) latest = d;
+    }
+    return latest;
+  };
+
+  const latestFeedUpdatedAt = latestOf(feedRows.map((f) => f.updatedAt));
+  const latestHashtagUpdatedAt = latestOf(hashtagRows.map((t) => t.updatedAt));
+
+  // 聚合页面：各自携带对应数据源的最新更新时间
+  addUrl("/", latestFeedUpdatedAt);
+  addUrl("/timeline", latestFeedUpdatedAt);
+  addUrl("/moments", momentRows[0]?.updatedAt);
+  addUrl("/friends", friendRows[0]?.updatedAt);
+  addUrl("/hashtags", latestHashtagUpdatedAt);
 
   // 文章：优先使用 alias，否则回退到 /feed/:id
   for (const feed of feedRows) {
     addUrl(feed.alias ? `/${encodeURIComponent(feed.alias)}` : `/feed/${feed.id}`, feed.updatedAt);
-  }
-
-  // 动态页面：使用最近更新时间作为 lastmod
-  if (momentRows.length > 0) {
-    addUrl("/moments", momentRows[0].updatedAt);
-  }
-  if (friendRows.length > 0) {
-    addUrl("/friends", friendRows[0].updatedAt);
   }
 
   // 标签页面
