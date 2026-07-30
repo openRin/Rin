@@ -57,8 +57,10 @@ async function generateSitemapXml(env: Env, db: DB): Promise<string> {
 
   const addUrl = (loc: string, lastmod?: Date | null) => {
     const lastmodStr = formatLastMod(lastmod);
+    // 首页只输出站点根地址，不带末尾斜杠；baseUrl 为空时回退为 "/"
+    const fullUrl = loc === "/" ? baseUrl || "/" : baseUrl + loc;
     urls.push(
-      `    <url>\n      <loc>${escapeXml(baseUrl + loc)}</loc>${
+      `    <url>\n      <loc>${escapeXml(fullUrl)}</loc>${
         lastmodStr ? `\n      <lastmod>${lastmodStr}</lastmod>` : ""
       }\n    </url>`,
     );
