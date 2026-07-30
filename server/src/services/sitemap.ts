@@ -49,14 +49,10 @@ async function generateSitemapXml(env: Env, db: DB): Promise<string> {
     db
       .select({ id: feeds.id, alias: feeds.alias, updatedAt: feeds.updatedAt })
       .from(feeds)
-      .where(and(eq(feeds.draft, 0), eq(feeds.listed, 1)))
-      .orderBy(desc(feeds.updatedAt)),
+      .where(and(eq(feeds.draft, 0), eq(feeds.listed, 1))),
     db.select({ updatedAt: moments.updatedAt }).from(moments).orderBy(desc(moments.updatedAt)).limit(1),
     db.select({ updatedAt: friends.updatedAt }).from(friends).orderBy(desc(friends.updatedAt)).limit(1),
-    db
-      .select({ name: hashtags.name, updatedAt: hashtags.updatedAt })
-      .from(hashtags)
-      .orderBy(desc(hashtags.updatedAt)),
+    db.select({ name: hashtags.name, updatedAt: hashtags.updatedAt }).from(hashtags),
   ]);
 
   const urls: string[] = [];
