@@ -214,6 +214,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
       AVATAR = "${avatar}"
       PAGE_SIZE = "${pageSize}"
       RSS_ENABLE = "${rssEnable}"
+      FRONTEND_URL = "${env("FRONTEND_URL", "")}"
 
       [placement]
       mode = "smart"
