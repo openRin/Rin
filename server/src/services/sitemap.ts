@@ -51,8 +51,8 @@ async function generateSitemapXml(env: Env, db: DB): Promise<string> {
       .from(feeds)
       .where(and(eq(feeds.draft, 0), eq(feeds.listed, 1)))
       .orderBy(desc(feeds.updatedAt)),
-    db.select({ updatedAt: moments.updatedAt }).from(moments).orderBy(desc(moments.updatedAt)),
-    db.select({ updatedAt: friends.updatedAt }).from(friends).orderBy(desc(friends.updatedAt)),
+    db.select({ updatedAt: moments.updatedAt }).from(moments).orderBy(desc(moments.updatedAt)).limit(1),
+    db.select({ updatedAt: friends.updatedAt }).from(friends).orderBy(desc(friends.updatedAt)).limit(1),
     db
       .select({ name: hashtags.name, updatedAt: hashtags.updatedAt })
       .from(hashtags)
