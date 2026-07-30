@@ -21,7 +21,7 @@
 
 body {
   @apply bg-background-light dark:bg-background-dark text-gray-800;
-  font-family: Cantarell, "Source Han Serif CN VF" !important;
+  font-family: Cantarell, "Noto Serif SC", "Source Han Serif CN VF", serif !important;
 }
 
 textarea:focus {
@@ -30,7 +30,7 @@ textarea:focus {
 
 .wmde-markdown {
   @apply bg-w;
-  font-family: Cantarell, "Source Han Serif CN VF" !important;
+  font-family: Cantarell, "Noto Serif SC", "Source Han Serif CN VF", serif !important;
 }
 
 .w-md-editor {

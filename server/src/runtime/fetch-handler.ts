@@ -2,6 +2,8 @@ import { getApp } from "./app-instance";
 
 const ROOT_FEED_PATTERN = /^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/;
 const APP_PUBLIC_ROUTE_PATTERN = /^\/(favicon|favicon\.ico)(?:\/|$)/;
+// 由 Worker 直接处理的元数据路由（sitemap / robots），需在静态资源分支之前路由到 Hono 应用
+const APP_META_ROUTE_PATTERN = /^\/(sitemap\.xml|robots\.txt)$/;
 
 function isApiRequest(pathname: string) {
   return pathname.startsWith("/api/");
@@ -19,6 +21,10 @@ function isRootFeedRequest(pathname: string) {
 
 function isAppPublicRoute(pathname: string) {
   return APP_PUBLIC_ROUTE_PATTERN.test(pathname);
+}
+
+function isMetaRoute(pathname: string) {
+  return APP_META_ROUTE_PATTERN.test(pathname);
 }
 
 function isStaticAssetRequest(pathname: string) {
@@ -70,6 +76,10 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   }
 
   if (isAppPublicRoute(pathname)) {
+    return getApp().fetch(request, env);
+  }
+
+  if (isMetaRoute(pathname)) {
     return getApp().fetch(request, env);
   }
 

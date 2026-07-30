@@ -8,6 +8,24 @@ export default {
   darkMode: ['selector','[data-color-mode="dark"]'],
   theme: {
     extend: {
+      fontFamily: {
+        // 拉丁用 Cantarell，CJK 优先使用已加载的 Noto Serif SC，
+        // 避免 zh-TW/zh-HK 等环境下回退到 locale 相关系统字体导致字体不一致
+        sans: [
+          "Cantarell",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"Segoe UI"',
+          "Roboto",
+          "Arial",
+          '"Noto Serif SC"',
+          '"Source Han Serif CN VF"',
+          "serif",
+        ],
+        serif: ['"Noto Serif SC"', '"Source Han Serif CN VF"', "Cantarell", "Georgia", "serif"],
+      },
       colors: {
         'theme': 'rgb(var(--theme-rgb) / <alpha-value>)',
         'theme-hover': 'rgb(var(--theme-hover-rgb) / <alpha-value>)',
