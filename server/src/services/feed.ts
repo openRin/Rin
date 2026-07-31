@@ -94,7 +94,7 @@ export function FeedService(): Hono<{
             offset: page_num * limit_num,
             limit: limit_num + 1,
         }))).map(({ content, hashtags, summary, ...other }: any) => {
-            const avatar = extractImageWithMetadata(content);
+            const avatar = null;
             const plainText = stripMarkdown(content);
             return {
                 summary: summary.length > 0 ? summary : plainText.length > 100 ? plainText.slice(0, 100) : plainText,
