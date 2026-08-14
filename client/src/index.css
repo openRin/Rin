@@ -1,4 +1,5 @@
 @import "./base.css";
+@import "./mirages.css";
 
 :root {
   --theme-rgb: 252 70 107;

@@ -1,0 +1,449 @@
+/* ============================================================
+   Mirages 主题样式覆盖（mirages-layout 下生效）
+   对齐 Typecho Mirages 7.10.6 主题的视觉样式
+   ============================================================ */
+
+/* 主题色：Mirages 默认 #1abc9c（绿松石） */
+.mirages-root {
+  --theme-rgb: 26 188 156;
+  --theme-hover-rgb: 21 150 125;
+  --theme-active-rgb: 17 120 100;
+}
+
+/* 字体：Merriweather / Open Sans / PingFang SC 字体栈 */
+body.mirages-layout-active,
+body.mirages-layout-active .mirages-root {
+  font-family: "Mirages Custom", Merriweather, "Open Sans", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft Yahei", "WenQuanYi Micro Hei", Helvetica,
+    Arial, sans-serif !important;
+}
+
+/* 正文颜色 #555 */
+body.mirages-layout-active {
+  color: #555 !important;
+}
+
+/* 内容容器 */
+.mirages-root .mirages-content {
+  color: #555 !important;
+}
+
+/* ---------------- 顶部导航 ---------------- */
+
+/* navbar 背景：原站亮色 rgba(255,255,255,0.7) */
+body.mirages-layout-active .mirages-root [class*="z-40"] {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: rgba(0, 0, 0, 0.118) 0 5px 5px -5px !important;
+}
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root [class*="z-40"] {
+  background: rgba(44, 42, 42, 0.7) !important;
+}
+body.mirages-layout-active .mirages-root .mirages-header-actions button[aria-label*="搜索"],
+body.mirages-layout-active .mirages-root .mirages-header-actions button[title*="搜索"] {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 100% !important;
+  border: none !important;
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  padding: 0 !important;
+}
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root .mirages-header-actions button[aria-label*="搜索"] {
+  background: #3a3a3a !important;
+  color: #eee !important;
+}
+
+/* 其他工具按钮（语言/头像）：隐藏描边，简单圆形 */
+body.mirages-layout-active .mirages-root .mirages-header-actions button {
+  border: none !important;
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.9) !important;
+}
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root .mirages-header-actions button {
+  color: #eee !important;
+}
+
+body.mirages-layout-active .mirages-root [class*="z-40"] div[class*="border-b"] {
+  border-bottom: none !important;
+  box-shadow: rgba(0, 0, 0, 0.118) 0 5px 5px -5px !important;
+}
+body.mirages-layout-active .mirages-root a[aria-label="home"] p {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: rgba(0, 0, 0, 0.9) !important;
+}
+body.mirages-layout-active .mirages-root a[aria-label="home"] {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: rgba(0, 0, 0, 0.9) !important;
+  line-height: 1.5 !important;
+}
+body.mirages-layout-active .mirages-root [class*="z-40"] a[href="/timeline"],
+body.mirages-layout-active .mirages-root [class*="z-40"] a[href="/moments"],
+body.mirages-layout-active .mirages-root [class*="z-40"] a[href="/hashtags"],
+body.mirages-layout-active .mirages-root [class*="z-40"] a[href="/friends"],
+body.mirages-layout-active .mirages-root [class*="z-40"] a[href="/about"] {
+  font-size: 16px !important;
+  color: rgba(0, 0, 0, 0.9) !important;
+  padding: 8px !important;
+}
+body.mirages-layout-active .mirages-root [class*="z-40"] a[href="/"]:not([aria-label="home"]) {
+  font-size: 16px !important;
+  color: rgba(0, 0, 0, 0.9) !important;
+  padding: 8px !important;
+}
+body.mirages-layout-active .mirages-root [class*="z-40"] button {
+  color: rgba(0, 0, 0, 0.9) !important;
+}
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root [class*="z-40"] {
+  background: rgba(44, 42, 42, 0.7) !important;
+  box-shadow: rgba(0, 0, 0, 0.118) 0 5px 5px -5px !important;
+}
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root a[aria-label="home"] p,
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root a[aria-label="home"],
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root [class*="z-40"] a,
+[data-color-mode="dark"] body.mirages-layout-active .mirages-root [class*="z-40"] button {
+  color: #f0f0f0 !important;
+}
+
+/* ---------------- 首页卡片列表 ---------------- */
+
+/* 隐藏各页大标题栏（masthead 已承载标题） */
+.mirages-content main > div.wauto.text-4xl,
+.mirages-content main > div.text-4xl {
+  display: none !important;
+}
+
+.mirages-content .xl\:w-64 {
+  display: none !important;
+}
+
+/* 文章页正文：flex 中自适应居中，内容 max 642px（原站正文宽度） */
+.mirages-content main.wauto {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.mirages-content main.wauto > article {
+  max-width: 642px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* 文章页 TOC：absolute 悬浮内容区右侧（不占 flex 空间，正文居中），内部 sticky 跟随滚动 */
+body.mirages-layout-active .mirages-content {
+  position: relative !important;
+}
+body.mirages-layout-active .mirages-content .w-80.hidden {
+  position: absolute !important;
+  left: calc(100% + 24px) !important;
+  right: auto !important;
+  top: 54px !important;
+  bottom: 0 !important;
+  width: 272px !important;
+  flex: none !important;
+  max-height: none !important;
+  overflow: visible !important;
+  animation: none !important;
+}
+body.mirages-layout-active .mirages-content .w-80.hidden > div {
+  position: sticky !important;
+  top: 5.5rem !important;
+  animation: none !important;
+}
+@media (min-width: 1024px) and (max-width: 1400px) {
+  body.mirages-layout-active .mirages-content[data-article="true"] {
+    max-width: calc(100vw - 320px) !important;
+  }
+  body.mirages-layout-active .mirages-content .w-80.hidden {
+    left: calc(100% + 24px) !important;
+    right: auto !important;
+    width: 240px !important;
+  }
+}
+body.mirages-layout-active .mirages-content div[class*="justify-center"].ani-show {
+  animation: none !important;
+}
+
+/* 文章页卡片：透明无边框 */
+.mirages-content article.rounded-2xl {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 文章页头部：隐藏重复的日期/标题，管理按钮悬浮右上角 */
+.mirages-content article.rounded-2xl > .flex.justify-between {
+  position: relative !important;
+}
+.mirages-content article.rounded-2xl > .flex.justify-between > div:first-child {
+  display: none !important;
+}
+.mirages-content article.rounded-2xl > .flex.justify-between > .pt-2 {
+  position: absolute !important;
+  right: 0 !important;
+  top: 0 !important;
+  z-index: 20 !important;
+}
+
+/* 正文排版：16px / 28.8px / #202020 */
+.mirages-content .toc-content {
+  font-size: 16px !important;
+  line-height: 28.8px !important;
+  color: #202020 !important;
+  font-weight: 400 !important;
+}
+.mirages-content .toc-content p {
+  margin: 0 0 20px !important;
+  line-height: 28.8px !important;
+  font-size: 16px !important;
+}
+.mirages-content .toc-content h1 {
+  font-size: 28.8px !important;
+  font-weight: 700 !important;
+  line-height: 34.56px !important;
+  margin: 19.3px 0 !important;
+  padding: 0 0 4.8px !important;
+}
+.mirages-content .toc-content h2 {
+  font-size: 24.8px !important;
+  font-weight: 700 !important;
+  line-height: 30.38px !important;
+  margin: 37.2px 0 16px !important;
+  padding: 0 0 7.44px !important;
+}
+.mirages-content .toc-content h3 {
+  font-size: 22.4px !important;
+  font-weight: 700 !important;
+  line-height: 32.03px !important;
+  margin: 33.6px 0 16px !important;
+}
+.mirages-content .toc-content h4 {
+  font-size: 19.2px !important;
+  font-weight: 700 !important;
+  line-height: 26.88px !important;
+  margin: 28.8px 0 16px !important;
+}
+.mirages-content .toc-content h5 {
+  font-size: 17.6px !important;
+  font-weight: 700 !important;
+  margin: 24px 0 14px !important;
+}
+.mirages-content .toc-content h6 {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 20px 0 12px !important;
+}
+.mirages-content .toc-content blockquote {
+  border-left: 4px solid #ddd !important;
+  padding: 8px 15px !important;
+  color: #555 !important;
+  background: transparent !important;
+}
+.mirages-content .toc-content code {
+  font-size: 14px !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: #202020 !important;
+  padding: 3.2px 0 !important;
+  border-radius: 3px !important;
+  font-family: Consolas, Menlo, Monaco, "lucida console", "Liberation Mono",
+    "Courier New", "andale mono", monospace !important;
+  line-height: 25.2px !important;
+}
+.mirages-content .toc-content pre {
+  background: #343232 !important;
+  border-radius: 3px !important;
+  padding: 12px 16px !important;
+  margin: 0 0 20px !important;
+  font-size: 14px !important;
+  line-height: 20.3px !important;
+  font-family: Consolas, Menlo, Monaco, "lucida console", "Liberation Mono",
+    "Courier New", "andale mono", monospace !important;
+}
+.mirages-content .toc-content pre code {
+  background: transparent !important;
+  color: #f0f0f0 !important;
+  font-size: 13px !important;
+  padding: 0 !important;
+  line-height: 20.3px !important;
+}
+.mirages-content .toc-content img {
+  border-radius: 0 !important;
+  max-width: 100% !important;
+  display: block !important;
+  margin: 20px auto !important;
+}
+.mirages-content .toc-content ul,
+.mirages-content .toc-content ol {
+  line-height: 28.8px !important;
+  margin: 0 0 20px !important;
+  padding: 0 0 0 32px !important;
+  font-size: 16px !important;
+  color: #202020 !important;
+}
+.mirages-content .toc-content li {
+  line-height: 28.8px !important;
+  margin: 0 !important;
+}
+.mirages-content .toc-content strong {
+  font-weight: 700 !important;
+  color: #202020 !important;
+}
+.mirages-content .toc-content hr {
+  background: #e7e7e7 !important;
+  border: none !important;
+  height: 1px !important;
+  margin: 16px 0 !important;
+}
+.mirages-content .toc-content table {
+  border-collapse: collapse !important;
+  margin: 20px 0 !important;
+  font-size: 16px !important;
+  color: #202020 !important;
+}
+.mirages-content .toc-content th,
+.mirages-content .toc-content td {
+  border: 1px solid #ddd !important;
+  padding: 6px 13px !important;
+  line-height: 28.8px !important;
+}
+.mirages-content .toc-content th {
+  background: #fafafa !important;
+  font-weight: 700 !important;
+}
+
+/* 正文链接：主题色 + 虚线下划线 + hover 动画 */
+.mirages-content .toc-content a {
+  color: #1abc9c !important;
+  text-decoration: none !important;
+  border-bottom: 1px dashed #eee !important;
+  transition: color 0.3s ease, border-color 0.3s ease !important;
+}
+.mirages-content .toc-content a:hover {
+  color: #1abc9c !important;
+  border-bottom-color: #1abc9c !important;
+}
+
+/* AI 摘要卡片（原站：浅灰底 + 8px 圆角 + 轻阴影） */
+.mirages-content article [class*="from-purple-50"],
+.mirages-content article div[class*="gradient-to-r"] {
+  background: #f8f9fa !important;
+  border: none !important;
+  border-radius: 8px !important;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 2px 4px 0 !important;
+  padding: 16px 20px !important;
+}
+.mirages-content article [class*="text-purple-600"],
+.mirages-content article [class*="text-purple-500"] {
+  color: #555 !important;
+}
+[data-color-mode="dark"] .mirages-content article [class*="from-purple-50"],
+[data-color-mode="dark"] .mirages-content article div[class*="gradient-to-r"] {
+  background: #3a3a3a !important;
+}
+
+/* ---------------- 分页器（原站：描边按钮） ---------------- */
+
+.mirages-content .mirages-pager-btn {
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #333 !important;
+  border: 1px solid #333 !important;
+  padding: 9px 45px !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  transition: all 0.3s ease !important;
+}
+.mirages-content .mirages-pager-btn:hover {
+  background: #333 !important;
+  color: #fff !important;
+}
+[data-color-mode="dark"] .mirages-content .mirages-pager-btn {
+  color: #eee !important;
+  border-color: #eee !important;
+}
+[data-color-mode="dark"] .mirages-content .mirages-pager-btn:hover {
+  background: #eee !important;
+  color: #333 !important;
+}
+
+/* ---------------- 版权声明 ---------------- */
+
+.mirages-copyright {
+  font-size: 14px !important;
+  color: #777 !important;
+  padding: 9px 0 0 !important;
+  margin-top: 20px !important;
+  border-top: 1px dashed #eee !important;
+}
+.mirages-copyright a {
+  color: #1abc9c !important;
+  border-bottom: 1px dashed #eee !important;
+  text-decoration: none !important;
+}
+
+/* ---------------- 相邻文章（上一篇/下一篇） ---------------- */
+
+body.mirages-layout-active .mirages-content [class*="sm:grid-cols-2"] {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border-top: 1px solid #ccc !important;
+  margin: 20px 0 0 !important;
+  padding-top: 20px !important;
+}
+body.mirages-layout-active .mirages-content [class*="sm:grid-cols-2"] h1 {
+  font-size: 16px !important;
+  color: #555 !important;
+}
+body.mirages-layout-active .mirages-content [class*="sm:grid-cols-2"] p {
+  font-size: 14px !important;
+  color: #777 !important;
+}
+
+/* ---------------- 评论区 ---------------- */
+
+body.mirages-layout-active .mirages-content article ~ div textarea,
+body.mirages-layout-active .mirages-content article ~ div input {
+  background: transparent !important;
+  border: 2px solid #ececec !important;
+  border-radius: 5px !important;
+  padding: 7px 8.4px !important;
+  font-size: 14px !important;
+}
+body.mirages-layout-active .mirages-content article ~ div button[class*="bg-theme"],
+body.mirages-layout-active .mirages-content article ~ div button {
+  background: #1abc9c !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 5px !important;
+  padding: 0 16px !important;
+  font-size: 14px !important;
+}
+
+/* ---------------- 页脚 ---------------- */
+
+.mirages-root .mirages-footer {
+  font-size: 11.2px !important;
+  color: #202020 !important;
+  text-align: center !important;
+  padding: 20px 0 !important;
+}
+[data-color-mode="dark"] .mirages-root .mirages-footer {
+  color: #bcbcbc !important;
+}
+
+body.mirages-layout-active .mirages-footer footer .text-sm {
+  font-size: 11.2px !important;
+  color: #202020 !important;
+}
+[data-color-mode="dark"] body.mirages-layout-active .mirages-footer footer .text-sm {
+  color: #bcbcbc !important;
+}
+body.mirages-layout-active .mirages-footer footer button {
+  display: none !important;
+}

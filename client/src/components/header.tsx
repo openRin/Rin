@@ -60,14 +60,14 @@ export function Header({ children }: { children?: React.ReactNode }) {
   }, [headerBehavior, headerLayout]);
 
   const useTopHeader = layoutDefinition.kind === "top";
-  const headerPaddingClassName = headerLayout === "compact" ? "mx-0 mt-0" : "mx-4 mt-4";
+  const headerPaddingClassName = headerLayout === "compact" || headerLayout === "mirages" ? "mx-0 mt-0" : "mx-4 mt-4";
   const containerClassName =
     !useTopHeader || headerBehavior === "static"
       ? "relative z-40"
       : `fixed inset-x-0 top-0 z-40 transition-transform duration-300 ${
           headerBehavior === "reveal" && !isRevealed ? "-translate-y-full" : "translate-y-0"
         }`;
-  const spacerClassName = !useTopHeader || headerBehavior === "static" ? "h-0" : "h-20";
+  const spacerClassName = !useTopHeader || headerBehavior === "static" ? "h-0" : headerLayout === "mirages" ? "h-16" : "h-20";
 
   return (
     <>

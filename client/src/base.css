@@ -42,6 +42,74 @@
       @apply w-full md:w-7/12 lg:w-8/12 duration-300;
     }
 
+    .mirages-content .wauto,
+    .mirages-content .writeauto {
+      @apply w-full !important;
+    }
+
+    .mirages-content > div.sm\:mx-8 {
+      @apply mx-0 !important;
+    }
+
+    .mirages-content .xl\:w-64 {
+      display: none !important;
+    }
+
+    .mirages-content main > div.wauto.text-4xl,
+    .mirages-content main > div.text-4xl {
+      display: none !important;
+    }
+
+    .mirages-content .mirages-pager-btn {
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: #333 !important;
+      border: 1px solid #333 !important;
+      padding: 9px 45px !important;
+      font-size: 16px !important;
+      font-weight: 400 !important;
+      transition: all 0.3s ease !important;
+    }
+    .mirages-content .mirages-pager-btn:hover {
+      background: #333 !important;
+      color: #fff !important;
+    }
+    .dark .mirages-content .mirages-pager-btn,
+    [data-color-mode="dark"] .mirages-content .mirages-pager-btn {
+      color: #eee !important;
+      border-color: #eee !important;
+    }
+    [data-color-mode="dark"] .mirages-content .mirages-pager-btn:hover {
+      background: #eee !important;
+      color: #333 !important;
+    }
+
+    .mirages-content main.wauto {
+      width: min(660px, 100%) !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    .mirages-content article.rounded-2xl {
+      background: transparent !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+
+    .mirages-content article.rounded-2xl > .flex.justify-between {
+      position: relative !important;
+    }
+    .mirages-content article.rounded-2xl > .flex.justify-between > div:first-child {
+      display: none !important;
+    }
+    .mirages-content article.rounded-2xl > .flex.justify-between > .pt-2 {
+      position: absolute !important;
+      right: 0 !important;
+      top: 0 !important;
+      z-index: 20 !important;
+    }
+
     .scrollbar-none {
       -ms-overflow-style: none;
       scrollbar-width: none;

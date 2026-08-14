@@ -459,11 +459,13 @@
       "desc": "選擇桌面端網站頂部的排列方式，並在下方預覽效果",
       "options": {
         "classic": "經典置中",
-        "compact": "極簡純文字"
+        "compact": "極簡純文字",
+        "mirages": "Mirages 側欄"
       },
       "preview": {
         "classic": "品牌、置中導覽與操作區維持目前這套平衡配置。",
-        "compact": "幾乎移除所有裝飾，只保留最必要的資訊與操作。"
+        "compact": "幾乎移除所有裝飾，只保留最必要的資訊與操作。",
+        "mirages": "固定頂欄 + 左側抽屜導航，貼近 Typecho Mirages 主題的佈局。"
       }
     },
     "header_behavior": {
@@ -480,11 +482,13 @@
       "desc": "選擇文章列表、搜尋結果與標籤頁中卡片的視覺風格",
       "options": {
         "default": "預設",
-        "editorial": "雜誌風"
+        "editorial": "雜誌風",
+        "mirages": "Mirages 卡片"
       },
       "preview": {
         "default": "目前這套緊湊卡片，表面乾淨，裝飾最少。",
-        "editorial": "更有展示感的卡片，帶有淡淡主題染色、更強層次，以及類似畫冊的 framing。"
+        "editorial": "更有展示感的卡片，帶有淡淡主題染色、更強層次，以及類似畫冊的 framing。",
+        "mirages": "大圖漸變背景 + 深色遮罩 + 置中標題，復刻 Mirages 的卡片式列表。"
       }
     },
     "feed_layout": {

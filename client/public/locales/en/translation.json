@@ -459,11 +459,13 @@
       "desc": "Choose how the site header is arranged on desktop screens and preview each style below",
       "options": {
         "classic": "Classic centered",
-        "compact": "Minimal"
+        "compact": "Minimal",
+        "mirages": "Mirages sidebar"
       },
       "preview": {
         "classic": "Brand, centered navigation, and actions stay balanced like the current header.",
-        "compact": "A text-first header with almost no decoration, keeping only the essential information."
+        "compact": "A text-first header with almost no decoration, keeping only the essential information.",
+        "mirages": "Fixed top bar with a left drawer, inspired by the Typecho Mirages theme."
       }
     },
     "header_behavior": {
@@ -480,11 +482,13 @@
       "desc": "Choose the visual treatment used by article cards across feed, search, and tag lists",
       "options": {
         "default": "Default",
-        "editorial": "Editorial"
+        "editorial": "Editorial",
+        "mirages": "Mirages card"
       },
       "preview": {
         "default": "The current compact card with a simple surface and minimal framing.",
-        "editorial": "A more expressive card with a tinted surface, stronger hierarchy, and gallery-like framing."
+        "editorial": "A more expressive card with a tinted surface, stronger hierarchy, and gallery-like framing.",
+        "mirages": "Large gradient cover with dark mask and centered title, a Mirages-style card list."
       }
     },
     "feed_layout": {

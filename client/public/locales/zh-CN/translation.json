@@ -459,11 +459,13 @@
       "desc": "选择桌面端站点头部的排布方式，并在下方预览效果",
       "options": {
         "classic": "经典居中",
-        "compact": "极简纯文本"
+        "compact": "极简纯文本",
+        "mirages": "Mirages 侧栏"
       },
       "preview": {
         "classic": "品牌、居中导航和操作区保持当前这套平衡布局。",
-        "compact": "几乎去掉所有装饰，只保留最必要的信息和操作。"
+        "compact": "几乎去掉所有装饰，只保留最必要的信息和操作。",
+        "mirages": "固定顶栏 + 左侧抽屉导航，贴近 Typecho Mirages 主题的布局。"
       }
     },
     "header_behavior": {
@@ -480,11 +482,13 @@
       "desc": "选择文章列表、搜索结果和标签页中卡片的视觉风格",
       "options": {
         "default": "默认",
-        "editorial": "杂志风"
+        "editorial": "杂志风",
+        "mirages": "Mirages 卡片"
       },
       "preview": {
         "default": "当前这套紧凑卡片，表面处理简单，干净直接。",
-        "editorial": "更有展示感的卡片，带轻微主题染色、更强层级和类似画册的 framing。"
+        "editorial": "更有展示感的卡片，带轻微主题染色、更强层级和类似画册的 framing。",
+        "mirages": "大图渐变背景 + 深色遮罩 + 居中标题，复刻 Mirages 的卡片式列表。"
       }
     },
     "feed_layout": {

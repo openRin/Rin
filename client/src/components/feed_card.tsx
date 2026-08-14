@@ -9,6 +9,41 @@ import { useImageLoadState } from "../utils/use-image-load-state";
 import { type FeedCardVariant, normalizeFeedCardVariant } from "./feed-card-options";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 
+const MIRAGES_GRADIENTS = [
+    ["#EB3349", "#F45C43"],
+    ["#DD5E89", "#F7BB97"],
+    ["#4CB8C4", "#3CD3AD"],
+    ["#A6FFCB", "#12D8FA", "#1FA2FF"],
+    ["#FF512F", "#F09819"],
+    ["#1A2980", "#26D0CE"],
+    ["#F09819", "#EDDE5D"],
+    ["#403B4A", "#E7E9BB"],
+    ["#003973", "#E5E5BE"],
+    ["#348F50", "#56B4D3"],
+    ["#EDE574", "#E1F5C4"],
+    ["#16A085", "#F4D03F"],
+    ["#314755", "#26a0da"],
+    ["#e65c00", "#F9D423"],
+    ["#2193b0", "#6dd5ed"],
+    ["#ec008c", "#fc6767"],
+    ["#1488CC", "#2B32B2"],
+    ["#ffe259", "#ffa751"],
+    ["#11998e", "#38ef7d"],
+    ["#00b09b", "#96c93d"],
+    ["#3C3B3F", "#605C3C"],
+    ["#fc4a1a", "#f7b733"],
+];
+
+function gradientForFeed(id: string | number): string {
+    const numericId = typeof id === "number" ? id : parseInt(id, 10);
+    const index = (isNaN(numericId) ? 0 : Math.abs(numericId)) % MIRAGES_GRADIENTS.length;
+    const colors = MIRAGES_GRADIENTS[index];
+    if (colors.length === 2) {
+        return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+    }
+    return `linear-gradient(90deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2]} 100%)`;
+}
+
 function FeedCardImage({ src, variant }: { src: string; variant: FeedCardVariant }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { src: cleanSrc, blurhash, width, height } = parseImageUrlMetadata(src);
@@ -81,6 +116,13 @@ const FEED_CARD_STYLES: Record<
         summary: "line-clamp-5 text-pretty text-[15px] leading-7 text-neutral-600 dark:text-neutral-300",
         title: "text-2xl font-semibold tracking-[-0.02em] text-neutral-900 dark:text-white text-pretty overflow-hidden",
     },
+    mirages: {
+        card: "my-4 inline-block w-full break-inside-avoid overflow-hidden rounded-[5px] md:my-[32px_0_20px]",
+        imageWrap: "",
+        meta: "text-[13px] font-normal text-[#eee]",
+        summary: "",
+        title: "text-[25px] font-normal text-white",
+    },
 };
 
 export type FeedCardProps = {
@@ -98,13 +140,79 @@ export type FeedCardProps = {
     variant?: FeedCardVariant;
 };
 
+function MiragesCardBody({ id, title, avatar, draft, listed, top, hashtags, createdAt, updatedAt }: Omit<FeedCardProps, "preview" | "variant" | "summary">) {
+    const { t } = useTranslation();
+    const safeHashtags = Array.isArray(hashtags) ? hashtags : [];
+    const background = avatar ? undefined : gradientForFeed(id);
+    const { src: cleanSrc, blurhash, width, height } = parseImageUrlMetadata(avatar || "");
+    const { failed, imageRef, loaded, onError, onLoad } = useImageLoadState(cleanSrc);
+
+    useEffect(() => {
+        if (!blurhash || !cleanSrc) {
+            return;
+        }
+        try {
+            const canvas = document.createElement("canvas");
+            drawBlurhashToCanvas(canvas, blurhash);
+        } catch (error) {
+            console.error("Failed to render blurhash", error);
+        }
+    }, [blurhash, cleanSrc]);
+
+    return (
+        <div
+            className="relative mb-5 mt-4 h-[200px] w-full overflow-hidden rounded-[5px] shadow-[0_1px_1px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.05] hover:shadow-[0_22px_43px_rgba(0,0,0,0.15)] md:mb-[20px] md:mt-[32px] md:h-[248px]"
+            style={background ? { background } : undefined}
+        >
+            {avatar ? (
+                <>
+                    {blurhash && !loaded ? (
+                        <div className="absolute inset-0 scale-110 bg-cover blur-sm" />
+                    ) : null}
+                    <img
+                        ref={imageRef}
+                        src={cleanSrc}
+                        alt=""
+                        width={width}
+                        height={height}
+                        onLoad={onLoad}
+                        onError={onError}
+                        className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300 ${blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"}`}
+                    />
+                </>
+            ) : null}
+            <div className="absolute inset-0 bg-black/25 transition-colors duration-300 hover:bg-black/40" />
+            <div className="absolute inset-0 flex items-center justify-center">
+                <div className="px-8 text-center">
+                    <h2 className="mb-3 text-[25px] font-normal leading-snug text-white text-pretty">{title}</h2>
+                    <div className="flex items-center justify-center gap-2 text-[13px] font-normal text-[#eee]">
+                        <span title={new Date(createdAt).toLocaleString()}>
+                            {createdAt === updatedAt ? timeago(createdAt) : t('feed_card.published$time', { time: timeago(createdAt) })}
+                        </span>
+                        {draft === 1 && <span>{t("draft")}</span>}
+                        {listed === 0 && <span>{t("unlisted")}</span>}
+                        {top === 1 && <span>{t('article.top.title')}</span>}
+                        {safeHashtags.length > 0 && (
+                            <span className="hidden md:inline">
+                                {safeHashtags.slice(0, 3).map(({ name }) => `#${name}`).join(" ")}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function FeedCard({ id, title, avatar, draft, listed, top, summary, hashtags, createdAt, updatedAt, preview = false, variant }: FeedCardProps) {
     const { t } = useTranslation();
     const siteConfig = useSiteConfig();
     const safeHashtags = Array.isArray(hashtags) ? hashtags : [];
     const activeVariant = normalizeFeedCardVariant(variant ?? siteConfig.feedCardVariant);
     const styles = FEED_CARD_STYLES[activeVariant];
-    const body = (
+    const body = activeVariant === "mirages" ? (
+        <MiragesCardBody id={id} title={title} avatar={avatar} draft={draft} listed={listed} top={top} hashtags={safeHashtags} createdAt={createdAt} updatedAt={updatedAt} />
+    ) : (
         <div className={styles.card}>
             {avatar ? (
                 <div className={styles.imageWrap}>

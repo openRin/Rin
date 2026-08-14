@@ -282,6 +282,9 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                   </div>
                 )}
                 <Markdown content={feed.content} />
+                <p className="mirages-copyright">
+                  如无特殊说明 <a href={document.URL}>《{feed.title}》</a> 为博主 {feed.user?.username ?? "博主"} 原创，转载请注明原文链接为：<a href={document.URL}>{document.URL}</a>
+                </p>
                 <div className="mt-6 flex flex-col gap-2">
                   {hashtags.length > 0 && (
                     <div className="flex flex-row flex-wrap gap-x-2">
