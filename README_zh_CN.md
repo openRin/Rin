@@ -137,11 +137,11 @@ bun run deploy:client
 
 ## Star 历史
 
-<a href="https://star-history.com/#openRin/Rin&Date">
+<a href="https://star-history.dera.page/#openRin/Rin&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=openRin/Rin&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=openRin/Rin&type=Date" />
-   <img alt="Star 历史图表" src="https://api.star-history.com/svg?repos=openRin/Rin&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=openRin/Rin&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=openRin/Rin&type=Date" />
+   <img alt="Star 历史图表" src="https://star-history.dera.page/svg?repos=openRin/Rin&type=Date" />
  </picture>
 </a>
 
