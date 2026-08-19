@@ -27,6 +27,20 @@ describe("SitemapService", () => {
         (3, 'about', 'About', 'Content', 1, 0, 0),
         (4, 'about-draft', 'Draft About', 'Content', 1, 1, 0)
     `);
+    requestCtx.sqlite.exec(`
+      INSERT INTO hashtags (id, name) VALUES
+        (1, 'public-tag'),
+        (2, 'unlisted-tag'),
+        (3, 'about-tag'),
+        (4, 'draft-tag')
+    `);
+    requestCtx.sqlite.exec(`
+      INSERT INTO feed_hashtags (feed_id, hashtag_id) VALUES
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4)
+    `);
 
     const sitemap = await requestCtx.app.request("https://blog.example/sitemap.xml", { method: "GET" }, env);
     const xml = await sitemap.text();
@@ -34,6 +48,10 @@ describe("SitemapService", () => {
     expect(xml).toContain("https://blog.example/about");
     expect(xml).not.toContain("https://blog.example/unlisted");
     expect(xml).not.toContain("https://blog.example/about-draft");
+    expect(xml).toContain("https://blog.example/hashtag/public-tag");
+    expect(xml).toContain("https://blog.example/hashtag/about-tag");
+    expect(xml).not.toContain("https://blog.example/hashtag/unlisted-tag");
+    expect(xml).not.toContain("https://blog.example/hashtag/draft-tag");
     expect(getCalls).toBe(0);
     expect(putCalls).toBe(0);
 

@@ -198,6 +198,53 @@ describe('RSSService', () => {
 
             cleanupTestDB(ctx.sqlite);
         });
+
+        it('normalizes a configured FRONTEND_URL before generating feed links', async () => {
+            const canonicalEnv = createMockEnv({
+                FRONTEND_URL: '  https://canonical.example/  ',
+                R2_BUCKET: {
+                    get: async () => null,
+                    head: async () => null,
+                } as unknown as R2Bucket,
+            });
+            const ctx = await setupTestApp(RSSService, canonicalEnv);
+            ctx.sqlite.exec(`INSERT INTO users (id, username, openid) VALUES (1, 'testuser', 'gh_test')`);
+            ctx.sqlite.exec(`INSERT INTO feeds (id, title, content, uid, draft, listed) VALUES (1, 'Feed', 'Content', 1, 0, 1)`);
+
+            const res = await ctx.app.request('https://origin.example/rss.xml', { method: 'GET' }, canonicalEnv);
+            const text = await res.text();
+
+            expect(res.status).toBe(200);
+            expect(text).toContain('https://canonical.example/feed/1');
+            expect(text).not.toContain('https://canonical.example//feed/1');
+
+            cleanupTestDB(ctx.sqlite);
+        });
+
+        it('uses the request origin when FRONTEND_URL contains only whitespace', async () => {
+            let getCalls = 0;
+            const originEnv = createMockEnv({
+                FRONTEND_URL: '   ',
+                R2_BUCKET: {
+                    get: async () => {
+                        getCalls += 1;
+                        return null;
+                    },
+                    head: async () => null,
+                } as unknown as R2Bucket,
+            });
+            const ctx = await setupTestApp(RSSService, originEnv);
+            ctx.sqlite.exec(`INSERT INTO users (id, username, openid) VALUES (1, 'testuser', 'gh_test')`);
+            ctx.sqlite.exec(`INSERT INTO feeds (id, title, content, uid, draft, listed) VALUES (1, 'Feed', 'Content', 1, 0, 1)`);
+
+            const res = await ctx.app.request('https://origin.example/rss.xml', { method: 'GET' }, originEnv);
+
+            expect(res.status).toBe(200);
+            expect(await res.text()).toContain('https://origin.example/feed/1');
+            expect(getCalls).toBe(0);
+
+            cleanupTestDB(ctx.sqlite);
+        });
     });
 });
 
