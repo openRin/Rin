@@ -216,6 +216,7 @@ jobs:
           WEBHOOK_URL: ${{ vars.WEBHOOK_URL || '' }}
           RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
           RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL || '' }}
           CACHE_STORAGE_MODE: ${{ vars.CACHE_STORAGE_MODE || 's3' }}
         run: |
           set -euo pipefail

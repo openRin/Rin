@@ -129,6 +129,7 @@ describe('RSSService', () => {
 
         it('should serve cached rss.xml through R2 without S3_ACCESS_HOST', async () => {
             const cachedEnv = createMockEnv({
+                FRONTEND_URL: 'https://blog.example',
                 S3_ACCESS_HOST: '' as any,
                 S3_ENDPOINT: '' as any,
                 S3_BUCKET: '' as any,
@@ -173,6 +174,30 @@ describe('RSSService', () => {
 
             cleanupTestDB(ctx.sqlite);
         });
+
+        it('uses the request origin and bypasses shared storage without FRONTEND_URL', async () => {
+            let getCalls = 0;
+            const originEnv = createMockEnv({
+                R2_BUCKET: {
+                    get: async () => {
+                        getCalls += 1;
+                        return null;
+                    },
+                    head: async () => null,
+                } as unknown as R2Bucket,
+            });
+            const ctx = await setupTestApp(RSSService, originEnv);
+            ctx.sqlite.exec(`INSERT INTO users (id, username, openid) VALUES (1, 'testuser', 'gh_test')`);
+            ctx.sqlite.exec(`INSERT INTO feeds (id, title, content, uid, draft, listed) VALUES (1, 'Feed', 'Content', 1, 0, 1)`);
+
+            const res = await ctx.app.request('https://origin.example/rss.xml', { method: 'GET' }, originEnv);
+
+            expect(res.status).toBe(200);
+            expect(await res.text()).toContain('https://origin.example/feed/1');
+            expect(getCalls).toBe(0);
+
+            cleanupTestDB(ctx.sqlite);
+        });
     });
 });
 
@@ -199,12 +224,22 @@ describe('rssCrontab', () => {
         cleanupTestDB(sqlite);
     });
 
-    it('should generate and save RSS feeds to S3', async () => {
-        try {
-            await rssCrontab(env, db);
-        } catch (e) {
-            // Expected to fail since S3 is not configured in test env
-        }
+    it('generates and saves RSS feeds when FRONTEND_URL is configured', async () => {
+        const keys: string[] = [];
+        env = createMockEnv({
+            FRONTEND_URL: 'https://blog.example',
+            R2_BUCKET: {
+                head: async () => null,
+                put: async (key: string) => {
+                    keys.push(key);
+                    return null;
+                },
+            } as unknown as R2Bucket,
+        });
+
+        await rssCrontab(env, db);
+
+        expect(keys).toEqual(['cache/rss.xml', 'cache/atom.xml', 'cache/rss.json']);
     });
 
     it('should handle missing feeds gracefully', async () => {
@@ -215,5 +250,21 @@ describe('rssCrontab', () => {
         } catch (e) {
             // Should not throw
         }
+    });
+
+    it('does not write RSS storage cache without FRONTEND_URL', async () => {
+        let putCalls = 0;
+        env = createMockEnv({
+            R2_BUCKET: {
+                put: async () => {
+                    putCalls += 1;
+                    return null;
+                },
+            } as unknown as R2Bucket,
+        });
+
+        await rssCrontab(env, db);
+
+        expect(putCalls).toBe(0);
     });
 });

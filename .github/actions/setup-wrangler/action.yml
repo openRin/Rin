@@ -38,6 +38,7 @@ runs:
         S3_FORCE_PATH_STYLE = "false"
         RSS_TITLE = "Rin"
         RSS_DESCRIPTION = "A lightweight personal blogging system"
+        FRONTEND_URL = ""
         CACHE_STORAGE_MODE = "s3"
 
         [[d1_databases]]
