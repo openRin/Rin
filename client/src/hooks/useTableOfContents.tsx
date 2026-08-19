@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export interface TableOfContent {
@@ -83,8 +83,13 @@ const useTableOfContents = (selector: string) => {
         if (io.current) io.current.disconnect()
     }
 
-    return {
-        TOC: () => (<div className='rounded-2xl bg-w py-4 px-4 t-primary'>
+    const tocStateRef = useRef({ tableOfContents, activeIndex, t })
+    tocStateRef.current = { tableOfContents, activeIndex, t }
+
+    const TOC = useCallback(() => {
+        const { tableOfContents, activeIndex, t } = tocStateRef.current
+
+        return <div className='rounded-2xl bg-w py-4 px-4 t-primary'>
             <h2 className="text-lg font-bold">{t("index.title")}</h2>
             <ul className="max-h-[calc(100vh-10.25rem)] overflow-auto" style={{ scrollbarWidth: "none" }}>
                 {tableOfContents.length === 0 && <li>{t("index.empty.title")}</li>}
@@ -105,7 +110,11 @@ const useTableOfContents = (selector: string) => {
                     </li>
                 ))}
             </ul>
-        </div>), cleanup
+        </div>
+    }, [])
+
+    return {
+        TOC, cleanup
     }
 }
 
