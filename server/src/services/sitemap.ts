@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AppContext, DB } from "../core/hono-types";
 import { feeds, friends, hashtags, moments } from "../db/schema";
@@ -29,7 +29,7 @@ function formatLastMod(value: Date | number | null | undefined): string | null {
 
 // 站点根地址：优先使用显式 FRONTEND_URL，其次回退到请求来源；cron 场景无请求时留空
 function getBaseUrl(env: Env, requestUrl?: string): string {
-  if (env.FRONTEND_URL) return env.FRONTEND_URL.replace(/\/+$/, "");
+  if (env.FRONTEND_URL?.trim()) return env.FRONTEND_URL.trim().replace(/\/+$/, "");
   if (requestUrl) {
     try {
       return new URL(requestUrl).origin;
@@ -40,14 +40,21 @@ function getBaseUrl(env: Env, requestUrl?: string): string {
   return "";
 }
 
+function hasConfiguredBaseUrl(env: Env): boolean {
+  return Boolean(env.FRONTEND_URL?.trim());
+}
+
 // 生成 sitemap.xml 内容（纯函数，供请求实时生成与 cron 预生成复用）
-async function generateSitemapXml(env: Env, db: DB): Promise<string> {
-  const baseUrl = getBaseUrl(env);
+async function generateSitemapXml(env: Env, db: DB, requestUrl?: string): Promise<string> {
+  const baseUrl = getBaseUrl(env, requestUrl);
+  if (!baseUrl) {
+    throw new Error("A canonical URL or request URL is required to generate a sitemap");
+  }
   const [feedRows, momentRows, friendRows, hashtagRows] = await Promise.all([
     db
       .select({ id: feeds.id, alias: feeds.alias, updatedAt: feeds.updatedAt })
       .from(feeds)
-      .where(eq(feeds.draft, 0)),
+      .where(and(eq(feeds.draft, 0), or(eq(feeds.listed, 1), eq(feeds.alias, "about")))),
     db.select({ updatedAt: moments.updatedAt }).from(moments).orderBy(desc(moments.updatedAt)).limit(1),
     db.select({ updatedAt: friends.updatedAt }).from(friends).orderBy(desc(friends.updatedAt)).limit(1),
     db.select({ name: hashtags.name, updatedAt: hashtags.updatedAt }).from(hashtags),
@@ -57,8 +64,8 @@ async function generateSitemapXml(env: Env, db: DB): Promise<string> {
 
   const addUrl = (loc: string, lastmod?: Date | null) => {
     const lastmodStr = formatLastMod(lastmod);
-    // 首页只输出站点根地址，不带末尾斜杠；baseUrl 为空时回退为 "/"
-    const fullUrl = loc === "/" ? baseUrl || "/" : baseUrl + loc;
+    // 首页只输出站点根地址，不带末尾斜杠
+    const fullUrl = loc === "/" ? baseUrl : baseUrl + loc;
     urls.push(
       `    <url>\n      <loc>${escapeXml(fullUrl)}</loc>${
         lastmodStr ? `\n      <lastmod>${lastmodStr}</lastmod>` : ""
@@ -101,8 +108,11 @@ async function generateSitemapXml(env: Env, db: DB): Promise<string> {
 }
 
 // 生成 robots.txt 内容
-function generateRobotsTxt(env: Env): string {
-  const baseUrl = getBaseUrl(env);
+function generateRobotsTxt(env: Env, requestUrl?: string): string {
+  const baseUrl = getBaseUrl(env, requestUrl);
+  if (!baseUrl) {
+    throw new Error("A canonical URL or request URL is required to generate robots.txt");
+  }
   return `User-agent: *
 Allow: /
 
@@ -117,8 +127,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
 /**
  * Sitemap 服务：将站点可索引 URL 暴露为 /sitemap.xml，并提供 /robots.txt。
- * 与 RSS 一致，采用「请求优先读 R2/S3 缓存，未命中则实时生成并写回存储桶」的模式，
- * 同时导出 sitemapCrontab 供定时任务预生成，复用 Drizzle 与 Env/FRONTEND_URL 配置。
+ * 配置 FRONTEND_URL 时使用 R2/S3 预生成缓存；否则按请求 origin 实时生成，
+ * 避免多域名部署将某次请求的地址写入共享缓存。
  */
 export function SitemapService(): Hono {
   const app = new Hono();
@@ -127,25 +137,30 @@ export function SitemapService(): Hono {
     const env = c.get("env");
     const db = c.get("db");
     const key = path_join(env.S3_CACHE_FOLDER || SITEMAP_CACHE_FOLDER, "sitemap.xml");
+    const canUsePersistentCache = hasConfiguredBaseUrl(env);
 
-    try {
-      const cached = await getStorageObject(env, key);
-      if (cached) {
-        const text = await cached.text();
-        return c.body(text, 200, {
-          "Content-Type": SITEMAP_CONTENT_TYPE,
-          "Cache-Control": "public, max-age=3600",
-        });
+    if (canUsePersistentCache) {
+      try {
+        const cached = await getStorageObject(env, key);
+        if (cached) {
+          const text = await cached.text();
+          return c.body(text, 200, {
+            "Content-Type": SITEMAP_CONTENT_TYPE,
+            "Cache-Control": "public, max-age=3600",
+          });
+        }
+      } catch (e: any) {
+        console.log(`[Sitemap] cache read failed: ${e?.message}, falling back to generation`);
       }
-    } catch (e: any) {
-      console.log(`[Sitemap] cache read failed: ${e?.message}, falling back to generation`);
     }
 
-    const xml = await generateSitemapXml(env, db);
-    try {
-      await putStorageObjectAtKey(env, key, xml, "application/xml");
-    } catch (e: any) {
-      console.log(`[Sitemap] cache write failed: ${e?.message}`);
+    const xml = await generateSitemapXml(env, db, c.req.url);
+    if (canUsePersistentCache) {
+      try {
+        await putStorageObjectAtKey(env, key, xml, "application/xml");
+      } catch (e: any) {
+        console.log(`[Sitemap] cache write failed: ${e?.message}`);
+      }
     }
 
     return c.body(xml, 200, {
@@ -157,25 +172,30 @@ export function SitemapService(): Hono {
   app.get("/robots.txt", async (c: AppContext) => {
     const env = c.get("env");
     const key = path_join(env.S3_CACHE_FOLDER || SITEMAP_CACHE_FOLDER, "robots.txt");
+    const canUsePersistentCache = hasConfiguredBaseUrl(env);
 
-    try {
-      const cached = await getStorageObject(env, key);
-      if (cached) {
-        const text = await cached.text();
-        return c.body(text, 200, {
-          "Content-Type": ROBOTS_CONTENT_TYPE,
-          "Cache-Control": "public, max-age=3600",
-        });
+    if (canUsePersistentCache) {
+      try {
+        const cached = await getStorageObject(env, key);
+        if (cached) {
+          const text = await cached.text();
+          return c.body(text, 200, {
+            "Content-Type": ROBOTS_CONTENT_TYPE,
+            "Cache-Control": "public, max-age=3600",
+          });
+        }
+      } catch (e: any) {
+        console.log(`[Sitemap] robots cache read failed: ${e?.message}, falling back to generation`);
       }
-    } catch (e: any) {
-      console.log(`[Sitemap] robots cache read failed: ${e?.message}, falling back to generation`);
     }
 
-    const robots = generateRobotsTxt(env);
-    try {
-      await putStorageObjectAtKey(env, key, robots, "text/plain");
-    } catch (e: any) {
-      console.log(`[Sitemap] robots cache write failed: ${e?.message}`);
+    const robots = generateRobotsTxt(env, c.req.url);
+    if (canUsePersistentCache) {
+      try {
+        await putStorageObjectAtKey(env, key, robots, "text/plain");
+      } catch (e: any) {
+        console.log(`[Sitemap] robots cache write failed: ${e?.message}`);
+      }
     }
 
     return c.body(robots, 200, {
@@ -189,6 +209,11 @@ export function SitemapService(): Hono {
 
 // 定时任务：预生成 sitemap.xml 与 robots.txt 并写入存储桶（与 rssCrontab 同构）
 export async function sitemapCrontab(env: Env, db: DB) {
+  if (!hasConfiguredBaseUrl(env)) {
+    console.log("[Sitemap] Skipping pre-generation because FRONTEND_URL is not configured");
+    return;
+  }
+
   const folder = env.S3_CACHE_FOLDER || SITEMAP_CACHE_FOLDER;
 
   try {
