@@ -1,11 +1,48 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import type { Comment, Feed, FeedListResponse, LoginResponse, Tag, TagDetail } from '@rin/api'
 import { createClient } from '../client'
 
 const api = createClient('http://localhost')
 
 // Mock fetch globally
-const mockFetch = vi.fn()
+const mockFetch = mock()
 global.fetch = mockFetch
+
+const timestamp = '2026-01-01T00:00:00.000Z'
+
+const createFeed = (id: number, title: string): Feed => ({
+  id,
+  title,
+  content: `Content ${id}`,
+  uid: 1,
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  ai_summary: '',
+  ai_summary_status: 'idle',
+  ai_summary_error: '',
+  hashtags: [],
+  user: {
+    avatar: null,
+    id: 1,
+    username: 'testuser',
+  },
+  pv: 0,
+  uv: 0,
+})
+
+const createComment = (id: number, content: string): Comment => ({
+  id,
+  content,
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  user: {
+    id,
+    username: `user${id}`,
+    avatar: null,
+    permission: 0,
+  },
+  approved: true,
+})
 
 describe('API Client', () => {
   beforeEach(() => {
@@ -13,7 +50,7 @@ describe('API Client', () => {
   })
 
   // Helper to create mock response with clone method
-  const createMockResponse = (response: any) => {
+  const createMockResponse = <T extends object>(response: T) => {
     return {
       ...response,
       clone() {
@@ -24,11 +61,33 @@ describe('API Client', () => {
 
   describe('Feed API', () => {
     it('should fetch feed list', async () => {
-      const mockResponse = {
+      const mockResponse: FeedListResponse = {
         size: 2,
         data: [
-          { id: 1, title: 'Feed 1', content: 'Content 1' },
-          { id: 2, title: 'Feed 2', content: 'Content 2' },
+          {
+            id: 1,
+            title: 'Feed 1',
+            summary: 'Summary 1',
+            hashtags: [],
+            user: { avatar: null, id: 1, username: 'testuser' },
+            avatar: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            pv: 0,
+            uv: 0,
+          },
+          {
+            id: 2,
+            title: 'Feed 2',
+            summary: 'Summary 2',
+            hashtags: [],
+            user: { avatar: null, id: 1, username: 'testuser' },
+            avatar: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            pv: 0,
+            uv: 0,
+          },
         ],
         hasNext: false,
       }
@@ -64,7 +123,7 @@ describe('API Client', () => {
     })
 
     it('should fetch single feed', async () => {
-      const mockResponse = { id: 1, title: 'Feed 1', content: 'Content 1' }
+      const mockResponse = createFeed(1, 'Feed 1')
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
@@ -112,9 +171,9 @@ describe('API Client', () => {
 
   describe('Tag API', () => {
     it('should fetch all tags', async () => {
-      const mockResponse = [
-        { id: 1, name: 'tag1', feeds: 5 },
-        { id: 2, name: 'tag2', feeds: 3 },
+      const mockResponse: Tag[] = [
+        { id: 1, name: 'tag1', count: 5, createdAt: timestamp, updatedAt: timestamp },
+        { id: 2, name: 'tag2', count: 3, createdAt: timestamp, updatedAt: timestamp },
       ]
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
@@ -129,7 +188,14 @@ describe('API Client', () => {
     })
 
     it('should fetch tag by name', async () => {
-      const mockResponse = { id: 1, name: 'tag1', feeds: [{ id: 1, title: 'Feed 1' }] }
+      const mockResponse: TagDetail = {
+        id: 1,
+        name: 'tag1',
+        count: 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        feeds: [createFeed(1, 'Feed 1')],
+      }
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
@@ -149,9 +215,9 @@ describe('API Client', () => {
 
   describe('Comment API', () => {
     it('should fetch comments for feed', async () => {
-      const mockResponse = [
-        { id: 1, content: 'Comment 1', user: { id: 1, username: 'user1' } },
-        { id: 2, content: 'Comment 2', user: { id: 2, username: 'user2' } },
+      const mockResponse: Comment[] = [
+        createComment(1, 'Comment 1'),
+        createComment(2, 'Comment 2'),
       ]
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
@@ -170,7 +236,7 @@ describe('API Client', () => {
     })
 
     it('should create comment', async () => {
-      const mockResponse = { id: 1, content: 'New comment', user: { id: 1, username: 'user1' } }
+      const mockResponse = createComment(1, 'New comment')
       const commentData = { content: 'New comment' }
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
@@ -237,10 +303,15 @@ describe('API Client', () => {
 
   describe('Authentication', () => {
     it('should login with credentials', async () => {
-      const mockResponse = {
+      const mockResponse: LoginResponse = {
         success: true,
         token: 'auth_token_123',
-        user: { id: 1, username: 'testuser' },
+        user: {
+          id: 1,
+          username: 'testuser',
+          avatar: null,
+          permission: false,
+        },
       }
       const loginData = { username: 'test', password: 'pass' }
 

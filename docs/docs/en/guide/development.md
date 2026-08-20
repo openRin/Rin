@@ -116,8 +116,9 @@ bun run format:check
 
 # Run tests
 bun run test              # Run all tests
+bun run test:client       # Run client tests only
 bun run test:server       # Run server tests only
- bun run test:coverage     # Run tests with coverage
+bun run test:coverage     # Run tests with coverage
 ```
 
 ## Development Workflow
@@ -149,17 +150,17 @@ The project uses different testing frameworks for client and server:
 
 ### Client Testing (Vitest)
 
-Client tests use Vitest with jsdom environment for React component testing.
+Client tests use Bun's native test runner. React component tests import the shared jsdom setup before Testing Library.
 
 ```bash
 # Run client tests
-cd client && bun run test
+bun run test:client
 
 # Watch mode
-cd client && bun run test:watch
+bun run test:client:watch
 
 # With coverage
-cd client && bun run test:coverage
+bun run test:client:coverage
 ```
 
 Test files location: `client/src/**/__tests__/*.test.ts`
@@ -173,7 +174,7 @@ Server tests use Bun's native test runner with in-memory SQLite database.
 cd server && bun run test
 
 # With coverage
-cd server && bun run test:coverage
+bun run test:server:coverage
 ```
 
 Test files location:
@@ -187,6 +188,8 @@ When adding new features, please include corresponding tests:
 
 1. **Client**: Add tests in `client/src/**/__tests__/*.test.ts`
 2. **Server**: Add tests in `server/src/**/__tests__/*.test.ts` or `server/tests/`
+
+All tests must import their APIs from `bun:test`. Client DOM tests must import `client/src/test/setup.ts` before Testing Library; do not add a second test runner or a separate test configuration.
 
 ## API Architecture
 

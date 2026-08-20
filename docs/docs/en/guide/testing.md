@@ -4,45 +4,42 @@ This document provides a comprehensive guide to testing in the Rin project.
 
 ## Overview
 
-Rin uses different testing frameworks for the client and server:
+Rin uses one test runner across the repository:
 
-- **Client**: [Vitest](https://vitest.dev/) with jsdom environment for React component testing
-- **Server**: [Bun's native test runner](https://bun.sh/docs/cli/test) with in-memory SQLite database
+- **Runner**: [Bun's native test runner](https://bun.sh/docs/cli/test) and the `bun:test` API
+- **Client environment**: React component tests import the shared jsdom setup
+- **Server environment**: Worker-compatible globals and an in-memory SQLite database
 
 ## Running Tests
 
 ### All Tests
 
 ```bash
-# Run both client and server tests
+# Run every test with the canonical root command
 bun run test
 ```
 
 ### Client Tests
 
 ```bash
-cd client
-
 # Run tests once
-bun run test
+bun run test:client
 
 # Run tests in watch mode
-bun run test:watch
+bun run test:client:watch
 
 # Run tests with coverage
-bun run test:coverage
+bun run test:client:coverage
 ```
 
 ### Server Tests
 
 ```bash
-cd server
-
 # Run tests once
-bun run test
+bun run test:server
 
 # Run tests with coverage
-bun run test:coverage
+bun run test:server:coverage
 ```
 
 ## Test Structure
@@ -53,7 +50,8 @@ Location: `client/src/**/__tests__/*.test.ts`
 
 ```typescript
 // Example client test
-import { describe, it, expect } from 'vitest';
+import '../../test/setup';
+import { describe, expect, it } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import { MyComponent } from '../components/MyComponent';
 
@@ -95,7 +93,7 @@ describe('myFunction', () => {
 
 Example:
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 import { apiClient } from '../api/client';
 
 describe('API Client', () => {
@@ -141,24 +139,19 @@ Server tests use fixtures for mock data:
 
 ## Coverage
 
-Both client and server support code coverage reporting:
+The root command generates one combined coverage report:
 
 ```bash
-# Client coverage
-bun run test:coverage
-
-# Server coverage  
+# All repository tests
 bun run test:coverage
 ```
 
-Coverage reports are generated in:
-- Client: `client/coverage/`
-- Server: `server/coverage/`
+The combined report is generated in `coverage/`. Package-level coverage commands still write to `client/coverage/` or `server/coverage/` when run from those directories.
 
 ## CI/CD Integration
 
 Tests run automatically on:
-- Every push to `main` or `develop` branches
+- Every push to `main` or `trunk` branches
 - Every Pull Request
 - Before deployment (blocking)
 
@@ -171,15 +164,15 @@ See [GitHub Actions Workflows](./deploy.mdx#github-actions-workflows) for detail
 3. **Use descriptive names**: Test descriptions should clearly state what is being tested
 4. **Keep tests independent**: Each test should be able to run independently
 5. **Mock external dependencies**: Use mocks for external APIs and services
+6. **Use one runner**: Import test APIs only from `bun:test`; do not add Vitest or another runner
 
 ## Troubleshooting
 
 ### Client Tests Failing
 
 ```bash
-# Clear cache and reinstall dependencies
-rm -rf client/node_modules
-bun install
+# Run through the canonical client entrypoint
+bun run test:client
 ```
 
 ### Server Tests Failing
@@ -196,6 +189,5 @@ Make sure you have the coverage reporter configured in your test config.
 
 ## Additional Resources
 
-- [Vitest Documentation](https://vitest.dev/guide/)
 - [Bun Test Runner](https://bun.sh/docs/cli/test)
 - [Testing Library](https://testing-library.com/docs/)

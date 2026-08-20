@@ -4,45 +4,42 @@
 
 ## 概述
 
-Rin 为客户端和服务端使用不同的测试框架：
+Rin 在整个仓库统一使用一套测试运行器：
 
-- **客户端**: [Vitest](https://vitest.dev/) 配合 jsdom 环境进行 React 组件测试
-- **服务端**: [Bun 原生测试运行器](https://bun.sh/docs/cli/test) 配合内存 SQLite 数据库
+- **运行器**：[Bun 原生测试运行器](https://bun.sh/docs/cli/test) 与 `bun:test` API
+- **客户端环境**：React 组件测试导入统一的 jsdom 初始化文件
+- **服务端环境**：Worker 兼容全局对象与内存 SQLite 数据库
 
 ## 运行测试
 
 ### 所有测试
 
 ```bash
-# 运行客户端和服务端测试
+# 使用根目录标准命令运行全部测试
 bun run test
 ```
 
 ### 客户端测试
 
 ```bash
-cd client
-
 # 运行一次测试
-bun run test
+bun run test:client
 
 # 监视模式运行测试
-bun run test:watch
+bun run test:client:watch
 
 # 运行测试并生成覆盖率报告
-bun run test:coverage
+bun run test:client:coverage
 ```
 
 ### 服务端测试
 
 ```bash
-cd server
-
 # 运行一次测试
-bun run test
+bun run test:server
 
 # 运行测试并生成覆盖率报告
-bun run test:coverage
+bun run test:server:coverage
 ```
 
 ## 测试结构
@@ -53,7 +50,8 @@ bun run test:coverage
 
 ```typescript
 // 客户端测试示例
-import { describe, it, expect } from 'vitest';
+import '../../test/setup';
+import { describe, expect, it } from 'bun:test';
 import { render, screen } from '@testing-library/react';
 import { MyComponent } from '../components/MyComponent';
 
@@ -95,7 +93,7 @@ describe('myFunction', () => {
 
 示例：
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 import { apiClient } from '../api/client';
 
 describe('API Client', () => {
@@ -141,24 +139,19 @@ describe('FeedService', () => {
 
 ## 覆盖率
 
-客户端和服务端都支持代码覆盖率报告：
+根目录命令会生成一份合并覆盖率报告：
 
 ```bash
-# 客户端覆盖率
-bun run test:coverage
-
-# 服务端覆盖率  
+# 全仓测试覆盖率
 bun run test:coverage
 ```
 
-覆盖率报告生成在：
-- 客户端：`client/coverage/`
-- 服务端：`server/coverage/`
+合并报告生成在 `coverage/`。若从客户端或服务端目录单独运行覆盖率命令，报告仍分别写入 `client/coverage/` 或 `server/coverage/`。
 
 ## CI/CD 集成
 
 测试在以下情况自动运行：
-- 每次推送到 `main` 或 `develop` 分支
+- 每次推送到 `main` 或 `trunk` 分支
 - 每个 Pull Request
 - 部署前（阻塞性）
 
@@ -171,15 +164,15 @@ bun run test:coverage
 3. **使用描述性名称**：测试描述应该清楚说明正在测试什么
 4. **保持测试独立**：每个测试都应该能够独立运行
 5. **模拟外部依赖**：为外部 API 和服务使用模拟
+6. **统一运行器**：测试 API 只从 `bun:test` 导入，不要再添加 Vitest 或其他运行器
 
 ## 故障排除
 
 ### 客户端测试失败
 
 ```bash
-# 清除缓存并重新安装依赖
-rm -rf client/node_modules
-bun install
+# 通过标准客户端入口运行
+bun run test:client
 ```
 
 ### 服务端测试失败
@@ -196,6 +189,5 @@ bun test
 
 ## 其他资源
 
-- [Vitest 文档](https://vitest.dev/guide/)
 - [Bun 测试运行器](https://bun.sh/docs/cli/test)
 - [Testing Library](https://testing-library.com/docs/)

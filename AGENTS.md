@@ -31,8 +31,9 @@ bun run release <version> # Create a new release (patch/minor/major/x.y.z)
 
 # Testing
 bun run test              # Run all tests (client + server)
+bun run test:client       # Run client tests only
 bun run test:server       # Run server tests only
- bun run test:coverage     # Run tests with coverage report
+bun run test:coverage     # Run tests with coverage report
 ```
 
 ## Rin CLI
@@ -160,14 +161,14 @@ Avoid these common mistakes:
 
 The project has comprehensive test coverage for both client and server:
 
-### Client Tests (Vitest)
+### Client Tests (Bun + jsdom)
 - **Location**: `client/src/**/__tests__/*.test.ts`
-- **Runner**: Vitest with jsdom environment
+- **Runner**: Bun's native test runner (`bun:test`); DOM tests import the shared jsdom setup
 - **Commands**:
   ```bash
-  cd client && bun run test          # Run tests once
-  cd client && bun run test:watch    # Watch mode
-  cd client && bun run test:coverage # With coverage report
+  bun run test:client          # Run tests once
+  bun run test:client:watch    # Watch mode
+  bun run test:client:coverage # With coverage report
   ```
 
 ### Server Tests (Bun)
@@ -175,11 +176,12 @@ The project has comprehensive test coverage for both client and server:
 - **Runner**: Bun's native test runner (`bun:test`)
 - **Commands**:
   ```bash
-  cd server && bun run test          # Run tests once
-  cd server && bun run test:coverage # With coverage report
+  bun run test:server          # Run tests once
+  bun run test:server:coverage # With coverage report
   ```
 
 ### Test Structure
+- All test files import from `bun:test`; do not add another test runner.
 - Unit tests for services, utilities, and core functionality
 - Integration tests for API endpoints
 - Security tests for mock isolation

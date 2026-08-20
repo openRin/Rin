@@ -1,23 +1,23 @@
 import "../../../../test/setup";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Menu } from "../menu";
 
-vi.mock("react-i18next", () => ({
+mock.module("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: {
-      changeLanguage: vi.fn(),
+      changeLanguage: mock(),
     },
   }),
 }));
 
-vi.mock("wouter", () => ({
-  useLocation: () => ["/", vi.fn()],
+mock.module("wouter", () => ({
+  useLocation: () => ["/", mock()],
 }));
 
-vi.mock("reactjs-popup", () => ({
+mock.module("reactjs-popup", () => ({
   default: ({
     trigger,
     open,
@@ -34,23 +34,23 @@ vi.mock("reactjs-popup", () => ({
   ),
 }));
 
-vi.mock("react-modal", () => ({
+mock.module("react-modal", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("../../../app/runtime", () => ({
+mock.module("../../../app/runtime", () => ({
   client: {
     user: {
-      logout: vi.fn(),
+      logout: mock(),
     },
   },
 }));
 
-vi.mock("../../../utils/auth", () => ({
-  removeAuthToken: vi.fn(),
+mock.module("../../../utils/auth", () => ({
+  removeAuthToken: mock(),
 }));
 
-vi.mock("../nav-bar", () => ({
+mock.module("../nav-bar", () => ({
   NavBar: ({ onClick }: { onClick?: () => void }) => <button onClick={onClick}>navigate</button>,
 }));
 

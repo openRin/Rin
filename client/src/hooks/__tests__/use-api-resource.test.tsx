@@ -1,5 +1,6 @@
+import "../../test/setup";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { useCallback } from "react";
 import { useApiResource } from "../use-api-resource";
 

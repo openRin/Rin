@@ -10,9 +10,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "i18n": "i18next",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov"
   },
   "dependencies": {
     "@rin/api": "workspace:*",
@@ -60,9 +60,9 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^0.1.1",
-    "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^15.0.7",
     "@testing-library/user-event": "^14.5.2",
+    "@types/bun": "^1.1.2",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
@@ -80,7 +80,6 @@
     "postcss": "^8.4.38",
     "puppeteer": "^22.13.0",
     "tailwindcss": "^3.4.3",
-    "turbo": "^1.13.3",
-    "vitest": "1.6.1"
+    "turbo": "^1.13.3"
   }
 }

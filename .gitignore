@@ -11,6 +11,7 @@ test.ts
 .wrangler
 wrangler.toml
 .vite
+coverage/
 # Logs
 logs
 npm-debug.log*

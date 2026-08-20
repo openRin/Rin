@@ -1,39 +1,39 @@
 import "../../../../test/setup";
 import { cleanup, render, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, mock } from "bun:test";
 import { ConfigWrapper } from "../../../../state/config";
 import { ClientConfigContext, defaultClientConfig } from "../../../../state/config";
 import type { Profile } from "../../../../state/profile";
 import { UserAvatar } from "../action-buttons";
 
-vi.mock("react-i18next", () => ({
+mock.module("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
 }));
 
-vi.mock("wouter", () => ({
-  useLocation: () => ["/", vi.fn()],
+mock.module("wouter", () => ({
+  useLocation: () => ["/", mock()],
 }));
 
-vi.mock("reactjs-popup", () => ({
+mock.module("reactjs-popup", () => ({
   default: ({ trigger }: { trigger: React.ReactNode }) => <>{trigger}</>,
 }));
 
-vi.mock("react-modal", () => ({
+mock.module("react-modal", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("../../../../app/runtime", () => ({
+mock.module("../../../../app/runtime", () => ({
   client: {
     user: {
-      logout: vi.fn(),
+      logout: mock(),
     },
   },
 }));
 
-vi.mock("../../../../utils/auth", () => ({
-  removeAuthToken: vi.fn(),
+mock.module("../../../../utils/auth", () => ({
+  removeAuthToken: mock(),
 }));
 
 afterEach(() => {
@@ -60,7 +60,7 @@ describe("UserAvatar", () => {
   it("hides the login entry when login is disabled and the user is signed out", () => {
     const { container } = renderUserAvatar({ loginEnabled: false, profile: null });
 
-    expect(container).toBeEmptyDOMElement();
+    expect(container.childElementCount).toBe(0);
   });
 
   it("shows the avatar menu when login is disabled but the user is signed in", () => {
@@ -74,6 +74,6 @@ describe("UserAvatar", () => {
       },
     });
 
-    expect(within(container).getByRole("button", { name: "profile.title" })).toBeInTheDocument();
+    expect(within(container).getByRole("button", { name: "profile.title" }).isConnected).toBe(true);
   });
 });

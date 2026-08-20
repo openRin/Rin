@@ -1,6 +1,6 @@
 import "../../test/setup";
 import { cleanup, fireEvent, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "bun:test";
 import { ImageWithFallback } from "../image-with-fallback";
 
 afterEach(() => {
@@ -11,7 +11,7 @@ describe("ImageWithFallback", () => {
   it("shows an accessible fallback when the source is missing", () => {
     const { getByRole } = render(<ImageWithFallback alt="Site avatar" className="h-10 w-10" />);
 
-    expect(getByRole("img", { name: "Site avatar" })).toBeInTheDocument();
+    expect(getByRole("img", { name: "Site avatar" }).isConnected).toBe(true);
   });
 
   it("replaces a broken image with the fallback", () => {
@@ -25,6 +25,6 @@ describe("ImageWithFallback", () => {
 
     fireEvent.error(getByRole("img", { name: "Profile avatar" }));
 
-    expect(getByRole("img", { name: "Profile avatar" })).toHaveClass("flex");
+    expect(getByRole("img", { name: "Profile avatar" }).classList.contains("flex")).toBe(true);
   });
 });

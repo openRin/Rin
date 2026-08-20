@@ -65,6 +65,9 @@ Run the test suite to ensure everything works:
 # Run all tests (client + server)
 bun run test
 
+# Run client tests only
+bun run test:client
+
 # Run server tests only
 bun run test:server
 
