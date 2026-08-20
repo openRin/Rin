@@ -1,7 +1,7 @@
 import { and, desc, eq, or } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AppContext, DB } from "../core/hono-types";
-import { feeds, friends, hashtags, moments } from "../db/schema";
+import { feedHashtags, feeds, friends, hashtags, moments } from "../db/schema";
 import { path_join } from "../utils/path";
 import { getStorageObject, putStorageObjectAtKey } from "../utils/storage";
 
@@ -57,7 +57,12 @@ async function generateSitemapXml(env: Env, db: DB, requestUrl?: string): Promis
       .where(and(eq(feeds.draft, 0), or(eq(feeds.listed, 1), eq(feeds.alias, "about")))),
     db.select({ updatedAt: moments.updatedAt }).from(moments).orderBy(desc(moments.updatedAt)).limit(1),
     db.select({ updatedAt: friends.updatedAt }).from(friends).orderBy(desc(friends.updatedAt)).limit(1),
-    db.select({ name: hashtags.name, updatedAt: hashtags.updatedAt }).from(hashtags),
+    db
+      .selectDistinct({ name: hashtags.name, updatedAt: hashtags.updatedAt })
+      .from(hashtags)
+      .innerJoin(feedHashtags, eq(feedHashtags.hashtagId, hashtags.id))
+      .innerJoin(feeds, eq(feedHashtags.feedId, feeds.id))
+      .where(and(eq(feeds.draft, 0), or(eq(feeds.listed, 1), eq(feeds.alias, "about")))),
   ]);
 
   const urls: string[] = [];
