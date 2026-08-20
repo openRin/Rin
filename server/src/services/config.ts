@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { wrapTime } from "hono/timing";
 import type { AppContext } from "../core/hono-types";
+import { adminOnly } from "../core/route-boundaries";
 import { setAIConfig, getAIConfig } from "../utils/db-config";
 import { testAIModel } from "../utils/ai";
 import { notify } from "../utils/webhook";
@@ -39,13 +40,7 @@ export function ConfigService(): Hono {
 
     // POST /config/test-ai - Test AI model configuration
     // NOTE: Must be defined BEFORE /:type route to avoid being captured as a type parameter
-    app.post('/test-ai', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.json({ error: 'Unauthorized' }, 401);
-        }
-
+    app.post('/test-ai', adminOnly(async (c: AppContext) => {
         const env = c.get('env');
         const serverConfig = c.get('serverConfig');
         const body = await wrapTime(c, 'request_body', c.req.json());
@@ -67,15 +62,9 @@ export function ConfigService(): Hono {
         // Use unified test function
         const result = await wrapTime(c, 'ai_test', testAIModel(env, testConfig, testPrompt));
         return c.json(result);
-    });
+    }, { format: 'json' }));
 
-    app.post('/test-webhook', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.json({ error: 'Unauthorized' }, 401);
-        }
-
+    app.post('/test-webhook', adminOnly(async (c: AppContext) => {
         const env = c.get('env');
         const serverConfig = c.get('serverConfig');
         const body = await wrapTime(c, 'request_body', c.req.json()) as {
@@ -139,68 +128,38 @@ export function ConfigService(): Hono {
             const message = error instanceof Error ? error.message : String(error);
             return c.json({ success: false, error: message }, 400);
         }
-    });
+    }, { format: 'json' }));
 
     // GET /config
-    app.get('/', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.get('/', adminOnly(async (c: AppContext) => {
         const serverConfig = c.get('serverConfig');
         const clientConfig = c.get('clientConfig');
         const env = c.get('env');
 
         return c.json(await wrapTime(c, 'config_response', buildCombinedConfigResponse(clientConfig, serverConfig, env)));
-    });
+    }));
 
     // GET /config/health
-    app.get('/health', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.get('/health', adminOnly(async (c: AppContext) => {
         const serverConfig = c.get('serverConfig');
         const clientConfig = c.get('clientConfig');
         const env = c.get('env');
 
         return c.json(await wrapTime(c, 'health_check', buildHealthCheckResponse(clientConfig, serverConfig, env)));
-    });
+    }));
 
-    app.get('/queue-status', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.get('/queue-status', adminOnly(async (c: AppContext) => {
         const db = c.get('db');
         const env = c.get('env');
 
         return c.json(await wrapTime(c, 'queue_status', buildQueueStatusResponse(db, env)));
-    });
+    }));
 
-    app.get('/compat-tasks', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.get('/compat-tasks', adminOnly(async (c: AppContext) => {
         return c.json(await wrapTime(c, 'compat_tasks', buildCompatTasksResponse(c.get('db'), c.get('serverConfig'), c.get('env'))));
-    });
+    }));
 
-    app.post('/compat-tasks/ai-summary', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.post('/compat-tasks/ai-summary', adminOnly(async (c: AppContext) => {
         try {
             const body = c.req.header('content-type')?.includes('application/json')
                 ? await wrapTime(c, 'request_body', c.req.json()) as { force?: boolean }
@@ -210,25 +169,13 @@ export function ConfigService(): Hono {
             const message = error instanceof Error ? error.message : String(error);
             return c.text(message, 400);
         }
-    });
+    }));
 
-    app.get('/compat-tasks/blurhash', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.get('/compat-tasks/blurhash', adminOnly(async (c: AppContext) => {
         return c.json(await wrapTime(c, 'compat_blurhash_list', listBlurhashCompatCandidates(c.get('db'))));
-    });
+    }));
 
-    app.post('/compat-tasks/blurhash/:id', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.post('/compat-tasks/blurhash/:id', adminOnly(async (c: AppContext) => {
         const id = Number(c.req.param('id'));
         if (!Number.isInteger(id) || id <= 0) {
             return c.text('Invalid feed id', 400);
@@ -246,15 +193,9 @@ export function ConfigService(): Hono {
             const status = message === 'Feed not found' ? 404 : 400;
             return c.text(message, status);
         }
-    });
+    }));
 
-    app.post('/queue-status/:id/retry', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.post('/queue-status/:id/retry', adminOnly(async (c: AppContext) => {
         const id = Number(c.req.param('id'));
         if (!Number.isInteger(id) || id <= 0) {
             return c.text('Invalid feed id', 400);
@@ -268,15 +209,9 @@ export function ConfigService(): Hono {
             const status = message === 'Feed not found' ? 404 : 400;
             return c.text(message, status);
         }
-    });
+    }));
 
-    app.delete('/queue-status/:id', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.delete('/queue-status/:id', adminOnly(async (c: AppContext) => {
         const id = Number(c.req.param('id'));
         if (!Number.isInteger(id) || id <= 0) {
             return c.text('Invalid feed id', 400);
@@ -290,7 +225,7 @@ export function ConfigService(): Hono {
             const status = message === 'Feed not found' ? 404 : 400;
             return c.text(message, status);
         }
-    });
+    }));
 
     app.get('/client/bootstrap.js', async (c: AppContext) => {
         const clientConfig = c.get('clientConfig');
@@ -334,13 +269,7 @@ export function ConfigService(): Hono {
     });
 
     // POST /config
-    app.post('/', async (c: AppContext) => {
-        const admin = c.get('admin');
-
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-
+    app.post('/', adminOnly(async (c: AppContext) => {
         const serverConfig = c.get('serverConfig');
         const clientConfig = c.get('clientConfig');
         const env = c.get('env');
@@ -365,19 +294,14 @@ export function ConfigService(): Hono {
         }
 
         return c.json(await buildCombinedConfigResponse(clientConfig, serverConfig, env));
-    });
+    }));
 
     // POST /config/:type
-    app.post('/:type', async (c: AppContext) => {
-        const admin = c.get('admin');
+    app.post('/:type', adminOnly(async (c: AppContext) => {
         const type = c.req.param('type');
         
         if (!isConfigType(type)) {
             return c.text('Invalid type', 400);
-        }
-        
-        if (!admin) {
-            return c.text('Unauthorized', 401);
         }
         
         const serverConfig = c.get('serverConfig');
@@ -393,20 +317,14 @@ export function ConfigService(): Hono {
         }
         
         return c.text('OK');
-    });
+    }));
 
     // DELETE /config/cache
-    app.delete('/cache', async (c: AppContext) => {
-        const admin = c.get('admin');
-        
-        if (!admin) {
-            return c.text('Unauthorized', 401);
-        }
-        
+    app.delete('/cache', adminOnly(async (c: AppContext) => {
         const cache = c.get('cache');
         await cache.clear();
         return c.text('OK');
-    });
+    }));
 
     return app;
 }

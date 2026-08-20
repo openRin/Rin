@@ -2,6 +2,9 @@
 
 @layer base {
     .border-card {
-        @apply shadow-lg border dark:border-neutral-600 shadow-deep rounded-xl p-4 bg-w text-sm t-secondary font-normal flex flex-col items-start mt-2 space-y-2
+        @apply border dark:border-neutral-600 rounded-xl p-4 text-sm font-normal flex flex-col items-start mt-2 space-y-2;
+        background-color: rgb(var(--rin-surface-rgb));
+        color: rgb(var(--rin-text-muted-rgb));
+        box-shadow: 0 10px 24px rgb(var(--rin-border-rgb) / 0.12);
     }
 }

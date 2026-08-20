@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
@@ -19,7 +19,17 @@ export const feeds = sqliteTable("feeds", {
     uid: integer("uid").references(() => users.id).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
-});
+}, (table) => ({
+    aliasIdx: index("feeds_alias_idx").on(table.alias),
+    visibilityOrderIdx: index("feeds_visibility_order_idx").on(
+        table.draft,
+        table.listed,
+        table.top,
+        table.createdAt,
+        table.updatedAt,
+    ),
+    uidIdx: index("feeds_uid_idx").on(table.uid),
+}));
 
 export const moments = sqliteTable("moments", {
     id: integer("id").primaryKey(),
@@ -34,7 +44,9 @@ export const visits = sqliteTable("visits", {
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
     ip: text("ip").notNull(),
     createdAt: created_at,
-});
+}, (table) => ({
+    feedCreatedAtIdx: index("visits_feed_created_at_idx").on(table.feedId, table.createdAt),
+}));
 
 export const visitStats = sqliteTable("visit_stats", {
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull().primaryKey(),
@@ -60,7 +72,13 @@ export const friends = sqliteTable("friends", {
     sort_order: integer("sort_order").default(0).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
-});
+}, (table) => ({
+    acceptedOrderIdx: index("friends_accepted_order_idx").on(
+        table.accepted,
+        table.sort_order,
+        table.createdAt,
+    ),
+}));
 
 export const users = sqliteTable("users", {
     id: integer("id").primaryKey(),
@@ -71,7 +89,9 @@ export const users = sqliteTable("users", {
     permission: integer("permission").default(0),
     createdAt: created_at,
     updatedAt: updated_at,
-});
+}, (table) => ({
+    openidIdx: index("users_openid_idx").on(table.openid),
+}));
 
 export const comments = sqliteTable("comments", {
     id: integer("id").primaryKey(),
@@ -84,21 +104,28 @@ export const comments = sqliteTable("comments", {
     approved: integer("approved").default(1).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
-});
+}, (table) => ({
+    feedCreatedAtIdx: index("comments_feed_created_at_idx").on(table.feedId, table.createdAt),
+}));
 
 export const hashtags = sqliteTable("hashtags", {
     id: integer("id").primaryKey(),
     name: text("name").notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
-});
+}, (table) => ({
+    nameIdx: index("hashtags_name_idx").on(table.name),
+}));
 
 export const feedHashtags = sqliteTable("feed_hashtags", {
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
     hashtagId: integer("hashtag_id").references(() => hashtags.id, { onDelete: 'cascade' }).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
-});
+}, (table) => ({
+    feedHashtagIdx: index("feed_hashtags_feed_hashtag_idx").on(table.feedId, table.hashtagId),
+    hashtagFeedIdx: index("feed_hashtags_hashtag_feed_idx").on(table.hashtagId, table.feedId),
+}));
 
 export const cache = sqliteTable("cache", {
     id: integer("id").primaryKey(),
@@ -110,6 +137,7 @@ export const cache = sqliteTable("cache", {
 }, (table) => ({
     // 复合唯一约束：key + type
     keyTypeUnique: unique().on(table.key, table.type),
+    typeKeyIdx: index("cache_type_key_idx").on(table.type, table.key),
 }));
 
 export const feedsRelations = relations(feeds, ({ many, one }) => ({

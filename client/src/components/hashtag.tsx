@@ -1,13 +1,13 @@
 import { useLocation } from "wouter"
 
 export function HashTag({ name }: { name: string }) {
-    const [_, setLocation] = useLocation()
+    const [, setLocation] = useLocation()
     return (
         <button onClick={(e) => { e.preventDefault(); setLocation(`/hashtag/${name}`) }}
-            className="text-base t-secondary hover:text-theme text-pretty overflow-hidden" >
-            <div className="flex gap-0.5">
-                <div className="text-sm opacity-70 italic">#</div>
-                <div className="text-sm opacity-70">
+            className="max-w-full min-w-0 text-base t-secondary hover:text-theme text-pretty" >
+            <div className="flex min-w-0 gap-0.5">
+                <div className="shrink-0 text-sm italic opacity-70">#</div>
+                <div className="min-w-0 truncate text-sm opacity-70">
                     {name}
                 </div>
             </div>

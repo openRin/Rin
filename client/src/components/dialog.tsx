@@ -1,6 +1,6 @@
+import { Modal } from "@rin/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import Modal from "react-modal";
 import { Button, ButtonWithLoading } from "./button";
 
 export type Confirm = {
@@ -33,36 +33,17 @@ export function useAlert() {
     }
     const { t } = useTranslation()
     const AlertUI = () => (
-        <Modal isOpen={isOpen}
+        <Modal
+            isOpen={isOpen}
             shouldCloseOnOverlayClick={true}
             shouldCloseOnEsc={true}
             onRequestClose={close}
-            style={{
-                content: {
-                    top: '50%',
-                    left: '50%',
-                    right: 'auto',
-                    bottom: 'auto',
-                    marginRight: '-50%',
-                    transform: 'translate(-50%, -50%)',
-                    padding: '0',
-                    border: 'none',
-                    borderRadius: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    background: 'transparent',
-                    maxWidth: '40em'
-                },
-                overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    zIndex: 1000
-                }
-            }}
+            contentLabel={t("alert")}
+            size="sm"
+            panelClassName="p-6"
         >
-            <div className="flex flex-col items-start p-4 bg-w space-y-4 w-full min-w-56 sm:min-w-96">
-                <h1 className="text-2xl font-bold t-primary">
+            <div className="flex w-full flex-col items-start space-y-4">
+                <h1 className="text-xl font-bold tracking-[-0.02em] t-primary">
                     {t("alert")}
                 </h1>
                 <p className="text-base t-primary">
@@ -95,36 +76,17 @@ export function useConfirm() {
     }
     const { t } = useTranslation()
     const ConfirmUI = () => (
-        <Modal isOpen={isOpen}
+        <Modal
+            isOpen={isOpen}
             shouldCloseOnOverlayClick={true}
             shouldCloseOnEsc={true}
             onRequestClose={close}
-            style={{
-                content: {
-                    top: '50%',
-                    left: '50%',
-                    right: 'auto',
-                    bottom: 'auto',
-                    marginRight: '-50%',
-                    transform: 'translate(-50%, -50%)',
-                    padding: '0',
-                    border: 'none',
-                    borderRadius: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    background: 'transparent',
-                    maxWidth: '40em'
-                },
-                overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    zIndex: 1000
-                }
-            }}
+            contentLabel={confirm?.title ?? t("confirm")}
+            size="sm"
+            panelClassName="p-6"
         >
-            <div className="flex flex-col items-start p-4 bg-w space-y-4 w-full min-w-56 sm:min-w-96">
-                <h1 className="text-2xl font-bold t-primary">
+            <div className="flex w-full flex-col items-start space-y-4">
+                <h1 className="text-xl font-bold tracking-[-0.02em] t-primary">
                     {confirm?.title}
                 </h1>
                 <p className="text-base t-primary">

@@ -39,6 +39,7 @@ describe("handleFetch", () => {
     const { handleFetch } = await import("../fetch-handler");
     const assetFetch = mock(async () => new Response("asset-body", { status: 404 }));
 
+    const executionContext = {} as ExecutionContext;
     const response = await handleFetch(
       new Request("http://localhost/api/blob/images/test.txt"),
       {
@@ -46,11 +47,13 @@ describe("handleFetch", () => {
           fetch: assetFetch,
         },
       } as unknown as Env,
+      executionContext,
     );
 
     expect(await response.text()).toBe("blob-body");
     expect(getAppFetch).toHaveBeenCalledTimes(1);
     expect(assetFetch).toHaveBeenCalledTimes(0);
     expect(new URL(getAppFetch.mock.calls[0][0].url).pathname).toBe("/blob/images/test.txt");
+    expect(getAppFetch.mock.calls[0][2]).toBe(executionContext);
   });
 });

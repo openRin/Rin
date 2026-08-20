@@ -12,8 +12,8 @@ export const feedListSchema = t.Object({
 });
 
 export const feedCreateSchema = t.Object({
-  title: t.String(),
-  content: t.String(),
+  title: t.String({ minLength: 1 }),
+  content: t.String({ minLength: 1 }),
   summary: t.String({ optional: true }),
   alias: t.String({ optional: true }),
   draft: t.Boolean(),

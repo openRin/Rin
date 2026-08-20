@@ -1,12 +1,12 @@
-import { SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader } from "@rin/ui";
-import { useEffect, useMemo, useState } from "react";
+import { SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader, Spinner } from "@rin/ui";
+import { useCallback, useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
-import ReactLoading from "react-loading";
-import type { QueueStatusItem } from "../api/client";
+import type { QueueStatusItem, QueueStatusResponse } from "../api/client";
 import { client } from "../app/runtime";
 import { Button } from "../components/button";
 import { useAlert, useConfirm } from "../components/dialog";
+import { useApiResource } from "../hooks/use-api-resource";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 
 function getQueueTone(status: QueueStatusItem["aiSummaryStatus"]) {
@@ -73,47 +73,23 @@ function QueueStatusEntry({
 export function QueueStatusPage() {
   const { t } = useTranslation();
   const siteConfig = useSiteConfig();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [queueConfigured, setQueueConfigured] = useState(false);
-  const [generatedAt, setGeneratedAt] = useState("");
-  const [summary, setSummary] = useState<Record<"idle" | "pending" | "processing" | "completed" | "failed", number>>({
+  const emptySummary: QueueStatusResponse["summary"] = {
     idle: 0,
     pending: 0,
     processing: 0,
     completed: 0,
     failed: 0,
-  });
-  const [items, setItems] = useState<QueueStatusItem[]>([]);
+  };
+  const loadQueueStatus = useCallback(() => client.config.getQueueStatus(), []);
+  const { data, loading, error, reload } = useApiResource<QueueStatusResponse>(loadQueueStatus);
+  const queueConfigured = data?.queueConfigured ?? false;
+  const generatedAt = data?.generatedAt ?? "";
+  const summary = data?.summary ?? emptySummary;
+  const items = Array.isArray(data?.items) ? data.items : [];
   const [actingId, setActingId] = useState<number | null>(null);
   const [actingType, setActingType] = useState<"retry" | "delete" | null>(null);
   const { showAlert, AlertUI } = useAlert();
   const { showConfirm, ConfirmUI } = useConfirm();
-
-  const loadQueueStatus = () => {
-    setLoading(true);
-    setError(null);
-    client.config
-      .getQueueStatus()
-      .then(({ data, error }) => {
-        if (error) {
-          setError(error.value);
-          return;
-        }
-
-        if (data) {
-          setQueueConfigured(data.queueConfigured);
-          setGeneratedAt(data.generatedAt);
-          setSummary(data.summary);
-          setItems(Array.isArray(data.items) ? data.items : []);
-        }
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    loadQueueStatus();
-  }, []);
 
   const orderedItems = useMemo(() => {
     const score = { failed: 0, processing: 1, pending: 2, completed: 3, idle: 4 } as const;
@@ -155,7 +131,7 @@ export function QueueStatusPage() {
 
       {loading ? (
         <div className="flex items-center gap-3 py-8 text-sm text-neutral-500 dark:text-neutral-400">
-          <ReactLoading width="1.25em" height="1.25em" type="spin" color="#FC466B" />
+          <Spinner label={t("queue_status.loading")} />
           <span>{t("queue_status.loading")}</span>
         </div>
       ) : null}
@@ -188,7 +164,7 @@ export function QueueStatusPage() {
                     return;
                   }
                   showAlert(t("queue_status.retry_success"));
-                  loadQueueStatus();
+                  void reload();
                 }).finally(() => {
                   setActingId(null);
                   setActingType(null);
@@ -208,7 +184,7 @@ export function QueueStatusPage() {
                         return;
                       }
                       showAlert(t("queue_status.delete_success"));
-                      loadQueueStatus();
+                      void reload();
                     } finally {
                       setActingId(null);
                       setActingType(null);

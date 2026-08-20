@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactLoading from "react-loading";
+import { ImageWithFallback } from "./image-with-fallback";
 import {
   DEFAULT_IMAGE_MAX_FILE_SIZE,
   isImageFile,
@@ -69,7 +70,11 @@ export function ImageUploadInput({
           className={`relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden border border-black/10 bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.04] ${shapeClass}`}
         >
           {value ? (
-            <img src={value} alt={t("upload.image.preview_alt")} className="h-full w-full object-cover" />
+            <ImageWithFallback
+              src={value}
+              alt={t("upload.image.preview_alt")}
+              className="h-full w-full bg-transparent"
+            />
           ) : (
             <i className="ri-image-line text-3xl text-neutral-400" aria-hidden="true" />
           )}

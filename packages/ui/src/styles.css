@@ -1,0 +1,142 @@
+:root {
+  --theme-rgb: 252 70 107;
+  --theme-hover-rgb: 177 48 73;
+  --theme-active-rgb: 151 32 56;
+  --rin-canvas-rgb: 245 245 245;
+  --rin-surface-rgb: 255 255 255;
+  --rin-surface-muted-rgb: 245 245 245;
+  --rin-surface-hover-rgb: 229 229 229;
+  --rin-surface-active-rgb: 212 212 212;
+  --rin-text-rgb: 23 23 23;
+  --rin-text-muted-rgb: 82 82 91;
+  --rin-border-rgb: 24 24 27;
+  --rin-overlay-color: rgb(9 9 11 / 0.58);
+  --rin-radius-control: 0.75rem;
+  --rin-radius-surface: 1rem;
+  --rin-shadow-overlay: 0 24px 80px rgb(0 0 0 / 0.22), 0 4px 20px rgb(0 0 0 / 0.12);
+}
+
+[data-color-mode="dark"] {
+  --rin-canvas-rgb: 28 28 30;
+  --rin-surface-rgb: 51 51 51;
+  --rin-surface-muted-rgb: 64 64 64;
+  --rin-surface-hover-rgb: 82 82 82;
+  --rin-surface-active-rgb: 115 115 115;
+  --rin-text-rgb: 250 250 250;
+  --rin-text-muted-rgb: 212 212 216;
+  --rin-border-rgb: 255 255 255;
+  --rin-overlay-color: rgb(0 0 0 / 0.68);
+  --rin-shadow-overlay: 0 28px 90px rgb(0 0 0 / 0.5), 0 4px 24px rgb(0 0 0 / 0.3);
+}
+
+.bg-w {
+  background-color: rgb(var(--rin-surface-rgb));
+}
+
+.bg-secondary {
+  background-color: rgb(var(--rin-surface-muted-rgb));
+}
+
+.bg-button:hover,
+.bg-hover:hover {
+  background-color: rgb(var(--rin-surface-hover-rgb));
+}
+
+.bg-button:active {
+  background-color: rgb(var(--rin-surface-active-rgb));
+}
+
+.shadow-light {
+  --tw-shadow-color: rgb(var(--rin-border-rgb) / 0.06);
+  --tw-shadow: var(--tw-shadow-colored);
+}
+
+.shadow-deep {
+  --tw-shadow-color: rgb(var(--rin-border-rgb) / 0.14);
+  --tw-shadow: var(--tw-shadow-colored);
+}
+
+.t-primary {
+  color: rgb(var(--rin-text-rgb));
+}
+
+.t-secondary {
+  color: rgb(var(--rin-text-muted-rgb));
+}
+
+.ReactModal__Body--open {
+  overflow: hidden;
+}
+
+.rin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: var(--rin-overlay-color);
+  opacity: 0;
+  backdrop-filter: blur(8px);
+  transition: opacity 160ms ease;
+}
+
+.rin-modal-overlay--top {
+  align-items: flex-start;
+  padding-top: min(18vh, 9rem);
+}
+
+.rin-modal-overlay--after-open {
+  opacity: 1;
+}
+
+.rin-modal-overlay--before-close {
+  opacity: 0;
+}
+
+.rin-modal-content {
+  width: min(100%, 40rem);
+  max-height: calc(100vh - clamp(2rem, 8vw, 6rem));
+  outline: none;
+  opacity: 0;
+  transform: translateY(0.75rem) scale(0.985);
+  transition: opacity 160ms ease, transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.rin-modal-content--sm {
+  width: min(100%, 28rem);
+}
+
+.rin-modal-content--lg {
+  width: min(100%, 52rem);
+}
+
+.rin-modal-content--after-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.rin-modal-content--before-close {
+  opacity: 0;
+  transform: translateY(0.5rem) scale(0.99);
+}
+
+.rin-modal-surface {
+  width: 100%;
+  max-height: inherit;
+  overflow: auto;
+  border: 1px solid rgb(var(--rin-border-rgb) / 0.1);
+  border-radius: var(--rin-radius-surface);
+  background: rgb(var(--rin-surface-rgb));
+  color: rgb(var(--rin-text-rgb));
+  box-shadow: var(--rin-shadow-overlay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rin-modal-overlay,
+  .rin-modal-content {
+    transition: none;
+  }
+}

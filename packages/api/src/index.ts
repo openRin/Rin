@@ -8,4 +8,9 @@ export * from './types';
 export * from './schemas';
 
 // Schema validator
-export { t } from './schema-validator';
+export { t, validateSchema } from './schema-validator';
+export type {
+  Schema,
+  SchemaValidationIssue,
+  SchemaValidationResult,
+} from './schema-validator';

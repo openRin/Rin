@@ -5,6 +5,7 @@ import ReactLoading from "react-loading";
 import { Button } from "../components/button";
 import { useConfirm } from "../components/dialog";
 import { ImageUploadInput } from "../components/image-upload-input";
+import { ImageWithFallback } from "../components/image-with-fallback";
 import {
   SettingsCard,
   SettingsCardBody,
@@ -225,10 +226,10 @@ export function ItemImageInput({
             action={
               <div className="flex items-center gap-3">
                 {value ? (
-                  <img
+                  <ImageWithFallback
                     src={value}
                     alt={configKeyTitle}
-                    className={`h-10 w-10 object-cover ${shape === "circle" ? "rounded-full" : "rounded-2xl"}`}
+                    className={`h-10 w-10 ${shape === "circle" ? "rounded-full" : "rounded-2xl"}`}
                   />
                 ) : null}
                 <span className="max-w-56 truncate text-sm text-neutral-500 dark:text-neutral-400">

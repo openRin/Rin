@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import type { Env } from "hono";
 import type { Variables } from "./hono-types";
 import { registerErrorHandlers } from "./error-response";
 import { registerMiddlewares } from "./register-middlewares";

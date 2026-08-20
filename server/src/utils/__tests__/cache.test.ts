@@ -312,6 +312,36 @@ describe('CacheImpl - 数据库持久化测试', () => {
         expect(rows[0].value).toBe('value2');
     });
 
+    it('局部读取和延迟保存不应该删除未加载的键', async () => {
+        await db.insert(cache).values([
+            { key: 'key1', value: 'value1', type: 'cache' },
+            { key: 'key2', value: 'value2', type: 'cache' },
+        ]);
+
+        const partialCache = new CacheImpl(db as any, mockEnv, 'cache', 'database');
+        expect(await partialCache.get('key1')).toBe('value1');
+
+        await partialCache.set('key3', 'value3', false);
+        await partialCache.save();
+
+        const rows = await db.select().from(cache).where(eq(cache.type, 'cache'));
+        expect(rows.map((row) => row.key).sort()).toEqual(['key1', 'key2', 'key3']);
+    });
+
+    it('应该在未全量加载时按前缀删除数据库记录', async () => {
+        await db.insert(cache).values([
+            { key: 'temp:1', value: 'one', type: 'cache' },
+            { key: 'temp:2', value: 'two', type: 'cache' },
+            { key: 'keep:1', value: 'keep', type: 'cache' },
+        ]);
+
+        const partialCache = new CacheImpl(db as any, mockEnv, 'cache', 'database');
+        await partialCache.deletePrefix('temp:');
+
+        const rows = await db.select().from(cache).where(eq(cache.type, 'cache'));
+        expect(rows.map((row) => row.key)).toEqual(['keep:1']);
+    });
+
     it('删除时应该从数据库中移除', async () => {
         await cacheImpl.set('key1', 'value1');
         await cacheImpl.delete('key1');

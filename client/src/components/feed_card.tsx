@@ -42,6 +42,11 @@ function FeedCardImage({ src, variant }: { src: string; variant: FeedCardVariant
                     className="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
                 />
             ) : null}
+            {failed && !blurhash ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500">
+                    <i className="ri-image-line text-2xl" aria-hidden="true" />
+                </div>
+            ) : null}
             <img
                 ref={imageRef}
                 src={cleanSrc}
@@ -50,7 +55,7 @@ function FeedCardImage({ src, variant }: { src: string; variant: FeedCardVariant
                 height={height}
                 onLoad={onLoad}
                 onError={onError}
-                className={`absolute inset-0 h-full w-full object-cover object-center hover:scale-105 translation duration-300 ${blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"
+                className={`absolute inset-0 h-full w-full object-cover object-center hover:scale-105 translation duration-300 ${failed || (blurhash && !loaded) ? "opacity-0" : "opacity-100"
                     }`}
             />
         </div>
@@ -72,14 +77,14 @@ const FEED_CARD_STYLES: Record<
         imageWrap: "",
         meta: "text-gray-400 text-sm",
         summary: "line-clamp-4 text-pretty overflow-hidden dark:text-neutral-500",
-        title: "text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden",
+        title: "break-words text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden [overflow-wrap:anywhere]",
     },
     editorial: {
         card: "my-3 inline-block w-full break-inside-avoid overflow-hidden rounded-[28px] border border-black/10 bg-w p-3 shadow-[0_24px_60px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)] dark:border-white/10",
         imageWrap: "mb-3 overflow-hidden rounded-[22px] border border-black/5 dark:border-white/10",
         meta: "text-[12px] font-medium uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400",
         summary: "line-clamp-5 text-pretty text-[15px] leading-7 text-neutral-600 dark:text-neutral-300",
-        title: "text-2xl font-semibold tracking-[-0.02em] text-neutral-900 dark:text-white text-pretty overflow-hidden",
+        title: "break-words text-2xl font-semibold tracking-[-0.02em] text-neutral-900 dark:text-white text-pretty overflow-hidden [overflow-wrap:anywhere]",
     },
 };
 
@@ -128,7 +133,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                     {listed === 0 && <span>{t("unlisted")}</span>}
                     {top === 1 && <span className="text-theme">{t('article.top.title')}</span>}
                 </p>
-                <p className={`whitespace-pre-line ${styles.summary} ${activeVariant === "editorial" ? "mt-4 max-w-3xl" : ""}`}>{summary}</p>
+                <p className={`whitespace-pre-line break-words [overflow-wrap:anywhere] ${styles.summary} ${activeVariant === "editorial" ? "mt-4 max-w-3xl" : ""}`}>{summary}</p>
                 {safeHashtags.length > 0 &&
                     <div className={`flex flex-row flex-wrap justify-start gap-2 ${activeVariant === "editorial" ? "mt-4" : "mt-2 gap-x-2"}`}>
                         {safeHashtags.map(({ name }, index) => (
@@ -140,5 +145,5 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
         </div>
     );
 
-    return preview ? body : <Link href={`/feed/${id}`} target="_blank" className="block w-full">{body}</Link>;
+    return preview ? body : <Link href={`/feed/${id}`} target="_blank" rel="noopener noreferrer" className="block min-w-0 w-full">{body}</Link>;
 }

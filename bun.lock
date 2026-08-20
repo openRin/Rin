@@ -123,10 +123,12 @@
       },
       "devDependencies": {
         "@types/react": "^18.2.66",
+        "@types/react-modal": "^3.16.3",
         "typescript": "^5.7.3",
       },
       "peerDependencies": {
         "react": "^18.2.0",
+        "react-modal": "^3.16.1",
       },
     },
     "server": {

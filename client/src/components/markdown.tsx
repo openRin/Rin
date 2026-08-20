@@ -94,6 +94,15 @@ function MarkdownImage({
           className={`absolute inset-0 h-full w-full scale-110 blur-sm ${roundedClass}`}
         />
       ) : null}
+      {failed && !blurhash ? (
+        <span
+          aria-label={alt || undefined}
+          role={alt ? "img" : undefined}
+          className={`${rounded ? "flex min-h-32 min-w-48" : "inline-flex h-8 w-8"} items-center justify-center bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500 ${roundedClass}`}
+        >
+          <i className="ri-image-line" aria-hidden="true" />
+        </span>
+      ) : null}
       <img
         ref={imageRef}
         src={cleanSrc}
@@ -106,7 +115,7 @@ function MarkdownImage({
         onLoad={onLoad}
         onError={onError}
         className={`mx-auto max-w-full cursor-zoom-in transition-opacity ${roundedClass} ${className || ""} ${
-          blurhash && (!loaded || failed) ? "opacity-0" : "opacity-100"
+          failed ? "hidden" : blurhash && !loaded ? "opacity-0" : "opacity-100"
         }`}
       />
     </span>
@@ -126,7 +135,7 @@ export function Markdown({ content }: { content: string }) {
 
   const Content = useMemo(() => (
     <ReactMarkdown
-      className="toc-content dark:text-neutral-300"
+      className="toc-content min-w-0 dark:text-neutral-300 [overflow-wrap:anywhere]"
       remarkPlugins={[gfm, remarkMermaid, remarkMath, remarkAlert, remarkBreaks]}
       children={content}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
@@ -288,7 +297,7 @@ export function Markdown({ content }: { content: string }) {
         a({ children, ...props }) {
           return (
             <a
-              className="text-[#0686c8] dark:text-[#2590f1] hover:underline"
+              className="break-words text-[#0686c8] hover:underline dark:text-[#2590f1] [overflow-wrap:anywhere]"
               {...props}
             >
               {children}
@@ -300,7 +309,7 @@ export function Markdown({ content }: { content: string }) {
             <h1
               id={children?.toString()}
               {...props}
-              className={`${props.className || ""} text-3xl font-bold mt-4`.trim()}
+              className={`${props.className || ""} mt-4 break-words text-3xl font-bold [overflow-wrap:anywhere]`.trim()}
               style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
@@ -312,7 +321,7 @@ export function Markdown({ content }: { content: string }) {
             <h2
               id={children?.toString()}
               {...props}
-              className={`${props.className || ""} text-2xl font-bold mt-4`.trim()}
+              className={`${props.className || ""} mt-4 break-words text-2xl font-bold [overflow-wrap:anywhere]`.trim()}
               style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
@@ -324,7 +333,7 @@ export function Markdown({ content }: { content: string }) {
             <h3
               id={children?.toString()}
               {...props}
-              className={`${props.className || ""} text-xl font-bold mt-4`.trim()}
+              className={`${props.className || ""} mt-4 break-words text-xl font-bold [overflow-wrap:anywhere]`.trim()}
               style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
@@ -336,7 +345,7 @@ export function Markdown({ content }: { content: string }) {
             <h4
               id={children?.toString()}
               {...props}
-              className={`${props.className || ""} text-lg font-bold mt-4`.trim()}
+              className={`${props.className || ""} mt-4 break-words text-lg font-bold [overflow-wrap:anywhere]`.trim()}
               style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
@@ -348,7 +357,7 @@ export function Markdown({ content }: { content: string }) {
             <h5
               id={children?.toString()}
               {...props}
-              className={`${props.className || ""} text-base font-bold mt-4`.trim()}
+              className={`${props.className || ""} mt-4 break-words text-base font-bold [overflow-wrap:anywhere]`.trim()}
               style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
@@ -360,7 +369,7 @@ export function Markdown({ content }: { content: string }) {
             <h6
               id={children?.toString()}
               {...props}
-              className={`${props.className || ""} text-sm font-bold mt-4`.trim()}
+              className={`${props.className || ""} mt-4 break-words text-sm font-bold [overflow-wrap:anywhere]`.trim()}
               style={{ ...props.style, scrollMarginTop: "var(--header-scroll-offset, 7rem)" }}
             >
               {children}
@@ -369,7 +378,7 @@ export function Markdown({ content }: { content: string }) {
         },
         p({ children, node, ...props }) {
           return (
-            <p className="mt-2 py-1" {...props}>
+            <p className="mt-2 break-words py-1 [overflow-wrap:anywhere]" {...props}>
               {children}
             </p>
           );
@@ -377,7 +386,7 @@ export function Markdown({ content }: { content: string }) {
         hr({ children, ...props }) {
           return <hr className="my-4" {...props} />;
         },
-        table: ({ node, ...props }) => <table className="table" {...props} />,
+        table: ({ node, ...props }) => <table className="table block max-w-full overflow-x-auto" {...props} />,
         th: ({ node, ...props }) => (
           <th className="px-4 py-2 border bg-gray-600" {...props} />
         ),

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import type { DB } from "../core/hono-types";
 import { profileAsync } from "../core/server-timing";
@@ -76,30 +76,29 @@ export function TagService(): Hono {
 
 export async function bindTagToPost(db: DB, feedId: number, tags: string[]) {
     await db.delete(feedHashtags).where(eq(feedHashtags.feedId, feedId));
-    
-    for (const tag of tags) {
-        const tagId = await getTagIdOrCreate(db, tag);
-        await db.insert(feedHashtags).values({
-            feedId: feedId,
-            hashtagId: tagId
-        });
+
+    const normalizedTags = [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))];
+    if (normalizedTags.length === 0) {
+        return;
     }
-}
 
-async function getTagByName(db: DB, name: string) {
-    return await db.query.hashtags.findFirst({ where: eq(hashtags.name, name) });
-}
+    const existingTags = await db.select({ id: hashtags.id, name: hashtags.name })
+        .from(hashtags)
+        .where(inArray(hashtags.name, normalizedTags));
+    const tagIds = new Map(existingTags.map((tag) => [tag.name, tag.id]));
+    const missingTags = normalizedTags.filter((tag) => !tagIds.has(tag));
 
-async function getTagIdOrCreate(db: DB, name: string) {
-    const tag = await getTagByName(db, name);
-    if (tag) {
-        return tag.id;
-    } else {
-        const result = await db.insert(hashtags).values({ name }).returning({ insertedId: hashtags.id });
-        if (result.length === 0) {
-            throw new Error('Failed to insert');
-        } else {
-            return result[0].insertedId;
+    if (missingTags.length > 0) {
+        const insertedTags = await db.insert(hashtags)
+            .values(missingTags.map((name) => ({ name })))
+            .returning({ id: hashtags.id, name: hashtags.name });
+        for (const tag of insertedTags) {
+            tagIds.set(tag.name, tag.id);
         }
     }
+
+    await db.insert(feedHashtags).values(normalizedTags.map((name) => ({
+        feedId,
+        hashtagId: tagIds.get(name)!,
+    })));
 }

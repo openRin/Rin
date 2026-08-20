@@ -1,8 +1,12 @@
 import "../../test/setup";
-import { render, waitFor } from "@testing-library/react";
+import { cleanup, render, waitFor } from "@testing-library/react";
 import type { MutableRefObject } from "react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { useImageLoadState } from "../use-image-load-state";
+
+afterEach(() => {
+  cleanup();
+});
 
 function TestImage({ src, complete, naturalWidth }: { src: string; complete: boolean; naturalWidth: number }) {
   const { imageRef, loaded, failed, onLoad, onError } = useImageLoadState(src);

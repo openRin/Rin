@@ -4,6 +4,7 @@ export * from "./flat-surface";
 export * from "./icon";
 export * from "./input";
 export * from "./loading";
+export * from "./modal";
 export * from "./padding";
 export * from "./searchable-select";
 export * from "./settings-panel";

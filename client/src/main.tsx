@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import Modal from 'react-modal'
+import { configureModalAppElement } from '@rin/ui'
 import 'remixicon/fonts/remixicon.css'
 import App from './App'
 import './index.css'
@@ -17,4 +17,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </GlobalErrorBoundary>
   </React.StrictMode>
 )
-Modal.setAppElement('#root');
+configureModalAppElement('#root');
