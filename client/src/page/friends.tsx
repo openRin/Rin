@@ -2,10 +2,10 @@ import i18next from "i18next";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from 'react-helmet';
 import { useTranslation } from "react-i18next";
-import Modal from 'react-modal';
-import { FlatActionButton, FlatPanel, SearchableSelect } from "@rin/ui";
+import { FlatActionButton, FlatPanel, Modal, SearchableSelect } from "@rin/ui";
 import { ShowAlertType, useAlert, useConfirm } from "../components/dialog";
 import { Input } from "../components/input";
+import { ImageWithFallback } from "../components/image-with-fallback";
 import { Waiting } from "../components/loading";
 import { client } from "../app/runtime";
 import { ClientConfigContext } from "../state/config";
@@ -199,14 +199,17 @@ function Friend({ friend }: { friend: FriendItem }) {
     ]
     return (
         <>
-            <a title={friend.name} href={friend.url} target="_blank" className="bg-button w-full bg-w rounded-xl p-4 flex flex-col justify-center items-center relative">
-                <div className="w-16 h-16">
-                    <img className={"rounded-full " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
-                </div>
-                <p className="text-base text-center">{friend.name}</p>
-                {friend.health.length == 0 && <p className="text-sm text-neutral-500 text-center">{friend.desc}</p>}
+            <a title={friend.name} href={friend.url} target="_blank" rel="noopener noreferrer" className="relative flex min-w-0 w-full flex-col items-center justify-center overflow-hidden rounded-xl bg-w p-4 bg-button">
+                <ImageWithFallback
+                    className="h-16 w-16 rounded-full"
+                    imageClassName={friend.health.length > 0 ? "grayscale" : ""}
+                    src={friend.avatar}
+                    alt={friend.name}
+                />
+                <p className="mt-1 max-w-full truncate text-center text-base">{friend.name}</p>
+                {friend.health.length == 0 && <p className="line-clamp-2 max-w-full text-center text-sm text-neutral-500 [overflow-wrap:anywhere]">{friend.desc}</p>}
                 {friend.accepted !== 1 && <p className={`${friend.accepted === 0 ? "t-primary" : "text-theme"}`}>{statusOption[friend.accepted + 1].label}</p>}
-                {friend.health.length > 0 && <p className="text-sm text-gray-500 text-center">{errorHumanize(friend.health)}</p>}
+                {friend.health.length > 0 && <p className="max-w-full text-center text-sm text-gray-500 [overflow-wrap:anywhere]">{errorHumanize(friend.health)}</p>}
                 {(profile?.permission || profile?.id === friend.uid) && <>
                     <button onClick={(e) => { e.preventDefault(); setIsOpen(true) }} className="absolute top-0 right-0 m-2 px-2 py-1 bg-secondary t-primary rounded-full bg-button">
                         <i className="ri-settings-line"></i>
@@ -215,36 +218,17 @@ function Friend({ friend }: { friend: FriendItem }) {
 
             <Modal
                 isOpen={modalIsOpen}
-                style={{
-                    content: {
-                        top: '50%',
-                        left: '50%',
-                        right: 'auto',
-                        bottom: 'auto',
-                        marginRight: '-50%',
-                        transform: 'translate(-50%, -50%)',
-                        padding: '0',
-                        border: 'none',
-                        borderRadius: '16px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        background: 'white',
-                    },
-                    overlay: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        zIndex: 1000
-                    }
-                }
-                }
                 onRequestClose={() => setIsOpen(false)}
                 contentLabel={t('update$sth', { sth: friend.name })}
+                panelClassName="overflow-visible p-6"
             >
-                <FlatPanel className="relative flex w-[80vw] flex-col items-center justify-start p-6 sm:w-[60vw] md:w-[50vw] lg:w-[40vw] xl:w-[30vw]">
-                    <div className="w-16 h-16">
-                        <img className={"rounded-xl " + (friend.health.length > 0 ? "grayscale" : "")} src={friend.avatar} alt={friend.name} />
-                    </div>
+                <div className="relative flex w-full flex-col items-center justify-start">
+                    <ImageWithFallback
+                        className="h-16 w-16 rounded-xl"
+                        imageClassName={friend.health.length > 0 ? "grayscale" : ""}
+                        src={friend.avatar}
+                        alt={friend.name}
+                    />
                     {profile?.permission &&
                         <div className="flex flex-col w-full items-start mt-4 px-4">
                             <div className="flex flex-row justify-between w-full items-center">
@@ -296,7 +280,7 @@ function Friend({ friend }: { friend: FriendItem }) {
                         <FlatActionButton onClick={deleteFriend} className="mt-2 text-theme">{t('delete.title')}</FlatActionButton>
                         <FlatActionButton onClick={updateFriend} className="mt-2 t-primary">{t('save')}</FlatActionButton>
                     </div>
-                </FlatPanel>
+                </div>
             </Modal>
             <ConfirmUI />
             <AlertUI />

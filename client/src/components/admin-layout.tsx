@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useSiteConfig } from "../hooks/useSiteConfig";
+import { ImageWithFallback } from "./image-with-fallback";
 
 function AdminNavItem({
   href,
@@ -49,7 +50,7 @@ export function AdminLayout({
           <div className="rounded-2xl border border-black/10 bg-w p-5 dark:border-white/10">
             <Link href="/" className="flex items-center gap-4 rounded-xl px-2 py-2 transition-colors hover:bg-neutral-50 dark:hover:bg-white/5">
               {siteConfig.avatar ? (
-                <img src={siteConfig.avatar} alt="Avatar" className="h-12 w-12 rounded-2xl border border-black/10 dark:border-white/10" />
+                <ImageWithFallback src={siteConfig.avatar} alt={siteConfig.name} className="h-12 w-12 rounded-2xl border border-black/10 dark:border-white/10" />
               ) : null}
               <div className="min-w-0">
                 <p className="truncate text-base font-semibold t-primary">{siteConfig.name}</p>
@@ -76,8 +77,8 @@ export function AdminLayout({
           <div className="rounded-2xl border border-black/10 bg-w p-6 dark:border-white/10">
             <div className="border-b border-black/5 pb-5 dark:border-white/5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-theme/70">{t("admin.title")}</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em] t-primary">{title}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500 dark:text-neutral-400">{description}</p>
+              <h1 className="mt-2 break-words text-3xl font-semibold tracking-[-0.03em] t-primary [overflow-wrap:anywhere]">{title}</h1>
+              <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-neutral-500 dark:text-neutral-400 [overflow-wrap:anywhere]">{description}</p>
             </div>
             <div className="mt-6">{children}</div>
           </div>

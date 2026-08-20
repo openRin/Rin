@@ -382,10 +382,34 @@ describe('FeedService', () => {
                     title: 'Test',
                     content: '',
                     tags: [],
+                    draft: false,
+                    listed: true,
                 }),
             }, env);
 
             expect(res.status).toBe(400);
+            expect(await res.text()).toBe('Content is required');
+        });
+
+        it('should reject invalid contract field types before writing', async () => {
+            const res = await app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Invalid tags',
+                    content: 'Content',
+                    tags: 'not-an-array',
+                    draft: false,
+                    listed: true,
+                }),
+            }, env);
+
+            expect(res.status).toBe(400);
+            expect(await res.text()).toBe('tags must be an array');
+            expect(sqlite.query('SELECT COUNT(*) AS count FROM feeds').get()).toEqual({ count: 0 });
         });
     });
 

@@ -1,10 +1,5 @@
 @import "./base.css";
-
-:root {
-  --theme-rgb: 252 70 107;
-  --theme-hover-rgb: 177 48 73;
-  --theme-active-rgb: 151 32 56;
-}
+@import "@rin/ui/styles.css";
 
 /* cantarell-latin-400-normal */
 @font-face {
@@ -20,7 +15,8 @@
 }
 
 body {
-  @apply bg-background-light dark:bg-background-dark text-gray-800;
+  background: rgb(var(--rin-canvas-rgb));
+  color: rgb(var(--rin-text-rgb));
   font-family: Cantarell, "Source Han Serif CN VF", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif !important;
 }
 
@@ -29,12 +25,12 @@ textarea:focus {
 }
 
 .wmde-markdown {
-  @apply bg-w;
+  background-color: rgb(var(--rin-surface-rgb));
   font-family: Cantarell, "Source Han Serif CN VF", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif !important;
 }
 
 .w-md-editor {
-  @apply bg-w;
+  background-color: rgb(var(--rin-surface-rgb));
 }
 
 .wmde-markdown img {
@@ -57,7 +53,8 @@ ul {
 }
 
 .wmde-markdown code {
-  @apply text-theme bg-secondary;
+  @apply text-theme;
+  background-color: rgb(var(--rin-surface-muted-rgb));
 }
 
 .markdown-alert {
@@ -89,7 +86,8 @@ ul {
 }
 
 .p-inputtext {
-  @apply bg-secondary text-end px-2 py-2;
+  @apply text-end px-2 py-2;
+  background-color: rgb(var(--rin-surface-muted-rgb));
 }
 
 .octicon {

@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../../test/setup";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import useTableOfContents from "../useTableOfContents";
 
-vi.mock("react-i18next", () => ({
+mock.module("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
@@ -21,10 +21,10 @@ class MockIntersectionObserver {
     MockIntersectionObserver.latest = this;
   }
 
-  disconnect = vi.fn();
-  observe = vi.fn();
-  takeRecords = vi.fn(() => []);
-  unobserve = vi.fn();
+  disconnect = mock();
+  observe = mock();
+  takeRecords = mock(() => []);
+  unobserve = mock();
 
   trigger(entries: Array<Pick<IntersectionObserverEntry, "isIntersecting" | "target">>) {
     this.callback(entries as IntersectionObserverEntry[], this as unknown as IntersectionObserver);
@@ -87,7 +87,7 @@ describe("useTableOfContents", () => {
     });
     Object.defineProperty(window, "scrollTo", {
       configurable: true,
-      value: vi.fn(),
+      value: mock(),
       writable: true,
     });
 

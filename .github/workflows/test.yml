@@ -21,8 +21,7 @@ jobs:
         run: bun install
       
       - name: Run server tests
-        run: bun run test
-        working-directory: ./server
+        run: bun run test:server
       
       - name: Type check server
         run: bun run check
@@ -42,8 +41,7 @@ jobs:
         run: bun install
       
       - name: Run client tests
-        run: bun run test
-        working-directory: ./client
+        run: bun run test:client
       
       - name: Type check client
         run: bun run check
@@ -104,6 +102,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ./server/coverage/lcov.info,./client/coverage/lcov.info
+          files: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella

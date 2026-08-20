@@ -15,6 +15,7 @@ export function SearchableSelect({
   customValueLabel,
   allowCustomValue = false,
   searchable = true,
+  className,
 }: {
   value: string;
   options: SearchableSelectOption[];
@@ -25,6 +26,7 @@ export function SearchableSelect({
   customValueLabel?: (value: string) => string;
   allowCustomValue?: boolean;
   searchable?: boolean;
+  className?: string;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +70,7 @@ export function SearchableSelect({
   const buttonLabel = selectedOption?.label ?? value ?? placeholder ?? "";
 
   return (
-    <div ref={rootRef} className="relative min-w-[15rem]">
+    <div ref={rootRef} className={`relative w-full min-w-0 sm:min-w-[15rem] ${className ?? ""}`}>
       <button
         type="button"
         className="flex w-full items-center justify-between gap-3 rounded-xl border border-black/10 bg-w px-4 py-3 text-left text-sm t-primary transition-colors hover:border-black/20 focus:outline-none focus:ring-2 focus:ring-theme/20 dark:border-white/10 dark:hover:border-white/20"

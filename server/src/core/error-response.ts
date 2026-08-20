@@ -1,4 +1,5 @@
 import type { Context } from "hono";
+import { isAppError } from "../errors";
 import type { RinApp } from "./app-types";
 
 export function registerErrorHandlers(app: RinApp) {
@@ -16,6 +17,13 @@ export function registerErrorHandlers(app: RinApp) {
   });
 
   app.onError((err: Error, c: Context) => {
+    if (isAppError(err)) {
+      if (err.statusCode >= 500) {
+        console.error("Error:", err);
+      }
+      return c.json(err.toJSON(), err.statusCode as 400);
+    }
+
     console.error("Error:", err);
 
     const error = err as Error & {

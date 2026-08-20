@@ -1,9 +1,8 @@
-import { SearchableSelect, SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader, SettingsCardRow } from "@rin/ui";
+import { Modal, SearchableSelect, SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader, SettingsCardRow } from "@rin/ui";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import ReactLoading from "react-loading";
-import Modal from "react-modal";
 import { client, oauth_url } from "../app/runtime";
 import { Button } from "../components/button";
 import { useAlert } from "../components/dialog.tsx";
@@ -675,39 +674,20 @@ export function Settings() {
 
       <Modal
         isOpen={isOpen}
-        style={{
-          content: {
-            top: "50%",
-            left: "50%",
-            right: "auto",
-            bottom: "auto",
-            marginRight: "-50%",
-            transform: "translate(-50%, -50%)",
-            padding: "0",
-            border: "none",
-            borderRadius: "16px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            background: "transparent",
-          },
-          overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1000,
-          },
-        }}
+        onRequestClose={() => setIsOpen(false)}
+        contentLabel={t("settings.import_result")}
+        panelClassName="p-6"
       >
-        <div className="flex flex-col items-start bg-w p-4">
-          <h1 className="text-2xl font-bold t-primary">{t("settings.import_result")}</h1>
-          <p className="text-base dark:text-white">{msg}</p>
+        <div className="flex flex-col items-start">
+          <h1 className="text-xl font-bold tracking-[-0.02em] t-primary">{t("settings.import_result")}</h1>
+          <p className="mt-2 text-base t-primary">{msg}</p>
           <div className="flex w-full flex-col items-start">
-            <p className="mt-2 text-base font-bold dark:text-white">{t("settings.import_skipped")}</p>
+            <p className="mt-4 text-base font-bold t-primary">{t("settings.import_skipped")}</p>
             <ul className="flex max-h-64 w-full flex-col items-start overflow-auto">
               {msgList.map((item, idx) => (
-                <p key={idx} className="text-sm dark:text-white">
+                <li key={idx} className="text-sm t-primary">
                   {t("settings.import_skipped_item$title$reason", { title: item.title, reason: item.reason })}
-                </p>
+                </li>
               ))}
             </ul>
           </div>

@@ -41,14 +41,35 @@ export async function isPublicCacheEnabled(clientConfig: CacheConfigReader) {
 
 // 存储提供者接口
 interface StorageProvider {
+    readonly supportsPartialAccess: boolean;
     load(): Promise<void>;
     save(): Promise<void>;
+    get?(key: string): Promise<{ found: boolean; value?: any }>;
+    getByPrefix?(prefix: string): Promise<Array<[string, any]>>;
+    getBySuffix?(suffix: string): Promise<Array<[string, any]>>;
+    set?(key: string, value: any): Promise<void>;
     delete(key: string): Promise<void>;
+    deletePrefix?(prefix: string): Promise<void>;
+    deleteSuffix?(suffix: string): Promise<void>;
     clear(): Promise<void>;
+}
+
+function deserializeCacheValue(value: string) {
+    try {
+        return JSON.parse(value);
+    } catch {
+        return value;
+    }
+}
+
+function serializeCacheValue(value: any) {
+    return typeof value === 'string' ? value : JSON.stringify(value);
 }
 
 // 数据库存储提供者
 class DatabaseStorageProvider implements StorageProvider {
+    readonly supportsPartialAccess = true;
+
     constructor(private db: DB, private cacheMap: Map<string, any>, private type: string) {}
 
     async load(): Promise<void> {
@@ -56,11 +77,7 @@ class DatabaseStorageProvider implements StorageProvider {
         try {
             const rows = await this.db.select().from(cache).where(eq(cache.type, this.type));
             for (const row of rows) {
-                try {
-                    this.cacheMap.set(row.key, JSON.parse(row.value));
-                } catch (e) {
-                    this.cacheMap.set(row.key, row.value);
-                }
+                this.cacheMap.set(row.key, deserializeCacheValue(row.value));
             }
             console.log(`Cache loaded ${rows.length} entries from database`);
         } catch (e: any) {
@@ -70,41 +87,56 @@ class DatabaseStorageProvider implements StorageProvider {
     }
 
     async save(): Promise<void> {
-        // Get all existing keys from database for this cache type
-        const existingRows = await this.db.select({ key: cache.key }).from(cache).where(eq(cache.type, this.type));
-        const existingKeys = new Set(existingRows.map((row: { key: string }) => row.key));
-        const currentKeys = new Set(this.cacheMap.keys());
-
-        // Delete keys from database that are no longer in memory
-        for (const key of existingKeys) {
-            if (!currentKeys.has(key)) {
-                await this.db.delete(cache)
-                    .where(and(eq(cache.key, key), eq(cache.type, this.type)));
-                console.log('Cache removed from database:', key);
-            }
-        }
-
-        // Save or update current cache entries
         for (const [key, value] of this.cacheMap.entries()) {
-            if (value === undefined) {
-                console.warn(`Cache: Skipping undefined value for key "${key}"`);
-                continue;
-            }
-
-            const valueStr = typeof value === 'string' ? value : JSON.stringify(value);
-
-            if (existingKeys.has(key)) {
-                await this.db.update(cache)
-                    .set({ value: valueStr, updatedAt: new Date() })
-                    .where(and(eq(cache.key, key), eq(cache.type, this.type)));
-            } else {
-                await this.db.insert(cache).values({
-                    key,
-                    value: valueStr,
-                    type: this.type,
-                });
-            }
+            await this.set(key, value);
         }
+    }
+
+    async get(key: string): Promise<{ found: boolean; value?: any }> {
+        const rows = await this.db.select({ value: cache.value })
+            .from(cache)
+            .where(and(eq(cache.key, key), eq(cache.type, this.type)))
+            .limit(1);
+        if (rows.length === 0) {
+            return { found: false };
+        }
+
+        return { found: true, value: deserializeCacheValue(rows[0].value) };
+    }
+
+    private async getMatching(pattern: string): Promise<Array<[string, any]>> {
+        const rows = await this.db.select({ key: cache.key, value: cache.value })
+            .from(cache)
+            .where(and(eq(cache.type, this.type), like(cache.key, pattern)));
+        return rows.map((row) => [row.key, deserializeCacheValue(row.value)]);
+    }
+
+    async getByPrefix(prefix: string) {
+        return this.getMatching(`${prefix}%`);
+    }
+
+    async getBySuffix(suffix: string) {
+        return this.getMatching(`%${suffix}`);
+    }
+
+    async set(key: string, value: any): Promise<void> {
+        if (value === undefined) {
+            console.warn(`Cache: Skipping undefined value for key "${key}"`);
+            return;
+        }
+
+        await this.db.insert(cache).values({
+            key,
+            value: serializeCacheValue(value),
+            type: this.type,
+            updatedAt: new Date(),
+        }).onConflictDoUpdate({
+            target: [cache.key, cache.type],
+            set: {
+                value: serializeCacheValue(value),
+                updatedAt: new Date(),
+            },
+        });
     }
 
     async delete(key: string): Promise<void> {
@@ -116,6 +148,16 @@ class DatabaseStorageProvider implements StorageProvider {
             console.error('Cache delete from database failed');
             console.error(e.message);
         }
+    }
+
+    async deletePrefix(prefix: string): Promise<void> {
+        await this.db.delete(cache)
+            .where(and(eq(cache.type, this.type), like(cache.key, `${prefix}%`)));
+    }
+
+    async deleteSuffix(suffix: string): Promise<void> {
+        await this.db.delete(cache)
+            .where(and(eq(cache.type, this.type), like(cache.key, `%${suffix}`)));
     }
 
     async clear(): Promise<void> {
@@ -131,6 +173,7 @@ class DatabaseStorageProvider implements StorageProvider {
 
 // S3 存储提供者
 class S3StorageProvider implements StorageProvider {
+    readonly supportsPartialAccess = false;
     private cacheKey: string;
 
     constructor(private env: Env, private cacheMap: Map<string, any>, private type: string) {
@@ -192,6 +235,8 @@ export class CacheImpl {
     private storageProvider: StorageProvider;
     private cacheEnabled: Promise<boolean> | null = null;
     private configReader?: CacheConfigReader;
+    private dirtyKeys = new Set<string>();
+    private pendingDeletes = new Set<string>();
 
     constructor(
         db: DB,
@@ -250,6 +295,9 @@ export class CacheImpl {
             return new Map<string, any>();
         }
         if (!this.loaded) {
+            if (this.storageProvider.supportsPartialAccess) {
+                await this.save();
+            }
             await this.load();
         }
         return this.cache;
@@ -258,6 +306,20 @@ export class CacheImpl {
     async get(key: string) {
         if (!(await this.isEnabled())) {
             return null;
+        }
+        if (this.cache.has(key)) {
+            return this.cache.get(key);
+        }
+        if (this.pendingDeletes.has(key)) {
+            return undefined;
+        }
+        if (this.storageProvider.supportsPartialAccess && this.storageProvider.get) {
+            const stored = await this.storageProvider.get(key);
+            if (stored.found) {
+                this.cache.set(key, stored.value);
+                return stored.value;
+            }
+            return undefined;
         }
         if (!this.loaded) {
             await this.load();
@@ -268,6 +330,14 @@ export class CacheImpl {
     async getByPrefix(prefix: string): Promise<any[]> {
         if (!(await this.isEnabled())) {
             return [];
+        }
+        if (this.storageProvider.supportsPartialAccess && this.storageProvider.getByPrefix) {
+            await this.save();
+            const entries = await this.storageProvider.getByPrefix(prefix);
+            for (const [key, value] of entries) {
+                this.cache.set(key, value);
+            }
+            return entries.map(([, value]) => value);
         }
         if (!this.loaded) {
             await this.load();
@@ -284,6 +354,14 @@ export class CacheImpl {
     async getBySuffix(suffix: string): Promise<any[]> {
         if (!(await this.isEnabled())) {
             return [];
+        }
+        if (this.storageProvider.supportsPartialAccess && this.storageProvider.getBySuffix) {
+            await this.save();
+            const entries = await this.storageProvider.getBySuffix(suffix);
+            for (const [key, value] of entries) {
+                this.cache.set(key, value);
+            }
+            return entries.map(([, value]) => value);
         }
         if (!this.loaded) {
             await this.load();
@@ -323,24 +401,68 @@ export class CacheImpl {
         if (!(await this.isEnabled())) {
             return;
         }
-        if (!this.loaded)
+        if (!this.storageProvider.supportsPartialAccess && !this.loaded) {
             await this.load();
+        }
         this.cache.set(key, value);
+        this.pendingDeletes.delete(key);
+        if (this.storageProvider.supportsPartialAccess && this.storageProvider.set) {
+            if (save) {
+                await this.storageProvider.set(key, value);
+                this.dirtyKeys.delete(key);
+            } else {
+                this.dirtyKeys.add(key);
+            }
+            return;
+        }
         if (save) {
             await this.save();
         }
     }
 
     async delete(key: string, save: boolean = true) {
-        if (!this.loaded)
+        if (!this.storageProvider.supportsPartialAccess && !this.loaded) {
             await this.load();
+        }
         this.cache.delete(key);
+        this.dirtyKeys.delete(key);
+        if (this.storageProvider.supportsPartialAccess) {
+            if (save) {
+                await this.storageProvider.delete(key);
+                this.pendingDeletes.delete(key);
+            } else {
+                this.pendingDeletes.add(key);
+            }
+            return;
+        }
         if (save) {
             await this.storageProvider.delete(key);
         }
     }
 
     async deletePrefix(prefix: string) {
+        if (this.storageProvider.supportsPartialAccess && this.storageProvider.deletePrefix) {
+            await this.storageProvider.deletePrefix(prefix);
+            for (const key of this.cache.keys()) {
+                if (key.startsWith(prefix)) {
+                    this.cache.delete(key);
+                }
+            }
+            for (const key of this.dirtyKeys) {
+                if (key.startsWith(prefix)) {
+                    this.dirtyKeys.delete(key);
+                }
+            }
+            for (const key of this.pendingDeletes) {
+                if (key.startsWith(prefix)) {
+                    this.pendingDeletes.delete(key);
+                }
+            }
+            return;
+        }
+        if (!this.loaded) {
+            await this.load();
+        }
         for (let key of this.cache.keys()) {
             console.log('Cache key', key);
             if (key.startsWith(prefix)) {
@@ -352,6 +474,28 @@ export class CacheImpl {
     }
 
     async deleteSuffix(suffix: string) {
+        if (this.storageProvider.supportsPartialAccess && this.storageProvider.deleteSuffix) {
+            await this.storageProvider.deleteSuffix(suffix);
+            for (const key of this.cache.keys()) {
+                if (key.endsWith(suffix)) {
+                    this.cache.delete(key);
+                }
+            }
+            for (const key of this.dirtyKeys) {
+                if (key.endsWith(suffix)) {
+                    this.dirtyKeys.delete(key);
+                }
+            }
+            for (const key of this.pendingDeletes) {
+                if (key.endsWith(suffix)) {
+                    this.pendingDeletes.delete(key);
+                }
+            }
+            return;
+        }
+        if (!this.loaded) {
+            await this.load();
+        }
         for (let key of this.cache.keys()) {
             console.log("Cache key", key);
             if (key.endsWith(suffix)) {
@@ -364,10 +508,24 @@ export class CacheImpl {
 
     async clear() {
         this.cache.clear();
+        this.dirtyKeys.clear();
+        this.pendingDeletes.clear();
         await this.storageProvider.clear();
     }
 
     async save() {
+        if (this.storageProvider.supportsPartialAccess && this.storageProvider.set) {
+            for (const key of this.pendingDeletes) {
+                await this.storageProvider.delete(key);
+            }
+            this.pendingDeletes.clear();
+
+            for (const key of this.dirtyKeys) {
+                await this.storageProvider.set(key, this.cache.get(key));
+            }
+            this.dirtyKeys.clear();
+            return;
+        }
         await this.storageProvider.save();
     }
 

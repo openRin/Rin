@@ -1,21 +1,23 @@
-import ReactLoading from "react-loading";
+import type { ButtonHTMLAttributes } from "react";
+import { Spinner } from "./loading";
+
+type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
+  title: string;
+  secondary?: boolean;
+};
 
 export function Button({
   title,
-  onClick,
   secondary = false,
-  disabled = false,
-}: {
-  title: string;
-  secondary?: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
+  className,
+  type = "button",
+  ...props
+}: ButtonProps) {
   return (
     <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`${disabled ? "opacity-50 cursor-not-allowed" : ""} ${secondary ? "bg-secondary t-primary bg-button" : "bg-theme text-white active:bg-theme-active hover:bg-theme-hover"} text-nowrap rounded-full px-4 py-2 h-min`}
+      {...props}
+      type={type}
+      className={`${secondary ? "bg-secondary t-primary bg-button" : "bg-theme text-white active:bg-theme-active hover:bg-theme-hover"} h-min text-nowrap rounded-full px-4 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme/30 disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
     >
       {title}
     </button>
@@ -27,19 +29,22 @@ export function ButtonWithLoading({
   onClick,
   loading,
   secondary = false,
+  className,
 }: {
   title: string;
   secondary?: boolean;
   loading: boolean;
   onClick: () => void;
+  className?: string;
 }) {
   return (
     <button
       onClick={onClick}
       disabled={loading}
-      className={`${secondary ? "bg-secondary t-primary bg-button" : "bg-theme text-white active:bg-theme-active hover:bg-theme-hover"} text-nowrap rounded-full px-4 py-2 h-min space-x-2 flex flex-row items-center`}
+      type="button"
+      className={`${secondary ? "bg-secondary t-primary bg-button" : "bg-theme text-white active:bg-theme-active hover:bg-theme-hover"} flex h-min flex-row items-center space-x-2 text-nowrap rounded-full px-4 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme/30 disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
     >
-      {loading && <ReactLoading width="1em" height="1em" type="spin" color="#FFF" />}
+      {loading && <Spinner size="1em" label={`${title}…`} className="text-current" />}
       <span>{title}</span>
     </button>
   );

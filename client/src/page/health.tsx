@@ -1,10 +1,10 @@
-import { SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader } from "@rin/ui";
-import type { ConfigHealthItem } from "../api/client";
+import { SettingsBadge, SettingsCard, SettingsCardBody, SettingsCardHeader, Spinner } from "@rin/ui";
+import type { ConfigHealthItem, ConfigHealthResponse } from "../api/client";
 import { client } from "../app/runtime";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
-import ReactLoading from "react-loading";
+import { useApiResource } from "../hooks/use-api-resource";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 
 function renderHealthText(
@@ -52,30 +52,11 @@ function HealthCard({ item }: { item: ConfigHealthItem }) {
 export function HealthPage() {
   const { t } = useTranslation();
   const siteConfig = useSiteConfig();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [items, setItems] = useState<ConfigHealthItem[]>([]);
-  const [summary, setSummary] = useState<Record<"success" | "warning" | "danger", number>>({ success: 0, warning: 0, danger: 0 });
-  const [generatedAt, setGeneratedAt] = useState<string>("");
-
-  useEffect(() => {
-    client.config
-      .getHealth()
-      .then(({ data, error }) => {
-        if (error) {
-          setError(error.value);
-          return;
-        }
-        if (data) {
-          setItems(Array.isArray(data.items) ? data.items : []);
-          setSummary(data.summary);
-          setGeneratedAt(data.generatedAt);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const loadHealth = useCallback(() => client.config.getHealth(), []);
+  const { data, loading, error } = useApiResource<ConfigHealthResponse>(loadHealth);
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const summary = data?.summary ?? { success: 0, warning: 0, danger: 0 };
+  const generatedAt = data?.generatedAt ?? "";
 
   const orderedItems = useMemo(() => {
     const score = { danger: 0, warning: 1, success: 2 } as const;
@@ -108,7 +89,7 @@ export function HealthPage() {
 
       {loading ? (
         <div className="flex items-center gap-3 py-8 text-sm text-neutral-500 dark:text-neutral-400">
-          <ReactLoading width="1.25em" height="1.25em" type="spin" color="#FC466B" />
+          <Spinner label={t("health.loading")} />
           <span>{t("health.loading")}</span>
         </div>
       ) : null}

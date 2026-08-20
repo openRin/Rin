@@ -116,8 +116,9 @@ bun run format:check
 
 # 运行测试
 bun run test              # 运行所有测试
+bun run test:client       # 仅运行客户端测试
 bun run test:server       # 仅运行服务端测试
- bun run test:coverage     # 运行测试并生成覆盖率报告
+bun run test:coverage     # 运行测试并生成覆盖率报告
 ```
 
 ## 开发工作流
@@ -149,17 +150,17 @@ bun run test:server       # 仅运行服务端测试
 
 ### 客户端测试 (Vitest)
 
-客户端测试使用 Vitest 配合 jsdom 环境进行 React 组件测试。
+客户端测试使用 Bun 原生测试运行器。React 组件测试需在 Testing Library 之前导入统一的 jsdom 初始化文件。
 
 ```bash
 # 运行客户端测试
-cd client && bun run test
+bun run test:client
 
 # 监视模式
-cd client && bun run test:watch
+bun run test:client:watch
 
 # 生成覆盖率报告
-cd client && bun run test:coverage
+bun run test:client:coverage
 ```
 
 测试文件位置：`client/src/**/__tests__/*.test.ts`
@@ -173,7 +174,7 @@ cd client && bun run test:coverage
 cd server && bun run test
 
 # 生成覆盖率报告
-cd server && bun run test:coverage
+bun run test:server:coverage
 ```
 
 测试文件位置：
@@ -187,6 +188,8 @@ cd server && bun run test:coverage
 
 1. **客户端**：在 `client/src/**/__tests__/*.test.ts` 添加测试
 2. **服务端**：在 `server/src/**/__tests__/*.test.ts` 或 `server/tests/` 添加测试
+
+所有测试必须从 `bun:test` 导入测试 API。客户端 DOM 测试必须在 Testing Library 前导入 `client/src/test/setup.ts`；不要再引入第二套测试运行器或单独的测试配置。
 
 ## API 架构
 

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Markdown } from "./markdown";
 import { timeago } from "../utils/timeago";
+import { ImageWithFallback } from "./image-with-fallback";
 
 interface Moment {
     id: number;
@@ -29,16 +30,16 @@ export function MomentItem({
     const { createdAt, updatedAt } = moment;
     
     return (
-        <div className="bg-w p-4 rounded-lg">
-            <div className="flex justify-between">
-                <div className="flex items-center space-x-3">
-                    <img 
-                        src={moment.user.avatar} 
-                        alt={moment.user.username} 
-                        className="w-8 h-8 rounded-full object-cover"
+        <div className="min-w-0 rounded-lg bg-w p-4">
+            <div className="flex min-w-0 justify-between gap-3">
+                <div className="flex min-w-0 items-center space-x-3">
+                    <ImageWithFallback
+                        src={moment.user.avatar}
+                        alt={moment.user.username}
+                        className="h-8 w-8 rounded-full"
                     />
-                    <div>
-                        <p className="t-primary">
+                    <div className="min-w-0">
+                        <p className="truncate t-primary">
                             {moment.user.username}
                         </p>
                         <p className="space-x-2 t-secondary text-sm"> 
@@ -54,7 +55,7 @@ export function MomentItem({
                     </div>
                 </div>
                 {canManage && (
-                    <div>
+                    <div className="shrink-0">
                         <div className="flex gap-2">
                             <button
                                 aria-label={t("edit")}

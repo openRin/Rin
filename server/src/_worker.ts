@@ -6,8 +6,9 @@ export default {
     async fetch(
         request: Request,
         env: Env,
+        ctx: ExecutionContext,
     ): Promise<Response> {
-        return handleFetch(request, env);
+        return handleFetch(request, env, ctx);
     },
 
     async scheduled(

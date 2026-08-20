@@ -1,12 +1,13 @@
+import { Modal } from "@rin/ui";
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
-import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
 import { useLocation } from "wouter";
 import { client } from "../../../app/runtime";
 import { ClientConfigContext } from "../../../state/config";
 import { type Profile } from "../../../state/profile";
 import { removeAuthToken } from "../../../utils/auth";
+import { ImageWithFallback } from "../../image-with-fallback";
 import { Button } from "../../button";
 import { Input } from "../../input";
 import { HEADER_POPUP_PANEL_CLASS } from "../shared";
@@ -61,37 +62,19 @@ export function SearchButton({ className, onClose, plain = false }: { className?
       >
         <i className="ri-search-line" />
       </button>
-      <ReactModal
+      <Modal
         isOpen={isOpened}
-        style={{
-          content: {
-            top: "20%",
-            left: "50%",
-            right: "auto",
-            bottom: "auto",
-            marginRight: "-50%",
-            transform: "translate(-50%, -50%)",
-            padding: "0",
-            border: "none",
-            borderRadius: "16px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            background: "none",
-          },
-          overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1000,
-          },
-        }}
         onRequestClose={() => setIsOpened(false)}
+        contentLabel={label}
+        position="top"
+        size="sm"
+        panelClassName="p-4"
       >
-        <div className="bg-w w-full flex flex-row items-center justify-between p-4 space-x-4">
+        <div className="flex w-full flex-row items-center justify-between space-x-4">
           <Input value={value} setValue={setValue} placeholder={t("article.search.placeholder")} autofocus onSubmit={onSearch} />
           <Button title={value.length === 0 ? t("close") : label} onClick={onSearch} />
         </div>
-      </ReactModal>
+      </Modal>
     </div>
   );
 }
@@ -183,10 +166,11 @@ export function UserAvatar({
               }
             >
               {profile.avatar ? (
-                <img
+                <ImageWithFallback
                   src={profile.avatar}
-                  alt="Avatar"
-                  className="h-8 w-8 cursor-pointer rounded-full object-cover transition duration-200 group-hover:brightness-95"
+                  alt={profile.name || t("profile.title")}
+                  className="h-8 w-8 cursor-pointer rounded-full"
+                  imageClassName="transition duration-200 group-hover:brightness-95"
                 />
               ) : (
                 <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-secondary transition-colors group-hover:bg-black/5 dark:group-hover:bg-white/10">
@@ -205,7 +189,7 @@ export function UserAvatar({
               className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10"
             >
               {profile.avatar ? (
-                <img src={profile.avatar} alt="Avatar" className="h-10 w-10 rounded-full object-cover" />
+                <ImageWithFallback src={profile.avatar} alt={profile.name || t("profile.title")} className="h-10 w-10 rounded-full" />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
                   <i className="ri-user-line text-lg t-secondary" />

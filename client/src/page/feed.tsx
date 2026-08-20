@@ -1,12 +1,13 @@
 import type { Feed } from "@rin/api";
+import { Modal } from "@rin/ui";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
-import ReactModal from "react-modal";
 import Popup from "reactjs-popup";
 import { Link, useLocation } from "wouter";
 import { useAlert, useConfirm } from "../components/dialog";
 import { HashTag } from "../components/hashtag";
+import { ImageWithFallback } from "../components/image-with-fallback";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
 import { client } from "../app/runtime";
@@ -271,11 +272,11 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                         </span>
                       ) : null}
                     </div>
-                    <p className="text-sm t-secondary leading-relaxed whitespace-pre-wrap">
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed t-secondary [overflow-wrap:anywhere]">
                       {hasAISummary ? feed.ai_summary : t(`ai_summary.message.${feed.ai_summary_status}`)}
                     </p>
                     {feed.ai_summary_status === "failed" && feed.ai_summary_error ? (
-                      <p className="mt-2 text-xs text-rose-600 dark:text-rose-300 whitespace-pre-wrap">
+                      <p className="mt-2 whitespace-pre-wrap text-xs text-rose-600 dark:text-rose-300 [overflow-wrap:anywhere]">
                         {feed.ai_summary_error}
                       </p>
                     ) : null}
@@ -290,13 +291,14 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
                       ))}
                     </div>
                   )}
-                  <div className="flex flex-row items-center">
-                    <img
+                  <div className="flex min-w-0 flex-row items-center">
+                    <ImageWithFallback
                       src={feed.user.avatar || "/avatar.png"}
-                      className="w-8 h-8 rounded-full"
+                      alt={feed.user.username}
+                      className="h-8 w-8 rounded-full"
                     />
-                    <div className="ml-2">
-                      <span className="text-gray-400 text-sm cursor-default">
+                    <div className="ml-2 min-w-0">
+                      <span className="block truncate text-sm text-gray-400 cursor-default">
                         {feed.user.username}
                       </span>
                     </div>
@@ -334,36 +336,17 @@ export function TOCHeader({ TOC }: { TOC: () => JSX.Element }) {
       >
         <i className="ri-menu-2-line text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 ri-lg md:ri-sm md:t-secondary"></i>
       </button>
-      <ReactModal
+      <Modal
         isOpen={isOpened}
-        style={{
-          content: {
-            top: "50%",
-            left: "50%",
-            right: "auto",
-            bottom: "auto",
-            marginRight: "-50%",
-            transform: "translate(-50%, -50%)",
-            padding: "0",
-            border: "none",
-            borderRadius: "16px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            background: "none",
-          },
-          overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1000,
-          },
-        }}
         onRequestClose={() => setIsOpened(false)}
+        contentLabel="Table of contents"
+        size="lg"
+        panelClassName="p-4"
       >
-        <div className="w-[80vw] sm:w-[60vw] lg:w-[40vw] overflow-clip relative t-primary">
+        <div className="relative max-h-[75vh] overflow-auto t-primary">
           <TOC />
         </div>
-      </ReactModal>
+      </Modal>
     </div>
   );
 }
@@ -616,13 +599,14 @@ function CommentItem({
   }
   return (
     <div className="flex flex-row items-start rounded-xl mt-2">
-      <img
+      <ImageWithFallback
         src={commenterAvatar}
-        className="w-8 h-8 rounded-full mt-4"
+        alt={commenterName}
+        className="mt-4 h-8 w-8 rounded-full"
       />
       <div className="flex flex-col flex-1 w-0 ml-2 bg-w rounded-xl p-4">
-        <div className="flex flex-row">
-          <span className="t-primary text-base font-bold">
+        <div className="flex min-w-0 flex-row items-center gap-2">
+          <span className="min-w-0 truncate text-base font-bold t-primary">
             {commenterName}
           </span>
           {comment.guestWebsite && (
@@ -630,7 +614,7 @@ function CommentItem({
               href={comment.guestWebsite}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 text-gray-400 hover:text-theme transition-colors"
+              className="shrink-0 text-gray-400 transition-colors hover:text-theme"
             >
               <i className="ri-external-link-line"></i>
             </a>
@@ -638,12 +622,12 @@ function CommentItem({
           <div className="flex-1 w-0" />
           <span
             title={new Date(comment.createdAt).toLocaleString()}
-            className="text-gray-400 text-sm"
+            className="shrink-0 text-sm text-gray-400"
           >
             {timeago(comment.createdAt)}
           </span>
         </div>
-        <p className="t-primary break-words">{comment.content}</p>
+        <p className="break-words t-primary [overflow-wrap:anywhere]">{comment.content}</p>
         <div className="flex flex-row justify-end">
           {(profile?.permission || (comment.user && profile?.id == comment.user.id)) && (
             <Popup

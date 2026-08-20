@@ -87,13 +87,13 @@ export function HashtagsPage() {
                     <div className="wauto flex flex-col flex-wrap items-start justify-start mt-2">
                         {sortedHashtags?.map((hashtag, index) => {
                             return (
-                                <div key={index} className="w-full flex flex-row">
-                                    <div className="w-full rounded-2xl m-2 duration-300 flex flex-row items-center space-x-4">
-                                        <Link href={`/hashtag/${hashtag.name}`} className="text-base t-primary hover:text-theme text-pretty overflow-hidden">
+                                <div key={index} className="flex min-w-0 w-full flex-row">
+                                    <div className="m-2 flex min-w-0 w-full flex-row items-center space-x-4 rounded-2xl duration-300">
+                                        <Link href={`/hashtag/${hashtag.name}`} className="min-w-0 text-base t-primary hover:text-theme text-pretty">
                                             <HashTag name={hashtag.name} />
                                         </Link>
                                         <div className="flex-1" />
-                                        <span className="t-secondary text-sm">
+                                        <span className="shrink-0 text-sm t-secondary">
                                             {t("article.total_short$count", { count: hashtag.feeds })}
                                         </span>
                                     </div>
