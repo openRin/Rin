@@ -1,3 +1,5 @@
+ALTER TABLE `feeds` ADD COLUMN `top` integer DEFAULT 0 NOT NULL;
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `feeds_alias_idx` ON `feeds` (`alias`);
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `feeds_visibility_order_idx` ON `feeds` (`draft`, `listed`, `top`, `created_at`, `updated_at`);
