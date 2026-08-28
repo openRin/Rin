@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { fixTopField } from "../lib/db-migration";
+import { fixTopField, isInfoExist } from "../lib/db-migration";
 import { runLocalDbMigrate } from "../tasks/db-migrate-local";
 
 export async function runDbCommand(args: string[]) {
@@ -19,7 +19,8 @@ export async function runDbCommand(args: string[]) {
   }
 
   if (subcommand === "fix-top-field") {
-    await fixTopField("local", dbName);
+    const infoExists = await isInfoExist("local", dbName);
+    await fixTopField("local", dbName, infoExists);
     return;
   }
 
