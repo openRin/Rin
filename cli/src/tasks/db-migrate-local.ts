@@ -1,14 +1,20 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
-import { fixTopField, getMigrationFileVersion, getMigrationVersion, isInfoExist, updateMigrationVersion } from "../lib/db-migration";
+import {
+  fixTopField,
+  getMigrationFileVersion,
+  getMigrationVersion,
+  updateMigrationVersion,
+} from "../lib/db-migration";
 
 export async function runLocalDbMigrate(dbName = "rin") {
   const sqlDir = path.join(process.cwd(), "server", "sql");
 
   const type = "local";
   const migrationVersion = await getMigrationVersion(type, dbName);
-  const infoExists = await isInfoExist(type, dbName);
+  // Migration 0011 indexes feeds.top, so repair the column before pending SQL runs.
+  await fixTopField(type, dbName);
   const sqlFiles = fs
     .readdirSync(sqlDir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
@@ -42,6 +48,4 @@ export async function runLocalDbMigrate(dbName = "rin") {
       await updateMigrationVersion(type, dbName, lastVersion);
     }
   }
-
-  await fixTopField(type, dbName, infoExists);
 }

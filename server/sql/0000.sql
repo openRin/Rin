@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS `feeds` (
     `summary` text DEFAULT '' NOT NULL,
 	`listed` integer DEFAULT 1 NOT NULL,
 	`draft` integer DEFAULT 1 NOT NULL,
+	`top` integer DEFAULT 0 NOT NULL,
 	`uid` integer NOT NULL,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,

@@ -3,6 +3,11 @@ import { getWranglerEnv } from "./wrangler";
 const bunExec = process.execPath;
 const wranglerCwd = "server";
 
+export const FEEDS_TABLE_EXISTS_QUERY =
+  "SELECT name FROM sqlite_master WHERE type='table' AND name='feeds'";
+export const FEEDS_TOP_EXISTS_QUERY = "SELECT name FROM pragma_table_info('feeds') WHERE name='top'";
+export const ADD_FEEDS_TOP_COLUMN_SQL = "ALTER TABLE feeds ADD COLUMN top INTEGER DEFAULT 0 NOT NULL";
+
 export function getMigrationFileVersion(fileName: string) {
   const match = /^(\d+)(?:\D.*)?\.sql$/i.exec(fileName.trim());
   if (!match) {
@@ -50,13 +55,23 @@ async function runWranglerQuiet(args: string[]) {
   }
 }
 
-export async function fixTopField(type: "local" | "remote", db: string, infoExists: boolean) {
-  if (infoExists) {
-    console.log("New database, skip top field check");
+export async function fixTopField(type: "local" | "remote", db: string) {
+  const tableResult = await runWranglerJson([
+    "d1",
+    "execute",
+    db,
+    `--${type}`,
+    "--json",
+    "--command",
+    FEEDS_TABLE_EXISTS_QUERY,
+  ]);
+
+  if (tableResult[0].results.length === 0) {
+    console.log("Feeds table does not exist yet, skip top field check");
     return;
   }
 
-  console.log("Legacy database, check top field");
+  console.log("Checking top field on feeds table");
   const result = await runWranglerJson([
     "d1",
     "execute",
@@ -64,7 +79,7 @@ export async function fixTopField(type: "local" | "remote", db: string, infoExis
     `--${type}`,
     "--json",
     "--command",
-    "SELECT name FROM pragma_table_info('feeds') WHERE name='top'",
+    FEEDS_TOP_EXISTS_QUERY,
   ]);
 
   if (result[0].results.length === 0) {
@@ -76,7 +91,7 @@ export async function fixTopField(type: "local" | "remote", db: string, infoExis
       `--${type}`,
       "--json",
       "--command",
-      "ALTER TABLE feeds ADD COLUMN top INTEGER DEFAULT 0",
+      ADD_FEEDS_TOP_COLUMN_SQL,
     ]);
   } else {
     console.log("Top field already exists in feeds table");
