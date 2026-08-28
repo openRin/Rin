@@ -50,13 +50,11 @@ async function runWranglerQuiet(args: string[]) {
   }
 }
 
-export async function fixTopField(type: "local" | "remote", db: string, infoExists: boolean) {
-  if (infoExists) {
-    console.log("New database, skip top field check");
-    return;
-  }
-
-  console.log("Legacy database, check top field");
+export async function fixTopField(type: "local" | "remote", db: string) {
+  // The `info` table existing only tells us the database went through 0002.sql;
+  // it says nothing about whether `feeds.top` exists. The column was never
+  // created by any migration (see server/sql/0012.sql), so we must always
+  // probe the column itself instead of inferring from `infoExists`.
   const result = await runWranglerJson([
     "d1",
     "execute",
