@@ -88,6 +88,14 @@ function createStorageResponse(object: R2ObjectBody | R2Object, body?: BodyInit 
     headers.set("Last-Modified", object.uploaded.toUTCString());
   }
 
+  if (!headers.has("Cache-Control")) {
+    headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  }
+
+  if (!headers.has("Access-Control-Allow-Origin")) {
+    headers.set("Access-Control-Allow-Origin", "*");
+  }
+
   return new Response(body ?? null, {
     status: 200,
     headers,

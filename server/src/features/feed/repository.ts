@@ -37,8 +37,20 @@ export type SearchFeedPageOptions = {
     limit: number;
 };
 
+function escapeLikePattern(keyword: string): string {
+    return keyword.replace(/[%_\\]/g, (char) => `\\${char}`);
+}
+
 export async function searchFeedPage(db: DB, options: SearchFeedPageOptions) {
-    const searchPattern = `%${options.keyword}%`;
+    const trimmed = options.keyword ? options.keyword.trim() : "";
+    if (!trimmed) {
+        return {
+            size: 0,
+            rows: [],
+            hasNext: false,
+        };
+    }
+    const searchPattern = `%${escapeLikePattern(trimmed)}%`;
     const searchWhere = or(
         like(feeds.title, searchPattern),
         like(feeds.content, searchPattern),
