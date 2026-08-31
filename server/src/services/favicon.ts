@@ -165,13 +165,12 @@ export function FaviconService(): Hono {
             await profileAsync(c, 'favicon_origin_put', () => putStorageObjectAtKey(
                 env,
                 originFaviconKey,
-                file
+                file,
+                file.type
             ));
 
             const originFaviconUrl = getStoragePublicUrl(env, originFaviconKey, new URL(c.req.url).origin);
-            const imageRequest = new Request(originFaviconUrl, {
-                headers: c.req.raw.headers,
-            });
+            const imageRequest = new Request(originFaviconUrl);
 
             const response = await profileAsync(c, 'favicon_transform_fetch', () => fetch(imageRequest, {
                 cf: {
