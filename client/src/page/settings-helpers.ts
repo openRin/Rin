@@ -94,6 +94,11 @@ export async function uploadFavicon(file: File, t: TFunction, showAlert: (messag
   });
 
   if (response.ok) {
+    // A new URL makes the browser fetch the icon again after an upload.
+    const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (icon) {
+      icon.href = `/favicon/original?v=${Date.now()}`;
+    }
     showAlert(t("settings.favicon.update.success"));
     return;
   }

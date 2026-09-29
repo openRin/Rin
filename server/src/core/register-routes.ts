@@ -30,5 +30,6 @@ export function registerRoutes(app: RinApp) {
   app.route("/", RSSService());
   app.route("/", SitemapService());
   app.route("/favicon", FaviconService());
-  app.route("/favicon.ico", FaviconService());
+  // Browsers still probe /favicon.ico; serve the uploaded format through /original.
+  app.get("/favicon.ico", (c) => c.redirect("/favicon/original", 302));
 }

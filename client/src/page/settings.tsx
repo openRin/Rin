@@ -459,7 +459,7 @@ export function Settings() {
           <ItemWithUpload
             title={t("settings.favicon.title")}
             description={t("settings.favicon.desc")}
-            accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+            accept="image/jpeg,image/png,image/gif,image/webp"
             onFileChange={handleFaviconChange}
           />
           <ItemInput

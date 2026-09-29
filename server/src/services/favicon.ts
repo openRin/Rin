@@ -16,6 +16,11 @@ export function getFaviconKey(env: Env) {
     return path_join(env.S3_FOLDER || "", "favicon.webp");
 }
 
+// This key records the latest upload even when its file type changes.
+export function getCurrentOriginalFaviconKey(env: Env) {
+    return path_join(env.S3_FOLDER || "", "originFavicon.current");
+}
+
 async function buildFaviconFromSource(c: AppContext, sourceUrl: string, faviconKey: string) {
     const env = c.get('env');
     const imageRequest = new Request(sourceUrl, {
@@ -104,19 +109,29 @@ export function FaviconService(): Hono {
         const env = c.get('env');
         
         try {
+            const currentResponse = await profileAsync(c, 'favicon_original_fetch', () =>
+                getStorageObject(env, getCurrentOriginalFaviconKey(env)));
+            const currentType = currentResponse?.headers.get("Content-Type");
+            if (currentResponse && currentType && FAVICON_ALLOWED_TYPES[currentType]) {
+                c.header("Content-Type", currentType);
+                c.header("Cache-Control", "no-cache");
+                return c.body(await profileAsync(c, 'favicon_original_body', () => currentResponse.arrayBuffer()));
+            }
+
+            // Preserve icons uploaded before the current-original key was introduced.
             for (const [mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
                 const originFaviconKey = path_join(env.S3_FOLDER || "", `originFavicon${ext}`);
                 const response = await profileAsync(c, 'favicon_original_fetch', () => getStorageObject(env, originFaviconKey));
 
                 if (response) {
                     c.header("Content-Type", mimeType);
-                    c.header("Cache-Control", "public, max-age=31536000");
+                    c.header("Cache-Control", "no-cache");
                     return c.body(await profileAsync(c, 'favicon_original_body', () => response.arrayBuffer()));
                 }
             }
 
-            c.status(404);
-            return c.text("Original favicon not found");
+            // Keep the avatar-derived favicon when the site has no uploaded icon.
+            return c.redirect("/favicon", 302);
         } catch (error) {
             if (error instanceof Error) {
                 c.status(500);
@@ -194,7 +209,16 @@ export function FaviconService(): Hono {
             await profileAsync(c, 'favicon_put', () => putStorageObjectAtKey(
                 env,
                 faviconKey,
-                new Uint8Array(arrayBuffer)
+                new Uint8Array(arrayBuffer),
+                "image/webp"
+            ));
+
+            // Update the browser-facing icon only after the transformed favicon is stored.
+            await profileAsync(c, 'favicon_current_original_put', () => putStorageObjectAtKey(
+                env,
+                getCurrentOriginalFaviconKey(env),
+                file,
+                file.type
             ));
 
             return c.json({ url: getStoragePublicUrl(env, faviconKey, new URL(c.req.url).origin) });

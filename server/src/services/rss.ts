@@ -6,7 +6,7 @@ import { feeds, users } from "../db/schema";
 import { extractImage } from "../utils/image";
 import { path_join } from "../utils/path";
 import { getStorageObject, getStoragePublicUrl, headStorageObject, putStorageObjectAtKey } from "../utils/storage";
-import { FAVICON_ALLOWED_TYPES, getFaviconKey } from "./favicon";
+import { FAVICON_ALLOWED_TYPES, getCurrentOriginalFaviconKey, getFaviconKey } from "./favicon";
 import type { DB } from "../core/hono-types";
 
 // Lazy-loaded modules for RSS generation
@@ -178,8 +178,19 @@ async function generateFeed(env: Env, db: DB, frontendUrl: string, c?: AppContex
         }
     }
 
-    // Try to discover stored favicon assets.
+    // Prefer the latest upload, falling back to icons stored before the current-original key existed.
+    const currentOriginalFaviconKey = getCurrentOriginalFaviconKey(env);
+    try {
+        const response = c
+            ? await profileAsync(c, 'rss_origin_favicon_fetch', () => headStorageObject(env, currentOriginalFaviconKey))
+            : await headStorageObject(env, currentOriginalFaviconKey);
+        if (response) {
+            feedConfig.image = getStoragePublicUrl(env, currentOriginalFaviconKey, publicBaseUrl);
+        }
+    } catch { }
+
     for (const [_mimeType, ext] of Object.entries(FAVICON_ALLOWED_TYPES)) {
+        if (feedConfig.image) break;
         const originFaviconKey = path_join(env.S3_FOLDER || "", `originFavicon${ext}`);
         try {
             const response = c

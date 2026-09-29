@@ -268,6 +268,34 @@ describe('FaviconService', () => {
             // Will fail due to S3 not being available, but verifies route is registered
             expect(res.status).not.toBe(404);
         });
+
+        it('prefers the latest upload over a legacy icon of another format', async () => {
+            env.R2_BUCKET = {
+                get: async (key: string) => {
+                    const image = key === 'images/originFavicon.current'
+                        ? { type: 'image/webp', body: 'new icon' }
+                        : key === 'images/originFavicon.png'
+                          ? { type: 'image/png', body: 'old icon' }
+                          : null;
+                    if (!image) return null;
+
+                    return {
+                        size: image.body.length,
+                        uploaded: new Date(),
+                        body: new Blob([image.body]).stream(),
+                        writeHttpMetadata(headers: Headers) {
+                            headers.set('Content-Type', image.type);
+                        },
+                    } as R2ObjectBody;
+                },
+            } as R2Bucket;
+
+            const res = await app.request('/original', { method: 'GET' }, env);
+            expect(res.status).toBe(200);
+            expect(res.headers.get('Content-Type')).toBe('image/webp');
+            expect(res.headers.get('Cache-Control')).toBe('no-cache');
+            expect(await res.text()).toBe('new icon');
+        });
     });
 
     describe('POST / - Upload favicon', () => {
@@ -328,6 +356,40 @@ describe('FaviconService', () => {
             // Should not be 403 - permission check passes
             // Will fail due to S3 not available
             expect(res.status).not.toBe(403);
+        });
+
+        it('stores a current original after a successful upload', async () => {
+            const writes: Array<{ key: string; type?: string }> = [];
+            env.R2_BUCKET = {
+                put: async (key: string, _body: unknown, options?: R2PutOptions) => {
+                    const metadata = options?.httpMetadata;
+                    writes.push({ key, type: metadata && 'contentType' in metadata ? metadata.contentType : undefined });
+                    return {} as R2Object;
+                },
+            } as R2Bucket;
+
+            const originalFetch = globalThis.fetch;
+            globalThis.fetch = async () => new Response('converted', { status: 200 });
+
+            try {
+                const formData = new FormData();
+                formData.append('file', new File(['new icon'], 'favicon.png', { type: 'image/png' }));
+
+                const res = await app.request('/', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer mock_token_1' },
+                    body: formData,
+                }, env);
+
+                expect(res.status).toBe(200);
+                expect(writes).toEqual([
+                    { key: 'images/originFavicon.png', type: 'image/png' },
+                    { key: 'images/favicon.webp', type: 'image/webp' },
+                    { key: 'images/originFavicon.current', type: 'image/png' },
+                ]);
+            } finally {
+                globalThis.fetch = originalFetch;
+            }
         });
     });
 
