@@ -21,6 +21,8 @@ interface AuthApi {
     status(): Promise<ApiResponse<{
         github: boolean;
         password: boolean;
+        /** 邮箱注册是否可用，由 SMTP 配置完整性决定 */
+        register: boolean;
     }>>;
 }
 

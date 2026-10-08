@@ -48,8 +48,9 @@ If you want to skip the hook, run `git commit` with the `--no-verify` option.
 
 6. Perform the database migration
    > [!TIP]  
-   > If your database name (`database_name` in `wrangler.toml`) is not `rin`\
-   > Please modify `DB_NAME` in your local env or pass the CLI option before performing the migration
+   > The database name is read automatically from `DB_NAME` in your local env.\
+   > It falls back to `rin` when unset. To override for a single run, pass `--db`:
+   > `bun run db:migrate -- --db my-database`
     ```sh
     bun run db:migrate
     ```

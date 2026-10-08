@@ -10,7 +10,9 @@
     "queue_status_description": "查看 AI 摘要佇列進度、最近任務結果與失敗資訊。",
     "settings_description": "在統一的後台空間中管理站點行為、整合配置與發佈規則。",
     "title": "後台管理",
-    "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。"
+    "writing_description": "在獨立的管理工作區中編寫、編輯並發佈內容。",
+    "comments_description": "審核遊客評論",
+    "users_description": "管理註冊使用者與權限"
   },
   "compat_tasks": {
     "title": "相容任務",
@@ -103,7 +105,10 @@
     "guest_name_required": "暱稱不能為空",
     "guest_name_placeholder": "暱稱（必填）",
     "guest_email_placeholder": "郵箱（可選）",
-    "guest_website_placeholder": "網站（可選）"
+    "guest_website_placeholder": "網站（可選）",
+    "submitting": "提交中…",
+    "pending_review": "評論已提交，等待管理員審核後顯示",
+    "captcha_required": "請先完成人機驗證"
   },
   "comparison": "比較",
   "confirm": "確認",
@@ -754,5 +759,229 @@
   "sort_latest": "最新",
   "sort_popular": "熱門",
   "total_tags": "共 {{count}} 個標籤",
-  "anonymous": "匿名"
+  "anonymous": "匿名",
+  "apiError": {
+    "unknown": "操作失敗，請稍後重試",
+    "COMMENT_VALIDATION_FAILED": "評論內容格式不正確",
+    "COMMENT_CONTENT_REQUIRED": "評論內容不能為空",
+    "COMMENT_CONTENT_TOO_LONG": "評論內容太長了",
+    "COMMENT_FEED_NOT_FOUND": "文章不存在或已被刪除",
+    "COMMENT_GUEST_NAME_REQUIRED": "請填寫暱稱",
+    "COMMENT_GUEST_DISABLED": "遊客評論已關閉，請登入後發表評論",
+    "COMMENT_DISABLED": "評論功能已關閉",
+    "CAPTCHA_FAILED": "人機驗證失敗，請重試",
+    "CAPTCHA_REQUIRED": "請先完成人機驗證",
+    "LOGIN_REQUIRED": "請先登入",
+    "COMMENT_PERMISSION_DENIED": "沒有權限刪除這則評論",
+    "COMMENT_NOT_FOUND": "評論不存在",
+    "RATE_LIMITED": "操作太頻繁，請稍後再試",
+    "AUTH_INVALID_CREDENTIALS": "使用者名稱或密碼錯誤",
+    "AUTH_CREDENTIALS_REQUIRED": "請輸入使用者名稱和密碼",
+    "AUTH_LOGIN_REQUIRED": "請先登入",
+    "AUTH_EMAIL_TAKEN": "該信箱已被註冊",
+    "AUTH_USERNAME_TAKEN": "該使用者名稱已被占用",
+    "AUTH_EMAIL_INVALID": "信箱格式不正確",
+    "AUTH_CODE_INVALID": "驗證碼錯誤或已過期",
+    "AUTH_CODE_TOO_FREQUENT": "請求過於頻繁，請稍後再試",
+    "AUTH_PASSWORD_WEAK": "密碼強度不足，至少需要 8 位",
+    "AUTH_REGISTER_DISABLED": "註冊功能未開放",
+    "AUTH_SMTP_NOT_CONFIGURED": "郵件服務未設定",
+    "AUTH_EMAIL_SEND_FAILED": "驗證碼郵件傳送失敗，請稍後重試"
+  },
+  "register": {
+    "title": "註冊帳戶",
+    "entry": "還沒有帳戶？使用信箱註冊",
+    "email": {
+      "placeholder": "信箱"
+    },
+    "username": {
+      "placeholder": "使用者名稱"
+    },
+    "password": {
+      "placeholder": "密碼（至少 8 位）"
+    },
+    "code": {
+      "placeholder": "6 位驗證碼"
+    },
+    "request_code": "傳送驗證碼",
+    "verify": "完成註冊",
+    "sending": "傳送中…",
+    "verifying": "驗證中…",
+    "code_sent": "驗證碼已傳送，請查收郵件",
+    "code_sent_to": "驗證碼已傳送至 {{email}}，請查收郵件",
+    "resend_in": "{{seconds}} 秒後可重新取得",
+    "change_email": "換個信箱",
+    "back_to_login": "返回登入",
+    "error": {
+      "empty": "請填寫信箱、使用者名稱和密碼",
+      "network": "網路錯誤，請重試",
+      "code_length": "請輸入 6 位驗證碼",
+      "captcha_required": "請先完成人機驗證",
+      "captcha_broken": "人機驗證元件載入失敗，請重新整理頁面後再試",
+      "captcha_config_failed": "人機驗證設定載入失敗，請重新整理頁面後再試"
+    },
+    "loading_captcha": "正在載入人機驗證…"
+  },
+  "moderation": {
+    "title": "評論審核",
+    "count": "待審核 {{count}} 條",
+    "empty": "沒有待審核的評論",
+    "on_feed": "評論於《{{title}}》",
+    "approve": {
+      "action": "通過",
+      "title": "通過評論",
+      "confirm": "通過後該評論將對所有人可見，確認繼續？"
+    },
+    "reject": {
+      "action": "駁回",
+      "title": "駁回評論",
+      "confirm": "駁回後該評論不會公開顯示，確認繼續？"
+    },
+    "filter": {
+      "pending": "待審核",
+      "approved": "已通過",
+      "all": "全部"
+    },
+    "badge": {
+      "pending": "待審核",
+      "approved": "已公開"
+    },
+    "empty_approved": "還沒有已公開的評論",
+    "empty_all": "沒有任何評論",
+    "view": "檢視",
+    "pagination": {
+      "prev": "上一頁",
+      "next": "下一頁",
+      "status": "第 {{page}} / {{totalPages}} 頁"
+    },
+    "delete": {
+      "action": "刪除",
+      "title": "刪除評論",
+      "confirm": "將永久刪除這則評論，此操作無法復原。確認繼續？"
+    }
+  },
+  "admin_users": {
+    "title": "使用者管理",
+    "total": "共 {{total}} 位使用者",
+    "search": {
+      "placeholder": "搜尋使用者名稱 / 信箱 / ID",
+      "action": "搜尋",
+      "clear": "清除"
+    },
+    "empty": "還沒有任何使用者",
+    "empty_filtered": "沒有符合的使用者",
+    "badge": {
+      "admin": "管理員",
+      "email": "信箱註冊",
+      "unverified": "信箱未驗證"
+    },
+    "action": {
+      "promote": "設為管理員",
+      "demote": "取消管理員",
+      "delete": "刪除"
+    },
+    "delete": {
+      "title": "刪除使用者",
+      "confirm": "將永久刪除「{{username}}」及其全部評論，此操作無法復原。確認繼續？"
+    },
+    "pagination": {
+      "prev": "上一頁",
+      "next": "下一頁",
+      "status": "第 {{page}} / {{totalPages}} 頁"
+    }
+  },
+  "plugins": {
+    "title": "外掛管理",
+    "description": "檢視外掛狀態、啟用或停用。啟停立即生效，無需重新部署",
+    "summary": "共 {{total}} 個外掛，{{enabled}} 個已啟用",
+    "empty": "還沒有任何外掛",
+    "load_failed": "載入外掛列表失敗",
+    "load_failed_desc": "請重新整理頁面重試",
+    "status": {
+      "enabled": "已啟用",
+      "disabled": "已停用",
+      "error": "載入失敗"
+    },
+    "action": {
+      "enable": "啟用",
+      "disable": "停用"
+    },
+    "api_prefix": "API 前綴：",
+    "error_reason": "失敗原因：",
+    "about_title": "如何新增外掛",
+    "about_desc": "外掛是編譯期內置的，修改後需要重新建置部署",
+    "about_docs": "完整文件見",
+    "about_server": "伺服器端註冊入口：",
+    "about_client": "前端註冊入口：",
+    "settings": {
+      "action": "設定",
+      "title": "外掛設定",
+      "description": "設定該外掛的行為",
+      "missing_name": "未指定外掛",
+      "not_found_title": "找不到該外掛的前端宣告",
+      "not_found_desc": "外掛「{{name}}」沒有註冊前端設定項。純伺服器端外掛不需要設定頁。",
+      "back": "返回外掛列表",
+      "none_title": "該外掛沒有可設定項",
+      "none_desc": "它不需要在後台設定。",
+      "load_failed": "讀取設定失敗，請重新整理重試",
+      "saved": "已儲存",
+      "upload_no_url": "圖片上傳失敗：儲存服務沒有回傳圖片網址。若剛設定完儲存，可能是服務尚未就緒，或圖片儲存後端目前不可用",
+      "list_placeholder": "用逗號分隔",
+      "remove": "移除",
+      "image_list_empty": "還沒有新增圖片。儲存後若前台沒有顯示輪播，多半是這裡還是空的 —— 請先上傳圖片或填寫圖片網址。",
+      "image_url_placeholder": "或直接填寫圖片網址，按 Enter 新增"
+    }
+  },
+  "turnstile": {
+    "load_failed": "人機驗證元件載入失敗，請檢查網路後重新整理頁面再試。"
+  },
+  "admin_articles": {
+    "title": "文章管理",
+    "description": "檢視全站文章（含草稿與未列出），檢查資訊並批次刪除。",
+    "total": "共 {{total}} 篇",
+    "untitled": "無標題",
+    "no_summary": "暫無摘要",
+    "top": "置頂",
+    "selected": "已選 {{count}} 篇",
+    "select": {
+      "all": "全選",
+      "none": "取消全選",
+      "row": "選擇文章 {{title}}"
+    },
+    "status": {
+      "published": "已發布",
+      "draft": "草稿",
+      "unlisted": "未列出"
+    },
+    "fields": {
+      "id": "ID：",
+      "alias": "別名：",
+      "created_at": "建立時間：",
+      "updated_at": "更新時間：",
+      "comments": "留言數：",
+      "pv": "瀏覽量："
+    },
+    "action": {
+      "view": "檢視",
+      "collapse": "收合"
+    },
+    "search": {
+      "placeholder": "依標題或別名搜尋",
+      "action": "搜尋",
+      "clear": "清除"
+    },
+    "pagination": {
+      "prev": "上一頁",
+      "next": "下一頁",
+      "status": "第 {{page}} / {{totalPages}} 頁"
+    },
+    "batch_delete": {
+      "action": "批次刪除",
+      "title": "批次刪除文章",
+      "confirm": "確定永久刪除選取的 {{count}} 篇文章嗎？其留言、標籤與瀏覽統計也會一併刪除。",
+      "missing": "已刪除 {{count}} 篇。以下 id 未找到：{{ids}}"
+    },
+    "empty": "還沒有任何文章",
+    "empty_filtered": "沒有符合關鍵字的文章"
+  }
 }

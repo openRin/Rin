@@ -22,11 +22,11 @@ const keys: Keys[] = [
 ];
 
 export class Cache {
-    static with(id?: number) {
+    static with(id?: number | string) {
         return new Cache(id);
     }
     private id: string;
-    constructor(id?: number) {
+    constructor(id?: number | string) {
         this.id = `${id ?? "new"}`;
     }
     public get(key: Keys) {

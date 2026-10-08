@@ -7,6 +7,8 @@ import {
   getMigrationVersion,
   updateMigrationVersion,
 } from "../lib/db-migration";
+import { buildStorageVarsToml, resolveStorageConfig } from "../lib/storage-config";
+import { parseWranglerJson } from "../lib/wrangler-json";
 const bunExec = process.execPath;
 
 function env(name: string, defaultValue?: string, required = false) {
@@ -27,6 +29,35 @@ const WORKER_SECRET_KEYS = [
   "RIN_GITHUB_CLIENT_SECRET",
   "S3_ACCESS_KEY_ID",
   "S3_SECRET_ACCESS_KEY",
+  "SUPABASE_SECRET_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  // 人机验证：secret 必须走 secret，site key 是公开值可走 vars
+  "TURNSTILE_SECRET_KEY",
+  // 邮件相关凭证
+  "SMTP_PASSWORD",
+  "RESEND_API_KEY",
+  "MAIL_GATEWAY_TOKEN",
+  "MAIL_JWT_SECRET",
+] as const;
+
+/**
+ * 公开配置，走 wrangler vars 而非 secret。
+ * 这些值要么本来就公开（site key），要么只是路由信息（host / endpoint）。
+ */
+const WORKER_PUBLIC_VAR_KEYS = [
+  "TURNSTILE_SITE_KEY",
+  "TURNSTILE_ENABLED",
+  "MAIL_PROVIDER",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USERNAME",
+  "SMTP_FROM",
+  "RESEND_ENDPOINT",
+  "MAIL_GATEWAY_ENDPOINT",
+  "MAIL_GATEWAY_AUTH_HEADER",
+  "MAIL_GATEWAY_AUTH_TEMPLATE",
+  "MAIL_FROM",
+  "MAIL_TIMEOUT_MS",
 ] as const;
 
 function isQueueAlreadyPresentError(stderr: string) {
@@ -44,6 +75,23 @@ export function collectWorkerSecrets(source: Record<string, string | undefined> 
   }
 
   return secrets;
+}
+
+/**
+ * 收集公开配置（Turnstile site key、SMTP 连接信息）。
+ * 这些值会随 wrangler vars 写进部署配置，不是机密。
+ */
+export function collectWorkerPublicVars(source: Record<string, string | undefined> = process.env) {
+  const vars: Record<string, string> = {};
+
+  for (const key of WORKER_PUBLIC_VAR_KEYS) {
+    const value = source[key];
+    if (value && value.length > 0) {
+      vars[key] = value;
+    }
+  }
+
+  return vars;
 }
 
 async function syncWorkerSecrets(workerName: string) {
@@ -151,13 +199,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   const workerName = renv("WORKER_NAME", "rin-server");
   const taskQueueName = env("TASK_QUEUE_NAME", env("AI_SUMMARY_QUEUE_NAME", `${workerName}-tasks`)) ?? `${workerName}-tasks`;
   const r2BucketName = env("R2_BUCKET_NAME", "");
-  const s3Endpoint = env("S3_ENDPOINT", "");
-  const s3AccessHost = env("S3_ACCESS_HOST", "");
-  const s3Bucket = env("S3_BUCKET", "");
-  const s3CacheFolder = renv("S3_CACHE_FOLDER", "cache/");
-  const s3Folder = renv("S3_FOLDER", "images/");
-  const s3Region = renv("S3_REGION", "auto");
-  const s3ForcePathStyle = env("S3_FORCE_PATH_STYLE", "false");
+  const storageConfig = resolveStorageConfig(process.env);
   const webhookUrl = env("WEBHOOK_URL", "");
   const rssTitle = env("RSS_TITLE", "");
   const rssDescription = env("RSS_DESCRIPTION", "");
@@ -169,15 +211,14 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   const rssEnable = env("RSS_ENABLE", "false");
   const frontendUrl = env("FRONTEND_URL", "");
 
-  let finalS3Endpoint = s3Endpoint;
-  let finalS3Bucket = s3Bucket;
-  let finalS3AccessHost = s3AccessHost;
-
-  if (!finalS3Endpoint || !finalS3Bucket) {
-    const r2Info = await resolveR2BucketInfo(r2BucketName || "");
-    if (r2Info) {
-      finalS3Endpoint ||= r2Info.endpoint;
-      finalS3Bucket ||= r2Info.name;
+  // Supabase 后端不需要 R2 binding，也不从 R2 推导 S3_* 参数
+  if (storageConfig.provider === "s3") {
+    if (!storageConfig.vars.S3_ENDPOINT || !storageConfig.vars.S3_BUCKET) {
+      const r2Info = await resolveR2BucketInfo(r2BucketName || "");
+      if (r2Info) {
+        storageConfig.vars.S3_ENDPOINT ||= r2Info.endpoint;
+        storageConfig.vars.S3_BUCKET ||= r2Info.name;
+      }
     }
   }
 
@@ -189,42 +230,51 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
   const hasServerBuild = await serverDistIndex.exists();
   const serverMain = hasServerBuild ? "dist/server/_worker.js" : "server/src/_worker.ts";
 
+  // [vars] 段单独拼装后追加，不放进 stripIndent 模板。
+  // 原因：插值出来的行是零缩进，会让 stripIndent 算出的最小缩进变成 0，
+  // 结果整个模板（包括 main）都不去缩进，TOML 表结构错乱，
+  // wrangler 报 "Missing entry-point to Worker script"。
+  const publicVars = collectWorkerPublicVars();
+
+  const varsToml = buildStorageVarsToml({
+    ...storageConfig.vars,
+    WEBHOOK_URL: webhookUrl,
+    RSS_TITLE: rssTitle,
+    RSS_DESCRIPTION: rssDescription,
+    CACHE_STORAGE_MODE: cacheStorageMode,
+    NAME: name,
+    DESCRIPTION: description,
+    AVATAR: avatar,
+    PAGE_SIZE: pageSize,
+    RSS_ENABLE: rssEnable,
+    FRONTEND_URL: frontendUrl,
+    // 人机验证与邮箱注册的公开配置。
+    // 未配置时键值不存在，服务端会自动把对应功能判定为关闭。
+    ...publicVars,
+  });
   Bun.write(
     "wrangler.toml",
-    stripIndent(`
-      #:schema node_modules/wrangler/config-schema.json
-      name = "${workerName}"
-      main = "${serverMain}"
-      compatibility_date = "2026-01-20"
+    [
+      stripIndent(`
+        #:schema node_modules/wrangler/config-schema.json
+        name = "${workerName}"
+        main = "${serverMain}"
+        compatibility_date = "2026-01-20"
 
-      [assets]
-      directory = "./dist/client"
-      binding = "ASSETS"
-      ${buildWranglerTriggersConfig(preview)}
-      ${buildWranglerObservabilityConfig(preview)}
+        [assets]
+        directory = "./dist/client"
+        binding = "ASSETS"
+        ${buildWranglerTriggersConfig(preview)}
+        ${buildWranglerObservabilityConfig(preview)}
 
-      [vars]
-      S3_FOLDER = "${s3Folder}"
-      S3_CACHE_FOLDER="${s3CacheFolder}"
-      S3_REGION = "${s3Region}"
-      S3_ENDPOINT = "${finalS3Endpoint}"
-      S3_ACCESS_HOST = "${finalS3AccessHost}"
-      S3_BUCKET = "${finalS3Bucket}"
-      S3_FORCE_PATH_STYLE = "${s3ForcePathStyle}"
-      WEBHOOK_URL = "${webhookUrl}"
-      RSS_TITLE = "${rssTitle}"
-      RSS_DESCRIPTION = "${rssDescription}"
-      CACHE_STORAGE_MODE = "${cacheStorageMode}"
-      NAME = "${name}"
-      DESCRIPTION = "${description}"
-      AVATAR = "${avatar}"
-      PAGE_SIZE = "${pageSize}"
-      RSS_ENABLE = "${rssEnable}"
-      FRONTEND_URL = "${frontendUrl}"
-
-      [placement]
-      mode = "smart"
-    `),
+        [placement]
+        mode = "smart"
+      `),
+      "",
+      "[vars]",
+      varsToml,
+      "",
+    ].join("\n"),
   );
 
   const { exitCode, stderr, stdout } = await $`${bunExec} x wrangler d1 create ${dbName}`.quiet().nothrow();
@@ -243,17 +293,31 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
     process.exit(1);
   }
 
-  const listJson = (JSON.parse(await $`${bunExec} x wrangler d1 list --json`.quiet().text()) as Array<{ name: string; uuid: string }>).find(
-    (item) => item.name === dbName,
-  );
-  if (listJson) {
-    await $`echo ${stripIndent(`
+  const d1List = parseWranglerJson(
+    await $`${bunExec} x wrangler d1 list --json`.quiet().text(),
+  ) as Array<{ name: string; uuid: string }>;
+
+  const listJson = d1List.find((item) => item.name === dbName);
+
+  if (!listJson) {
+    // 写不出真实 uuid 时，wrangler 会沿用 setup-dev 留下的 database_id = "local"，
+    // 部署阶段必然报 "must have a valid database_id"。这里提前给出明确原因。
+    const available = d1List.map((item) => item.name).join(", ");
+    console.error(`Failed to resolve D1 database "${dbName}" on this Cloudflare account.`);
+    console.error(
+      available
+        ? `Available databases: ${available}. Set DB_NAME to one of them, or create it with: wrangler d1 create ${dbName}`
+        : `No D1 databases found. Check CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID, or create it with: wrangler d1 create ${dbName}`,
+    );
+    process.exit(1);
+  }
+
+  await $`echo ${stripIndent(`
       [[d1_databases]]
       binding = "DB"
       database_name = "${listJson.name}"
       database_id = "${listJson.uuid}"
     `)} >> wrangler.toml`.quiet();
-  }
 
   await $`echo ${stripIndent(`
     [ai]
@@ -262,7 +326,7 @@ export async function runCloudflareDeploy(target: "all" | "server" | "client" = 
 
   await $`echo ${buildWranglerQueueConfig(taskQueueName, preview)} >> wrangler.toml`.quiet();
 
-  if (r2BucketName) {
+  if (r2BucketName && storageConfig.provider !== "supabase") {
     await $`echo ${stripIndent(`
       [[r2_buckets]]
       binding = "R2_BUCKET"

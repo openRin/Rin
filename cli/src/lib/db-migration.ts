@@ -1,4 +1,5 @@
 import { getWranglerEnv } from "./wrangler";
+import { parseWranglerJson } from "./wrangler-json";
 
 const bunExec = process.execPath;
 const wranglerCwd = "server";
@@ -34,7 +35,7 @@ async function runWranglerJson(args: string[]) {
     throw new Error(stderr.trim() || stdout.trim() || `wrangler failed with exit code ${exitCode}`);
   }
 
-  return JSON.parse(stdout);
+  return parseWranglerJson(stdout);
 }
 
 async function runWranglerQuiet(args: string[]) {

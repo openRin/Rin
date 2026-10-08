@@ -110,7 +110,7 @@ describe('TagService', () => {
 
     describe('bindTagToPost function', () => {
         it('should bind tags to a feed', async () => {
-            await bindTagToPost(db, 1, ['newtag1', 'newtag2']);
+            await bindTagToPost(db, '1', ['newtag1', 'newtag2']);
             
             const result = sqlite.prepare(`
                 SELECT h.name FROM hashtags h
@@ -122,7 +122,7 @@ describe('TagService', () => {
         });
 
         it('should create new tags if they do not exist', async () => {
-            await bindTagToPost(db, 1, ['brandnewtag']);
+            await bindTagToPost(db, '1', ['brandnewtag']);
             
             const tagResult = sqlite.prepare(`
                 SELECT * FROM hashtags WHERE name = 'brandnewtag'
@@ -132,8 +132,8 @@ describe('TagService', () => {
         });
 
         it('should remove existing tags before binding new ones', async () => {
-            await bindTagToPost(db, 1, ['tag1', 'tag2']);
-            await bindTagToPost(db, 1, ['tag3']);
+            await bindTagToPost(db, '1', ['tag1', 'tag2']);
+            await bindTagToPost(db, '1', ['tag3']);
             
             const result = sqlite.prepare(`
                 SELECT h.name FROM hashtags h
@@ -148,12 +148,12 @@ describe('TagService', () => {
         });
 
         it('should reuse existing tags', async () => {
-            await bindTagToPost(db, 1, ['reusable']);
+            await bindTagToPost(db, '1', ['reusable']);
             
             const tagResult = sqlite.prepare(`SELECT id FROM hashtags WHERE name = 'reusable'`).all() as any[];
             const tagId = tagResult[0]?.id;
             
-            await bindTagToPost(db, 2, ['reusable']);
+            await bindTagToPost(db, '2', ['reusable']);
             
             const feed2Tags = sqlite.prepare(`
                 SELECT hashtag_id FROM feed_hashtags WHERE feed_id = 2
@@ -163,8 +163,8 @@ describe('TagService', () => {
         });
 
         it('should handle empty tags array', async () => {
-            await bindTagToPost(db, 1, ['tag1', 'tag2']);
-            await bindTagToPost(db, 1, []);
+            await bindTagToPost(db, '1', ['tag1', 'tag2']);
+            await bindTagToPost(db, '1', []);
             
             const result = sqlite.prepare(`
                 SELECT COUNT(*) as count FROM feed_hashtags WHERE feed_id = 1

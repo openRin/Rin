@@ -176,8 +176,9 @@ export function ConfigService(): Hono {
     }));
 
     app.post('/compat-tasks/blurhash/:id', adminOnly(async (c: AppContext) => {
-        const id = Number(c.req.param('id'));
-        if (!Number.isInteger(id) || id <= 0) {
+        // feeds.id 现为文本（uuid 或数字文本），直接使用路径参数
+        const id = c.req.param('id');
+        if (!id.trim()) {
             return c.text('Invalid feed id', 400);
         }
 
@@ -196,8 +197,9 @@ export function ConfigService(): Hono {
     }));
 
     app.post('/queue-status/:id/retry', adminOnly(async (c: AppContext) => {
-        const id = Number(c.req.param('id'));
-        if (!Number.isInteger(id) || id <= 0) {
+        // feeds.id 现为文本（uuid 或数字文本），直接使用路径参数
+        const id = c.req.param('id');
+        if (!id.trim()) {
             return c.text('Invalid feed id', 400);
         }
 
@@ -212,8 +214,9 @@ export function ConfigService(): Hono {
     }));
 
     app.delete('/queue-status/:id', adminOnly(async (c: AppContext) => {
-        const id = Number(c.req.param('id'));
-        if (!Number.isInteger(id) || id <= 0) {
+        // feeds.id 现为文本（uuid 或数字文本），直接使用路径参数
+        const id = c.req.param('id');
+        if (!id.trim()) {
             return c.text('Invalid feed id', 400);
         }
 

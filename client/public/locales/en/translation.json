@@ -10,7 +10,9 @@
     "queue_status_description": "Inspect AI summary queue progress, recent task results, and failures.",
     "settings_description": "Manage site behavior, integrations, and publishing rules in one place.",
     "title": "Admin",
-    "writing_description": "Write, edit, and publish content from the private management workspace."
+    "writing_description": "Write, edit, and publish content from the private management workspace.",
+    "comments_description": "Review guest comments",
+    "users_description": "Manage registered users and permissions"
   },
   "compat_tasks": {
     "title": "Compatibility Tasks",
@@ -103,7 +105,10 @@
     "guest_name_required": "Guest name is required",
     "guest_name_placeholder": "Name (required)",
     "guest_email_placeholder": "Email (optional)",
-    "guest_website_placeholder": "Website (optional)"
+    "guest_website_placeholder": "Website (optional)",
+    "submitting": "Submitting…",
+    "pending_review": "Your comment was submitted and is awaiting review",
+    "captcha_required": "Please complete the captcha first"
   },
   "comparison": "Comparison",
   "confirm": "Confirm",
@@ -754,5 +759,229 @@
   "sort_latest": "Latest",
   "sort_popular": "Popular",
   "total_tags": "Total {{count}} tags",
-  "anonymous": "Anonymous"
+  "anonymous": "Anonymous",
+  "apiError": {
+    "unknown": "Something went wrong. Please try again.",
+    "COMMENT_VALIDATION_FAILED": "The comment format is invalid",
+    "COMMENT_CONTENT_REQUIRED": "Comment cannot be empty",
+    "COMMENT_CONTENT_TOO_LONG": "The comment is too long",
+    "COMMENT_FEED_NOT_FOUND": "This post no longer exists",
+    "COMMENT_GUEST_NAME_REQUIRED": "Please enter a name",
+    "COMMENT_GUEST_DISABLED": "Guest comments are disabled. Please sign in.",
+    "COMMENT_DISABLED": "Comments are disabled",
+    "CAPTCHA_FAILED": "Captcha verification failed. Please try again.",
+    "CAPTCHA_REQUIRED": "Please complete the captcha first",
+    "LOGIN_REQUIRED": "Please sign in first",
+    "COMMENT_PERMISSION_DENIED": "You do not have permission to delete this comment",
+    "COMMENT_NOT_FOUND": "Comment not found",
+    "RATE_LIMITED": "Too many requests. Please slow down.",
+    "AUTH_INVALID_CREDENTIALS": "Incorrect username or password",
+    "AUTH_CREDENTIALS_REQUIRED": "Please enter a username and password",
+    "AUTH_LOGIN_REQUIRED": "Please sign in first",
+    "AUTH_EMAIL_TAKEN": "This email is already registered",
+    "AUTH_USERNAME_TAKEN": "This username is already taken",
+    "AUTH_EMAIL_INVALID": "That email address looks invalid",
+    "AUTH_CODE_INVALID": "The verification code is incorrect or has expired",
+    "AUTH_CODE_TOO_FREQUENT": "Too many requests. Please wait a moment.",
+    "AUTH_PASSWORD_WEAK": "Password must be at least 8 characters",
+    "AUTH_REGISTER_DISABLED": "Registration is not available",
+    "AUTH_SMTP_NOT_CONFIGURED": "The mail service is not configured",
+    "AUTH_EMAIL_SEND_FAILED": "Could not send the verification email. Please try again."
+  },
+  "register": {
+    "title": "Create an account",
+    "entry": "No account yet? Register with email",
+    "email": {
+      "placeholder": "Email"
+    },
+    "username": {
+      "placeholder": "Username"
+    },
+    "password": {
+      "placeholder": "Password (at least 8 characters)"
+    },
+    "code": {
+      "placeholder": "6-digit code"
+    },
+    "request_code": "Send code",
+    "verify": "Finish registration",
+    "sending": "Sending…",
+    "verifying": "Verifying…",
+    "code_sent": "Code sent. Please check your inbox.",
+    "code_sent_to": "We sent a code to {{email}}. Please check your inbox.",
+    "resend_in": "You can request another code in {{seconds}}s",
+    "change_email": "Use a different email",
+    "back_to_login": "Back to sign in",
+    "error": {
+      "empty": "Please fill in your email, username and password",
+      "network": "Network error. Please try again.",
+      "code_length": "Please enter the 6-digit code",
+      "captcha_required": "Please complete the captcha first",
+      "captcha_broken": "The captcha widget failed to load. Please refresh the page and try again.",
+      "captcha_config_failed": "Failed to load the captcha configuration. Please refresh and try again."
+    },
+    "loading_captcha": "Loading captcha…"
+  },
+  "moderation": {
+    "title": "Comment moderation",
+    "count": "{{count}} pending",
+    "empty": "No comments awaiting review",
+    "on_feed": "on “{{title}}”",
+    "approve": {
+      "action": "Approve",
+      "title": "Approve comment",
+      "confirm": "This comment will become visible to everyone. Continue?"
+    },
+    "reject": {
+      "action": "Reject",
+      "title": "Reject comment",
+      "confirm": "This comment will stay hidden. Continue?"
+    },
+    "filter": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "all": "All"
+    },
+    "badge": {
+      "pending": "Pending",
+      "approved": "Published"
+    },
+    "empty_approved": "No published comments yet",
+    "empty_all": "No comments at all",
+    "view": "View",
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "status": "Page {{page}} / {{totalPages}}"
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete comment",
+      "confirm": "This permanently deletes the comment. This cannot be undone. Continue?"
+    }
+  },
+  "admin_users": {
+    "title": "User management",
+    "total": "{{total}} users in total",
+    "search": {
+      "placeholder": "Search username / email / ID",
+      "action": "Search",
+      "clear": "Clear"
+    },
+    "empty": "No users yet",
+    "empty_filtered": "No matching users",
+    "badge": {
+      "admin": "Admin",
+      "email": "Email",
+      "unverified": "Unverified"
+    },
+    "action": {
+      "promote": "Make admin",
+      "demote": "Revoke admin",
+      "delete": "Delete"
+    },
+    "delete": {
+      "title": "Delete user",
+      "confirm": "This permanently deletes \"{{username}}\" and all of their comments. This cannot be undone. Continue?"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "status": "Page {{page}} / {{totalPages}}"
+    }
+  },
+  "plugins": {
+    "title": "Plugin management",
+    "description": "Review plugin status, enable or disable them. Toggles take effect immediately.",
+    "summary": "{{total}} plugin(s), {{enabled}} enabled",
+    "empty": "No plugins yet",
+    "load_failed": "Failed to load plugins",
+    "load_failed_desc": "Please refresh and try again",
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "error": "Load failed"
+    },
+    "action": {
+      "enable": "Enable",
+      "disable": "Disable"
+    },
+    "api_prefix": "API prefix:",
+    "error_reason": "Reason:",
+    "about_title": "Adding a plugin",
+    "about_desc": "Plugins are compiled in, so changes require a rebuild and redeploy",
+    "about_docs": "Full docs:",
+    "about_server": "Server entry:",
+    "about_client": "Client entry:",
+    "settings": {
+      "action": "Settings",
+      "title": "Plugin settings",
+      "description": "Configure how this plugin behaves",
+      "missing_name": "No plugin specified",
+      "not_found_title": "Frontend declaration not found",
+      "not_found_desc": "Plugin \"{{name}}\" declares no settings. Server-only plugins don't need a settings page.",
+      "back": "Back to plugins",
+      "none_title": "This plugin has nothing to configure",
+      "none_desc": "It requires no configuration.",
+      "load_failed": "Failed to load settings, please refresh",
+      "saved": "Saved",
+      "upload_no_url": "Image upload failed: the storage service returned no image URL. If storage was just configured, the service may not be ready yet or is currently unavailable",
+      "list_placeholder": "Separate items with commas",
+      "remove": "Remove",
+      "image_list_empty": "No images added yet. If the carousel does not show up on the site after saving, this is probably why — upload an image or add an image URL first.",
+      "image_url_placeholder": "Or paste an image URL and press Enter to add"
+    }
+  },
+  "turnstile": {
+    "load_failed": "Captcha failed to load. Check your network and refresh the page."
+  },
+  "admin_articles": {
+    "title": "Article Management",
+    "description": "View all articles site-wide (including drafts and unlisted), inspect details, and batch delete.",
+    "total": "{{total}} articles",
+    "untitled": "Untitled",
+    "no_summary": "No summary",
+    "top": "Pinned",
+    "selected": "{{count}} selected",
+    "select": {
+      "all": "Select all",
+      "none": "Deselect all",
+      "row": "Select article {{title}}"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "unlisted": "Unlisted"
+    },
+    "fields": {
+      "id": "ID:",
+      "alias": "Alias:",
+      "created_at": "Created:",
+      "updated_at": "Updated:",
+      "comments": "Comments:",
+      "pv": "PV:"
+    },
+    "action": {
+      "view": "View",
+      "collapse": "Collapse"
+    },
+    "search": {
+      "placeholder": "Search by title or alias",
+      "action": "Search",
+      "clear": "Clear"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "status": "Page {{page}} of {{totalPages}}"
+    },
+    "batch_delete": {
+      "action": "Delete selected",
+      "title": "Batch delete articles",
+      "confirm": "Permanently delete {{count}} selected article(s)? Their comments, tags and view stats will be removed as well.",
+      "missing": "Deleted {{count}} article(s). The following ids were not found: {{ids}}"
+    },
+    "empty": "No articles yet",
+    "empty_filtered": "No articles match the keyword"
+  }
 }

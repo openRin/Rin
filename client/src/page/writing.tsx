@@ -77,7 +77,7 @@ async function update({
   onCompleted,
   showAlert
 }: {
-  id: number;
+  id: number | string;
   listed: boolean;
   title?: string;
   alias?: string;
@@ -91,7 +91,7 @@ async function update({
 }) {
   const t = i18n.t
   const { error } = await client.feed.update(
-    id,
+    String(id),
     {
       title,
       alias,
@@ -117,7 +117,7 @@ async function update({
 }
 
 // 写作页面
-export function WritingPage({ id }: { id?: number }) {
+export function WritingPage({ id }: { id?: number | string }) {
   const { t } = useTranslation();
   const siteConfig = useSiteConfig();
   const cache = Cache.with(id);
@@ -255,7 +255,6 @@ export function WritingPage({ id }: { id?: number }) {
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             <div className="lg:col-span-2">
               <Input
-                id={id}
                 value={title}
                 setValue={setTitle}
                 placeholder={t("title")}
@@ -264,21 +263,18 @@ export function WritingPage({ id }: { id?: number }) {
               />
             </div>
             <Input
-              id={id}
               value={summary}
               setValue={setSummary}
               placeholder={t("summary")}
               variant="flat"
             />
             <Input
-              id={id}
               value={alias}
               setValue={setAlias}
               placeholder={t("alias")}
               variant="flat"
             />
             <Input
-              id={id}
               value={tags}
               setValue={setTags}
               placeholder={t("tags")}

@@ -10,7 +10,9 @@
     "queue_status_description": "查看 AI 摘要队列进度、最近任务结果和失败信息。",
     "settings_description": "在统一的后台空间中管理站点行为、集成配置和发布规则。",
     "title": "后台管理",
-    "writing_description": "在独立的管理工作区中编写、编辑和发布内容。"
+    "writing_description": "在独立的管理工作区中编写、编辑和发布内容。",
+    "comments_description": "审核游客评论",
+    "users_description": "管理注册用户与权限"
   },
   "compat_tasks": {
     "title": "兼容任务",
@@ -103,7 +105,10 @@
     "guest_name_required": "昵称不能为空",
     "guest_name_placeholder": "昵称（必填）",
     "guest_email_placeholder": "邮箱（可选）",
-    "guest_website_placeholder": "网站（可选）"
+    "guest_website_placeholder": "网站（可选）",
+    "submitting": "提交中…",
+    "pending_review": "评论已提交，等待管理员审核后展示",
+    "captcha_required": "请先完成人机验证"
   },
   "comparison": "对比",
   "confirm": "确认",
@@ -754,5 +759,229 @@
   "sort_latest": "最新",
   "sort_popular": "热门",
   "total_tags": "共 {{count}} 个标签",
-  "anonymous": "匿名"
+  "anonymous": "匿名",
+  "apiError": {
+    "unknown": "操作失败，请稍后重试",
+    "COMMENT_VALIDATION_FAILED": "评论内容格式不正确",
+    "COMMENT_CONTENT_REQUIRED": "评论内容不能为空",
+    "COMMENT_CONTENT_TOO_LONG": "评论内容太长了",
+    "COMMENT_FEED_NOT_FOUND": "文章不存在或已被删除",
+    "COMMENT_GUEST_NAME_REQUIRED": "请填写昵称",
+    "COMMENT_GUEST_DISABLED": "游客评论已关闭，请登录后发表评论",
+    "COMMENT_DISABLED": "评论功能已关闭",
+    "CAPTCHA_FAILED": "人机验证失败，请重试",
+    "CAPTCHA_REQUIRED": "请先完成人机验证",
+    "LOGIN_REQUIRED": "请先登录",
+    "COMMENT_PERMISSION_DENIED": "没有权限删除这条评论",
+    "COMMENT_NOT_FOUND": "评论不存在",
+    "RATE_LIMITED": "操作太频繁，请稍后再试",
+    "AUTH_INVALID_CREDENTIALS": "用户名或密码错误",
+    "AUTH_CREDENTIALS_REQUIRED": "请输入用户名和密码",
+    "AUTH_LOGIN_REQUIRED": "请先登录",
+    "AUTH_EMAIL_TAKEN": "该邮箱已被注册",
+    "AUTH_USERNAME_TAKEN": "该用户名已被占用",
+    "AUTH_EMAIL_INVALID": "邮箱格式不正确",
+    "AUTH_CODE_INVALID": "验证码错误或已过期",
+    "AUTH_CODE_TOO_FREQUENT": "请求过于频繁，请稍后再试",
+    "AUTH_PASSWORD_WEAK": "密码强度不足，至少需要 8 位",
+    "AUTH_REGISTER_DISABLED": "注册功能未开放",
+    "AUTH_SMTP_NOT_CONFIGURED": "邮件服务未配置",
+    "AUTH_EMAIL_SEND_FAILED": "验证码邮件发送失败，请稍后重试"
+  },
+  "register": {
+    "title": "注册账户",
+    "entry": "还没有账户？使用邮箱注册",
+    "email": {
+      "placeholder": "邮箱"
+    },
+    "username": {
+      "placeholder": "用户名"
+    },
+    "password": {
+      "placeholder": "密码（至少 8 位）"
+    },
+    "code": {
+      "placeholder": "6 位验证码"
+    },
+    "request_code": "发送验证码",
+    "verify": "完成注册",
+    "sending": "发送中…",
+    "verifying": "验证中…",
+    "code_sent": "验证码已发送，请查收邮件",
+    "code_sent_to": "验证码已发送至 {{email}}，请查收邮件",
+    "resend_in": "{{seconds}} 秒后可重新获取",
+    "change_email": "换个邮箱",
+    "back_to_login": "返回登录",
+    "error": {
+      "empty": "请填写邮箱、用户名和密码",
+      "network": "网络错误，请重试",
+      "code_length": "请输入 6 位验证码",
+      "captcha_required": "请先完成人机验证",
+      "captcha_broken": "人机验证组件加载失败，请刷新页面后重试",
+      "captcha_config_failed": "人机验证配置加载失败，请刷新页面后重试"
+    },
+    "loading_captcha": "正在加载人机验证…"
+  },
+  "moderation": {
+    "title": "评论审核",
+    "count": "待审核 {{count}} 条",
+    "empty": "没有待审核的评论",
+    "on_feed": "评论于《{{title}}》",
+    "approve": {
+      "action": "通过",
+      "title": "通过评论",
+      "confirm": "通过后该评论将对所有人可见，确认继续？"
+    },
+    "reject": {
+      "action": "驳回",
+      "title": "驳回评论",
+      "confirm": "驳回后该评论不会公开展示，确认继续？"
+    },
+    "filter": {
+      "pending": "待审核",
+      "approved": "已通过",
+      "all": "全部"
+    },
+    "badge": {
+      "pending": "待审核",
+      "approved": "已公开"
+    },
+    "empty_approved": "还没有已公开的评论",
+    "empty_all": "没有任何评论",
+    "view": "查看",
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "status": "第 {{page}} / {{totalPages}} 页"
+    },
+    "delete": {
+      "action": "删除",
+      "title": "删除评论",
+      "confirm": "将永久删除这条评论，此操作不可撤销。确认继续？"
+    }
+  },
+  "admin_users": {
+    "title": "用户管理",
+    "total": "共 {{total}} 位用户",
+    "search": {
+      "placeholder": "搜索用户名 / 邮箱 / ID",
+      "action": "搜索",
+      "clear": "清除"
+    },
+    "empty": "还没有任何用户",
+    "empty_filtered": "没有匹配的用户",
+    "badge": {
+      "admin": "管理员",
+      "email": "邮箱注册",
+      "unverified": "邮箱未验证"
+    },
+    "action": {
+      "promote": "设为管理员",
+      "demote": "取消管理员",
+      "delete": "删除"
+    },
+    "delete": {
+      "title": "删除用户",
+      "confirm": "将永久删除「{{username}}」及其全部评论，此操作不可撤销。确认继续？"
+    },
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "status": "第 {{page}} / {{totalPages}} 页"
+    }
+  },
+  "plugins": {
+    "title": "插件管理",
+    "description": "查看插件状态、启用或停用。启停立即生效，无需重新部署",
+    "summary": "共 {{total}} 个插件，{{enabled}} 个已启用",
+    "empty": "还没有任何插件",
+    "load_failed": "加载插件列表失败",
+    "load_failed_desc": "请刷新页面重试",
+    "status": {
+      "enabled": "已启用",
+      "disabled": "已停用",
+      "error": "加载失败"
+    },
+    "action": {
+      "enable": "启用",
+      "disable": "停用"
+    },
+    "api_prefix": "API 前缀：",
+    "error_reason": "失败原因：",
+    "about_title": "如何新增插件",
+    "about_desc": "插件是编译期内置的，修改后需要重新构建部署",
+    "about_docs": "完整文档见",
+    "about_server": "服务端注册入口：",
+    "about_client": "前端注册入口：",
+    "settings": {
+      "action": "设置",
+      "title": "插件设置",
+      "description": "配置该插件的行为",
+      "missing_name": "未指定插件",
+      "not_found_title": "找不到该插件的前端声明",
+      "not_found_desc": "插件「{{name}}」没有注册前端设置项。纯服务端插件不需要设置页。",
+      "back": "返回插件列表",
+      "none_title": "该插件没有可配置项",
+      "none_desc": "它不需要在后台配置。",
+      "load_failed": "读取设置失败，请刷新重试",
+      "saved": "已保存",
+      "upload_no_url": "图片上传失败：存储服务没有返回图片地址。若刚配置完存储，可能是服务尚未就绪，或图片存储后端当前不可用",
+      "list_placeholder": "用逗号分隔",
+      "remove": "移除",
+      "image_list_empty": "还没有添加图片。保存后若前台没有显示轮播，多半是这里还是空的 —— 请先上传图片或填写图片网址。",
+      "image_url_placeholder": "或直接填写图片网址，回车添加"
+    }
+  },
+  "turnstile": {
+    "load_failed": "人机验证组件加载失败，请检查网络后刷新页面重试。"
+  },
+  "admin_articles": {
+    "title": "文章管理",
+    "description": "查看全站文章（含草稿与未列出），检查信息并批量删除。",
+    "total": "共 {{total}} 篇",
+    "untitled": "无标题",
+    "no_summary": "暂无摘要",
+    "top": "置顶",
+    "selected": "已选 {{count}} 篇",
+    "select": {
+      "all": "全选",
+      "none": "取消全选",
+      "row": "选择文章 {{title}}"
+    },
+    "status": {
+      "published": "已发布",
+      "draft": "草稿",
+      "unlisted": "未列出"
+    },
+    "fields": {
+      "id": "ID：",
+      "alias": "别名：",
+      "created_at": "创建时间：",
+      "updated_at": "更新时间：",
+      "comments": "评论数：",
+      "pv": "浏览量："
+    },
+    "action": {
+      "view": "查看",
+      "collapse": "收起"
+    },
+    "search": {
+      "placeholder": "按标题或别名搜索",
+      "action": "搜索",
+      "clear": "清除"
+    },
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "status": "第 {{page}} / {{totalPages}} 页"
+    },
+    "batch_delete": {
+      "action": "批量删除",
+      "title": "批量删除文章",
+      "confirm": "确定永久删除选中的 {{count}} 篇文章吗？其评论、标签与浏览统计也会一并删除。",
+      "missing": "已删除 {{count}} 篇。以下 id 未找到：{{ids}}"
+    },
+    "empty": "还没有任何文章",
+    "empty_filtered": "没有匹配关键词的文章"
+  }
 }

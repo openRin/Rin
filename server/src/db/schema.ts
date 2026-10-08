@@ -1,11 +1,12 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, unique, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 
 export const feeds = sqliteTable("feeds", {
-    id: integer("id").primaryKey(),
+    // 文章 ID：uuid（默认）或数字（由 feed.id_mode 决定），统一以文本存储
+    id: text("id").primaryKey(),
     alias: text("alias"),
     title: text("title"),
     summary: text("summary").default("").notNull(),
@@ -41,7 +42,7 @@ export const moments = sqliteTable("moments", {
 
 export const visits = sqliteTable("visits", {
     id: integer("id").primaryKey(),
-    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
+    feedId: text("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
     ip: text("ip").notNull(),
     createdAt: created_at,
 }, (table) => ({
@@ -49,7 +50,7 @@ export const visits = sqliteTable("visits", {
 }));
 
 export const visitStats = sqliteTable("visit_stats", {
-    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull().primaryKey(),
+    feedId: text("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull().primaryKey(),
     pv: integer("pv").default(0).notNull(),
     hllData: text("hll_data").default("").notNull(),
     updatedAt: updated_at,
@@ -87,25 +88,36 @@ export const users = sqliteTable("users", {
     avatar: text("avatar"),
     password: text("password"),
     permission: integer("permission").default(0),
+    /** 邮箱注册用户的邮箱；GitHub/管理员账号为空串 */
+    email: text("email").default(""),
+    /** 邮箱是否已通过验证码验证 */
+    emailVerified: integer("email_verified").default(0).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
 }, (table) => ({
     openidIdx: index("users_openid_idx").on(table.openid),
+    // 邮箱唯一性只对真正拥有地址的账号生效：空串默认值可以重复。
+    // 用 uniqueIndex + where 做部分唯一索引，D1 / SQLite 均支持。
+    emailUniqueIdx: uniqueIndex("users_email_unique").on(table.email).where(sql`${table.email} <> ''`),
 }));
 
 export const comments = sqliteTable("comments", {
     id: integer("id").primaryKey(),
-    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
+    feedId: text("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
     userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }),
     content: text("content").notNull(),
     guestName: text("guest_name").default(""),
     guestEmail: text("guest_email").default(""),
     guestWebsite: text("guest_website").default(""),
+    /** 审核状态：1 已通过可见，0 待审核 */
     approved: integer("approved").default(1).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
 }, (table) => ({
     feedCreatedAtIdx: index("comments_feed_created_at_idx").on(table.feedId, table.createdAt),
+    // 列表读取现在带 approved 过滤，审核队列只按 approved + 时间排序，各自需要独立索引。
+    approvedFeedCreatedAtIdx: index("comments_approved_feed_created_at_idx").on(table.approved, table.feedId, table.createdAt),
+    approvedCreatedAtIdx: index("comments_approved_created_at_idx").on(table.approved, table.createdAt),
 }));
 
 export const hashtags = sqliteTable("hashtags", {
@@ -118,7 +130,7 @@ export const hashtags = sqliteTable("hashtags", {
 }));
 
 export const feedHashtags = sqliteTable("feed_hashtags", {
-    feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
+    feedId: text("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
     hashtagId: integer("hashtag_id").references(() => hashtags.id, { onDelete: 'cascade' }).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,

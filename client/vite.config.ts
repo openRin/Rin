@@ -11,6 +11,12 @@ export default defineConfig(({ mode }) => {
   
   return {
     cacheDir,
+    resolve: {
+      // 必须去重 react/react-dom：packages/ui 以源码参与构建，其中的 react
+      // 会被解析成独立副本，两份 React 的 dispatcher 不互通，
+      // 报 "Cannot read properties of null (reading 'useRef')"。
+      dedupe: ["react", "react-dom"],
+    },
     // Note: Client configuration is fetched from server at runtime
     // No environment variables are injected at build time
     build: {

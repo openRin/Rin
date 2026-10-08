@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { AUTH_ERROR_CODES, loginSchema, validateSchema, type AuthStatusResponse } from "@rin/api";
 import type { AppContext, Variables } from "../core/hono-types";
 import { profileAsync } from "../core/server-timing";
 import { setJWTCookie, clearJWTCookie } from "../core/hono-middleware";
@@ -8,17 +9,10 @@ import {
     BadRequestError,
     ForbiddenError,
     InternalServerError,
+    bizError,
+    validationErrorFromIssues,
 } from "../errors";
-
-// Hash password using SHA-256
-async function hashPassword(password: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
+import { hashPassword, checkRegistrationAvailable } from "./registration";
 export function PasswordAuthService(): Hono<{
         Bindings: Env;
         Variables: Variables;
@@ -41,11 +35,19 @@ export function PasswordAuthService(): Hono<{
             throw new BadRequestError('Admin credentials not configured');
         }
 
-        const { username, password } = await profileAsync(c, 'auth_login_parse', () => c.req.json()) as { username: string; password: string };
+        const rawBody = await profileAsync(c, 'auth_login_parse', () => c.req.json());
 
-        if (!username || !password) {
-            throw new BadRequestError('Username and password are required');
+        // 契约校验：与注册、评论共用 @rin/api 的 schema
+        const validation = validateSchema<{ username: string; password: string }>(loginSchema, rawBody);
+        if (!validation.success) {
+            throw validationErrorFromIssues(
+                AUTH_ERROR_CODES.AUTH_CREDENTIALS_REQUIRED,
+                'Username and password are required',
+                validation.issues,
+            );
         }
+
+        const { username, password } = validation.data;
 
         // Hash the provided password
         const hashedPassword = await profileAsync(c, 'auth_login_hash', () => hashPassword(password));
@@ -55,7 +57,7 @@ export function PasswordAuthService(): Hono<{
             const expectedHash = await profileAsync(c, 'auth_admin_hash', () => hashPassword(adminPassword));
             
             if (hashedPassword !== expectedHash) {
-                throw new ForbiddenError('Invalid credentials');
+                throw bizError(AUTH_ERROR_CODES.AUTH_INVALID_CREDENTIALS, 'Invalid credentials', 403);
             }
 
             // Find or create admin user
@@ -117,11 +119,11 @@ export function PasswordAuthService(): Hono<{
         }));
 
         if (!user || !user.password) {
-            throw new ForbiddenError('Invalid credentials');
+            throw bizError(AUTH_ERROR_CODES.AUTH_INVALID_CREDENTIALS, 'Invalid credentials', 403);
         }
 
         if (user.password !== hashedPassword) {
-            throw new ForbiddenError('Invalid credentials');
+            throw bizError(AUTH_ERROR_CODES.AUTH_INVALID_CREDENTIALS, 'Invalid credentials', 403);
         }
 
         // Generate JWT token
@@ -142,14 +144,23 @@ export function PasswordAuthService(): Hono<{
         });
     });
 
-    // Check if password login is available
+    // Check which login methods are available
     app.get("/status", async (c: AppContext) => {
         const env = c.env;
-        
-        return c.json({
+        const serverConfig = c.get('serverConfig');
+
+        // 邮箱注册可用性由 SMTP 配置完整性决定，前端据此决定是否展示注册入口
+        const register = await profileAsync(c, 'auth_status_register', () =>
+            checkRegistrationAvailable(serverConfig, env),
+        );
+
+        const response: AuthStatusResponse = {
             github: !!(env.RIN_GITHUB_CLIENT_ID && env.RIN_GITHUB_CLIENT_SECRET),
             password: !!(env.ADMIN_USERNAME && env.ADMIN_PASSWORD),
-        });
+            register,
+        };
+
+        return c.json(response);
     });
 
     return app;

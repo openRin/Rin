@@ -80,7 +80,7 @@ GITHUB_CLIENT_SECRET  → RIN_GITHUB_CLIENT_SECRET
 - **Workers R2 存储**:Edit (如果使用 R2 存储)
 - **Workers 脚本**:Edit
 
-![1000000663](/cloudflare-api-key-cn.png)
+![1000000663](https://docs.openrin.org/cloudflare-api-key-cn.png)
 
 
 ### 第五步：重命名分支名

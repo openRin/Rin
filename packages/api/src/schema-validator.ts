@@ -5,14 +5,26 @@ export type Schema = {
   optional?: boolean;
   integer?: boolean;
   minLength?: number;
-  format?: 'date-time';
+  maxLength?: number;
+  /** 允许的枚举值；非空时值必须命中其一 */
+  enum?: readonly (string | number)[];
+  pattern?: RegExp;
+  min?: number;
+  max?: number;
+  format?: 'date-time' | 'email';
   properties?: Record<string, Schema>;
   items?: Schema;
   additionalProperties?: boolean;
 };
 
 type OptionalOptions = { optional?: boolean };
-type StringOptions = OptionalOptions & { minLength?: number };
+type StringOptions = OptionalOptions & {
+  minLength?: number;
+  maxLength?: number;
+  enum?: readonly string[];
+  pattern?: RegExp;
+  format?: 'email';
+};
 
 export const t = {
   Object: (properties: Record<string, Schema>, options?: { additionalProperties?: boolean }): Schema => ({
@@ -24,6 +36,10 @@ export const t = {
     type: 'string',
     optional: options?.optional,
     minLength: options?.minLength,
+    maxLength: options?.maxLength,
+    enum: options?.enum,
+    pattern: options?.pattern,
+    format: options?.format,
   }),
   Number: (options?: OptionalOptions): Schema => ({ type: 'number', optional: options?.optional }),
   Boolean: (options?: OptionalOptions): Schema => ({ type: 'boolean', optional: options?.optional }),
@@ -46,6 +62,16 @@ export type SchemaValidationResult<T = unknown> =
 
 function describePath(path: string) {
   return path || 'value';
+}
+
+/**
+ * 刻意保持宽松：只挡住明显不是邮箱的输入，不追求 RFC 完全合规。
+ * 真正的可用性校验以邮件投递结果为准。
+ */
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+
+export function isEmail(value: unknown): value is string {
+  return typeof value === 'string' && EMAIL_PATTERN.test(value);
 }
 
 function isFile(value: unknown) {
@@ -97,9 +123,29 @@ function collectIssues(schema: Schema, value: unknown, path: string, issues: Sch
     case 'string':
       if (typeof value !== 'string') {
         issues.push({ path, message: `${label} must be a string` });
-      } else if (schema.minLength !== undefined && value.length < schema.minLength) {
+        return;
+      }
+      if (schema.minLength !== undefined && value.length < schema.minLength) {
         issues.push({ path, message: `${label} must not be empty` });
-      } else if (schema.format === 'date-time' && Number.isNaN(Date.parse(value))) {
+        return;
+      }
+      if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+        issues.push({ path, message: `${label} must be at most ${schema.maxLength} characters` });
+        return;
+      }
+      if (schema.enum && !schema.enum.includes(value)) {
+        issues.push({ path, message: `${label} must be one of ${schema.enum.join(', ')}` });
+        return;
+      }
+      if (schema.pattern && !schema.pattern.test(value)) {
+        issues.push({ path, message: `${label} has an invalid format` });
+        return;
+      }
+      if (schema.format === 'email' && !EMAIL_PATTERN.test(value)) {
+        issues.push({ path, message: `${label} must be a valid email address` });
+        return;
+      }
+      if (schema.format === 'date-time' && Number.isNaN(Date.parse(value))) {
         issues.push({ path, message: `${label} must be a valid date-time` });
       }
       return;

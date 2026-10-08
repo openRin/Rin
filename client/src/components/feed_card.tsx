@@ -137,7 +137,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                 {safeHashtags.length > 0 &&
                     <div className={`flex flex-row flex-wrap justify-start gap-2 ${activeVariant === "editorial" ? "mt-4" : "mt-2 gap-x-2"}`}>
                         {safeHashtags.map(({ name }, index) => (
-                            <HashTag key={index} name={name} />
+                            <HashTag key={index} name={name} interactive={!preview} />
                         ))}
                     </div>
                 }

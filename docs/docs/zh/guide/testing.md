@@ -155,7 +155,7 @@ bun run test:coverage
 - 每个 Pull Request
 - 部署前（阻塞性）
 
-详细信息请参阅 [GitHub Actions 工作流](./deploy.mdx#github-actions-工作流)。
+详细信息请参阅 [GitHub Actions 工作流](https://docs.openrin.org/zh/guide/deploy#github-actions-工作流)。
 
 ## 最佳实践
 

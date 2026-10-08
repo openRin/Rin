@@ -34,7 +34,7 @@ export async function retryQueueStatusTask(
   cache: any,
   serverConfig: { get(key: string): Promise<unknown> },
   env: Env,
-  feedId: number,
+  feedId: string,
 ) {
   const feed = await db.query.feeds.findFirst({
     where: eq(feeds.id, feedId),
@@ -59,7 +59,7 @@ export async function retryQueueStatusTask(
 export async function deleteQueueStatusTask(
   db: any,
   cache: any,
-  feedId: number,
+  feedId: string,
 ) {
   const feed = await db.query.feeds.findFirst({
     where: eq(feeds.id, feedId),

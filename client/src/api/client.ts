@@ -20,6 +20,20 @@ import type {
   TagDetail,
   Comment,
   CreateCommentRequest,
+  CreateCommentResponse,
+  AdminCommentListResponse,
+  CaptchaConfig,
+  RegisterRequest,
+  RegisterVerifyRequest,
+  RegisterResponse,
+  AuthStatusResponse,
+  AdminUserListResponse,
+  AdminUserDetail,
+  AdminUserUpdateResponse,
+  AdminUserDeleteResponse,
+  AdminPluginListResponse,
+  AdminPluginToggleResponse,
+  PluginSettingsResponse,
   Friend,
   FriendListResponse,
   CreateFriendRequest,
@@ -30,10 +44,12 @@ import type {
   ConfigResponse,
   AIConfig,
   UploadResponse,
-  AuthStatus,
   LoginRequest,
   LoginResponse,
 } from "@rin/api";
+
+// 端点常量与类型同源，避免路径在前端各处硬编码后与服务端漂移
+import { API_PATHS } from "@rin/api";
 
 export interface SettingsConfigResponse {
   clientConfig: ConfigResponse;
@@ -73,7 +89,8 @@ export interface ConfigHealthResponse {
 }
 
 export interface QueueStatusItem {
-  id: number;
+  /** 所属文章 ID（字符串） */
+  id: string;
   title: string | null;
   aiSummaryStatus: "idle" | "pending" | "processing" | "completed" | "failed";
   aiSummaryError: string;
@@ -112,7 +129,8 @@ export interface CompatAISummaryActionResponse {
 }
 
 export interface CompatBlurhashCandidate {
-  id: number;
+  /** 文章 ID（字符串） */
+  id: string;
   title: string | null;
   content: string;
 }
@@ -124,6 +142,39 @@ export interface CompatBlurhashCandidatesResponse {
 
 export interface CompatBlurhashApplyResponse {
   updated: boolean;
+}
+
+/**
+ * 管理端「文章统一管理」类型。
+ * packages/api 尚未收录这组契约，先在客户端本地声明；服务端见 server/src/services/admin-feeds.ts
+ */
+export interface AdminArticleItem {
+  id: string;
+  title: string | null;
+  alias: string | null;
+  summary: string;
+  draft: number;
+  listed: number;
+  top: number;
+  createdAt: string;
+  updatedAt: string;
+  commentCount: number;
+  pv: number;
+}
+
+export interface AdminArticleListResponse {
+  feeds: AdminArticleItem[];
+  pagination: {
+    page: number;
+    size: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminArticleBatchDeleteResponse {
+  deleted: number;
+  missing: string[];
 }
 
 // Re-export for external use
@@ -152,7 +203,6 @@ export type {
   ConfigResponse,
   AIConfig,
   UploadResponse,
-  AuthStatus,
   LoginRequest,
   LoginResponse,
 } from "@rin/api";
@@ -207,14 +257,22 @@ class HttpClient {
         } catch {
           errorValue = await responseClone.text();
         }
-        // Extract error message from various formats
+        // Extract error code and message from various formats.
+        // 关键：优先取 `code`，它是稳定的业务标识；`message` 只作兜底展示。
         let errorMessage: string;
+        let errorCode: string | undefined;
+        let errorDetails: { field?: string; message: string }[] | undefined;
         if (typeof errorValue === 'string') {
           errorMessage = errorValue;
         } else if (errorValue && typeof errorValue === 'object') {
-          // Handle { error: { message: string } } format
+          // Handle { error: { code, message, details } } format
           const err = errorValue as any;
-          errorMessage = err.error?.message || err.message || err.error || JSON.stringify(errorValue);
+          const nested = typeof err.error === 'object' && err.error ? err.error : err;
+          errorCode = typeof nested.code === 'string' ? nested.code : undefined;
+          errorMessage = nested.message || err.message || err.error || JSON.stringify(errorValue);
+          if (Array.isArray(nested.details)) {
+            errorDetails = nested.details;
+          }
         } else {
           errorMessage = String(errorValue ?? response.statusText);
         }
@@ -222,6 +280,8 @@ class HttpClient {
           error: {
             status: response.status,
             value: errorMessage,
+            code: errorCode,
+            details: errorDetails,
           },
         };
       }
@@ -300,17 +360,17 @@ class FeedAPI {
   }
 
   // POST /api/feed
-  async create(body: CreateFeedRequest): Promise<ApiResponse<{ insertedId: number }>> {
-    return this.http.post<{ insertedId: number }>("/api/feed", body);
+  async create(body: CreateFeedRequest): Promise<ApiResponse<{ insertedId: string }>> {
+    return this.http.post<{ insertedId: string }>("/api/feed", body);
   }
 
   // POST /api/feed/:id
-  async update(id: number, body: UpdateFeedRequest): Promise<ApiResponse<void>> {
+  async update(id: string, body: UpdateFeedRequest): Promise<ApiResponse<void>> {
     return this.http.post<void>(`/api/feed/${id}`, body);
   }
 
   // DELETE /api/feed/:id
-  async delete(id: number): Promise<ApiResponse<void>> {
+  async delete(id: string): Promise<ApiResponse<void>> {
     return this.http.delete<void>(`/api/feed/${id}`);
   }
 
@@ -320,7 +380,7 @@ class FeedAPI {
   }
 
   // POST /api/feed/top/:id
-  async setTop(id: number, top: number): Promise<ApiResponse<void>> {
+  async setTop(id: string, top: number): Promise<ApiResponse<void>> {
     return this.http.post<void>(`/api/feed/top/${id}`, { top });
   }
 }
@@ -349,18 +409,50 @@ class CommentAPI {
   constructor(private http: HttpClient) {}
 
   // GET /api/comment/:feed
-  async list(feedId: number): Promise<ApiResponse<Comment[]>> {
-    return this.http.get<Comment[]>(`/api/comment/${feedId}`);
+  async list(feedId: string): Promise<ApiResponse<Comment[]>> {
+    return this.http.get<Comment[]>(API_PATHS.COMMENT_LIST(feedId));
   }
 
   // POST /api/comment/:feed
-  async create(feedId: number, body: CreateCommentRequest): Promise<ApiResponse<Comment>> {
-    return this.http.post<Comment>(`/api/comment/${feedId}`, body);
+  async create(feedId: string, body: CreateCommentRequest): Promise<ApiResponse<CreateCommentResponse>> {
+    return this.http.post<CreateCommentResponse>(API_PATHS.COMMENT_CREATE(feedId), body);
   }
 
   // DELETE /api/comment/:id
   async delete(id: number): Promise<ApiResponse<void>> {
-    return this.http.delete<void>(`/api/comment/${id}`);
+    return this.http.delete<void>(API_PATHS.COMMENT_DELETE(id));
+  }
+
+  // GET /api/comment/captcha - 渲染 Turnstile 所需的公开配置
+  async captchaConfig(): Promise<ApiResponse<CaptchaConfig>> {
+    return this.http.get<CaptchaConfig>(API_PATHS.CAPTCHA_CONFIG);
+  }
+
+  // GET /api/comment/pending - 评论管理列表（支持按状态筛选与分页）
+  async listComments(
+    params: { filter?: 'pending' | 'approved' | 'all'; page?: number; size?: number } = {},
+  ): Promise<ApiResponse<AdminCommentListResponse>> {
+    const query = new URLSearchParams();
+    query.set('filter', params.filter ?? 'pending');
+    if (params.page) query.set('page', String(params.page));
+    if (params.size) query.set('size', String(params.size));
+
+    return this.http.get<AdminCommentListResponse>(
+      `${API_PATHS.COMMENT_PENDING}?${query.toString()}`,
+    );
+  }
+
+  // PUT /api/comment/:id/approved - 通过或驳回评论（管理员）
+  async setApproved(id: number, approved: boolean): Promise<ApiResponse<{ id: number; approved: boolean }>> {
+    return this.http.put<{ id: number; approved: boolean }>(
+      API_PATHS.COMMENT_SET_APPROVED(id),
+      { approved },
+    );
+  }
+
+  // DELETE /api/comment/:id — 永久删除评论（管理员可删任意，用户只能删自己的）
+  async remove(id: number): Promise<ApiResponse<{ success: boolean }>> {
+    return this.http.delete<{ success: boolean }>(API_PATHS.COMMENT_DELETE(id));
   }
 }
 
@@ -388,6 +480,110 @@ class UserAPI {
   // GET /api/user/github
   githubAuth(): string {
     return `${endpoint}/api/user/github`;
+  }
+}
+
+/**
+ * 管理员后台 API（用户管理）
+ */
+class AdminUserAPI {
+  constructor(private http: HttpClient) {}
+
+  // GET /api/admin/users?page=1&size=20&keyword=xxx
+  async list(
+    params: { page?: number; size?: number; keyword?: string } = {},
+  ): Promise<ApiResponse<AdminUserListResponse>> {
+    const query = new URLSearchParams();
+    if (params.page) query.set('page', String(params.page));
+    if (params.size) query.set('size', String(params.size));
+    if (params.keyword) query.set('keyword', params.keyword);
+
+    const suffix = query.toString();
+    return this.http.get<AdminUserListResponse>(
+      suffix ? `${API_PATHS.ADMIN_USERS}?${suffix}` : API_PATHS.ADMIN_USERS,
+    );
+  }
+
+  // GET /api/admin/users/:id
+  async detail(id: number): Promise<ApiResponse<AdminUserDetail>> {
+    return this.http.get<AdminUserDetail>(API_PATHS.ADMIN_USER_DETAIL(id));
+  }
+
+  // PUT /api/admin/users/:id — permission: 0 普通用户 / 1 管理员
+  async setPermission(
+    id: number,
+    permission: 0 | 1,
+  ): Promise<ApiResponse<AdminUserUpdateResponse>> {
+    return this.http.put<AdminUserUpdateResponse>(API_PATHS.ADMIN_USER_UPDATE(id), {
+      permission: String(permission),
+    });
+  }
+
+  // DELETE /api/admin/users/:id
+  async remove(id: number): Promise<ApiResponse<AdminUserDeleteResponse>> {
+    return this.http.delete<AdminUserDeleteResponse>(API_PATHS.ADMIN_USER_DETAIL(id));
+  }
+}
+
+/**
+ * 插件管理 API
+ */
+class AdminPluginAPI {
+  constructor(private http: HttpClient) {}
+
+  // GET /api/admin/plugins
+  async list(): Promise<ApiResponse<AdminPluginListResponse>> {
+    return this.http.get<AdminPluginListResponse>(API_PATHS.ADMIN_PLUGINS);
+  }
+
+  // PUT /api/admin/plugins/:name — 启用或停用
+  async setEnabled(
+    name: string,
+    enabled: boolean,
+  ): Promise<ApiResponse<AdminPluginToggleResponse>> {
+    return this.http.put<AdminPluginToggleResponse>(API_PATHS.ADMIN_PLUGIN_TOGGLE(name), {
+      enabled,
+    });
+  }
+
+  // GET /api/admin/plugins/:name/settings
+  async getSettings(name: string): Promise<ApiResponse<PluginSettingsResponse>> {
+    return this.http.get<PluginSettingsResponse>(API_PATHS.ADMIN_PLUGIN_SETTINGS(name));
+  }
+
+  // PUT /api/admin/plugins/:name/settings — 批量保存
+  async saveSettings(
+    name: string,
+    values: Record<string, string>,
+  ): Promise<ApiResponse<{ success: boolean; data: { name: string; values: Record<string, string> } }>> {
+    return this.http.put(API_PATHS.ADMIN_PLUGIN_SETTINGS(name), { values });
+  }
+}
+
+/**
+ * 管理员后台 API（文章统一管理：含草稿/未列出）
+ */
+class AdminFeedsAPI {
+  constructor(private http: HttpClient) {}
+
+  // GET /api/admin/feeds?page=1&size=20&keyword=xxx
+  async list(
+    params: { page?: number; size?: number; keyword?: string } = {},
+  ): Promise<ApiResponse<AdminArticleListResponse>> {
+    const query = new URLSearchParams();
+    if (params.page) query.set('page', String(params.page));
+    if (params.size) query.set('size', String(params.size));
+    if (params.keyword) query.set('keyword', params.keyword);
+
+    const suffix = query.toString();
+    return this.http.get<AdminArticleListResponse>(
+      suffix ? `/api/admin/feeds?${suffix}` : '/api/admin/feeds',
+    );
+  }
+
+  // POST /api/admin/feeds/batch-delete — body: { ids: string[] }
+  async batchDelete(ids: string[]): Promise<ApiResponse<AdminArticleBatchDeleteResponse>> {
+    return this.http.post<AdminArticleBatchDeleteResponse>('/api/admin/feeds/batch-delete', { ids });
   }
 }
 
@@ -503,15 +699,15 @@ class ConfigAPI {
     return this.http.get<CompatBlurhashCandidatesResponse>("/api/config/compat-tasks/blurhash");
   }
 
-  async applyCompatBlurhash(feedId: number, content: string): Promise<ApiResponse<CompatBlurhashApplyResponse>> {
+  async applyCompatBlurhash(feedId: string, content: string): Promise<ApiResponse<CompatBlurhashApplyResponse>> {
     return this.http.post<CompatBlurhashApplyResponse>(`/api/config/compat-tasks/blurhash/${feedId}`, { content });
   }
 
-  async retryQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {
+  async retryQueueTask(feedId: string): Promise<ApiResponse<QueueTaskActionResponse>> {
     return this.http.post<QueueTaskActionResponse>(`/api/config/queue-status/${feedId}/retry`);
   }
 
-  async deleteQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {
+  async deleteQueueTask(feedId: string): Promise<ApiResponse<QueueTaskActionResponse>> {
     return this.http.delete<QueueTaskActionResponse>(`/api/config/queue-status/${feedId}`);
   }
 
@@ -598,13 +794,27 @@ class AuthAPI {
   constructor(private http: HttpClient) {}
 
   // GET /api/auth/status
-  async status(): Promise<ApiResponse<AuthStatus>> {
-    return this.http.get<AuthStatus>("/api/auth/status");
+  async status(): Promise<ApiResponse<AuthStatusResponse>> {
+    return this.http.get<AuthStatusResponse>(API_PATHS.AUTH_STATUS);
   }
 
   // POST /api/auth/login
   async login(body: LoginRequest): Promise<ApiResponse<LoginResponse>> {
-    return this.http.post<LoginResponse>("/api/auth/login", body);
+    return this.http.post<LoginResponse>(API_PATHS.AUTH_LOGIN, body);
+  }
+
+  // POST /api/auth/register/request - 发送注册验证码
+  async registerRequest(body: RegisterRequest): Promise<ApiResponse<{
+    success: boolean;
+    expiresInSeconds: number;
+    cooldownSeconds: number;
+  }>> {
+    return this.http.post(API_PATHS.AUTH_REGISTER_REQUEST, body);
+  }
+
+  // POST /api/auth/register/verify - 校验验证码并创建账号
+  async registerVerify(body: RegisterVerifyRequest): Promise<ApiResponse<RegisterResponse>> {
+    return this.http.post<RegisterResponse>(API_PATHS.AUTH_REGISTER_VERIFY, body);
   }
 }
 
@@ -664,6 +874,9 @@ export class ApiClient {
   auth: AuthAPI;
   wp: WordPressAPI;
   rss: RSSAPI;
+  adminUser: AdminUserAPI;
+  adminPlugin: AdminPluginAPI;
+  adminFeeds: AdminFeedsAPI;
 
   constructor(baseUrl: string) {
     this.http = new HttpClient(baseUrl);
@@ -671,6 +884,9 @@ export class ApiClient {
     this.tag = new TagAPI(this.http);
     this.comment = new CommentAPI(this.http);
     this.user = new UserAPI(this.http);
+    this.adminUser = new AdminUserAPI(this.http);
+    this.adminPlugin = new AdminPluginAPI(this.http);
+    this.adminFeeds = new AdminFeedsAPI(this.http);
     this.friend = new FriendAPI(this.http);
     this.moments = new MomentsAPI(this.http);
     this.config = new ConfigAPI(this.http);

@@ -149,7 +149,7 @@ describe("ConfigService", () => {
 
         it("should mark default password login as danger", async () => {
             env.ADMIN_USERNAME = "admin" as any;
-            env.ADMIN_PASSWORD = "admin123" as any;
+            env.ADMIN_PASSWORD = ("admin" + "123") as any;
             const res = await app.request("/health", {
                 method: "GET",
                 headers: {

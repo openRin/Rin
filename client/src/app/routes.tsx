@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useContext } from "react";
 import type { DefaultParams, PathPattern } from "wouter";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import { AdminLayout } from "../components/admin-layout";
 import Footer from "../components/footer";
 import { Header } from "../components/header";
@@ -12,6 +12,11 @@ import useTableOfContents from "../hooks/useTableOfContents";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { CallbackPage } from "../page/callback";
 import { CompatTasksPage } from "../page/compat-tasks";
+import { AdminPluginSettingsPage } from "../page/admin-plugin-settings";
+import { AdminPluginsPage } from "../page/admin-plugins";
+import { AdminArticlesPage } from "../page/admin-articles";
+import { AdminUsersPage } from "../page/admin-users";
+import { CommentModerationPage } from "../page/comment-moderation";
 import { ErrorPage } from "../page/error";
 import { FeedPage, TOCHeader } from "../page/feed";
 import { FeedsPage } from "../page/feeds";
@@ -23,11 +28,16 @@ import { LoginPage } from "../page/login";
 import { MomentsPage } from "../page/moments";
 import { ProfilePage } from "../page/profile";
 import { QueueStatusPage } from "../page/queue-status";
+import { RegisterPage } from "../page/register";
 import { SearchPage } from "../page/search";
 import { Settings } from "../page/settings";
 import { TimelinePage } from "../page/timeline";
 import { WritingPage } from "../page/writing";
 import { ProfileContext } from "../state/profile";
+import { listPluginPages, type PluginPage } from "../plugins/registry";
+// 副作用导入：执行注册，把插件页面注入下面的路由表。
+// 入口是 src/plugins/index.ts（client/plugins/ 下没有 index，导入目录会解析失败）。
+import "../plugins";
 import { tryInt } from "../utils/int";
 import { useTranslation } from "react-i18next";
 
@@ -72,6 +82,26 @@ export function AppRoutes() {
         <HealthPage />
       </AdminRoute>
 
+      <AdminRoute path="/admin/comments" requirePermission title={t("moderation.title")} description={t("admin.comments_description")}>
+        <CommentModerationPage />
+      </AdminRoute>
+
+      <AdminRoute path="/admin/users" requirePermission title={t("admin_users.title")} description={t("admin.users_description")}>
+        <AdminUsersPage />
+      </AdminRoute>
+
+      <AdminRoute path="/admin/articles" requirePermission title={t("admin_articles.title")} description={t("admin_articles.description")}>
+        <AdminArticlesPage />
+      </AdminRoute>
+
+      <AdminRoute path="/admin/plugins" requirePermission title={t("plugins.title")} description={t("plugins.description")}>
+        <AdminPluginsPage />
+      </AdminRoute>
+
+      <AdminRoute path="/admin/plugins/:name/settings" requirePermission title={t("plugins.settings.title")} description={t("plugins.settings.description")}>
+        <AdminPluginSettingsPage />
+      </AdminRoute>
+
       <AdminRoute path="/admin/queue-status" requirePermission title={t("queue_status.title")} description={t("admin.queue_status_description")}>
         <QueueStatusPage />
       </AdminRoute>
@@ -96,9 +126,20 @@ export function AppRoutes() {
         <LoginPage />
       </AppRoute>
 
+      <AppRoute path="/register">
+        <RegisterPage />
+      </AppRoute>
+
       <AppRoute path="/profile">
         <ProfilePage />
       </AppRoute>
+
+      {/* 插件页面：必须注册在 `/:alias` 通配路由之前，否则路径会被当成文章别名。
+          PluginRoute 必须带上 `path` prop —— wouter 的 Switch 直接读子元素的
+          props.path，为 undefined 时会退化成通配符，匹配掉所有路径（页面全白）。 */}
+      {listPluginPages().map((page) => (
+        <PluginRoute key={page.path} path={page.path} page={page} />
+      ))}
 
       <TocRoute path="/feed/:id">
         {(params, toc, cleanup) => <FeedPage id={params.id || ""} TOC={toc} clean={cleanup} />}
@@ -150,23 +191,51 @@ function AppRoute({
   const siteConfig = useSiteConfig();
   const { t } = useTranslation();
 
-  const content =
-    requirePermission && !profile?.permission ? <ErrorPage error={t("error.permission_denied")} /> : children;
+  // profile 三态：undefined=加载中、null=未登录、对象=已登录。
+  // 加载中不能判为「无权限」，否则管理员进后台会先闪一下「权限不足」。
+  const isProfileLoading = profile === undefined;
+  const content = requirePermission && !isProfileLoading && !profile?.permission ? (
+    <ErrorPage error={t("error.permission_denied")} />
+  ) : (
+    children
+  );
 
   return (
     <Route path={path}>
       {(params) => {
         const resolvedContent = typeof content === "function" ? content(params) : content;
         const layoutDefinition = getHeaderLayoutDefinition(siteConfig.headerLayout);
+        // 插件插槽要按当前路径过滤，传真实路径而非 Route 的 path prop（可能是通配符）
+        const [location] = useLocation();
 
         return layoutDefinition.renderRouteShell({
           header: <Header>{headerComponent}</Header>,
           content: <Padding className={paddingClassName}>{resolvedContent}</Padding>,
           footer: <Footer />,
           paddingClassName,
+          path: location,
         });
       }}
     </Route>
+  );
+}
+
+function PluginRoute({ path, page }: { path: string; page: PluginPage }) {
+  const { t } = useTranslation();
+  const profile = useContext(ProfileContext);
+
+  // requireAdmin 只是 UI 层隐藏，不是安全边界 —— 服务端接口必须各自鉴权
+  const denied = page.requireAdmin && !profile?.permission;
+
+  // `path` 必须透传给 AppRoute：wouter 的 Switch 靠子元素的 props.path 匹配
+  return (
+    <AppRoute path={path}>
+      {denied ? (
+        <ErrorPage error={t("error.permission_denied")} />
+      ) : (
+        <page.Component />
+      )}
+    </AppRoute>
   );
 }
 
@@ -185,8 +254,14 @@ function AdminRoute({
 }) {
   const profile = useContext(ProfileContext);
   const { t } = useTranslation();
-  const content =
-    requirePermission && !profile?.permission ? <ErrorPage error={t("error.permission_denied")} /> : children;
+  // profile 三态：undefined=加载中、null=未登录、对象=已登录。
+  // 加载中不能判为「无权限」，否则管理员进后台会先闪一下「权限不足」。
+  const isProfileLoading = profile === undefined;
+  const content = requirePermission && !isProfileLoading && !profile?.permission ? (
+    <ErrorPage error={t("error.permission_denied")} />
+  ) : (
+    children
+  );
 
   return (
     <Route path={path}>

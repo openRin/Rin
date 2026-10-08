@@ -37,14 +37,14 @@ Rin 使用[语义化版本控制](https://semver.org/lang/zh-CN/)，并遵循结
 | `perf` | 性能优化 | `perf(cache): 添加 Redis` |
 | `chore` | 维护 | `chore(deps): 更新包` |
 
-更多详情，请参考[提交规范](./commit-convention.md)。
+更多详情，请参考[提交规范](https://docs.openrin.org/zh/guide/commit-convention)。
 
 ## 发布工作流
 
 ### 1. 确保所有变更已就绪
 
 - [ ] 所有功能/修复已合并到 `main`
-- [ ] 所有提交遵循[常规提交格式](./commit-convention.md)
+- [ ] 所有提交遵循[常规提交格式](https://docs.openrin.org/zh/guide/commit-convention)
 - [ ] 测试通过（`bun run check`、`bun run build`）
 
 ### 2. 运行发布脚本
@@ -167,7 +167,7 @@ GitHub Releases 将包含：
 
 1. 转到您在 GitHub 上的 fork 仓库
 2. 点击 **"Sync fork"** 按钮
-3. 查看 [CHANGELOG.md](./changelog.md) 了解迁移步骤
+3. 查看 [CHANGELOG.md](https://docs.openrin.org/zh/guide/changelog) 了解迁移步骤
 4. 如果需要，更新环境变量
 5. 如果已配置，部署将自动运行
 
@@ -299,6 +299,6 @@ fixed bug
 
 ## 有问题？
 
-- 📖 阅读[提交规范](./commit-convention.md)了解提交指南
+- 📖 阅读[提交规范](https://docs.openrin.org/zh/guide/commit-convention)了解提交指南
 - 🐛 报告问题：[GitHub Issues](https://github.com/openRin/Rin/issues)
 - 💬 加入我们的社区讨论

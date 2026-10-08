@@ -8,7 +8,7 @@ export type FeedAISummaryStatus =
   | "failed";
 
 export interface FeedAISummaryTaskPayload {
-  feedId: number;
+  feedId: string;
   expectedUpdatedAt?: string;
   expectedUpdatedAtUnix?: number;
 }
@@ -42,7 +42,7 @@ export function isQueueTask(value: unknown): value is QueueTask {
   const payload = task.payload as Partial<FeedAISummaryTaskPayload> | undefined;
   return (
     Boolean(payload) &&
-    typeof payload?.feedId === "number" &&
+    typeof payload?.feedId === "string" &&
     (
       typeof payload?.expectedUpdatedAtUnix === "number" ||
       typeof payload?.expectedUpdatedAt === "string"

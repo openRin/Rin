@@ -1,5 +1,7 @@
 import { WEBHOOK_URL_KEY } from "@rin/config";
 import { getAIConfig } from "../utils/db-config";
+import { detectStorageProviderKind } from "../utils/storage/resolve";
+import type { StorageProviderKind } from "../utils/storage/types";
 
 type HealthStatus = "success" | "warning" | "danger";
 type HealthTextValues = Record<string, string | number | boolean>;
@@ -39,6 +41,34 @@ function createItem(item: HealthCheckItem): HealthCheckItem {
 
 function text(key: string, values?: HealthTextValues): HealthText {
   return values ? { key, values } : { key };
+}
+
+/**
+ * 各后端真正必需的变量。
+ * R2 binding 自带 bucket 上下文，无需任何 S3 凭证，因此不产出必填项。
+ */
+function getRequiredStorageKeys(env: Env, provider: StorageProviderKind) {
+  if (provider === "r2") {
+    if (!env.R2_BUCKET) {
+      return [["R2_BUCKET", ""] as const];
+    }
+    return [] as const;
+  }
+
+  if (provider === "supabase") {
+    return [
+      ["SUPABASE_URL", env.SUPABASE_URL],
+      ["SUPABASE_SECRET_KEY", env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY],
+      ["SUPABASE_STORAGE_BUCKET", env.SUPABASE_STORAGE_BUCKET],
+    ] as const;
+  }
+
+  return [
+    ["S3_ENDPOINT", env.S3_ENDPOINT],
+    ["S3_BUCKET", env.S3_BUCKET],
+    ["S3_ACCESS_KEY_ID", env.S3_ACCESS_KEY_ID],
+    ["S3_SECRET_ACCESS_KEY", env.S3_SECRET_ACCESS_KEY],
+  ] as const;
 }
 
 export async function buildHealthCheckResponse(
@@ -176,17 +206,9 @@ export async function buildHealthCheckResponse(
     );
   }
 
-  const usesR2Binding = Boolean(env.R2_BUCKET);
-  const requiredStorageKeys = usesR2Binding
-    ? ([] as const)
-    : ([
-        ["S3_ENDPOINT", env.S3_ENDPOINT],
-        ["S3_BUCKET", env.S3_BUCKET],
-        ["S3_ACCESS_KEY_ID", env.S3_ACCESS_KEY_ID],
-        ["S3_SECRET_ACCESS_KEY", env.S3_SECRET_ACCESS_KEY],
-      ] as const);
+  const storageProvider = detectStorageProviderKind(env);
+  const requiredStorageKeys = getRequiredStorageKeys(env, storageProvider);
   const missingStorageKeys = requiredStorageKeys.filter(([, value]) => !value).map(([key]) => key);
-  const hasAccessHost = Boolean(env.S3_ACCESS_HOST);
 
   if (missingStorageKeys.length === 0) {
     items.push(

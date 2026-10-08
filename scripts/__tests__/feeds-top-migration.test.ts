@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
+import { readdir } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import {
   ADD_FEEDS_TOP_COLUMN_SQL,
   FEEDS_TABLE_EXISTS_QUERY,
@@ -7,7 +9,7 @@ import {
   fixTopField,
 } from "../../cli/src/lib/db-migration";
 
-const SQL_DIR = new URL("../../server/sql/", import.meta.url).pathname;
+const SQL_DIR = fileURLToPath(new URL("../../server/sql/", import.meta.url));
 
 function splitStatements(sql: string): string[] {
   return sql
@@ -43,6 +45,23 @@ function getColumnNames(db: Database, table: string): string[] {
 function getMigrationVersion(db: Database): string {
   const row = db.query("SELECT value FROM info WHERE key='migration_version'").get() as { value: string };
   return row.value;
+}
+
+/**
+ * 列出所有迁移文件名，按版本升序；不硬编码最新版本号，避免每加一个迁移就改测试。
+ */
+async function listMigrationFiles(): Promise<string[]> {
+  const dirUrl = new URL("../../server/sql/", import.meta.url);
+  const dirPath = fileURLToPath(dirUrl);
+
+  const entries = await readdir(dirUrl);
+
+  return entries.filter((name) => name.endsWith(".sql")).sort();
+}
+
+/** 迁移文件的最新版本号（文件名数字前缀） */
+function latestVersion(files: string[]): number {
+  return Math.max(...files.map((name) => parseInt(name.slice(0, 4), 10)));
 }
 
 function getVisibilityIndexColumns(db: Database): string[] {
@@ -113,15 +132,18 @@ async function captureTopFieldPreflight(topExists: boolean, tableExists = true):
 }
 
 describe("feeds.top migration repair", () => {
-  it("builds a fresh database through migration 0012", async () => {
+  it("builds a fresh database through the latest migration", async () => {
     const db = new Database(":memory:");
+    const files = await listMigrationFiles();
 
-    for (let version = 0; version <= 12; version += 1) {
-      await applyMigration(db, `${version.toString().padStart(4, "0")}.sql`);
+    for (const file of files) {
+      await applyMigration(db, file);
     }
 
+    const latest = latestVersion(files);
+
     expect(getColumnNames(db, "feeds")).toContain("top");
-    expect(getMigrationVersion(db)).toBe("12");
+    expect(getMigrationVersion(db)).toBe(String(latest));
     expect(getVisibilityIndexColumns(db)).toEqual([
       "draft",
       "listed",
@@ -129,6 +151,45 @@ describe("feeds.top migration repair", () => {
       "created_at",
       "updated_at",
     ]);
+    db.close();
+  });
+
+  it("applies the email registration columns on a fresh database", async () => {
+    const db = new Database(":memory:");
+    const files = await listMigrationFiles();
+
+    for (const file of files) {
+      await applyMigration(db, file);
+    }
+
+    // 0013 为邮箱注册加入的列
+    expect(getColumnNames(db, "users")).toContain("email");
+    expect(getColumnNames(db, "users")).toContain("email_verified");
+
+    // 邮箱唯一性是部分索引：空串默认值必须允许重复
+    db.exec(`
+      INSERT INTO users (username, openid) VALUES ('a', 'gh_a');
+      INSERT INTO users (username, openid) VALUES ('b', 'gh_b');
+    `);
+    expect(
+      db.query("SELECT COUNT(*) as c FROM users WHERE email = ''").get(),
+    ).toEqual({ c: 2 });
+
+    db.close();
+  });
+
+  it("enforces email uniqueness only for non-empty addresses", async () => {
+    const db = new Database(":memory:");
+    const files = await listMigrationFiles();
+    for (const file of files) {
+      await applyMigration(db, file);
+    }
+
+    db.exec(`INSERT INTO users (username, openid, email) VALUES ('a', 'gh_a', 'dup@example.com')`);
+
+    expect(() => {
+      db.exec(`INSERT INTO users (username, openid, email) VALUES ('b', 'gh_b', 'dup@example.com')`);
+    }).toThrow();
     db.close();
   });
 

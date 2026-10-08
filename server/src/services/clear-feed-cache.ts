@@ -5,7 +5,7 @@ export async function clearFeedCollectionCaches(cache: CacheImpl) {
     await cache.deletePrefix('search_');
 }
 
-export async function clearFeedCache(cache: CacheImpl, id: number, alias: string | null, newAlias: string | null) {
+export async function clearFeedCache(cache: CacheImpl, id: string, alias: string | null, newAlias: string | null) {
     await clearFeedCollectionCaches(cache);
 
     const detailKeys = new Set([`feed_${id}`, `feed_id_${id}`]);

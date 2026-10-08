@@ -52,11 +52,18 @@ export function FriendService(): Hono {
             return c.text('Friend Link Apply Disabled', 403);
         }
         
-        if (name.length > 20 || desc.length > 100 || avatar.length > 100 || url.length > 100) {
-            return c.text('Invalid input', 400);
+        // 错误指明具体字段；CDN 头像/站点 URL 常带签名参数，100 字符太紧
+        const overs = [
+            name?.length > 20 ? 'name (<=20)' : null,
+            desc?.length > 100 ? 'desc (<=100)' : null,
+            avatar?.length > 500 ? 'avatar (<=500)' : null,
+            url?.length > 500 ? 'url (<=500)' : null,
+        ].filter(Boolean);
+        if (overs.length > 0) {
+            return c.text(`Invalid input: ${overs.join(', ')}`, 400);
         }
         
-        if (name.length === 0 || desc.length === 0 || avatar.length === 0 || url.length === 0) {
+        if (!name || !desc || !avatar || !url) {
             return c.text('Invalid input', 400);
         }
         

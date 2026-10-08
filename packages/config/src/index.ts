@@ -30,6 +30,15 @@ export const SERVER_CONFIG_DEFAULTS = new Map(
     "webhook.content_type": "application/json",
     "webhook.headers": "{}",
     "webhook.body_template": "{\"content\":\"{{message}}\"}",
+    // 游客评论是否需要人工审核后才对外可见。
+    "comment.moderate_guest": true,
+    // 登录用户评论是否也要审核（默认 true）。
+    // 开了人机验证说明确实有人在刷，登录只证明是个真实账号。
+    // 想让登录用户免审可设为 false。
+    "comment.moderate_user": true,
+    // 邮箱注册总开关。与「邮件服务是否配置完整」是两个独立维度：
+    // 配好了邮件但想临时关掉注册时，改这个即可。
+    "register.enabled": true,
   }),
 );
 
@@ -50,7 +59,17 @@ export const AI_CONFIG_KEYS = [
   `${AI_CONFIG_PREFIX}api_url`,
 ] as const;
 
-export const SENSITIVE_SERVER_CONFIG_FIELDS = [`${AI_CONFIG_PREFIX}api_key`] as const;
+/**
+ * 通过 config API 下发时需要打码的敏感字段。
+ * 邮件相关凭证一旦泄漏，攻击者就能冒名发信或重置用户密码。
+ */
+export const SENSITIVE_SERVER_CONFIG_FIELDS = [
+  `${AI_CONFIG_PREFIX}api_key`,
+  "smtp.password",
+  "turnstile.secret_key",
+  "resend.api_key",
+  "mail.gateway_token",
+] as const;
 
 export const DEFAULT_AI_CONFIG: AIConfig = {
   enabled: false,

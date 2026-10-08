@@ -1,0 +1,19 @@
+{
+  "// 说明": "网关 worker 是零依赖的纯 JS 单文件，需要 checkJs 才能捕获拼错函数名、参数不匹配这类真实 bug。",
+  "// strict": "不开 strict：文件没有 JSDoc 标注，全开会产生上百条 implicit any 噪音，反而淹没真错误。",
+  "// 仍检查": "调用不存在的函数、参数个数/类型不匹配、缺少的必填属性（如 allowHalfOpen）",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "types": ["@cloudflare/workers-types/experimental"]
+  },
+  "include": ["mail-gateway-worker.js"]
+}

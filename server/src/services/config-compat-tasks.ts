@@ -135,7 +135,7 @@ export async function listBlurhashCompatCandidates(db: DB) {
   };
 }
 
-export async function applyBlurhashCompatUpdate(db: DB, cache: CacheImpl, feedId: number, content: string) {
+export async function applyBlurhashCompatUpdate(db: DB, cache: CacheImpl, feedId: string, content: string) {
   const feed = await db.query.feeds.findFirst({
     where: eq(feeds.id, feedId),
     columns: {

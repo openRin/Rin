@@ -86,7 +86,7 @@ export function QueueStatusPage() {
   const generatedAt = data?.generatedAt ?? "";
   const summary = data?.summary ?? emptySummary;
   const items = Array.isArray(data?.items) ? data.items : [];
-  const [actingId, setActingId] = useState<number | null>(null);
+  const [actingId, setActingId] = useState<string | null>(null);
   const [actingType, setActingType] = useState<"retry" | "delete" | null>(null);
   const { showAlert, AlertUI } = useAlert();
   const { showConfirm, ConfirmUI } = useConfirm();

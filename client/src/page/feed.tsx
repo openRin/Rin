@@ -1,4 +1,4 @@
-import type { Feed } from "@rin/api";
+import type { Feed, CaptchaConfig } from "@rin/api";
 import { Modal } from "@rin/ui";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
@@ -10,12 +10,14 @@ import { HashTag } from "../components/hashtag";
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
+import { TurnstileWidget, resetTurnstile } from "../components/turnstile";
 import { client } from "../app/runtime";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
+import { apiErrorText, isCaptchaError } from "../utils/api-error";
 import { Button } from "../components/button";
 import { Tips } from "../components/tips";
 import mermaid from "mermaid";
@@ -364,6 +366,10 @@ function CommentInput({
   const [guestEmail, setGuestEmail] = useState("");
   const [guestWebsite, setGuestWebsite] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaConfig, setCaptchaConfig] = useState<CaptchaConfig>();
+  const captchaRef = useRef<HTMLDivElement | null>(null);
   const { showAlert, AlertUI } = useAlert();
   const profile = useContext(ProfileContext);
   const [, setLocation] = useLocation();
@@ -371,55 +377,104 @@ function CommentInput({
   // guest comments enabled by default; admin can disable via client config `comment.guest.enabled=false`
   const rawGuest = config.get('comment.guest.enabled');
   const guestEnabled = rawGuest !== false && rawGuest !== 'false';
-  function errorHumanize(error: string) {
-    if (error === "Unauthorized") return t("login.required");
-    else if (error === "Content is required") return t("comment.empty");
-    else if (error === "Guest name is required") return t("comment.guest_name_required");
-    return error;
-  }
+
+  // 人机验证配置由服务端下发：前端不猜测是否需要验证码。
+  // 未配置 secret 时服务端会返回 enabled:false，此时整块逻辑短路。
+  useEffect(() => {
+    let cancelled = false;
+    client.comment.captchaConfig().then(({ data }) => {
+      if (!cancelled && data) {
+        setCaptchaConfig(data);
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // 当前身份下是否真的需要过验证码。
+  // scope 默认为 'all'，因此登录用户同样要验证 —— 否则注册账号就能绕过防刷。
+  const needsCaptcha = Boolean(
+    captchaConfig?.enabled &&
+    captchaConfig.siteKey &&
+    (captchaConfig.scope === 'all' || !profile),
+  );
+
   function submit() {
+    if (isSubmitting) return;
+
+    if (needsCaptcha && !captchaToken) {
+      setError(t("comment.captcha_required"));
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const onSuccess = () => {
+      setContent("");
+      setGuestName("");
+      setGuestEmail("");
+      setGuestWebsite("");
+      setError("");
+      setCaptchaToken("");
+      // token 一次性，重置 widget 让下次提交能重新获取
+      resetTurnstile(captchaRef.current);
+      showAlert(t("comment.success"), () => {
+        onRefresh();
+      });
+    };
+
+    const onFailure = (apiError: { value: string; code?: string }) => {
+      setError(apiErrorText(apiError));
+      // 验证码失败后必须重置，否则用户无法重试
+      if (isCaptchaError(apiError)) {
+        setCaptchaToken("");
+        resetTurnstile(captchaRef.current);
+      }
+    };
+
     if (profile) {
       client.comment
-        .create(parseInt(id), { content })
-        .then(({ error }) => {
-          if (error) {
-            setError(errorHumanize(error.value as string));
+        .create(id, { content, ...(captchaToken ? { captchaToken } : {}) })
+        .then(({ data, error: apiError }) => {
+          if (apiError) {
+            onFailure(apiError);
           } else {
-            setContent("");
-            setError("");
-            showAlert(t("comment.success"), () => {
-              onRefresh();
-            });
+            onSuccess();
+            // 游客评论可能进入待审核队列，此时不刷新列表，
+            // 而是告知用户「已提交，等待审核」
+            if (data && !data.approved) {
+              showAlert(t("comment.pending_review"));
+            }
           }
-        });
+        })
+        .finally(() => setIsSubmitting(false));
     } else if (guestEnabled) {
       if (!guestName.trim()) {
         setError(t("comment.guest_name_required"));
+        setIsSubmitting(false);
         return;
       }
       client.comment
-        .create(parseInt(id), {
+        .create(id, {
           content,
           guestName: guestName.trim(),
           guestEmail: guestEmail.trim() || undefined,
           guestWebsite: guestWebsite.trim() || undefined,
+          ...(captchaToken ? { captchaToken } : {}),
         })
-        .then(({ error }) => {
-          if (error) {
-            setError(errorHumanize(error.value as string));
+        .then(({ data, error: apiError }) => {
+          if (apiError) {
+            onFailure(apiError);
           } else {
-            setContent("");
-            setGuestName("");
-            setGuestEmail("");
-            setGuestWebsite("");
-            setError("");
-            showAlert(t("comment.success"), () => {
-              onRefresh();
-            });
+            onSuccess();
+            if (data && !data.approved) {
+              showAlert(t("comment.pending_review"));
+            }
           }
-        });
+        })
+        .finally(() => setIsSubmitting(false));
     } else {
       setLocation('/login');
+      setIsSubmitting(false);
     }
   }
   return (
@@ -435,12 +490,6 @@ function CommentInput({
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
-        <button
-          className="mt-4 bg-theme text-white px-4 py-2 rounded-full"
-          onClick={submit}
-        >
-          {t("comment.submit")}
-        </button>
       </>) : guestEnabled ? (<>
         <input
           type="text"
@@ -470,12 +519,6 @@ function CommentInput({
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
-        <button
-          className="mt-4 bg-theme text-white px-4 py-2 rounded-full"
-          onClick={submit}
-        >
-          {t("comment.submit")}
-        </button>
       </>) : (
         <div className="flex flex-row w-full items-center justify-center space-x-2 py-12">
           <button
@@ -485,6 +528,26 @@ function CommentInput({
             {t("login.required")}
           </button>
         </div>
+      )}
+      {needsCaptcha && (
+        <div ref={captchaRef} className="mt-4 self-start">
+          <TurnstileWidget
+            siteKey={captchaConfig!.siteKey}
+            action="comment"
+            onToken={setCaptchaToken}
+            onExpire={() => setCaptchaToken("")}
+            onError={() => setCaptchaToken("")}
+          />
+        </div>
+      )}
+      {(profile || guestEnabled) && (
+        <button
+          className="mt-4 bg-theme text-white px-4 py-2 rounded-full disabled:opacity-50"
+          onClick={submit}
+          disabled={isSubmitting || !content.trim()}
+        >
+          {isSubmitting ? t("comment.submitting") : t("comment.submit")}
+        </button>
       )}
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       <AlertUI />
@@ -506,6 +569,8 @@ type Comment = {
   guestName?: string;
   guestEmail?: string;
   guestWebsite?: string;
+  /** 审核状态：false 表示待审核，仅管理员可见 */
+  approved?: boolean;
 };
 
 function Comments({ id }: { id: string }) {
@@ -517,7 +582,7 @@ function Comments({ id }: { id: string }) {
 
   function loadComments() {
     client.comment
-      .list(parseInt(id))
+      .list(id)
       .then(({ data, error }) => {
         if (error) {
           setError(error.value as string);
@@ -586,9 +651,10 @@ function CommentItem({
       async () => {
         client.comment
           .delete(comment.id)
-          .then(({ error }) => {
-            if (error) {
-              showAlert(error.value as string);
+          .then(({ error: apiError }) => {
+            if (apiError) {
+              // 按错误码映射文案，不再匹配后端英文原文
+              showAlert(apiErrorText(apiError));
             } else {
               showAlert(t("delete.success"), () => {
                 onRefresh();

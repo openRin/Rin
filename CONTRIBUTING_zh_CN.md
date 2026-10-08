@@ -47,8 +47,8 @@ cp .\cli\templates\git-commit-msg.sh .\.git\hooks\commit-msg
 
 6. 执行数据库迁移
    > [!TIP]  
-   > 如果您的数据库名称(`wrangler.toml`中`database_name`)不为 `rin`\
-   > 请在执行迁移之前通过本地环境变量或 CLI 参数指定 `DB_NAME`
+   > 数据库名会自动读取本地环境变量中的 `DB_NAME`，未设置时回退为 `rin`。\
+   > 如需单次覆盖，可传入 `--db` 参数：`bun run db:migrate -- --db my-database`
     ```sh
     bun run db:migrate
     ```

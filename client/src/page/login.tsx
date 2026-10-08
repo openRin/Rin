@@ -1,17 +1,19 @@
 import { t } from "i18next";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import type { AuthStatusResponse } from "@rin/api";
 import { ButtonWithLoading } from "../components/button";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
 import { client, oauth_url } from "../app/runtime";
 import { setAuthToken } from "../utils/auth";
 import { getLoginRedirectPath } from "../utils/auth-redirect";
+import { apiErrorText } from "../utils/api-error";
 
 export function LoginPage() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
-    const [authStatus, setAuthStatus] = useState<{ github: boolean; password: boolean }>({ github: false, password: false });
+    const [authStatus, setAuthStatus] = useState<AuthStatusResponse>({ github: false, password: false, register: false });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [, setLocation] = useLocation();
@@ -38,7 +40,8 @@ export function LoginPage() {
             const { data, error: apiError } = await client.auth.login({ username, password });
 
             if (apiError) {
-                setError(t('login.error.invalid'));
+                // 按错误码映射文案，不再统一显示 "invalid"
+                setError(apiErrorText(apiError, 'login.error.invalid'));
                 setIsLoading(false);
                 return;
             }
@@ -96,6 +99,19 @@ export function LoginPage() {
                             />
                         </div>
                     </>
+                )}
+
+                {/* Email registration entry - only shown when SMTP is fully configured */}
+                {authStatus.register && (
+                    <div className="flex flex-col items-center space-y-1 pt-2 w-full">
+                        {authStatus.password && <p className="text-xs t-secondary">{t('login.or')}</p>}
+                        <button
+                            className="text-sm text-theme hover:underline"
+                            onClick={() => setLocation('/register')}
+                        >
+                            {t('register.entry')}
+                        </button>
+                    </div>
                 )}
 
                 {/* OAuth options */}

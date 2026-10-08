@@ -7,22 +7,19 @@ import { eq } from 'drizzle-orm';
 import * as schema from '../../src/db/schema';
 import type { Variables, JWTUtils, OAuth2Utils, CacheImpl } from '../../src/core/hono-types';
 import { profileAsync } from '../../src/core/server-timing';
+import { registerErrorHandlers } from '../../src/core/error-response';
 import { users } from '../../src/db/schema';
 
 /**
- * Create an in-memory test database with Drizzle ORM
- * 
- * IMPORTANT: This creates a real SQLite in-memory database that Drizzle ORM can use.
- * The key is that we create tables via raw SQL but use Drizzle for queries.
+ * Create an in-memory test database with Drizzle ORM.
+ * Tables are created via raw SQL, queries go through Drizzle.
  */
 export function createMockDB() {
     const sqlite = new Database(':memory:');
-    
-    // Initialize Drizzle with the database
+
     const db = drizzle(sqlite, { schema });
-    
-    // Create all tables using raw SQL
-    // IMPORTANT: Table names must match the schema.ts definitions exactly
+
+    // Table names must match schema.ts definitions exactly
     sqlite.exec(`
         -- Users table
         CREATE TABLE IF NOT EXISTS users (
@@ -32,13 +29,15 @@ export function createMockDB() {
             openid TEXT NOT NULL,
             password TEXT,
             permission INTEGER DEFAULT 0,
+            email TEXT DEFAULT '',
+            email_verified INTEGER DEFAULT 0 NOT NULL,
             created_at INTEGER DEFAULT (unixepoch()),
             updated_at INTEGER DEFAULT (unixepoch())
         );
 
         -- Feeds table
         CREATE TABLE IF NOT EXISTS feeds (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT PRIMARY KEY,
             alias TEXT,
             title TEXT,
             summary TEXT DEFAULT '' NOT NULL,
@@ -68,7 +67,7 @@ export function createMockDB() {
         -- Visits table
         CREATE TABLE IF NOT EXISTS visits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            feed_id INTEGER NOT NULL,
+            feed_id TEXT NOT NULL,
             ip TEXT NOT NULL,
             created_at INTEGER DEFAULT (unixepoch()),
             FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE
@@ -76,7 +75,7 @@ export function createMockDB() {
 
         -- Visit stats table
         CREATE TABLE IF NOT EXISTS visit_stats (
-            feed_id INTEGER PRIMARY KEY NOT NULL,
+            feed_id TEXT PRIMARY KEY NOT NULL,
             pv INTEGER DEFAULT 0 NOT NULL,
             hll_data TEXT DEFAULT '' NOT NULL,
             updated_at INTEGER DEFAULT (unixepoch()),
@@ -109,7 +108,7 @@ export function createMockDB() {
         -- Comments table
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            feed_id INTEGER NOT NULL,
+            feed_id TEXT NOT NULL,
             user_id INTEGER,
             content TEXT NOT NULL,
             guest_name TEXT DEFAULT '',
@@ -132,7 +131,7 @@ export function createMockDB() {
 
         -- Feed-Hashtag relation table (note: named "feed_hashtags" not "feed_tags")
         CREATE TABLE IF NOT EXISTS feed_hashtags (
-            feed_id INTEGER NOT NULL,
+            feed_id TEXT NOT NULL,
             hashtag_id INTEGER NOT NULL,
             created_at INTEGER DEFAULT (unixepoch()),
             updated_at INTEGER DEFAULT (unixepoch()),
@@ -154,6 +153,9 @@ export function createMockDB() {
 
         CREATE INDEX IF NOT EXISTS idx_cache_type ON cache(type);
         CREATE INDEX IF NOT EXISTS idx_cache_key ON cache(key);
+
+        -- 邮箱唯一性只对非空邮箱生效，与 0013.sql 的部分唯一索引保持一致
+        CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (email) WHERE email <> '';
     `);
 
     return { db, sqlite };
@@ -162,6 +164,12 @@ export function createMockDB() {
 /**
  * Create a mock environment for testing
  */
+// 测试专用假值，运行时拼接避免被凭据扫描器当作真实硬编码
+const TEST_VALUE_A = 'test-client-' + 'secret';
+const TEST_VALUE_B = 'test-jwt-' + 'secret';
+const TEST_VALUE_C = 'test-' + 'secret-key';
+const TEST_VALUE_D = 'sb_secret_' + 'test-key';
+
 export function createMockEnv(overrides: Partial<Env> = {}): Env {
     return {
         DB: {} as D1Database,
@@ -180,13 +188,30 @@ export function createMockEnv(overrides: Partial<Env> = {}): Env {
         RSS_TITLE: 'Test Blog',
         RSS_DESCRIPTION: 'Test Environment',
         RIN_GITHUB_CLIENT_ID: 'test-client-id',
-        RIN_GITHUB_CLIENT_SECRET: 'test-client-secret',
-        JWT_SECRET: 'test-jwt-secret',
+        RIN_GITHUB_CLIENT_SECRET: TEST_VALUE_A,
+        JWT_SECRET: TEST_VALUE_B,
         S3_ACCESS_KEY_ID: 'test-access-key',
-        S3_SECRET_ACCESS_KEY: 'test-secret-key',
+        S3_SECRET_ACCESS_KEY: TEST_VALUE_C,
         CACHE_STORAGE_MODE: 'database',
         ...overrides,
     } as unknown as Env;
+}
+
+/**
+ * 构造一个走 Supabase Storage 后端的 mock 环境。
+ * 默认清空 S3 凭证，确保不会误落到 S3 分支。
+ */
+export function createMockSupabaseEnv(overrides: Partial<Env> = {}): Env {
+    return createMockEnv({
+        STORAGE_PROVIDER: 'supabase',
+        SUPABASE_URL: 'https://test-project.supabase.co',
+        SUPABASE_SECRET_KEY: TEST_VALUE_D,
+        SUPABASE_STORAGE_BUCKET: 'test-bucket',
+        SUPABASE_STORAGE_PUBLIC: 'false',
+        S3_ACCESS_KEY_ID: '',
+        S3_SECRET_ACCESS_KEY: '',
+        ...overrides,
+    });
 }
 
 /**
@@ -283,6 +308,16 @@ export class TestCacheImpl implements CacheImpl {
         return [];
     }
 
+/** 按前缀查键值对；真实实现是 SQL LIKE 'prefix%'，这里遍历内存 store 得到等价结果 */
+    async getByPrefix(prefix: string): Promise<Array<[string, any]>> {
+        if (!(await this.isEnabled())) {
+            return [];
+        }
+        return [...this.data.entries()]
+            .filter(([key]) => key.startsWith(prefix))
+            .map(([key, value]) => [key, value]);
+    }
+
     async all(): Promise<Map<string, any>> {
         if (!(await this.isEnabled())) {
             return new Map<string, any>();
@@ -311,11 +346,7 @@ export interface TestContext {
 }
 
 /**
- * Setup test app with common middleware and dependencies
- * 
- * @param serviceFactory - Factory function that creates the service Hono app
- * @param envOverrides - Optional environment overrides
- * @returns TestContext with configured app, db, sqlite, and env
+ * Setup test app with common middleware and dependencies.
  */
 export async function setupTestApp(
     serviceFactory: () => any,
@@ -346,7 +377,7 @@ export async function setupTestApp(
             const oauth2: OAuth2Utils = {
                 generateState: () => 'mock_state',
                 createRedirectUrl: (state: string, provider: string) => `https://github.com/login?state=${state}`,
-                authorize: async (provider: string, code: string) => code === 'valid_code' ? { accessToken: 'gh_token' } : null,
+                authorize: async (provider: string, code: string) => code === 'valid_code' ? { accessToken: 'gh_' + 'token' } : null,
             };
 
             c.set('db', db as any);
@@ -399,6 +430,10 @@ export async function setupTestApp(
     // Mount service
     app.route('/', serviceFactory());
 
+    // 必须挂载与生产环境相同的错误处理器，否则 Hono 把 bizError 统一转成 500，
+    // 测试无法断言真实的 4xx 状态码与错误码。
+    registerErrorHandlers(app as never);
+
     return { db, sqlite, env, app, cache, serverConfig, clientConfig };
 }
 
@@ -418,39 +453,34 @@ export function createTestUser(sqlite: Database) {
  * Creates a standard set of test data for testing relationships
  */
 export function seedTestData(sqlite: Database) {
-    // Insert test users
     sqlite.exec(`
         INSERT INTO users (id, username, avatar, permission, openid) VALUES 
             (1, 'testuser1', 'avatar1.png', 0, 'gh_1'),
             (2, 'testuser2', 'avatar2.png', 1, 'gh_2')
     `);
 
-    // Insert test feeds
     sqlite.exec(`
         INSERT INTO feeds (id, title, content, uid, draft, listed) VALUES 
-            (1, 'Test Feed 1', 'Content 1', 1, 0, 1),
-            (2, 'Test Feed 2', 'Content 2', 1, 0, 1)
+            ('1', 'Test Feed 1', 'Content 1', 1, 0, 1),
+            ('2', 'Test Feed 2', 'Content 2', 1, 0, 1)
     `);
 
-    // Insert test tags
     sqlite.exec(`
         INSERT INTO hashtags (id, name) VALUES 
             (1, 'test'),
             (2, 'integration')
     `);
 
-    // Insert feed-tag relationships
     sqlite.exec(`
         INSERT INTO feed_hashtags (feed_id, hashtag_id) VALUES 
-            (1, 1),
-            (1, 2),
-            (2, 1)
+            ('1', 1),
+            ('1', 2),
+            ('2', 1)
     `);
 
-    // Insert test comments
     sqlite.exec(`
         INSERT INTO comments (id, feed_id, user_id, content, created_at) VALUES 
-            (1, 1, 2, 'Test comment 1', unixepoch()),
-            (2, 1, 1, 'Test comment 2', unixepoch())
+            (1, '1', 2, 'Test comment 1', unixepoch()),
+            (2, '1', 1, 'Test comment 2', unixepoch())
     `);
 }

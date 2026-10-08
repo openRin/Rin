@@ -18,7 +18,7 @@ describe("bindTagToPost", () => {
         databases.push(context);
         await context.db.insert(users).values({ username: "admin", openid: "admin" });
         const [feed] = await context.db.insert(feeds)
-            .values({ title: "Post", content: "Content", uid: 1, draft: 0, listed: 1 })
+            .values({ id: "1", title: "Post", content: "Content", uid: 1, draft: 0, listed: 1 })
             .returning({ id: feeds.id });
 
         await bindTagToPost(context.db as any, feed.id, [" TypeScript ", "TypeScript", "Bun"]);

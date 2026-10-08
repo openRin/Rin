@@ -139,4 +139,49 @@ describe("buildWebhookRequest", () => {
 
     expect(request.body).toBe("message=hello \"quoted\"\nnext line");
   });
+
+  it("rejects payload values that would change the webhook URL origin", () => {
+    // 管理员把占位符放进主机位时，payload 值不得改写请求目的地
+    expect(() =>
+      buildWebhookRequest(
+        {
+          event: "comment.created",
+          message: "hello",
+          url: "attacker.invalid",
+        },
+        {
+          urlTemplate: "https://{{url}}/webhook",
+        },
+      ),
+    ).toThrow(/origin/i);
+  });
+
+  it("keeps path and query placeholders on the configured origin", () => {
+    const request = buildWebhookRequest(
+      {
+        event: "comment.created",
+        message: "hello",
+        url: "https://blog.example/post/1",
+      },
+      {
+        urlTemplate: "https://example.com/hook/{{event}}?from={{url}}",
+      },
+    );
+
+    expect(new URL(request.url).origin).toBe("https://example.com");
+  });
+
+  it("rejects templates that render to an invalid URL", () => {
+    expect(() =>
+      buildWebhookRequest(
+        {
+          event: "comment.created",
+          message: "hello",
+        },
+        {
+          urlTemplate: "not a url",
+        },
+      ),
+    ).toThrow(/invalid URL/i);
+  });
 });

@@ -1,8 +1,6 @@
-// ============================================================================
-// Error Types and Classes for Server
-// ============================================================================
+// Error Types and Classes
 
-export type ErrorCode = 
+export type ErrorCode =
   // 400 Bad Request
   | 'VALIDATION_ERROR'
   | 'BAD_REQUEST'
@@ -48,9 +46,7 @@ export interface ErrorResponse {
   };
 }
 
-// ============================================================================
 // Base Application Error
-// ============================================================================
 
 export class AppError extends Error {
   public readonly code: ErrorCode;
@@ -90,9 +86,7 @@ export class AppError extends Error {
   }
 }
 
-// ============================================================================
 // Specific Error Classes
-// ============================================================================
 
 export class ValidationError extends AppError {
   constructor(message: string, details?: ErrorDetail[]) {
@@ -208,9 +202,57 @@ export class ServiceUnavailableError extends AppError {
   }
 }
 
-// ============================================================================
+// Business Error
+
+/**
+ * 携带 `@rin/api` 共享业务错误码的错误。与面向传输层语义的 AppError 不同，
+ * BusinessError 的 code 供前端做稳定分支与 i18n 映射，不依赖 message 文案。
+ */
+export class BusinessError extends AppError {
+  constructor(
+    code: string,
+    message: string,
+    statusCode: number = 400,
+    details?: ErrorDetail[],
+  ) {
+    // ErrorCode 联合类型覆盖不到 packages/api 的业务码，这里显式扩展。
+    super(code as ErrorCode, message, statusCode, details);
+  }
+}
+
+/**
+ * 业务错误快捷构造器。
+ *
+ * @example
+ *   throw bizError(COMMENT_ERROR_CODES.COMMENT_CONTENT_REQUIRED, 'Content is required');
+ */
+export function bizError(
+  code: string,
+  message: string,
+  statusCode = 400,
+  details?: ErrorDetail[],
+): BusinessError {
+  return new BusinessError(code, message, statusCode, details);
+}
+
+/**
+ * 把 schema 校验结果转成 BusinessError。
+ * 前端据此拿到 issues，可以精确定位到出错字段。
+ */
+export function validationErrorFromIssues(
+  code: string,
+  message: string,
+  issues: { path: string; message: string }[],
+): BusinessError {
+  return new BusinessError(
+    code,
+    message,
+    400,
+    issues.map((issue) => ({ field: issue.path, message: issue.message })),
+  );
+}
+
 // Error Utilities
-// ============================================================================
 
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
@@ -254,9 +296,7 @@ export function createErrorResponse(
   };
 }
 
-// ============================================================================
 // Async Handler Wrapper
-// ============================================================================
 
 export type AsyncHandler<T = Response> = (
   ...args: any[]

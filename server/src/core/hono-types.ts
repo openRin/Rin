@@ -22,6 +22,11 @@ export interface CacheImpl {
     deletePrefix(prefix: string): Promise<void>;
     getOrSet<T>(key: string, factory: () => Promise<T>): Promise<T>;
     getOrDefault<T>(key: string, defaultValue: T): Promise<T>;
+    /**
+     * 按前缀查所有键值对（`get(key)` 只做精确匹配，查不到前缀）。
+     * 可选是因为测试替身不一定实现，调用方需优雅降级。
+     */
+    getByPrefix?(prefix: string): Promise<Array<[string, any]>>;
     getBySuffix(suffix: string): Promise<any[]>;
     all(): Promise<Map<string, any>>;
     save(): Promise<void>;

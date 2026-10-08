@@ -10,7 +10,7 @@ global.fetch = mockFetch
 
 const timestamp = '2026-01-01T00:00:00.000Z'
 
-const createFeed = (id: number, title: string): Feed => ({
+const createFeed = (id: string, title: string): Feed => ({
   id,
   title,
   content: `Content ${id}`,
@@ -65,7 +65,7 @@ describe('API Client', () => {
         size: 2,
         data: [
           {
-            id: 1,
+            id: '1',
             title: 'Feed 1',
             summary: 'Summary 1',
             hashtags: [],
@@ -77,7 +77,7 @@ describe('API Client', () => {
             uv: 0,
           },
           {
-            id: 2,
+            id: '2',
             title: 'Feed 2',
             summary: 'Summary 2',
             hashtags: [],
@@ -123,7 +123,7 @@ describe('API Client', () => {
     })
 
     it('should fetch single feed', async () => {
-      const mockResponse = createFeed(1, 'Feed 1')
+      const mockResponse = createFeed('1', 'Feed 1')
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,
@@ -141,7 +141,7 @@ describe('API Client', () => {
     })
 
     it('should create feed', async () => {
-      const mockResponse = { insertedId: 123 }
+      const mockResponse = { insertedId: '123' }
       const feedData = {
         title: 'New Feed',
         content: 'Content',
@@ -194,7 +194,7 @@ describe('API Client', () => {
         count: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
-        feeds: [createFeed(1, 'Feed 1')],
+        feeds: [createFeed('1', 'Feed 1')],
       }
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
@@ -226,7 +226,7 @@ describe('API Client', () => {
         json: async () => mockResponse,
       }))
 
-      const result = await api.comment.list(1)
+      const result = await api.comment.list('1')
 
       expect(result.data).toEqual(mockResponse)
       expect(mockFetch).toHaveBeenCalledWith(
@@ -245,7 +245,7 @@ describe('API Client', () => {
         json: async () => mockResponse,
       }))
 
-      const result = await api.comment.create(1, commentData)
+      const result = await api.comment.create('1', commentData)
 
       expect(result.data).toEqual(mockResponse)
       expect(mockFetch).toHaveBeenCalledWith(
@@ -334,7 +334,8 @@ describe('API Client', () => {
     })
 
     it('should check auth status', async () => {
-      const mockResponse = { github: true, password: true }
+      // register 字段由服务端根据 SMTP 配置完整性下发
+      const mockResponse = { github: true, password: true, register: false }
 
       mockFetch.mockResolvedValueOnce(createMockResponse({
         ok: true,

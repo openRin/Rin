@@ -24,7 +24,7 @@
 ID 随意点击一个自己绑定的域名，进入后在右侧（需要向下滑动一段距离）可以找到`账户ID`
 
 创建 API 令牌：点击右上角`头像` > `我的个人资料` > `API 令牌` > `创建令牌`，模板选择`编辑 Cloudflare Workers`：
-![1000000663](/cloudflare-api-key-cn.png)
+![1000000663](https://docs.openrin.org/cloudflare-api-key-cn.png)
 
 创建完成后保存令牌
 
@@ -107,7 +107,31 @@ Rin 目前支持账号密码登录与 Github OAuth 登录，可二选一或同�
 
 ### 图片存储配置
 
-Rin 支持两种存储方式：**Cloudflare R2**（推荐）或 **S3 兼容存储**。
+Rin 支持三种存储方式：**Supabase Storage**、**Cloudflare R2**、**S3 兼容存储**。
+
+Rin 会根据你填写的变量自动选择后端，无需手动指定。若想强制指定，可设置 `STORAGE_PROVIDER`（可选值：`supabase` / `r2` / `s3`）。
+
+#### 使用 Supabase Storage
+
+如果您已有 Supabase 项目，在 GitHub Variables 中设置：
+
+| Variable 名称 | 说明 | 示例 |
+|--------------|------|------|
+| `SUPABASE_URL` | 项目地址 | `https://xxxx.supabase.co` |
+| `SUPABASE_STORAGE_BUCKET` | Storage 存储桶名称 | `rin` |
+| `SUPABASE_STORAGE_PUBLIC` | 存储桶是否公开（可选） | `true` |
+
+以及以下 Secret：
+
+| Secret 名称 | 说明 |
+|------------|------|
+| `SUPABASE_SECRET_KEY` | 高权限 key：sb_secret_...（推荐）或 legacy service_role JWT |
+
+配置后部署脚本会跳过 R2 绑定，直接使用 Supabase Storage。Rin 走 Supabase 的 Storage REST API，无需在 Supabase 侧配置 S3 凭证。
+
+:::tip
+把 `SUPABASE_STORAGE_PUBLIC` 设为 `true` 并将存储桶设为公开桶，图片可由 Supabase CDN 直接服务，省掉 Worker 回源开销。设为 `false` 则图片经 Worker 的 `/api/blob` 反代。
+:::
 
 #### 使用 Cloudflare R2（推荐）
 
@@ -160,7 +184,7 @@ Rin 支持两种存储方式：**Cloudflare R2**（推荐）或 **S3 兼容存�
 
 ### Webhook 通知
 
-如果您希望 Rin 将评论通知和友链申请通知发送到机器人、聊天工具或自动化平台，请继续阅读 [Webhook 指南](./webhook)。
+如果您希望 Rin 将评论通知和友链申请通知发送到机器人、聊天工具或自动化平台，请继续阅读 [Webhook 指南](https://docs.openrin.org/zh/guide/webhook)。
 
 ---
 

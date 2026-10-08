@@ -1,5 +1,7 @@
 import type { Subprocess } from "bun";
 import { parseArgs } from "node:util";
+import * as os from "node:os";
+import * as path from "node:path";
 import { logger } from "../lib/logger";
 import { checkPort } from "../lib/network";
 import { getWranglerEnv } from "../lib/wrangler";
@@ -30,7 +32,9 @@ function createWranglerArgs(port: number) {
 function createViteEnv(serverPort?: number) {
   return {
     ...process.env,
-    RIN_VITE_CACHE_DIR: `/tmp/rin-vite-cache-${serverPort ?? "client"}`,
+    // 用 os.tmpdir() 而非硬编码 /tmp：后者在 Windows 上会解析成 C:\tmp，
+    // 既不稳定，也会触发批量删除拦截。
+    RIN_VITE_CACHE_DIR: path.join(os.tmpdir(), `rin-vite-cache-${serverPort ?? "client"}`),
     ...(serverPort ? { RIN_SERVER_PORT: String(serverPort) } : {}),
   };
 }

@@ -16,7 +16,7 @@ describe('clearFeedCache', () => {
             async save() {}
         } as any;
 
-        await clearFeedCache(cache, 42, 'about', 'about');
+        await clearFeedCache(cache, '42', 'about', 'about');
 
         expect(deletedPrefixes).toEqual([
             'feeds_',
@@ -42,7 +42,7 @@ describe('clearFeedCache', () => {
             async save() {}
         } as any;
 
-        await clearFeedCache(cache, 42, 'about', 'about-us');
+        await clearFeedCache(cache, '42', 'about', 'about-us');
 
         expect(deletedKeys).toEqual([
             { key: 'feed_42', save: false },
@@ -68,7 +68,7 @@ describe('clearFeedCache', () => {
             }
         } as any;
 
-        await clearFeedCache(cache, 42, 'about', 'about');
+        await clearFeedCache(cache, '42', 'about', 'about');
 
         expect(operations).toEqual([
             'prefix:feeds_',

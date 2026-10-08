@@ -1,11 +1,13 @@
-import { and, count, desc, eq, like, or } from "drizzle-orm";
+import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
 import type { DB } from "../../core/hono-types";
 import { feeds } from "../../db/schema";
 
 type FeedInsert = typeof feeds.$inferInsert;
 type FeedUpdate = Partial<FeedInsert>;
 
-export function findFeedById(db: DB, id: number) {
+export type FeedIdMode = 'uuid' | 'number';
+
+export function findFeedById(db: DB, id: string) {
     return db.query.feeds.findFirst({ where: eq(feeds.id, id) });
 }
 
@@ -15,18 +17,37 @@ export function findDuplicateFeed(db: DB, title: string, content: string) {
     });
 }
 
-export async function insertFeed(db: DB, values: FeedInsert) {
+/**
+ * 生成新文章 ID。`feed.id_mode` = uuid（默认）走 crypto.randomUUID()；
+ * number 模式取现有数字 ID 最大值 +1（数字 ID 以文本形态存储，GLOB 跳过 uuid 行）。
+ */
+export async function generateFeedId(db: DB, idMode: FeedIdMode = 'uuid'): Promise<string> {
+    if (idMode === 'number') {
+        const [row] = await db
+            .select({ maxId: sql<string | null>`max(cast(${feeds.id} as integer))` })
+            .from(feeds)
+            .where(sql`${feeds.id} GLOB '[0-9]*'`);
+        const max = row?.maxId ? Number.parseInt(row.maxId, 10) : 0;
+        return String(Number.isFinite(max) ? max + 1 : 1);
+    }
+    return crypto.randomUUID();
+}
+
+export async function insertFeed(db: DB, values: Omit<FeedInsert, 'id'> & { id?: string }, idMode: FeedIdMode = 'uuid') {
+    const withId: FeedInsert = values.id !== undefined
+        ? { ...values, id: values.id }
+        : { ...values, id: await generateFeedId(db, idMode) };
     const [inserted] = await db.insert(feeds)
-        .values(values)
+        .values(withId)
         .returning({ insertedId: feeds.id });
     return inserted ?? null;
 }
 
-export function updateFeedById(db: DB, id: number, values: FeedUpdate) {
+export function updateFeedById(db: DB, id: string, values: FeedUpdate) {
     return db.update(feeds).set(values).where(eq(feeds.id, id));
 }
 
-export function deleteFeedById(db: DB, id: number) {
+export function deleteFeedById(db: DB, id: string) {
     return db.delete(feeds).where(eq(feeds.id, id));
 }
 

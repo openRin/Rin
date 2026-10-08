@@ -17,6 +17,7 @@ declare namespace Cloudflare {
 	interface GlobalProps {
 		mainModule: typeof import("./src/_worker");
 	}
+
 	interface Env {
 		DB: D1Database;
 		ASSETS?: Fetcher;
@@ -39,8 +40,52 @@ declare namespace Cloudflare {
 		S3_ACCESS_KEY_ID: string;
 		S3_SECRET_ACCESS_KEY: string;
 		CACHE_STORAGE_MODE: "database" | "s3";
+		/** Turnstile 公开 site key；也可用 server config 的 turnstile.site_key 覆盖 */
+		TURNSTILE_SITE_KEY?: string;
+		/** Turnstile 服务端密钥，务必通过 wrangler secret 注入 */
+		TURNSTILE_SECRET_KEY?: string;
+		/**
+		 * 是否启用人机验证的部署期默认值。
+		 * 留空时以 server config 的 turnstile.enabled 为准（后台可改）。
+		 * 注意：即使这里为 true，缺 site key 或 secret key 时仍会判定为关闭。
+		 */
+		TURNSTILE_ENABLED?: string;
+		/**
+		 * 邮件 Provider：smtp | resend | custom。
+		 * 留空时自动探测（配了 resend 用 resend，其次 custom 网关，最后 smtp）。
+		 */
+		MAIL_PROVIDER?: string;
+		/** 邮件注册 SMTP 配置；也可用 server config 的 smtp.* 覆盖 */
+		SMTP_HOST?: string;
+		SMTP_PORT?: string;
+		SMTP_USERNAME?: string;
+		SMTP_PASSWORD?: string;
+		SMTP_FROM?: string;
+		/** Resend API Key（也可用 server config 的 resend.api_key） */
+		RESEND_API_KEY?: string;
+		/** 覆盖 Resend 端点，用于兼容 Resend 风格的代理网关 */
+		RESEND_ENDPOINT?: string;
+		/** 自定义 HTTP 邮件网关地址 */
+		MAIL_GATEWAY_ENDPOINT?: string;
+		/** 网关鉴权 token */
+		MAIL_GATEWAY_TOKEN?: string;
+		/** 网关鉴权头名称，默认 Authorization */
+		MAIL_GATEWAY_AUTH_HEADER?: string;
+		/** 网关鉴权值模板，默认 Bearer {token} */
+		MAIL_GATEWAY_AUTH_TEMPLATE?: string;
+		/**
+		 * 签发「主站 → 邮件网关」短期 JWT 的密钥。
+		 * 网关侧需配置同名变量。**建议取独立值**，不要直接复用 JWT_SECRET：
+		 * 共享会让网关持有主站身份伪造能力。
+		 */
+		MAIL_JWT_SECRET?: string;
+		/** 统一发件人地址（各 provider 的兜底） */
+		MAIL_FROM?: string;
+		/** 邮件投递超时（毫秒） */
+		MAIL_TIMEOUT_MS?: string;
 	}
 }
+
 interface Env extends Cloudflare.Env {}
 
 // Begin runtime types

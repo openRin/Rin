@@ -32,7 +32,7 @@ async function migrate() {
         }).from(visits);
         
         // Group by feed_id
-        const groupedVisits = new Map<number, string[]>();
+        const groupedVisits = new Map<string, string[]>();
         for (const visit of allVisits) {
             if (!groupedVisits.has(visit.feedId)) {
                 groupedVisits.set(visit.feedId, []);

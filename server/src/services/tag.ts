@@ -74,7 +74,7 @@ export function TagService(): Hono {
     return app;
 }
 
-export async function bindTagToPost(db: DB, feedId: number, tags: string[]) {
+export async function bindTagToPost(db: DB, feedId: string, tags: string[]) {
     await db.delete(feedHashtags).where(eq(feedHashtags.feedId, feedId));
 
     const normalizedTags = [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))];

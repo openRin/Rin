@@ -26,7 +26,7 @@ function buildStatusUpdate(
 
 export async function enqueueFeedAISummary(
   env: Env,
-  feedId: number,
+  feedId: string,
   updatedAt: Date,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
@@ -77,7 +77,7 @@ export async function syncFeedAISummaryQueueState(
   db: DB,
   serverConfig: ConfigReader,
   env: Env,
-  feedId: number,
+  feedId: string,
   options: {
     draft: boolean;
     updatedAt: Date;
@@ -125,11 +125,11 @@ export async function processFeedAISummaryTask(
   cache: CacheImpl,
   serverConfig: ConfigReader,
   payload: {
-    feedId: number;
+    feedId: string;
     expectedUpdatedAt?: string;
     expectedUpdatedAtUnix?: number;
   },
-  clearFeedCache: (cache: CacheImpl, id: number, alias: string | null, newAlias: string | null) => Promise<void>,
+  clearFeedCache: (cache: CacheImpl, id: string, alias: string | null, newAlias: string | null) => Promise<void>,
 ) {
   const feed = await db.query.feeds.findFirst({
     where: eq(feeds.id, payload.feedId),

@@ -55,6 +55,29 @@ function escapeJsonStringValue(value: string) {
   return JSON.stringify(value).slice(1, -1);
 }
 
+/**
+ * 渲染后的 URL 必须仍落在模板的 origin 内。
+ *
+ * 占位符替换值虽经 encodeURIComponent，但点号等主机名字符不转义——
+ * 管理员把 {{...}} 放在主机位时，payload 值仍能改写请求目的地（SSRF）。
+ */
+function assertWebhookUrlOrigin(urlTemplate: string, requestUrl: string) {
+  let anchor: URL;
+  let target: URL;
+  try {
+    anchor = new URL(urlTemplate.replaceAll(/{{\s*[a-zA-Z0-9_]+\s*}}/g, "origin-anchor.invalid"));
+    target = new URL(requestUrl);
+  } catch {
+    throw new Error("Webhook URL template renders to an invalid URL");
+  }
+
+  if (target.origin !== anchor.origin) {
+    throw new Error(
+      `Webhook URL origin "${target.origin}" differs from the configured template origin "${anchor.origin}"`,
+    );
+  }
+}
+
 export function buildWebhookRequest(
   payload: WebhookEventPayload,
   format: WebhookFormatConfig = {},
@@ -85,6 +108,7 @@ export function buildWebhookRequest(
     isJsonTemplate(headersTemplate) ? escapeJsonStringValue : undefined,
   );
   const requestUrl = renderTemplate(urlTemplate, values, encodeURIComponent).trim();
+  assertWebhookUrlOrigin(urlTemplate, requestUrl);
   const parsedHeaders = JSON.parse(renderedHeadersTemplate) as Record<string, string>;
   const headers: Record<string, string> = {
     ...parsedHeaders,

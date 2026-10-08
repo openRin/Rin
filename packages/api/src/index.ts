@@ -4,11 +4,14 @@
 // Types
 export * from './types';
 
+// Shared error codes
+export * from './error-codes';
+
 // Schemas for server-side validation
 export * from './schemas';
 
 // Schema validator
-export { t, validateSchema } from './schema-validator';
+export { t, validateSchema, isEmail, EMAIL_PATTERN } from './schema-validator';
 export type {
   Schema,
   SchemaValidationIssue,

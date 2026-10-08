@@ -106,7 +106,31 @@ After deployment is complete, you can access your blog through the following add
 
 ### Image Storage Configuration
 
-Rin supports two storage methods: **Cloudflare R2** (recommended) or **S3-compatible storage**.
+Rin supports three storage methods: **Supabase Storage**, **Cloudflare R2**, and **S3-compatible storage**.
+
+The backend is selected automatically from the variables you provide. To force a specific backend, set `STORAGE_PROVIDER` (one of `supabase` / `r2` / `s3`).
+
+#### Using Supabase Storage
+
+If you already have a Supabase project, set the following in GitHub Variables:
+
+| Variable Name | Description | Example |
+|--------------|-------------|---------|
+| `SUPABASE_URL` | Project URL | `https://xxxx.supabase.co` |
+| `SUPABASE_STORAGE_BUCKET` | Storage bucket name | `rin` |
+| `SUPABASE_STORAGE_PUBLIC` | Whether the bucket is public (optional) | `true` |
+
+And the following Secret:
+
+| Secret Name | Description |
+|-------------|-------------|
+| `SUPABASE_SECRET_KEY` | Elevated key: sb_secret_... (recommended) or legacy service_role JWT |
+
+Once configured, the deployment script skips the R2 binding and uses Supabase Storage directly. Rin talks to Supabase through the Storage REST API, so no S3 credentials need to be set up on the Supabase side.
+
+:::tip
+Set `SUPABASE_STORAGE_PUBLIC` to `true` and mark the bucket public to let the Supabase CDN serve images directly, avoiding Worker round-trips. With `false`, images are proxied through the Worker's `/api/blob` route.
+:::
 
 #### Using Cloudflare R2 (Recommended)
 
