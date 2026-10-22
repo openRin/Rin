@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import type { SiteHeaderConfig } from "../shared";
 import { ImageWithFallback } from "../../image-with-fallback";
+import { darkInvertImageClass } from "../../../utils/image-dark-invert";
 
 export function BrandLink({
   siteConfig,
@@ -28,6 +29,7 @@ export function BrandLink({
           src={siteConfig.avatar}
           alt={siteConfig.name}
           className={avatarClassName || (compact ? "h-10 w-10 rounded-full border-2" : "h-12 w-12 rounded-2xl border-2")}
+          imageClassName={darkInvertImageClass(siteConfig.avatar)}
         />
       ) : null}
       <div className={`${showAvatar ? (compact ? "mx-2" : "mx-4") : ""} flex min-w-0 flex-col items-start justify-center`}>

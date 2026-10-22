@@ -6,6 +6,7 @@ import { Button } from "../components/button";
 import { useConfirm } from "../components/dialog";
 import { ImageUploadInput } from "../components/image-upload-input";
 import { ImageWithFallback } from "../components/image-with-fallback";
+import { darkInvertImageClass } from "../utils/image-dark-invert";
 import {
   SettingsCard,
   SettingsCardBody,
@@ -230,6 +231,7 @@ export function ItemImageInput({
                     src={value}
                     alt={configKeyTitle}
                     className={`h-10 w-10 ${shape === "circle" ? "rounded-full" : "rounded-2xl"}`}
+                    imageClassName={darkInvertImageClass(value)}
                   />
                 ) : null}
                 <span className="max-w-56 truncate text-sm text-neutral-500 dark:text-neutral-400">

@@ -445,7 +445,7 @@
       },
       "avatar": {
         "title": "Site Avatar",
-        "desc": "Set the avatar shown in the navigation bar by URL, upload, or drag and drop",
+        "desc": "Set the avatar shown in the navigation bar by URL, upload, or drag and drop. SVG logos are inverted automatically in dark mode; append #no-invert to the URL to disable",
         "label": "Avatar URL"
       },
       "page_size": {

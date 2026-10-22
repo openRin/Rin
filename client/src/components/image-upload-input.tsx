@@ -7,6 +7,7 @@ import {
   isImageFile,
   uploadImageFile,
 } from "../utils/image-upload";
+import { darkInvertImageClass } from "../utils/image-dark-invert";
 
 type ImageUploadInputProps = {
   value: string;
@@ -74,6 +75,7 @@ export function ImageUploadInput({
               src={value}
               alt={t("upload.image.preview_alt")}
               className="h-full w-full bg-transparent"
+              imageClassName={darkInvertImageClass(value)}
             />
           ) : (
             <i className="ri-image-line text-3xl text-neutral-400" aria-hidden="true" />
