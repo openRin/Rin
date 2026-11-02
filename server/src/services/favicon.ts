@@ -16,6 +16,52 @@ export function getFaviconKey(env: Env) {
     return path_join(env.S3_FOLDER || "", "favicon.webp");
 }
 
+export function getSvgFaviconKey(env: Env) {
+    return path_join(env.S3_FOLDER || "", "favicon.svg");
+}
+
+// Cloudflare Image Resizing cannot transform SVG sources, so SVG avatars are
+// proxied as-is instead of going through buildFaviconFromSource.
+export function isSvgSource(url: string) {
+    if (url.toLowerCase().startsWith("data:image/svg+xml")) {
+        return true;
+    }
+    try {
+        return new URL(url).pathname.toLowerCase().endsWith(".svg");
+    } catch {
+        return false;
+    }
+}
+
+async function fetchSvgFavicon(c: AppContext, sourceUrl: string, svgFaviconKey: string) {
+    const env = c.get('env');
+
+    const cached = await profileAsync(c, 'favicon_svg_fetch', () => getStorageObject(env, svgFaviconKey));
+    if (cached) {
+        c.header("Content-Type", "image/svg+xml");
+        c.header("Cache-Control", "public, max-age=31536000");
+        return c.body(await profileAsync(c, 'favicon_svg_body', () => cached.arrayBuffer()));
+    }
+
+    const response = await fetch(new Request(sourceUrl, {
+        headers: c.req.raw.headers,
+    }));
+    if (!response.ok) {
+        return response;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    await putStorageObjectAtKey(env, svgFaviconKey, new Uint8Array(arrayBuffer), "image/svg+xml");
+
+    return new Response(arrayBuffer, {
+        status: 200,
+        headers: {
+            "Content-Type": "image/svg+xml",
+            "Cache-Control": "public, max-age=31536000",
+        },
+    });
+}
+
 async function buildFaviconFromSource(c: AppContext, sourceUrl: string, faviconKey: string) {
     const env = c.get('env');
     const imageRequest = new Request(sourceUrl, {
@@ -75,6 +121,17 @@ export function FaviconService(): Hono {
                 }
 
                 const avatarUrl = new URL(avatar, c.req.url).toString();
+                if (isSvgSource(avatarUrl)) {
+                    const svgFavicon = await profileAsync(c, 'favicon_svg', () => fetchSvgFavicon(c, avatarUrl, getSvgFaviconKey(env)));
+                    if (!svgFavicon.ok) {
+                        c.status(svgFavicon.status as 200 | 400 | 401 | 403 | 404 | 500);
+                        return c.text(await svgFavicon.text());
+                    }
+
+                    c.header("Content-Type", svgFavicon.headers.get("Content-Type") || "image/svg+xml");
+                    c.header("Cache-Control", svgFavicon.headers.get("Cache-Control") || "public, max-age=31536000");
+                    return c.body(await profileAsync(c, 'favicon_svg_body', () => svgFavicon.arrayBuffer()));
+                }
                 const generatedFavicon = await profileAsync(c, 'favicon_generate', () => buildFaviconFromSource(c, avatarUrl, faviconKey));
                 if (!generatedFavicon.ok) {
                     c.status(generatedFavicon.status as 200 | 400 | 401 | 403 | 404 | 500);

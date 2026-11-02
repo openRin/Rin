@@ -198,6 +198,129 @@ describe('FaviconService', () => {
             }
         });
 
+        it('should serve SVG avatar directly as favicon when avatar is an SVG', async () => {
+            const clientConfig = new TestCacheImpl();
+            await clientConfig.set('site.avatar', 'https://example.com/logo.svg');
+
+            app = new Hono<{ Bindings: Env; Variables: Variables }>();
+            app.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+                c.set('db', db);
+                c.set('cache', new TestCacheImpl());
+                c.set('serverConfig', new TestCacheImpl());
+                c.set('clientConfig', clientConfig);
+                c.set('jwt', {
+                    sign: async (payload: any) => `mock_token_${payload.id}`,
+                    verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+                } as JWTUtils);
+                c.set('oauth2', undefined);
+                c.set('env', env);
+                c.set('uid', 1);
+                c.set('admin', true);
+                await next();
+            }));
+            app.route('/', FaviconService());
+
+            const svgContent = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"></svg>';
+            const originalFetch = globalThis.fetch;
+            globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = typeof input === 'string'
+                    ? input
+                    : input instanceof URL
+                      ? input.toString()
+                      : input.url;
+
+                if (url === 'https://example.com/logo.svg') {
+                    return new Response(svgContent, {
+                        status: 200,
+                        headers: { 'Content-Type': 'image/svg+xml' },
+                    });
+                }
+
+                const method = init?.method ?? (input instanceof Request ? input.method : 'GET');
+                if (url.endsWith('/images/favicon.svg') && method === 'PUT') {
+                    return new Response(null, { status: 200 });
+                }
+
+                if (url.endsWith('/images/favicon.svg')) {
+                    return new Response('missing', { status: 404 });
+                }
+
+                if (url.endsWith('/images/favicon.webp')) {
+                    return new Response('missing', { status: 404 });
+                }
+
+                return originalFetch(input, init);
+            };
+
+            try {
+                const res = await app.request('/', { method: 'GET' }, env);
+                expect(res.status).toBe(200);
+                expect(res.headers.get('content-type')).toBe('image/svg+xml');
+                expect(await res.text()).toBe(svgContent);
+            } finally {
+                globalThis.fetch = originalFetch;
+            }
+        });
+
+        it('should serve cached SVG favicon without refetching the avatar', async () => {
+            const clientConfig = new TestCacheImpl();
+            await clientConfig.set('site.avatar', 'https://example.com/logo.svg');
+
+            app = new Hono<{ Bindings: Env; Variables: Variables }>();
+            app.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+                c.set('db', db);
+                c.set('cache', new TestCacheImpl());
+                c.set('serverConfig', new TestCacheImpl());
+                c.set('clientConfig', clientConfig);
+                c.set('jwt', {
+                    sign: async (payload: any) => `mock_token_${payload.id}`,
+                    verify: async (token: string) => token.startsWith('mock_token_') ? { id: 1 } : null,
+                } as JWTUtils);
+                c.set('oauth2', undefined);
+                c.set('env', env);
+                c.set('uid', 1);
+                c.set('admin', true);
+                await next();
+            }));
+            app.route('/', FaviconService());
+
+            const cachedSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">cached</svg>';
+            const originalFetch = globalThis.fetch;
+            globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = typeof input === 'string'
+                    ? input
+                    : input instanceof URL
+                      ? input.toString()
+                      : input.url;
+
+                if (url === 'https://example.com/logo.svg') {
+                    return new Response('avatar should not be fetched when cache exists', { status: 500 });
+                }
+
+                if (url.endsWith('/images/favicon.svg')) {
+                    return new Response(cachedSvg, {
+                        status: 200,
+                        headers: { 'Content-Type': 'image/svg+xml' },
+                    });
+                }
+
+                if (url.endsWith('/images/favicon.webp')) {
+                    return new Response('missing', { status: 404 });
+                }
+
+                return originalFetch(input, init);
+            };
+
+            try {
+                const res = await app.request('/', { method: 'GET' }, env);
+                expect(res.status).toBe(200);
+                expect(res.headers.get('content-type')).toBe('image/svg+xml');
+                expect(await res.text()).toBe(cachedSvg);
+            } finally {
+                globalThis.fetch = originalFetch;
+            }
+        });
+
         it('should return favicon through R2 API when S3_ACCESS_HOST is missing', async () => {
             const r2Env = createMockEnv({
                 S3_ACCESS_HOST: '' as any,

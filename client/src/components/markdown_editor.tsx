@@ -340,7 +340,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           onChange={upChange}
           className="hidden"
           type="file"
-          accept="image/gif,image/jpeg,image/jpg,image/png"
+          accept="image/gif,image/jpeg,image/jpg,image/png,image/svg+xml"
         />
         <MarkdownToolButton
           label={label}
