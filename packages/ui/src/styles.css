@@ -29,6 +29,20 @@
   --rin-shadow-overlay: 0 28px 90px rgb(0 0 0 / 0.5), 0 4px 24px rgb(0 0 0 / 0.3);
 }
 
+/* 经典暖色：暖纸底 + 深棕文字，明色系变体 */
+[data-color-mode="warm"] {
+  --rin-canvas-rgb: 242 236 220;
+  --rin-surface-rgb: 248 243 231;
+  --rin-surface-muted-rgb: 236 229 211;
+  --rin-surface-hover-rgb: 228 219 198;
+  --rin-surface-active-rgb: 216 205 181;
+  --rin-text-rgb: 74 59 47;
+  --rin-text-muted-rgb: 133 115 96;
+  --rin-border-rgb: 92 58 40;
+  --rin-overlay-color: rgb(58 42 28 / 0.5);
+  --rin-shadow-overlay: 0 24px 80px rgb(74 59 47 / 0.28), 0 4px 20px rgb(74 59 47 / 0.14);
+}
+
 .bg-w {
   background-color: rgb(var(--rin-surface-rgb));
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
 import type { Database } from "bun:sqlite";
-import { buildServerConfigResponse, resolveWebhookConfig } from "../config-helpers";
+import { buildServerConfigResponse, getClientConfigWithDefaults, resolveWebhookConfig } from "../config-helpers";
 import { cleanupTestDB, createMockDB } from "../../../tests/fixtures";
 
 describe("buildServerConfigResponse", () => {
@@ -60,6 +60,48 @@ describe("buildServerConfigResponse", () => {
         });
 
         expect(response["webhook_url"]).toBe("https://stored.example.com/webhook");
+    });
+});
+
+describe("getClientConfigWithDefaults", () => {
+    function createConfigMap(stored: Record<string, unknown>) {
+        return {
+            async all() {
+                return new Map<string, unknown>(Object.entries(stored));
+            },
+            async set() {},
+            async save() {},
+        };
+    }
+
+    it("fills unset keys from env defaults", async () => {
+        const result = await getClientConfigWithDefaults(createConfigMap({}), {
+            NAME: "Env Name",
+            DESCRIPTION: "Env Description",
+        } as any);
+
+        expect(result["site.name"]).toBe("Env Name");
+        expect(result["site.description"]).toBe("Env Description");
+    });
+
+    it("keeps explicitly cleared values instead of reverting to env defaults", async () => {
+        const result = await getClientConfigWithDefaults(
+            createConfigMap({ "site.description": "" }),
+            { DESCRIPTION: "Env Description" } as any,
+        );
+
+        expect(result["site.description"]).toBe("");
+    });
+
+    it("defaults page_size to 5 only when not stored", async () => {
+        const cleared = await getClientConfigWithDefaults(
+            createConfigMap({ "site.page_size": "" }),
+            {} as any,
+        );
+        expect(cleared["site.page_size"]).toBe("");
+
+        const unset = await getClientConfigWithDefaults(createConfigMap({}), {} as any);
+        expect(unset["site.page_size"]).toBe(5);
     });
 });
 

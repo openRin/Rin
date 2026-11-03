@@ -500,6 +500,20 @@
         "masonry": "A staggered multi-column layout that packs cards by height."
       }
     },
+    "article_width": {
+      "title": "Article width",
+      "desc": "Choose the content width of the article page",
+      "options": {
+        "normal": "Normal",
+        "wide": "Wide",
+        "full": "Full"
+      },
+      "preview": {
+        "normal": "The default article width, best for plain reading.",
+        "wide": "30% wider than normal, great for code blocks and tables.",
+        "full": "Fill every available bit of the browser width beside the TOC."
+      }
+    },
     "theme_color": {
       "title": "Theme color",
       "desc": "Choose the accent color used by buttons, highlights, and interactive elements",
@@ -521,6 +535,18 @@
     "wordpress": {
       "desc": "Upload the XML file exported from WordPress",
       "title": "Import from WordPress"
+    },
+    "moments": {
+      "enable": {
+        "title": "Enable Moments",
+        "desc": "Show/hide the Moments tab in the top navigation bar"
+      }
+    },
+    "friends": {
+      "enable": {
+        "title": "Enable Friends",
+        "desc": "Show/hide the Friends tab in the top navigation bar"
+      }
     }
   },
   "sitename": "Site Name",

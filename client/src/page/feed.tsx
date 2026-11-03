@@ -11,6 +11,7 @@ import { ImageWithFallback } from "../components/image-with-fallback";
 import { Waiting } from "../components/loading";
 import { Markdown } from "../components/markdown";
 import { client } from "../app/runtime";
+import { ARTICLE_WIDTH_CLASS } from "../components/article-width-options";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
 import { useSiteConfig } from "../hooks/useSiteConfig";
@@ -182,8 +183,9 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
         )}
         {feed && !error && (
           <>
-            <div className="xl:w-64" />
-            <main className="wauto">
+            {/* 超宽 / 全宽模式需要整个可用空间，隐藏左侧占位 */}
+            <div className={siteConfig.articleWidth === "normal" ? "xl:w-64" : "hidden"} />
+            <main className={ARTICLE_WIDTH_CLASS[siteConfig.articleWidth]}>
               <article
                 className="rounded-2xl bg-w m-2 px-6 py-4"
                 aria-label={feed.title ?? "Unnamed"}

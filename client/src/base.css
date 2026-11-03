@@ -5,7 +5,58 @@
     .wauto {
       @apply w-full md:w-11/12 lg:w-10/12 xl:w-8/12 2xl:w-6/12 duration-300;
     }
-  
+
+    /* 文章宽度 - 超宽：常规宽度 + 30%，lg 起右侧有 w-80 目录，超出可用空间时收窄。
+       使用前需隐藏文章页左侧的 xl:w-64 占位（见 feed.tsx），否则会被 flex 收缩压扁 */
+    .wauto-wide {
+      @apply w-full duration-300;
+    }
+    @media (min-width: 768px) {
+      .wauto-wide {
+        width: min(119.17%, 100%);
+      }
+    }
+    @media (min-width: 1024px) {
+      .wauto-wide {
+        width: min(108.33%, calc(100% - 20rem));
+      }
+    }
+    @media (min-width: 1280px) {
+      .wauto-wide {
+        width: min(86.67%, calc(100% - 20rem));
+      }
+    }
+    @media (min-width: 1536px) {
+      .wauto-wide {
+        width: min(65%, calc(100% - 20rem));
+      }
+    }
+
+    /* 文章宽度 - 全宽：lg 起撑满除目录（w-80）以外的整个浏览器宽度，小屏无目录，保持容器宽度。
+       负 margin 抵消 Padding 组件的页面外边距（lg:mx-16 xl:mx-24 2xl:mx-32），需与其保持同步。
+       使用前需隐藏文章页左侧的 xl:w-64 占位（见 feed.tsx） */
+    .wauto-full {
+      @apply w-full duration-300;
+    }
+    @media (min-width: 1024px) {
+      .wauto-full {
+        width: calc(100% + 4rem - 20rem);
+        margin-left: -4rem;
+      }
+    }
+    @media (min-width: 1280px) {
+      .wauto-full {
+        width: calc(100% + 6rem - 20rem);
+        margin-left: -6rem;
+      }
+    }
+    @media (min-width: 1536px) {
+      .wauto-full {
+        width: calc(100% + 8rem - 20rem);
+        margin-left: -8rem;
+      }
+    }
+
     .writeauto {
       @apply w-full md:w-7/12 lg:w-8/12 duration-300;
     }

@@ -13,6 +13,8 @@ import {
   normalizeHeaderBehavior,
   normalizeHeaderLayout,
 } from "../components/site-header/layout-options";
+import { ARTICLE_WIDTH_OPTIONS, normalizeArticleWidth } from "../components/article-width-options";
+import { ArticleWidthPreview } from "../components/article-width-preview";
 import { FEED_CARD_VARIANTS, normalizeFeedCardVariant } from "../components/feed-card-options";
 import { FeedCardPreview } from "../components/feed-card-preview";
 import { FEED_LAYOUT_OPTIONS, normalizeFeedLayout } from "../components/feed-layout-options";
@@ -99,6 +101,7 @@ export function Settings() {
   const themeColorValue = normalizeThemeColor(String(clientConfig.get("theme.color") ?? "#fc466b"));
   const feedLayoutValue = normalizeFeedLayout(String(clientConfig.get("feed.layout") ?? "list"));
   const feedCardVariantValue = normalizeFeedCardVariant(String(clientConfig.get("feed.card_variant") ?? "default"));
+  const articleWidthValue = normalizeArticleWidth(String(clientConfig.get("article.width") ?? "normal"));
   const previewSiteName = String(clientConfig.get("site.name") ?? clientConfig.default("site.name") ?? "Rin");
   const previewSiteAvatar = String(clientConfig.get("site.avatar") ?? clientConfig.default("site.avatar") ?? "");
 
@@ -189,7 +192,7 @@ export function Settings() {
             title={t("settings.site.name.title")}
             description={t("settings.site.name.desc")}
             configKeyTitle={t("settings.site.name.label")}
-            value={String(clientConfig.get("site.name") ?? "")}
+            value={String(clientConfig.getRaw("site.name") ?? "")}
             placeholder={String(clientConfig.default("site.name") ?? t("settings.site.name.label"))}
             onChange={(value) => {
               setConfigValue("client", "site.name", value);
@@ -199,7 +202,7 @@ export function Settings() {
             title={t("settings.site.description.title")}
             description={t("settings.site.description.desc")}
             configKeyTitle={t("settings.site.description.label")}
-            value={String(clientConfig.get("site.description") ?? "")}
+            value={String(clientConfig.getRaw("site.description") ?? "")}
             placeholder={String(clientConfig.default("site.description") ?? t("settings.site.description.label"))}
             onChange={(value) => {
               setConfigValue("client", "site.description", value);
@@ -209,7 +212,7 @@ export function Settings() {
             title={t("settings.site.avatar.title")}
             description={t("settings.site.avatar.desc")}
             configKeyTitle={t("settings.site.avatar.label")}
-            value={String(clientConfig.get("site.avatar") ?? "")}
+            value={String(clientConfig.getRaw("site.avatar") ?? "")}
             placeholder={String(clientConfig.default("site.avatar") ?? t("settings.site.avatar.label"))}
             onChange={(value) => {
               setConfigValue("client", "site.avatar", value);
@@ -220,7 +223,7 @@ export function Settings() {
             title={t("settings.site.page_size.title")}
             description={t("settings.site.page_size.desc")}
             configKeyTitle={t("settings.site.page_size.label")}
-            value={String(clientConfig.get("site.page_size") ?? "")}
+            value={String(clientConfig.getRaw("site.page_size") ?? "")}
             placeholder={String(clientConfig.default("site.page_size") ?? t("settings.site.page_size.label"))}
             onChange={(value) => {
               setConfigValue("client", "site.page_size", value);
@@ -344,6 +347,47 @@ export function Settings() {
                 <SettingsCardRow
                   header={
                     <SettingsCardHeader
+                      title={t("settings.article_width.title")}
+                      description={t("settings.article_width.desc")}
+                    />
+                  }
+                  action={
+                    <SearchableSelect
+                      value={articleWidthValue}
+                      onChange={(value) => {
+                        setConfigValue("client", "article.width", value);
+                      }}
+                      options={ARTICLE_WIDTH_OPTIONS.map((value) => ({
+                        value,
+                        label: t(`settings.article_width.options.${value}`),
+                      }))}
+                      placeholder={t("settings.article_width.title")}
+                      emptyLabel={t("no_more")}
+                      searchable={false}
+                    />
+                  }
+                />
+                <SettingsCardBody>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {ARTICLE_WIDTH_OPTIONS.map((value) => (
+                      <ArticleWidthPreview
+                        key={value}
+                        width={value}
+                        selected={articleWidthValue === value}
+                        title={t(`settings.article_width.options.${value}`)}
+                        description={t(`settings.article_width.preview.${value}`)}
+                        onClick={() => {
+                          setConfigValue("client", "article.width", value);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </SettingsCardBody>
+              </div>
+              <div className="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
+                <SettingsCardRow
+                  header={
+                    <SettingsCardHeader
                       title={t("settings.theme_color.title")}
                       description={t("settings.theme_color.desc")}
                     />
@@ -441,6 +485,22 @@ export function Settings() {
             }}
           />
           <ItemSwitch
+            title={t("settings.moments.enable.title")}
+            description={t("settings.moments.enable.desc")}
+            checked={clientConfig.getBoolean("moments.enabled")}
+            onChange={(checked) => {
+              setConfigValue("client", "moments.enabled", checked);
+            }}
+          />
+          <ItemSwitch
+            title={t("settings.friends.enable.title")}
+            description={t("settings.friends.enable.desc")}
+            checked={clientConfig.getBoolean("friends.enabled")}
+            onChange={(checked) => {
+              setConfigValue("client", "friends.enabled", checked);
+            }}
+          />
+          <ItemSwitch
             title={t("settings.counter.enable.title")}
             description={t("settings.counter.enable.desc")}
             checked={clientConfig.getBoolean("counter.enabled")}
@@ -466,7 +526,7 @@ export function Settings() {
             title={t("settings.footer.title")}
             description={t("settings.footer.desc")}
             configKeyTitle="Footer HTML"
-            value={String(clientConfig.get("footer") ?? "")}
+            value={String(clientConfig.getRaw("footer") ?? "")}
             onChange={(value) => {
               setConfigValue("client", "footer", value);
             }}
@@ -477,7 +537,7 @@ export function Settings() {
             title={t("settings.webhook.url.title")}
             description={t("settings.webhook.url.desc")}
             configKeyTitle="WEBHOOK_URL"
-            value={String(serverConfig.get("webhook_url") ?? "")}
+            value={String(serverConfig.getRaw("webhook_url") ?? "")}
             placeholder="https://example.com/webhook"
             onChange={(value) => {
               setConfigValue("server", "webhook_url", value);
@@ -513,7 +573,7 @@ export function Settings() {
             title={t("settings.webhook.content_type.title")}
             description={t("settings.webhook.content_type.desc")}
             configKeyTitle="Content-Type"
-            value={String(serverConfig.get("webhook.content_type") ?? "")}
+            value={String(serverConfig.getRaw("webhook.content_type") ?? "")}
             placeholder={String(serverConfig.default("webhook.content_type") ?? "application/json")}
             onChange={(value) => {
               setConfigValue("server", "webhook.content_type", value);
@@ -523,7 +583,7 @@ export function Settings() {
             title={t("settings.webhook.headers.title")}
             description={t("settings.webhook.headers.desc")}
             configKeyTitle={t("settings.webhook.headers.label")}
-            value={String(serverConfig.get("webhook.headers") ?? "")}
+            value={String(serverConfig.getRaw("webhook.headers") ?? "")}
             placeholder={String(serverConfig.default("webhook.headers") ?? "{}")}
             onChange={(value) => {
               setConfigValue("server", "webhook.headers", value);
@@ -533,7 +593,7 @@ export function Settings() {
             title={t("settings.webhook.body_template.title")}
             description={t("settings.webhook.body_template.desc")}
             configKeyTitle={t("settings.webhook.body_template.label")}
-            value={String(serverConfig.get("webhook.body_template") ?? "")}
+            value={String(serverConfig.getRaw("webhook.body_template") ?? "")}
             placeholder={String(serverConfig.default("webhook.body_template") ?? "")}
             onChange={(value) => {
               setConfigValue("server", "webhook.body_template", value);
@@ -590,7 +650,7 @@ export function Settings() {
             title={t("settings.friend.health.ua.title")}
             description={t("settings.friend.health.ua.desc")}
             configKeyTitle="User-Agent"
-            value={String(serverConfig.get("friend_ua") ?? "")}
+            value={String(serverConfig.getRaw("friend_ua") ?? "")}
             placeholder={String(serverConfig.default("friend_ua") ?? "User-Agent")}
             onChange={(value) => {
               setConfigValue("server", "friend_ua", value);

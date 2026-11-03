@@ -7,7 +7,7 @@ import { siteName } from '../utils/constants';
 import { useTranslation } from "react-i18next";
 import { buildLoginPath, HIDDEN_LOGIN_REDIRECT } from "../utils/auth-redirect";
 
-type ThemeMode = 'light' | 'dark' | 'system';
+type ThemeMode = 'light' | 'dark' | 'system' | 'warm';
 function Footer() {
     const { t } = useTranslation()
     const [, setLocation] = useLocation()
@@ -138,6 +138,7 @@ function Footer() {
                     <ThemeButton mode='light' current={modeState} label="Toggle light mode" icon="ri-sun-line" onClick={setMode} />
                     <ThemeButton mode='system' current={modeState} label="Toggle system mode" icon="ri-computer-line" onClick={setMode} />
                     <ThemeButton mode='dark' current={modeState} label="Toggle dark mode" icon="ri-moon-line" onClick={setMode} />
+                    <ThemeButton mode='warm' current={modeState} label="Toggle warm mode" icon="ri-palette-line" onClick={setMode} />
                 </div>
             </div>
         </footer>

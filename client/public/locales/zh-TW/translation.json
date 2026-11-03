@@ -500,6 +500,20 @@
         "masonry": "依卡片高度自動拼接的多欄版面，適合長短不一的內容。"
       }
     },
+    "article_width": {
+      "title": "文章寬度",
+      "desc": "選擇文章頁正文的顯示寬度",
+      "options": {
+        "normal": "常規",
+        "wide": "超寬",
+        "full": "全寬"
+      },
+      "preview": {
+        "normal": "保持預設的文章寬度，適合純文字閱讀。",
+        "wide": "在常規寬度基礎上再加 30%，適合程式碼區塊和表格較多的文章。",
+        "full": "撐滿瀏覽器中除目錄以外的可用寬度。"
+      }
+    },
     "theme_color": {
       "title": "主題色",
       "desc": "選擇按鈕、強調與互動元素使用的主色",
@@ -521,6 +535,18 @@
     "wordpress": {
       "desc": "上傳 WordPress 匯出的 XML 文件",
       "title": "從 WordPress 匯入"
+    },
+    "moments": {
+      "enable": {
+        "title": "啟用動態",
+        "desc": "開啟/關閉頂部導航欄中的「動態」入口"
+      }
+    },
+    "friends": {
+      "enable": {
+        "title": "啟用朋友們",
+        "desc": "開啟/關閉頂部導航欄中的「朋友們」入口"
+      }
     }
   },
   "sitename": "網站名稱",
