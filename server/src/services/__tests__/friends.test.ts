@@ -37,6 +37,46 @@ describe('FriendService', () => {
         `);
     }
 
+    describe('URL boundary for server-side health checks', () => {
+        function post(body: Record<string, unknown>) {
+            return app.request('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer mock_token_2',
+                },
+                body: JSON.stringify(body),
+            }, env);
+        }
+
+        const validBase = { name: 'Friend', desc: 'Desc', avatar: 'avatar.png' };
+
+        it('should accept a normal https URL', async () => {
+            const res = await post({ ...validBase, url: 'https://friend.example/blog' });
+            expect(res.status).toBe(200);
+        });
+
+        it('should accept a normal http URL', async () => {
+            const res = await post({ ...validBase, url: 'http://friend.example/' });
+            expect(res.status).toBe(200);
+        });
+
+        it('should reject non-http(s) schemes before they reach the crontab', async () => {
+            for (const url of ['file:///etc/passwd', 'ftp://example.com/x', 'javascript:alert(1)']) {
+                const res = await post({ ...validBase, url });
+                expect(res.status).toBe(400);
+                expect(await res.text()).toBe('Invalid friend url');
+            }
+        });
+
+        it('should reject malformed URLs and non-string values', async () => {
+            for (const url of ['not-a-url', '://missing-scheme', 123]) {
+                const res = await post({ ...validBase, url });
+                expect(res.status).toBe(400);
+            }
+        });
+    });
+
     describe('GET / - List friends', () => {
         it('should return only accepted friends for non-admin', async () => {
             sqlite.exec(`
@@ -190,6 +230,41 @@ describe('FriendService', () => {
 
             expect(res.status).toBe(200);
         });
+
+        const invalidUrls = [
+            'file:///etc/passwd',
+            'ftp://example.com/x',
+            'javascript:alert(1)',
+            '/relative/path',
+            '//example.com/path',
+            'not-a-url',
+            'https://',
+            123,
+            false,
+            { url: 'https://example.com' },
+            ['https://example.com'],
+        ];
+
+        for (const token of ['mock_token_1', 'mock_token_2']) {
+            it(`should reject invalid URLs without updating the friend for ${token}`, async () => {
+                const original = sqlite.prepare('SELECT * FROM friends WHERE id = 1').get();
+
+                for (const url of invalidUrls) {
+                    const res = await app.request('/1', {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name: 'Must not update', url }),
+                    }, env);
+
+                    expect(res.status).toBe(400);
+                    expect(await res.text()).toBe('Invalid friend url');
+                    expect(sqlite.prepare('SELECT * FROM friends WHERE id = 1').get()).toEqual(original);
+                }
+            });
+        }
 
         it('should return 404 for non-existent friend', async () => {
             const res = await app.request('/999', {

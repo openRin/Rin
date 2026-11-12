@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { UserService } from '../user';
 import { Hono } from "hono";
 import { createMiddleware } from "hono/factory";
-import type { Variables, JWTUtils, OAuth2Utils } from "../../core/hono-types";
+import type { Variables, JWTUtils } from "../../core/hono-types";
 import { setupTestApp, TestCacheImpl, cleanupTestDB, createMockEnv } from '../../../tests/fixtures';
 import type { Database } from 'bun:sqlite';
 
@@ -61,7 +61,7 @@ describe('UserService', () => {
         it('should redirect to GitHub OAuth', async () => {
             const res = await app.request('/github', {
                 method: 'GET',
-                headers: { 'Referer': 'http://localhost:5173/' }
+                headers: { 'Referer': 'http://localhost/' }
             }, env);
             
             expect(res.status).toBe(302);
@@ -135,16 +135,48 @@ describe('UserService', () => {
         it('should set redirect_to cookie', async () => {
             const res = await app.request('/github', {
                 method: 'GET',
-                headers: { 'Referer': 'http://localhost:5173/feed/123' }
+                headers: { 'Referer': 'http://localhost/feed/123' }
             }, env);
             
             expect(res.status).toBe(302);
             const setCookie = res.headers.get('Set-Cookie');
             expect(setCookie).toContain('redirect_to');
         });
+
+        it('should reject an untrusted cross-origin referer', async () => {
+            const res = await app.request('/github', {
+                method: 'GET',
+                headers: { 'Referer': 'https://evil.example/feed/123' }
+            }, env);
+
+            expect(res.status).toBe(400);
+            const data = await res.json() as { error: { message: string } };
+            expect(data.error.message).toBe('Untrusted referer origin');
+            expect(res.headers.get('Set-Cookie')).toBeNull();
+        });
+
+        it('should reject a malformed referer', async () => {
+            const res = await app.request('/github', {
+                method: 'GET',
+                headers: { 'Referer': 'not a url' }
+            }, env);
+
+            expect(res.status).toBe(400);
+            const data = await res.json() as { error: { message: string } };
+            expect(data.error.message).toBe('Invalid referer header');
+        });
     });
 
     describe('GET /github/callback - GitHub OAuth callback', () => {
+        function expectStateCookieDeleted(res: Response) {
+            const stateCookie = res.headers.getSetCookie().find(cookie => cookie.startsWith('state='));
+            expect(stateCookie).toBeDefined();
+            const attributes = stateCookie!.split(';').map(value => value.trim());
+            expect(attributes).toContain('state=');
+            expect(attributes).toContain('Max-Age=0');
+            expect(attributes).toContain('Path=/');
+        }
+
         it('should authenticate existing user', async () => {
             const originalFetch = global.fetch;
             global.fetch = async () => {
@@ -160,13 +192,16 @@ describe('UserService', () => {
                 const res = await app.request('/github/callback?code=valid_code&state=mock_state', {
                     method: 'GET',
                     headers: {
-                        'Cookie': 'state=mock_state; redirect_to=http://localhost:5173/callback'
+                        'Cookie': 'state=mock_state; redirect_to=http://localhost/callback'
                     }
                 }, env);
                 
                 expect(res.status).toBe(302);
-                const location = res.headers.get('Location');
+                const location = res.headers.get('Location')!;
                 expect(location).toContain('/callback');
+                // Same-origin redirect keeps the compatibility token param.
+                expect(new URL(location).origin).toBe('http://localhost');
+                expect(new URL(location).searchParams.get('token')).toBe('mock_token_1');
             } finally {
                 global.fetch = originalFetch;
             }
@@ -176,13 +211,127 @@ describe('UserService', () => {
             const res = await app.request('/github/callback?code=valid_code&state=wrong_state', {
                 method: 'GET',
                 headers: {
-                    'Cookie': 'state=mock_state; redirect_to=http://localhost:5173/callback'
+                    'Cookie': 'state=mock_state; redirect_to=http://localhost/callback'
                 }
             }, env);
             
             expect(res.status).toBe(400);
+            expectStateCookieDeleted(res);
             const data = await res.json() as { error: { message: string } };
             expect(data.error.message).toBe('Invalid state parameter');
+        });
+
+        it('should reject when the state cookie is missing', async () => {
+            const res = await app.request('/github/callback?code=valid_code&state=mock_state', {
+                method: 'GET',
+                headers: { 'Cookie': 'redirect_to=http://localhost/callback' }
+            }, env);
+
+            expect(res.status).toBe(400);
+            expectStateCookieDeleted(res);
+            const data = await res.json() as { error: { message: string } };
+            expect(data.error.message).toBe('Invalid state parameter');
+        });
+
+        it('should reject when the state parameter is missing', async () => {
+            const res = await app.request('/github/callback?code=valid_code', {
+                method: 'GET',
+                headers: { 'Cookie': 'state=mock_state; redirect_to=http://localhost/callback' }
+            }, env);
+
+            expect(res.status).toBe(400);
+            expectStateCookieDeleted(res);
+            const data = await res.json() as { error: { message: string } };
+            expect(data.error.message).toBe('Invalid state parameter');
+        });
+
+        it('should reject when both the state parameter and cookie are missing', async () => {
+            const res = await app.request('/github/callback?code=valid_code', {
+                method: 'GET',
+            }, env);
+
+            expect(res.status).toBe(400);
+            expectStateCookieDeleted(res);
+            const data = await res.json() as { error: { message: string } };
+            expect(data.error.message).toBe('Invalid state parameter');
+        });
+
+        it('should clear the state cookie when GitHub authorization fails', async () => {
+            const res = await app.request('/github/callback?code=invalid_code&state=mock_state', {
+                method: 'GET',
+                headers: { 'Cookie': 'state=mock_state' },
+            }, env);
+
+            expect(res.status).toBe(400);
+            expectStateCookieDeleted(res);
+            const data = await res.json() as { error: { message: string } };
+            expect(data.error.message).toBe('Failed to authorize with GitHub');
+        });
+
+        it('should clear the state cookie after validation', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = async () => new Response(JSON.stringify({
+                id: 'gh_123', login: 'user1', name: 'User One', avatar_url: 'https://github.com/a.png'
+            }), { status: 200 });
+
+            try {
+                const res = await app.request('/github/callback?code=valid_code&state=mock_state', {
+                    method: 'GET',
+                    headers: { 'Cookie': 'state=mock_state; redirect_to=http://localhost/callback' }
+                }, env);
+
+                expect(res.status).toBe(302);
+                expectStateCookieDeleted(res);
+            } finally {
+                global.fetch = originalFetch;
+            }
+        });
+
+        it('should not leak the JWT into an off-origin redirect', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = async () => new Response(JSON.stringify({
+                id: 'gh_123', login: 'user1', name: 'User One', avatar_url: 'https://github.com/a.png'
+            }), { status: 200 });
+
+            try {
+                const res = await app.request('/github/callback?code=valid_code&state=mock_state', {
+                    method: 'GET',
+                    headers: { 'Cookie': 'state=mock_state; redirect_to=https://evil.example/callback' }
+                }, env);
+
+                expect(res.status).toBe(302);
+                const location = res.headers.get('Location')!;
+                const target = new URL(location);
+                expect(target.origin).toBe('http://localhost');
+                expect(target.pathname).toBe('/');
+                expect(target.searchParams.get('token')).toBeNull();
+                // Session cookie is still issued for the deployment origin.
+                expect(res.headers.get('Set-Cookie') || '').toContain('token=');
+            } finally {
+                global.fetch = originalFetch;
+            }
+        });
+
+        it('should fall back to a safe path when redirect_to is absent', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = async () => new Response(JSON.stringify({
+                id: 'gh_123', login: 'user1', name: 'User One', avatar_url: 'https://github.com/a.png'
+            }), { status: 200 });
+
+            try {
+                const res = await app.request('/github/callback?code=valid_code&state=mock_state', {
+                    method: 'GET',
+                    headers: { 'Cookie': 'state=mock_state' }
+                }, env);
+
+                expect(res.status).toBe(302);
+                const target = new URL(res.headers.get('Location')!);
+                expect(target.origin).toBe('http://localhost');
+                expect(target.pathname).toBe('/');
+                expect(target.searchParams.get('token')).toBeNull();
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 

@@ -108,7 +108,7 @@ describe('StorageService', () => {
         `);
     }
 
-    function createAppWithEnv(appEnv: Env, uid?: number) {
+    function createAppWithEnv(appEnv: Env, uid?: number, admin = false) {
         const serviceApp = new Hono<{ Bindings: Env; Variables: Variables }>();
         serviceApp.use(createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
             c.set('db', db);
@@ -121,6 +121,7 @@ describe('StorageService', () => {
             } as JWTUtils);
             c.set('env', appEnv);
             c.set('uid', uid);
+            c.set('admin', admin);
             await next();
         }));
         serviceApp.route('/', StorageService());
@@ -141,6 +142,86 @@ describe('StorageService', () => {
             // Could be 400 (validation) or 401 (auth)
             expect(res.status).toBeGreaterThanOrEqual(400);
             expect(res.status).toBeLessThanOrEqual(401);
+        });
+
+        it('should reject anonymous upload without reading the body or writing to storage', async () => {
+            const putCalls: string[] = [];
+            const r2Env = createMockEnv({
+                R2_BUCKET: {
+                    put: async (key: string) => {
+                        putCalls.push(key);
+                        return {} as unknown as R2Object;
+                    },
+                } as unknown as R2Bucket,
+            });
+
+            const anonApp = createAppWithEnv(r2Env, undefined, false);
+            const formData = new FormData();
+            formData.append('key', 'test.png');
+            formData.append('file', new File(['payload'], 'test.png', { type: 'image/png' }));
+
+            const request = new Request('http://localhost/', { method: 'POST', body: formData });
+            expect(request.bodyUsed).toBe(false);
+            const res = await anonApp.fetch(request, r2Env);
+
+            expect(res.status).toBe(401);
+            expect(request.bodyUsed).toBe(false);
+            expect(putCalls).toHaveLength(0);
+        });
+
+        it('should reject a logged-in non-admin upload without reading the body or writing to storage', async () => {
+            const putCalls: string[] = [];
+            const r2Env = createMockEnv({
+                R2_BUCKET: {
+                    put: async (key: string) => {
+                        putCalls.push(key);
+                        return {} as unknown as R2Object;
+                    },
+                } as unknown as R2Bucket,
+            });
+
+            const userApp = createAppWithEnv(r2Env, 1, false);
+            const formData = new FormData();
+            formData.append('key', 'test.png');
+            formData.append('file', new File(['payload'], 'test.png', { type: 'image/png' }));
+
+            const request = new Request('http://localhost/', { method: 'POST', body: formData });
+            expect(request.bodyUsed).toBe(false);
+            const res = await userApp.fetch(request, r2Env);
+
+            expect(res.status).toBe(403);
+            expect(request.bodyUsed).toBe(false);
+            expect(putCalls).toHaveLength(0);
+        });
+
+        it('should still allow admin image uploads', async () => {
+            const putCalls: Array<{ key: string; type: string | undefined }> = [];
+            const r2Env = createMockEnv({
+                R2_BUCKET: {
+                    put: async (key: string, _value: any, options?: R2PutOptions) => {
+                        putCalls.push({
+                            key,
+                            type: options?.httpMetadata && 'contentType' in options.httpMetadata
+                                ? options.httpMetadata.contentType
+                                : undefined,
+                        });
+                        return {} as unknown as R2Object;
+                    },
+                } as unknown as R2Bucket,
+                S3_ACCESS_HOST: 'https://images.example.com' as any,
+            });
+
+            const adminApp = createAppWithEnv(r2Env, 1, true);
+            const formData = new FormData();
+            formData.append('key', 'photo.png');
+            formData.append('file', new File(['png-bytes'], 'photo.png', { type: 'image/png' }));
+
+            const res = await adminApp.request('/', { method: 'POST', body: formData }, r2Env);
+
+            expect(res.status).toBe(200);
+            expect(putCalls).toHaveLength(1);
+            expect(putCalls[0]?.key).toMatch(/^images\/[a-f0-9]+\.png$/);
+            expect(putCalls[0]?.type).toBe('image/png');
         });
 
         it('should upload through R2 binding when configured', async () => {
@@ -174,7 +255,7 @@ describe('StorageService', () => {
                 S3_SECRET_ACCESS_KEY: '',
             });
 
-            const r2App = createAppWithEnv(r2Env, 1);
+            const r2App = createAppWithEnv(r2Env, 1, true);
             const formData = new FormData();
             formData.append('key', 'test.txt');
             formData.append('file', new File(['test content'], 'test.txt', { type: 'text/plain' }));
@@ -218,7 +299,7 @@ describe('StorageService', () => {
                 S3_SECRET_ACCESS_KEY: '',
             });
 
-            const r2App = createAppWithEnv(r2Env, 1);
+            const r2App = createAppWithEnv(r2Env, 1, true);
             const formData = new FormData();
             formData.append('key', 'test.txt');
             formData.append('file', new File(['test'], 'test.txt', { type: 'text/plain' }));
@@ -239,7 +320,7 @@ describe('StorageService', () => {
             const envNoS3 = createMockEnv({
                 S3_ENDPOINT: '' as any,
             });
-            const appNoS3 = createAppWithEnv(envNoS3, 1);
+            const appNoS3 = createAppWithEnv(envNoS3, 1, true);
 
             const formData = new FormData();
             formData.append('key', 'test.txt');
@@ -258,7 +339,7 @@ describe('StorageService', () => {
             const envNoKey = createMockEnv({
                 S3_ACCESS_KEY_ID: '',
             });
-            const appNoKey = createAppWithEnv(envNoKey, 1);
+            const appNoKey = createAppWithEnv(envNoKey, 1, true);
 
             const formData = new FormData();
             formData.append('key', 'test.txt');
@@ -274,7 +355,133 @@ describe('StorageService', () => {
         });
     });
 
+    describe('GET /blob/* - active content handling', () => {
+        function blobEnv(objects: Record<string, { contentType: string; body: string }>) {
+            return createMockEnv({
+                R2_BUCKET: {
+                    get: async (key: string) => {
+                        const entry = objects[key];
+                        if (!entry) {
+                            return null;
+                        }
+                        return {
+                            key,
+                            size: entry.body.length,
+                            etag: 'etag',
+                            httpEtag: 'etag',
+                            uploaded: new Date('2025-01-01T00:00:00Z'),
+                            storageClass: 'Standard',
+                            checksums: {} as R2Checksums,
+                            httpMetadata: { contentType: entry.contentType },
+                            writeHttpMetadata(headers: Headers) {
+                                headers.set('Content-Type', entry.contentType);
+                            },
+                            body: new Blob([entry.body]).stream(),
+                            bodyUsed: false,
+                            arrayBuffer: async () => new TextEncoder().encode(entry.body).buffer,
+                            text: async () => entry.body,
+                            json: async () => JSON.parse(entry.body),
+                            blob: async () => new Blob([entry.body]),
+                            bytes: async () => new Uint8Array(new TextEncoder().encode(entry.body)),
+                        } as unknown as R2ObjectBody;
+                    },
+                } as unknown as R2Bucket,
+                S3_ACCESS_HOST: '' as any,
+            });
+        }
+
+        it('serves same-origin HTML and SVG as inert attachments', async () => {
+            const r2Env = blobEnv({
+                'images/page.html': { contentType: 'text/html', body: '<script>alert(1)</script>' },
+                'images/logo.svg': { contentType: 'image/svg+xml', body: '<svg onload="alert(1)"/>' },
+            });
+            const r2App = createAppWithEnv(r2Env, undefined, false);
+
+            for (const key of ['images/page.html', 'images/logo.svg']) {
+                const res = await r2App.request(`/blob/${key}`, { method: 'GET' }, r2Env);
+                expect(res.status).toBe(200);
+                expect(res.headers.get('content-type')).toBe('application/octet-stream');
+                expect(res.headers.get('content-disposition')).toBe('attachment');
+                expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+                expect(res.headers.get('content-security-policy')).toContain("default-src 'none'");
+                expect(res.headers.get('content-security-policy')?.split(';').map(value => value.trim())).toContain('sandbox');
+            }
+        });
+
+        it('keeps images inline but still non-sniffable and public', async () => {
+            const r2Env = blobEnv({
+                'images/photo.png': { contentType: 'image/png', body: 'png-bytes' },
+            });
+            const r2App = createAppWithEnv(r2Env, undefined, false);
+
+            const res = await r2App.request('/blob/images/photo.png', { method: 'GET' }, r2Env);
+
+            // Public read must stay available to anonymous visitors.
+            expect(res.status).toBe(200);
+            expect(res.headers.get('content-type')).toBe('image/png');
+            expect(res.headers.get('content-disposition')).toBe('inline');
+            expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+            expect(res.headers.get('access-control-allow-origin')).toBe('*');
+        });
+
+        it('does not trust the key extension for content type', async () => {
+            const r2Env = blobEnv({
+                // A stored object named .png that actually claims HTML.
+                'images/disguised.png': { contentType: 'text/html; charset=utf-8', body: '<script>alert(1)</script>' },
+            });
+            const r2App = createAppWithEnv(r2Env, undefined, false);
+
+            const res = await r2App.request('/blob/images/disguised.png', { method: 'GET' }, r2Env);
+
+            expect(res.status).toBe(200);
+            expect(res.headers.get('content-type')).toBe('application/octet-stream');
+            expect(res.headers.get('content-disposition')).toBe('attachment');
+        });
+    });
+
     describe('GET /blob/* - Stream file', () => {
+        it.each(['text/plain', 'text/html'])('preserves gzip bytes and encoding while enforcing safe headers for %s', async (contentType) => {
+            const compressed = new Uint8Array(Bun.gzipSync('<script>alert(1)</script>'));
+            const r2Env = createMockEnv({
+                R2_BUCKET: {
+                    get: async (key: string) => ({
+                        key,
+                        size: compressed.byteLength,
+                        httpEtag: '"gzip-etag"',
+                        uploaded: new Date('2025-01-01T00:00:00Z'),
+                        writeHttpMetadata(headers: Headers) {
+                            headers.set('Content-Type', contentType);
+                            headers.set('Content-Encoding', 'gzip');
+                            headers.set('Cache-Control', 'public, max-age=60');
+                            headers.set('Content-Disposition', 'inline');
+                            headers.set('Content-Security-Policy', "default-src * 'unsafe-inline'");
+                            headers.set('X-Content-Type-Options', 'invalid');
+                            headers.set('Set-Cookie', 'untrusted=value');
+                            headers.set('X-Storage-Internal', 'private');
+                        },
+                        body: new Blob([compressed]).stream(),
+                    }) as unknown as R2ObjectBody,
+                } as unknown as R2Bucket,
+            });
+            const r2App = createAppWithEnv(r2Env);
+
+            const res = await r2App.request('/blob/images/compressed', { method: 'GET' }, r2Env);
+
+            expect(res.status).toBe(200);
+            expect(res.headers.get('content-encoding')).toBe('gzip');
+            expect(res.headers.get('content-length')).toBe(String(compressed.byteLength));
+            expect(res.headers.get('etag')).toBe('"gzip-etag"');
+            expect(res.headers.get('last-modified')).toBe('Wed, 01 Jan 2025 00:00:00 GMT');
+            expect(res.headers.get('cache-control')).toBe('public, max-age=60');
+            expect(res.headers.get('content-type')).toBe(contentType === 'text/html' ? 'application/octet-stream' : contentType);
+            expect(res.headers.get('content-disposition')).toBe(contentType === 'text/html' ? 'attachment' : 'inline');
+            expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+            expect(res.headers.get('content-security-policy')).toBe("default-src 'none'; sandbox");
+            expect(res.headers.get('set-cookie')).toBeNull();
+            expect(res.headers.get('x-storage-internal')).toBeNull();
+            expect(new Uint8Array(await res.arrayBuffer())).toEqual(compressed);
+        });
+
         it('should stream an R2 object through the blob route', async () => {
             const r2Env = createMockEnv({
                 R2_BUCKET: {
@@ -312,7 +519,7 @@ describe('StorageService', () => {
                 S3_SECRET_ACCESS_KEY: '',
             });
 
-            const r2App = createAppWithEnv(r2Env, 1);
+            const r2App = createAppWithEnv(r2Env, 1, true);
             const res = await r2App.request('/blob/images/test.txt', { method: 'GET' }, r2Env);
 
             expect(res.status).toBe(200);

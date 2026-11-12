@@ -12,6 +12,38 @@ import {
     NotFoundError
 } from "../errors";
 
+
+/** Constant-time string comparison for one-shot tokens such as OAuth state. */
+function timingSafeEqual(a: string, b: string) {
+    const left = new TextEncoder().encode(a);
+    const right = new TextEncoder().encode(b);
+    let diff = left.length ^ right.length;
+    const len = Math.max(left.length, right.length);
+    for (let i = 0; i < len; i++) {
+        diff |= (left[i] ?? 0) ^ (right[i] ?? 0);
+    }
+    return diff === 0;
+}
+
+/**
+ * 单 Worker 同源部署，页面与接口同源，OAuth 回跳只允许同源。
+ */
+function isTrustedRedirect(c: AppContext, target: URL) {
+    return target.origin === new URL(c.req.url).origin;
+}
+
+function safeRedirectTarget(c: AppContext, stored: string | undefined): URL | null {
+    if (!stored) {
+        return null;
+    }
+    try {
+        const target = new URL(stored, c.req.url);
+        return isTrustedRedirect(c, target) ? target : null;
+    } catch {
+        return null;
+    }
+}
+
 export function UserService(): Hono {
     const app = new Hono();
 
@@ -29,8 +61,18 @@ export function UserService(): Hono {
             throw new BadRequestError('Referer header is required');
         }
 
-        // Build callback URL from referer
-        const refererUrl = new URL(referer);
+        // Build the callback URL only from a same-origin Referer.
+        let refererUrl: URL;
+        try {
+            refererUrl = new URL(referer);
+        } catch {
+            throw new BadRequestError('Invalid referer header');
+        }
+
+        if (!isTrustedRedirect(c, refererUrl)) {
+            throw new BadRequestError('Untrusted referer origin');
+        }
+
         const callbackUrl = new URL('/callback', refererUrl.origin);
 
         setCookie(c, 'redirect_to', callbackUrl.toString(), {
@@ -58,16 +100,15 @@ export function UserService(): Hono {
         const query = c.req.query();
         const stateCookie = getCookie(c, 'state');
 
-        console.log('param_state', query.state);
-        console.log('cookie_state', stateCookie);
+        // Always drop the one-shot state cookie before validating it.
+        deleteCookie(c, 'state', { path: '/' });
 
-        // Verify state to prevent CSRF attacks
-        if (query.state !== stateCookie) {
+        // Verify state to prevent CSRF attacks. A missing parameter or a
+        // missing/stale cookie must never be treated as a match.
+        const stateParam = typeof query.state === 'string' ? query.state : '';
+        if (!stateParam || !stateCookie || !timingSafeEqual(stateParam, stateCookie)) {
             throw new BadRequestError('Invalid state parameter');
         }
-
-        // Clear state cookie
-        deleteCookie(c, 'state');
 
         // Exchange code for access token
         const gh_token = await profileAsync(c, 'user_oauth_authorize', () => oauth2.authorize("GitHub", query.code));
@@ -138,9 +179,16 @@ export function UserService(): Hono {
         }
 
         const redirectTo = getCookie(c, 'redirect_to');
-        const redirect_url = new URL(redirectTo || '/');
-        // Add token to URL for frontend to store (for cross-domain auth)
-        if (authToken) {
+        deleteCookie(c, 'redirect_to', { path: '/' });
+
+        // Only same-origin redirects receive the JWT in the URL. Missing or
+        // untrusted targets fall back to the same-origin root without a token.
+        const redirect_url = safeRedirectTarget(c, redirectTo);
+        if (!redirect_url) {
+            return c.redirect(new URL('/', c.req.url).toString(), 302);
+        }
+
+        if (authToken && redirect_url.origin === new URL(c.req.url).origin) {
             redirect_url.searchParams.set('token', authToken);
         }
         return c.redirect(redirect_url.toString(), 302);

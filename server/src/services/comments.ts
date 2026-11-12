@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { comments, feeds, users } from "../db/schema";
 import { profileAsync } from "../core/server-timing";
 import { notify } from "../utils/webhook";
@@ -13,9 +13,11 @@ export function CommentService(): Hono {
         const db = c.get('db');
         const feedId = parseInt(c.req.param('feed'));
         
+        // Only approved comments are public; the guest email column must never
+        // leave the server.
         const comment_list = await profileAsync(c, 'comment_list_db', () => db.query.comments.findMany({
-            where: eq(comments.feedId, feedId),
-            columns: { feedId: false, userId: false },
+            where: and(eq(comments.feedId, feedId), eq(comments.approved, 1)),
+            columns: { feedId: false, userId: false, guestEmail: false },
             with: {
                 user: {
                     columns: { id: true, username: true, avatar: true, permission: true }
@@ -36,7 +38,6 @@ export function CommentService(): Hono {
                 ...rest,
                 user: null,
                 guestName: rest.guestName || "",
-                guestEmail: rest.guestEmail || "",
                 guestWebsite: rest.guestWebsite || "",
             };
         });

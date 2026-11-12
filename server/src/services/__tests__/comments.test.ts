@@ -53,6 +53,59 @@ describe('CommentService', () => {
         `);
     }
 
+    describe('GET /:feed - privacy and approval filtering', () => {
+        it('should never expose guest emails in the public comment list', async () => {
+            sqlite.exec(`
+                INSERT INTO comments (id, feed_id, user_id, content, guest_name, guest_email, guest_website, approved)
+                VALUES (10, 1, NULL, 'Guest comment', 'Visitor', 'visitor@example.com', 'https://visitor.example', 1)
+            `);
+
+            const res = await app.request('/1', { method: 'GET' }, env);
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as any[];
+            const guest = data.find((item) => item.guestName === 'Visitor');
+            expect(guest).toBeDefined();
+            expect(guest).not.toHaveProperty('guestEmail');
+            expect(JSON.stringify(data)).not.toContain('visitor@example.com');
+            expect(guest.guestWebsite).toBe('https://visitor.example');
+        });
+
+        it('should hide unapproved comments from the public list', async () => {
+            sqlite.exec(`
+                INSERT INTO comments (id, feed_id, user_id, content, guest_name, approved)
+                VALUES (11, 1, NULL, 'Pending guest comment', 'Pending', 0)
+            `);
+
+            const res = await app.request('/1', { method: 'GET' }, env);
+
+            expect(res.status).toBe(200);
+            const data = await res.json() as any[];
+            expect(data.some((item) => item.content === 'Pending guest comment')).toBe(false);
+            expect(data.every((item) => item.approved === 1)).toBe(true);
+        });
+
+        it('should keep the baseline default policy (guest comments are auto-approved)', async () => {
+            const res = await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: 'Auto approved', guestName: 'Visitor2' }),
+            }, env);
+            expect(res.status).toBe(200);
+
+            const row = sqlite.prepare(
+                `SELECT approved FROM comments WHERE guest_name = 'Visitor2'`
+            ).get() as any;
+            expect(row?.approved).toBe(1);
+
+            const listRes = await app.request('/1', { method: 'GET' }, env);
+            const data = await listRes.json() as any[];
+            const created = data.find((item) => item.content === 'Auto approved');
+            expect(created).toBeDefined();
+            expect(created).not.toHaveProperty('guestEmail');
+        });
+    });
+
     describe('GET /:feed - List comments', () => {
         it('should return comments for a feed', async () => {
             const res = await app.request('/1', { method: 'GET' }, env);

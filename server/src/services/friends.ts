@@ -7,6 +7,26 @@ import { friends } from "../db/schema";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
 
+/**
+ * Friend URLs are later requested server-side by the health crontab, so they
+ * must at least be well formed absolute http(s) URLs with a host.
+ */
+export function isAllowedFriendUrl(value: unknown): value is string {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    let url: URL;
+    try {
+        url = new URL(value);
+    } catch {
+        return false;
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return false;
+    }
+    return url.hostname.length > 0;
+}
+
 export function FriendService(): Hono {
     const app = new Hono();
 
@@ -52,12 +72,20 @@ export function FriendService(): Hono {
             return c.text('Friend Link Apply Disabled', 403);
         }
         
+        if (typeof name !== 'string' || typeof desc !== 'string' || typeof avatar !== 'string' || typeof url !== 'string') {
+            return c.text('Invalid input', 400);
+        }
+
         if (name.length > 20 || desc.length > 100 || avatar.length > 100 || url.length > 100) {
             return c.text('Invalid input', 400);
         }
-        
+
         if (name.length === 0 || desc.length === 0 || avatar.length === 0 || url.length === 0) {
             return c.text('Invalid input', 400);
+        }
+
+        if (!isAllowedFriendUrl(url)) {
+            return c.text('Invalid friend url', 400);
         }
         
         if (!uid) {
@@ -137,6 +165,10 @@ export function FriendService(): Hono {
         
         if (!admin && exist.uid !== uid) {
             return c.text('Permission denied', 403);
+        }
+
+        if (url !== undefined && url !== null && url !== '' && !isAllowedFriendUrl(url)) {
+            return c.text('Invalid friend url', 400);
         }
         
         let finalAccepted = accepted;
