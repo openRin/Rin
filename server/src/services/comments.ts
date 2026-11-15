@@ -49,8 +49,18 @@ export function CommentService(): Hono {
         const db = c.get('db');
         const env = c.get('env');
         const serverConfig = c.get('serverConfig');
+        const clientConfig = c.get('clientConfig');
         const uid = c.get('uid');
+        const admin = c.get('admin');
         const feedId = parseInt(c.req.param('feed'));
+
+        // Turning comments off only hides the form in the client, so refuse new
+        // comments here too (#585).
+        const enable = await profileAsync(c, 'comment_create_config', () => clientConfig.getOrDefault('comment.enabled', true));
+        if (!enable && !admin) {
+            return c.text('Comment Disabled', 403);
+        }
+
         const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
         const { content, guestName, guestEmail, guestWebsite } = body;
         
