@@ -11,9 +11,12 @@ export const CLIENT_CONFIG_DEFAULTS = new Map(
     "header.layout": "classic",
     "feed.layout": "list",
     "feed.card_variant": "default",
+    "article.width": "normal",
     "theme.color": "#fc466b",
     "comment.enabled": true,
     "login.enabled": true,
+    "moments.enabled": false,
+    "friends.enabled": false,
     "site.name": "Rin",
     "site.description": "A lightweight personal blogging system",
     "site.avatar": "",
@@ -78,6 +81,11 @@ export class ConfigWrapper {
       return this.defaultConfig.get(key) as T;
     }
     return undefined;
+  }
+
+  // 返回存储的原始值：空字符串表示「用户已显式清空」，不回退到默认值
+  getRaw<T>(key: string) {
+    return this.config[key] as T | undefined;
   }
 
   default<T>(key: string) {

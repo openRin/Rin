@@ -81,9 +81,11 @@ export function TimelinePage() {
                                     </span>
                             </h1>
                             <div className="w-full flex flex-col justify-center items-start my-4">
-                                {feeds[+year]?.map(({ id, title, createdAt }) => (
+                                {feeds[+year]?.map(({ id, title, createdAt }, index) => (
                                     <FeedItem key={id} id={id.toString()} title={title || t('unlisted')}
-                                              createdAt={new Date(createdAt)}/>
+                                              createdAt={new Date(createdAt)}
+                                              index={index}
+                                              isLast={index === (feeds[+year]?.length ?? 0) - 1}/>
                                 ))}
                             </div>
                         </div>
@@ -94,14 +96,25 @@ export function TimelinePage() {
     )
 }
 
-export function FeedItem({ id, title, createdAt }: { id: string, title: string, createdAt: Date }) {
+export function FeedItem({ id, title, createdAt, isLast, index = 0 }: { id: string, title: string, createdAt: Date, isLast?: boolean, index?: number }) {
     const formatter = new Intl.DateTimeFormat('en-US', { day: '2-digit', month: '2-digit' });
     return (
-        <div className="flex min-w-0 flex-row pl-8">
-            <div className="flex shrink-0 flex-row items-center">
-                <div className="w-2 h-2 bg-theme rounded-full"></div>
+        <div className="relative flex min-w-0 flex-row items-center pb-6 last:pb-0">
+            {!isLast && (
+                <div className="absolute left-[9px] top-5 bottom-0 w-px bg-theme/30"></div>
+            )}
+            <div className="relative z-10 h-[18px] w-[18px] shrink-0">
+                <div
+                    className="timeline-ripple absolute inset-0 rounded-full bg-theme"
+                    style={{ animationDelay: `${(index % 6) * 0.3}s` }}
+                ></div>
+                <div className="relative flex h-[18px] w-[18px] items-center justify-center rounded-full bg-theme ring-4 ring-[rgb(var(--rin-canvas-rgb))]">
+                    <svg viewBox="0 0 12 12" fill="none" className="h-2.5 w-2.5 text-white">
+                        <path d="M2.5 6.5L5 9L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                </div>
             </div>
-            <div className="m-2 flex min-w-0 flex-1 flex-row items-center space-x-4 rounded-2xl duration-300">
+            <div className="ml-4 flex min-w-0 flex-1 flex-row items-center space-x-4 duration-300">
                 <span className="shrink-0 text-sm t-secondary" title={new Date(createdAt).toLocaleString()}>
                     {formatter.format(new Date(createdAt))}
                 </span>

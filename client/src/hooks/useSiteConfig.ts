@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { ClientConfigContext } from "../state/config";
+import { normalizeArticleWidth } from "../components/article-width-options";
 import { normalizeFeedCardVariant } from "../components/feed-card-options";
 import { normalizeFeedLayout } from "../components/feed-layout-options";
 
@@ -12,8 +13,11 @@ export const SITE_CONFIG_KEYS = {
     pageSize: "site.page_size",
     feedLayout: "feed.layout",
     feedCardVariant: "feed.card_variant",
+    articleWidth: "article.width",
     headerLayout: "header.layout",
     themeColor: "theme.color",
+    momentsEnabled: "moments.enabled",
+    friendsEnabled: "friends.enabled",
 } as const;
 
 // Hook to get site configuration
@@ -35,8 +39,11 @@ export function useSiteConfig() {
         headerBehavior: config.get<string>(SITE_CONFIG_KEYS.headerBehavior) || "fixed",
         feedLayout: normalizeFeedLayout(config.get<string>(SITE_CONFIG_KEYS.feedLayout) || "list"),
         feedCardVariant: normalizeFeedCardVariant(config.get<string>(SITE_CONFIG_KEYS.feedCardVariant) || "default"),
+        articleWidth: normalizeArticleWidth(config.get<string>(SITE_CONFIG_KEYS.articleWidth) || "normal"),
         headerLayout: config.get<string>(SITE_CONFIG_KEYS.headerLayout) || "classic",
         themeColor: config.get<string>(SITE_CONFIG_KEYS.themeColor) || "#fc466b",
+        momentsEnabled: config.getBoolean(SITE_CONFIG_KEYS.momentsEnabled),
+        friendsEnabled: config.getBoolean(SITE_CONFIG_KEYS.friendsEnabled),
     };
 }
 

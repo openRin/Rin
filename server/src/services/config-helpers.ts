@@ -181,8 +181,9 @@ export async function getClientConfigWithDefaults(
     : await clientConfig.all();
   const result: Record<string, unknown> = Object.fromEntries(all);
 
+  // 仅当 key 未存储时才回退到 env 默认值；空字符串表示用户已显式清空，优先级高于 env
   for (const [configKey, envKey] of Object.entries(CLIENT_CONFIG_ENV_DEFAULTS)) {
-    if (result[configKey] === undefined || result[configKey] === "") {
+    if (result[configKey] === undefined) {
       const envValue = env[envKey as keyof Env];
       if (envValue) {
         result[configKey] = envValue;
@@ -190,7 +191,7 @@ export async function getClientConfigWithDefaults(
     }
   }
 
-  if (result["site.page_size"] === undefined || result["site.page_size"] === "") {
+  if (result["site.page_size"] === undefined) {
     result["site.page_size"] = 5;
   }
 

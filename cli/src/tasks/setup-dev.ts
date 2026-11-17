@@ -16,17 +16,13 @@ export async function runSetupDev() {
   }
 
   const env = parseEnv(fs.readFileSync(envFile, "utf-8"));
-  const baseRequiredVars = [
-    "NAME",
-    "AVATAR",
-    "RIN_GITHUB_CLIENT_ID",
-    "RIN_GITHUB_CLIENT_SECRET",
-    "JWT_SECRET",
-  ];
+  // GitHub OAuth 为可选配置，未设置时仅支持账号密码登录（与服务端行为保持一致）
+  // NAME/AVATAR 也是可选配置，未设置时使用默认值
+  const requiredVars = ["JWT_SECRET"];
   const storageRequiredVars = env.R2_BUCKET_NAME
     ? []
     : ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"];
-  const requiredVars = [...baseRequiredVars, ...storageRequiredVars];
+  requiredVars.push(...storageRequiredVars);
 
   const missingVars = requiredVars.filter((name) => !env[name]);
   if (missingVars.length > 0) {
@@ -89,11 +85,13 @@ preview_bucket_name = "${env.R2_BUCKET_NAME}"`
 `;
 
   fs.writeFileSync(path.join(rootDir, "wrangler.toml"), wranglerContent);
+  // dev 模式下前端由 Vite 提供，assets 目录只需存在，wrangler 才能启动
+  fs.mkdirSync(path.join(rootDir, "dist", "client"), { recursive: true });
   fs.writeFileSync(
     path.join(rootDir, "client", ".env"),
-    `NAME=${env.NAME}
+    `NAME=${env.NAME || "Rin"}
 DESCRIPTION=${env.DESCRIPTION || ""}
-AVATAR=${env.AVATAR}
+AVATAR=${env.AVATAR || ""}
 PAGE_SIZE=${env.PAGE_SIZE || "5"}
 RSS_ENABLE=${env.RSS_ENABLE || "false"}
 `,

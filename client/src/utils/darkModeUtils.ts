@@ -21,16 +21,17 @@ export function listenSystemMode() {
   mediaQuery.addEventListener("change", darkModeHandler);
 }
 
-export function getCurrentColorMode(): "light" | "dark" {
+export type ColorMode = "light" | "dark" | "warm";
+
+export function getCurrentColorMode(): ColorMode {
   return (
-    (document.documentElement.getAttribute("data-color-mode") as
-      | "light"
-      | "dark") || "light"
+    (document.documentElement.getAttribute("data-color-mode") as ColorMode) ||
+    "light"
   );
 }
 
 export function useColorMode() {
-  const [colorMode, setColorMode] = useState<"light" | "dark">(
+  const [colorMode, setColorMode] = useState<ColorMode>(
     getCurrentColorMode()
   );
 

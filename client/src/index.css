@@ -133,6 +133,26 @@ ul {
   animation: anvil 0.3s cubic-bezier(0.38, 0.1, 0.36, 0.9) forwards;
 }
 
+/* timeline 节点涟漪动画 */
+@keyframes timeline-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.timeline-ripple {
+  animation: timeline-ripple 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+}
+
 .table {
   @apply w-full border-collapse my-4;
   overflow-x: auto;

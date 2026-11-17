@@ -500,6 +500,20 @@
         "masonry": "按卡片高度自动拼接的多列布局，更适合长短不一的内容。"
       }
     },
+    "article_width": {
+      "title": "文章宽度",
+      "desc": "选择文章页正文的显示宽度",
+      "options": {
+        "normal": "常规",
+        "wide": "超宽",
+        "full": "全宽"
+      },
+      "preview": {
+        "normal": "保持默认的文章宽度，适合纯文字阅读。",
+        "wide": "在常规宽度基础上再加 30%，适合代码块和表格较多的文章。",
+        "full": "撑满浏览器中除目录以外的可用宽度。"
+      }
+    },
     "theme_color": {
       "title": "主题色",
       "desc": "选择按钮、高亮和交互元素使用的强调色",
@@ -521,6 +535,18 @@
     "wordpress": {
       "desc": "上传 WordPress 导出的 XML 文件",
       "title": "从 WordPress 导入"
+    },
+    "moments": {
+      "enable": {
+        "title": "启用动态",
+        "desc": "开启/关闭顶部导航栏中的「动态」入口"
+      }
+    },
+    "friends": {
+      "enable": {
+        "title": "启用朋友们",
+        "desc": "开启/关闭顶部导航栏中的「朋友们」入口"
+      }
     }
   },
   "sitename": "站点名称",
